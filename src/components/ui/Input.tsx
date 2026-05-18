@@ -8,6 +8,10 @@ import { useId } from "react";
 import { AlertCircle, ChevronDown } from "lucide-react";
 import { cn, focusRing, interactiveMotion } from "./component-utils";
 
+/* -------------------------------------------------------------------------- */
+/*  FieldChrome – shared props for all field components                       */
+/* -------------------------------------------------------------------------- */
+
 export interface FieldChromeProps {
   label?: string;
   helperText?: string;
@@ -17,32 +21,25 @@ export interface FieldChromeProps {
   fullWidth?: boolean;
 }
 
-export interface InputProps
-  extends FieldChromeProps,
-    Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {}
+/* -------------------------------------------------------------------------- */
+/*  FieldWrapper – shared label + control + help structure                    */
+/* -------------------------------------------------------------------------- */
 
-export interface TextAreaProps
-  extends FieldChromeProps,
-    TextareaHTMLAttributes<HTMLTextAreaElement> {}
-
-export interface SelectOption {
-  value: string;
-  label: string;
-  disabled?: boolean;
-}
-
-export interface SelectFieldProps
-  extends FieldChromeProps,
-    SelectHTMLAttributes<HTMLSelectElement> {
-  options: SelectOption[];
-  placeholder?: string;
+export interface FieldWrapperProps {
+  id?: string;
+  label?: string;
+  helperText?: string;
+  error?: string;
+  fullWidth?: boolean;
+  children: (fieldIds: {
+    controlId: string;
+    helperId: string;
+    errorId: string;
+  }) => ReactNode;
 }
 
 function FieldLabel({ id, label }: { id: string; label?: string }) {
-  if (!label) {
-    return null;
-  }
-
+  if (!label) return null;
   return (
     <label className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3" htmlFor={id}>
       {label}
@@ -81,6 +78,36 @@ function FieldHelp({
   return null;
 }
 
+export function FieldWrapper({
+  id,
+  label,
+  helperText,
+  error,
+  fullWidth = true,
+  children,
+}: FieldWrapperProps) {
+  const generatedId = useId();
+  const controlId = id ?? generatedId;
+  const helperId = `${controlId}-helper`;
+  const errorId = `${controlId}-error`;
+
+  return (
+    <div className={cn("flex flex-col gap-2", fullWidth && "w-full")}>
+      <FieldLabel id={controlId} label={label} />
+      {children({ controlId, helperId, errorId })}
+      <FieldHelp error={error} errorId={errorId} helperId={helperId} helperText={helperText} />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Input                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export interface InputProps
+  extends FieldChromeProps,
+    Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {}
+
 const controlClasses =
   "w-full border border-line bg-surface text-body-md text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:bg-paper-4 disabled:text-ink-4";
 
@@ -90,78 +117,93 @@ export function Input({
   error,
   leadingIcon,
   trailingIcon,
-  fullWidth = true,
+  fullWidth,
   className,
   id,
   ...props
 }: InputProps) {
-  const generatedId = useId();
-  const inputId = id ?? generatedId;
-  const helperId = `${inputId}-helper`;
-  const errorId = `${inputId}-error`;
-
   return (
-    <div className={cn("flex flex-col gap-2", fullWidth && "w-full")}>
-      <FieldLabel id={inputId} label={label} />
-      <div
-        className={cn(
-          "group flex min-h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
-          interactiveMotion,
-          error && "border-error",
-          props.disabled && "bg-paper-4"
-        )}
-      >
-        {leadingIcon ? (
-          <span className="text-ink-3 group-focus-within:text-accent">{leadingIcon}</span>
-        ) : null}
-        <input
-          id={inputId}
-          aria-describedby={error ? errorId : helperText ? helperId : undefined}
-          aria-invalid={error ? true : undefined}
-          className={cn("min-w-0 flex-1 bg-transparent py-3 outline-none", controlClasses, "border-0 p-0", className)}
-          {...props}
-        />
-        {trailingIcon ? <span className="text-ink-3">{trailingIcon}</span> : null}
-      </div>
-      <FieldHelp error={error} errorId={errorId} helperId={helperId} helperText={helperText} />
-    </div>
+    <FieldWrapper id={id} label={label} helperText={helperText} error={error} fullWidth={fullWidth}>
+      {({ controlId, helperId, errorId }) => (
+        <div
+          className={cn(
+            "group flex min-h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+            interactiveMotion,
+            error && "border-error",
+            props.disabled && "bg-paper-4"
+          )}
+        >
+          {leadingIcon ? (
+            <span className="text-ink-3 group-focus-within:text-accent">{leadingIcon}</span>
+          ) : null}
+          <input
+            id={controlId}
+            aria-describedby={error ? errorId : helperText ? helperId : undefined}
+            aria-invalid={error ? true : undefined}
+            className={cn("min-w-0 flex-1 bg-transparent py-3 outline-none", controlClasses, "border-0 p-0", className)}
+            {...props}
+          />
+          {trailingIcon ? <span className="text-ink-3">{trailingIcon}</span> : null}
+        </div>
+      )}
+    </FieldWrapper>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/*  TextArea                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export interface TextAreaProps
+  extends FieldChromeProps,
+    TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 export function TextArea({
   label,
   helperText,
   error,
-  fullWidth = true,
+  fullWidth,
   className,
   id,
   ...props
 }: TextAreaProps) {
-  const generatedId = useId();
-  const inputId = id ?? generatedId;
-  const helperId = `${inputId}-helper`;
-  const errorId = `${inputId}-error`;
-
   return (
-    <div className={cn("flex flex-col gap-2", fullWidth && "w-full")}>
-      <FieldLabel id={inputId} label={label} />
-      <textarea
-        id={inputId}
-        aria-describedby={error ? errorId : helperText ? helperId : undefined}
-        aria-invalid={error ? true : undefined}
-        className={cn(
-          controlClasses,
-          focusRing,
-          "min-h-[120px] max-h-[240px] resize-y rounded-[9px] px-3 py-3 outline-none focus:scale-[1.01] focus:border-accent/50 focus:shadow-focus",
-          interactiveMotion,
-          error && "border-error",
-          className
-        )}
-        {...props}
-      />
-      <FieldHelp error={error} errorId={errorId} helperId={helperId} helperText={helperText} />
-    </div>
+    <FieldWrapper id={id} label={label} helperText={helperText} error={error} fullWidth={fullWidth}>
+      {({ controlId, helperId, errorId }) => (
+        <textarea
+          id={controlId}
+          aria-describedby={error ? errorId : helperText ? helperId : undefined}
+          aria-invalid={error ? true : undefined}
+          className={cn(
+            controlClasses,
+            focusRing,
+            "min-h-[120px] max-h-[240px] resize-y rounded-[9px] px-3 py-3 outline-none focus:scale-[1.01] focus:border-accent/50 focus:shadow-focus",
+            interactiveMotion,
+            error && "border-error",
+            className
+          )}
+          {...props}
+        />
+      )}
+    </FieldWrapper>
   );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  SelectField                                                                */
+/* -------------------------------------------------------------------------- */
+
+export interface SelectOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
+export interface SelectFieldProps
+  extends FieldChromeProps,
+    SelectHTMLAttributes<HTMLSelectElement> {
+  options: SelectOption[];
+  placeholder?: string;
 }
 
 export function SelectField({
@@ -169,57 +211,52 @@ export function SelectField({
   helperText,
   error,
   leadingIcon,
-  fullWidth = true,
+  fullWidth,
   className,
   id,
   options,
   placeholder,
   ...props
 }: SelectFieldProps) {
-  const generatedId = useId();
-  const selectId = id ?? generatedId;
-  const helperId = `${selectId}-helper`;
-  const errorId = `${selectId}-error`;
-
   return (
-    <div className={cn("flex flex-col gap-2", fullWidth && "w-full")}>
-      <FieldLabel id={selectId} label={label} />
-      <div
-        className={cn(
-          "group flex min-h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
-          interactiveMotion,
-          error && "border-error",
-          props.disabled && "bg-paper-4"
-        )}
-      >
-        {leadingIcon ? (
-          <span className="text-ink-3 group-focus-within:text-accent">{leadingIcon}</span>
-        ) : null}
-        <select
-          id={selectId}
-          aria-describedby={error ? errorId : helperText ? helperId : undefined}
-          aria-invalid={error ? true : undefined}
+    <FieldWrapper id={id} label={label} helperText={helperText} error={error} fullWidth={fullWidth}>
+      {({ controlId, helperId, errorId }) => (
+        <div
           className={cn(
-            "min-w-0 flex-1 appearance-none bg-transparent py-3 text-body-md text-ink outline-none disabled:cursor-not-allowed disabled:text-ink-4",
-            className
+            "group flex min-h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+            interactiveMotion,
+            error && "border-error",
+            props.disabled && "bg-paper-4"
           )}
-          {...props}
         >
-          {placeholder ? (
-            <option value="" disabled>
-              {placeholder}
-            </option>
+          {leadingIcon ? (
+            <span className="text-ink-3 group-focus-within:text-accent">{leadingIcon}</span>
           ) : null}
-          {options.map((option) => (
-            <option disabled={option.disabled} key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown aria-hidden="true" className="h-4 w-4 text-ink-3" />
-      </div>
-      <FieldHelp error={error} errorId={errorId} helperId={helperId} helperText={helperText} />
-    </div>
+          <select
+            id={controlId}
+            aria-describedby={error ? errorId : helperText ? helperId : undefined}
+            aria-invalid={error ? true : undefined}
+            className={cn(
+              "min-w-0 flex-1 appearance-none bg-transparent py-3 text-body-md text-ink outline-none disabled:cursor-not-allowed disabled:text-ink-4",
+              className
+            )}
+            {...props}
+          >
+            {placeholder ? (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            ) : null}
+            {options.map((option) => (
+              <option disabled={option.disabled} key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown aria-hidden="true" className="h-4 w-4 text-ink-3" />
+        </div>
+      )}
+    </FieldWrapper>
   );
 }
 

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -34,15 +34,26 @@ describe("useSearch hooks", () => {
 
   describe("useWebSearch(filters)", () => {
     it("uses query key ['search', 'web', filters]", async () => {
-      const mockResponse = {
+      const rawApiResponse = {
+        properties: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        total_pages: 0,
+        filters_applied: undefined,
+        search_center: undefined
+      };
+      const expectedCache = {
         results: [],
         total: 0,
         page: 1,
         limit: 20,
         total_pages: 0,
-        search_type: "listings"
+        search_type: "listings",
+        filters_applied: undefined,
+        search_center: undefined
       };
-      mockRequest.mockResolvedValue(mockResponse);
+      mockRequest.mockResolvedValue(rawApiResponse);
 
       const filters = { q: "HSR", city: "Bangalore" };
       const queryClient = new QueryClient({
@@ -58,7 +69,7 @@ describe("useSearch hooks", () => {
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
 
       const cache = queryClient.getQueryData(["search", "web", filters]);
-      expect(cache).toEqual(mockResponse);
+      expect(cache).toEqual(expectedCache);
     });
 
     it("is disabled when all filters are empty", () => {
@@ -72,12 +83,11 @@ describe("useSearch hooks", () => {
 
     it("is enabled when at least one filter has a value", async () => {
       mockRequest.mockResolvedValue({
-        results: [],
+        properties: [],
         total: 0,
         page: 1,
         limit: 20,
-        total_pages: 0,
-        search_type: "listings"
+        total_pages: 0
       });
 
       renderHook(
@@ -88,23 +98,22 @@ describe("useSearch hooks", () => {
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
     });
 
-    it("requests GET /flatmates/web/search with filters", async () => {
+    it("requests GET /properties with filters", async () => {
       mockRequest.mockResolvedValue({
-        results: [],
+        properties: [],
         total: 0,
         page: 1,
         limit: 20,
-        total_pages: 0,
-        search_type: "listings"
+        total_pages: 0
       });
 
-      const filters = { q: "Koramangala", search_type: "listings" as const };
+      const filters = { q: "Koramangala" };
       renderHook(() => useWebSearch(filters), { wrapper: createWrapper() });
 
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("GET");
-      expect(call.path).toBe("/flatmates/web/search");
+      expect(call.path).toBe("/properties");
     });
   });
 
@@ -124,8 +133,10 @@ describe("useSearch hooks", () => {
         </QueryClientProvider>
       );
 
-      renderHook(() => useSavedSearches(), { wrapper });
-      await waitFor(() => expect(mockRequest).toHaveBeenCalled());
+      const { result } = renderHook(() => useSavedSearches(), { wrapper });
+      await act(async () => {
+        await result.current.refetch();
+      });
 
       const cache = queryClient.getQueryData(["search", "saved"]);
       expect(cache).toEqual(mockSearches);
@@ -134,9 +145,11 @@ describe("useSearch hooks", () => {
     it("requests GET /flatmates/web/saved-searches", async () => {
       mockRequest.mockResolvedValue([]);
 
-      renderHook(() => useSavedSearches(), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useSavedSearches(), { wrapper: createWrapper() });
+      await act(async () => {
+        await result.current.refetch();
+      });
 
-      await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("GET");
       expect(call.path).toBe("/flatmates/web/saved-searches");

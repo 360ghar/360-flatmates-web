@@ -158,11 +158,11 @@ export function HeroSection() {
 
           <WordReveal className="hero-stagger-5">
             <div className="mt-10 flex flex-col items-center gap-5 sm:flex-row sm:gap-4">
-              <Link to="/discover" className={buttonClasses("primary", "default") + " min-w-[200px] h-14 text-label-lg shadow-cta"}>
+              <Link to="/discover" className={buttonClasses("primary", "tall") + " min-w-[200px] shadow-cta"}>
                 Begin Your Search
               </Link>
               <Link
-                to="/search"
+                to="/discover"
                 className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 border-b border-ink-4 hover:border-accent pb-1"
               >
                 Explore Curated Listings

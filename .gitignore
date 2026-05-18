@@ -1,11 +1,35 @@
-.next/
+# Dependencies
 node_modules/
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# TypeScript
+tsconfig.tsbuildinfo
+
+# Test / Coverage
 coverage/
 playwright-report/
 test-results/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Tool-specific
+.next/
 .playwright-mcp/
-.env
-.env.local
-.env*.local
-dist/
-tsconfig.tsbuildinfo
+.factory/
+.auth/
+
+# Claude Code
+.claude/

@@ -11,6 +11,10 @@ const CLAIM_PRIMARY = "claim_primary";
 const PRIMARY_ALIVE = "primary_alive";
 const RELAY_EVENT = "relay_event";
 const RELINQUISH_PRIMARY = "relinquish_primary";
+// If the main thread is blocked (heavy render, long task) for longer than
+// this window, a CLAIM_PRIMARY message may go unanswered and two tabs could
+// both consider themselves primary (dual-primary). In practice this is rare
+// and self-healing: the next visibilitychange cycle re-negotiates.
 const NEGOTIATION_TIMEOUT_MS = 1_000;
 
 type BroadcastPayload =
@@ -101,16 +105,16 @@ export function relinquishPrimary(): void {
  * goes hidden, a secondary tab can negotiate to take over.
  */
 export function setupVisibilityNegotiation(): void {
+  if (visibilityHandler) {
+    document.removeEventListener("visibilitychange", visibilityHandler);
+  }
+
   visibilityHandler = () => {
     if (document.hidden && isPrimary) {
-      // Primary tab going hidden — relinquish so a visible tab can take over
       relinquishPrimary();
     } else if (!document.hidden && !isPrimary) {
-      // Secondary tab becoming visible — try to become primary
       becomePrimaryTab().then((won) => {
         if (won) {
-          // The consumer (useSSE hook) should reconnect SSE when
-          // this tab transitions from secondary to primary.
           dispatchPrimaryChanged(true);
         }
       });

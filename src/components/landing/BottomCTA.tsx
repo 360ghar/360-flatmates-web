@@ -23,7 +23,7 @@ export function BottomCTA() {
         <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
           <Link
             to="/discover"
-            className={buttonClasses("primary", "default") + " min-w-[240px] h-16 text-label-lg shadow-cta"}
+            className={buttonClasses("primary", "tall") + " min-w-[240px] shadow-cta"}
           >
             Start Your Application
           </Link>

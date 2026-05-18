@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -9,10 +9,12 @@ import {
 import L from "leaflet";
 import type { MapCluster, MapPin } from "@/lib/api/types";
 import type { MapBounds } from "@/lib/stores/map-store";
-import { LocateFixed, Minus, Plus, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Chip } from "../ui/Chip";
 import { cn } from "../ui/component-utils";
+import { Spinner } from "../ui/Spinner";
+import { MapZoomControls } from "../molecules/MapZoomControls";
 import "leaflet/dist/leaflet.css";
 
 // ── Props ──────────────────────────────────────────────────────
@@ -46,13 +48,24 @@ export interface MapViewProps {
 
 // ── Default center: New Delhi (matches map-store) ──────────────
 
-const DEFAULT_CENTER: [number, number] = [28.6139, 77.209];
+import { DEFAULT_CENTER as DEFAULT_CENTER_OBJECT } from "@/lib/stores/map-store";
+const DEFAULT_CENTER: [number, number] = [DEFAULT_CENTER_OBJECT.lat, DEFAULT_CENTER_OBJECT.lng];
 const DEFAULT_ZOOM = 12;
 
-// ── Design-token reader for Leaflet icon HTML ────────────────
+// ── Cached design-token reader for Leaflet icon HTML ────────────────
+
+const cssVarCache = new Map<string, string>();
 
 function getCSSVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const cached = cssVarCache.get(name);
+  if (cached !== undefined) return cached;
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  cssVarCache.set(name, value);
+  return value;
+}
+
+function invalidateCSSVarCache() {
+  cssVarCache.clear();
 }
 
 
@@ -151,42 +164,33 @@ function MapEventHandler({
   onViewportChange?: (bounds: MapBounds, zoom: number) => void;
 }) {
   const map = useMap();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useMapEvents({
     moveend: () => {
-      const bounds = map.getBounds();
-      const zoom = map.getZoom();
-      onViewportChange?.(
-        {
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest()
-        },
-        zoom
-      );
-    },
-    zoomend: () => {
-      const bounds = map.getBounds();
-      const zoom = map.getZoom();
-      onViewportChange?.(
-        {
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest()
-        },
-        zoom
-      );
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        const bounds = map.getBounds();
+        const zoom = map.getZoom();
+        onViewportChange?.(
+          {
+            north: bounds.getNorth(),
+            south: bounds.getSouth(),
+            east: bounds.getEast(),
+            west: bounds.getWest()
+          },
+          zoom
+        );
+      }, 150);
     }
   });
 
   return null;
 }
 
-// ── Map ref for zoom control ───────────────────────────────────
+// ── Leaflet-aware zoom control wrapper ────────────────────────────
 
-function MapZoomControls({
+function LeafletZoomControls({
   onLocate
 }: {
   onLocate?: () => void;
@@ -194,33 +198,11 @@ function MapZoomControls({
   const map = useMap();
 
   return (
-    <div className="absolute bottom-3 right-3 z-[1000] flex flex-col gap-1.5 sm:bottom-4 sm:right-4 sm:gap-2">
-      <Button
-        aria-label="Zoom in"
-        size="icon"
-        variant="secondary"
-        onClick={() => map.zoomIn()}
-      >
-        <Plus aria-hidden="true" className="h-5 w-5" />
-        <span className="sr-only">+</span>
-      </Button>
-      <Button
-        aria-label="Zoom out"
-        size="icon"
-        variant="secondary"
-        onClick={() => map.zoomOut()}
-      >
-        <Minus aria-hidden="true" className="h-5 w-5" />
-        <span className="sr-only">-</span>
-      </Button>
-      <Button
-        aria-label="Locate me"
-        size="icon"
-        onClick={onLocate}
-      >
-        <LocateFixed aria-hidden="true" className="h-5 w-5" />
-      </Button>
-    </div>
+    <MapZoomControls
+      onZoomIn={() => map.zoomIn()}
+      onZoomOut={() => map.zoomOut()}
+      onLocate={onLocate}
+    />
   );
 }
 
@@ -265,6 +247,16 @@ export function MapView({
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setIsMounted(true); }, []);
 
+  // Invalidate CSS variable cache when theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(invalidateCSSVarCache);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "data-palette"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   // Memoize icons to avoid re-creation on every render
   const pinIconMap = useMemo(() => {
     const map = new Map<number, L.DivIcon>();
@@ -308,7 +300,7 @@ export function MapView({
         )}
       >
         <div className="flex flex-1 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <Spinner size="md" />
         </div>
       </section>
     );
@@ -366,7 +358,7 @@ export function MapView({
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
           <MapEventHandler onViewportChange={onViewportChange} />
-          <MapZoomControls onLocate={onLocate} />
+          <LeafletZoomControls onLocate={onLocate} />
           <MapFlyTo target={flyToTarget} />
 
           {/* Cluster markers */}

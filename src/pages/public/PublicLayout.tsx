@@ -3,6 +3,7 @@ import { Link, Outlet } from "react-router";
 import { Menu, X } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { buttonClasses } from "@/components/ui/Button";
 import { cn, focusRing } from "@/components/ui/component-utils";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
@@ -36,6 +37,7 @@ export function PublicLayout() {
             ))}
           </nav>
           <div className="flex items-center gap-6">
+            <ThemeToggle size="sm" />
             <Link
               to="/login"
               className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300"
@@ -128,11 +130,6 @@ export function PublicLayout() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/search" className="text-body-md text-ink-3 hover:text-accent transition-colors">
-                    Search Hub
-                  </Link>
-                </li>
-                <li>
                   <Link to="/about" className="text-body-md text-ink-3 hover:text-accent transition-colors">
                     Our Philosophy
                   </Link>
@@ -154,7 +151,7 @@ export function PublicLayout() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/help" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/#faq-heading" className="text-body-md text-ink-3 hover:text-accent transition-colors">
                     Support
                   </Link>
                 </li>

@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api";
+import { getEnv } from "@/lib/env";
 import type { RegisterDevicePayload } from "@/lib/api/types";
 
 /**
@@ -36,7 +37,7 @@ export async function getFcmToken(): Promise<string | null> {
     return null;
   }
 
-  const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  const vapidKey = getEnv().VITE_VAPID_PUBLIC_KEY;
   if (!vapidKey) {
     console.warn("[fcm] VITE_VAPID_PUBLIC_KEY is not set; push registration skipped");
     return null;

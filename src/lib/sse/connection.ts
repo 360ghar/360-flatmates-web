@@ -79,6 +79,15 @@ export class SSEConnectionManager {
       return;
     }
 
+    // SECURITY NOTE: The EventSource API does not support custom headers,
+    // so the auth token is passed as a URL query parameter. This is a known
+    // limitation of the browser EventSource specification. Mitigations:
+    //  - Token is short-lived (Supabase JWT with refresh rotation)
+    //  - Token is URL-encoded to prevent injection
+    //  - Server should not log the full query string in production
+    //  - Referrer-Policy: no-referrer prevents token leakage via Referer
+    // Alternative: Use fetch() + ReadableStream for SSE with Authorization
+    // header, which avoids this risk but requires a custom SSE parser.
     const url = `${this.url}?token=${encodeURIComponent(token)}`;
     const es = new EventSource(url);
     this.eventSource = es;

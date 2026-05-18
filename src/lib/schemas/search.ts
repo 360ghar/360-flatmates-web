@@ -11,8 +11,12 @@ import {
   societyTypeSchema,
   listingSharingTypeSchema
 } from "./enums";
+import { minMaxRefine } from "./common";
 import { flatmatesPeerSchema } from "./profile";
 import { propertySchema } from "./listing-builder";
+
+const priceRefine = minMaxRefine("price_min", "price_max", "Minimum price cannot exceed maximum price");
+const bedroomsRefine = minMaxRefine("bedrooms_min", "bedrooms_max", "Minimum bedrooms cannot exceed maximum bedrooms");
 
 export const searchFiltersSchema = z
   .object({
@@ -44,26 +48,8 @@ export const searchFiltersSchema = z
     page: z.number().int().min(1).default(1),
     limit: z.number().int().min(1).max(100).default(20)
   })
-  .refine(
-    (value) =>
-      value.price_min === undefined ||
-      value.price_max === undefined ||
-      value.price_min <= value.price_max,
-    {
-      message: "Minimum price cannot exceed maximum price",
-      path: ["price_min"]
-    }
-  )
-  .refine(
-    (value) =>
-      value.bedrooms_min === undefined ||
-      value.bedrooms_max === undefined ||
-      value.bedrooms_min <= value.bedrooms_max,
-    {
-      message: "Minimum bedrooms cannot exceed maximum bedrooms",
-      path: ["bedrooms_min"]
-    }
-  );
+  .refine(priceRefine.check, priceRefine.opts)
+  .refine(bedroomsRefine.check, bedroomsRefine.opts);
 
 export const webSearchResponseSchema = z.object({
   results: z.array(z.union([propertySchema, flatmatesPeerSchema])),

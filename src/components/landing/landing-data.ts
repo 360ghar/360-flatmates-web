@@ -167,7 +167,7 @@ export const STATS: StatItem[] = [
   { display: "10K+", label: "Matched", numericValue: 10000 },
   { display: "5K+", label: "Listings", numericValue: 5000 },
   { display: "86%", label: "Avg. Compatibility", numericValue: 86 },
-  { display: "15+", label: "Cities", numericValue: 15 },
+  { display: "2", label: "Cities", numericValue: 2 },
 ];
 
 export const TESTIMONIALS: TestimonialItem[] = [
@@ -185,32 +185,32 @@ export const TESTIMONIALS: TestimonialItem[] = [
     city: "Delhi NCR",
     compatibility: 92,
   },
-  {
-    quote:
-      "Moving to a new city was stressful enough. 360 Flatmates made finding a flatmate who gets my work-from-home routine effortless.",
-    name: "Ananya S.",
-    city: "Pune",
-    compatibility: 79,
-  },
-  {
-    quote:
-      "Verified listings meant no more scam photos or fake rents. What I saw is what I got. Already recommended it to three friends.",
-    name: "Vikram T.",
-    city: "Hyderabad",
-    compatibility: 88,
-  },
+  // {
+  //   quote:
+  //     "Moving to a new city was stressful enough. 360 Flatmates made finding a flatmate who gets my work-from-home routine effortless.",
+  //   name: "Ananya S.",
+  //   city: "Pune",
+  //   compatibility: 79,
+  // },
+  // {
+  //   quote:
+  //     "Verified listings meant no more scam photos or fake rents. What I saw is what I got. Already recommended it to three friends.",
+  //   name: "Vikram T.",
+  //   city: "Hyderabad",
+  //   compatibility: 88,
+  // },
 ];
 
 export const CITIES: CityItem[] = [
   { name: "Gurugram", listings: 860, tint: "bg-coral-soft text-coral-mid" },
   { name: "Bangalore", listings: 1200, tint: "bg-teal-soft text-teal-mid" },
-  { name: "Mumbai", listings: 1100, tint: "bg-orange-soft text-orange-mid" },
-  { name: "Delhi NCR", listings: 950, tint: "bg-purple-soft text-purple-mid" },
-  { name: "Pune", listings: 780, tint: "bg-green-soft text-green-mid" },
-  { name: "Hyderabad", listings: 620, tint: "bg-blue-soft text-blue-mid" },
-  { name: "Chennai", listings: 540, tint: "bg-pink-soft text-pink-mid" },
-  { name: "Kolkata", listings: 380, tint: "bg-yellow-soft text-yellow-mid" },
-  { name: "Ahmedabad", listings: 290, tint: "bg-teal-soft text-teal-mid" },
+  // { name: "Mumbai", listings: 1100, tint: "bg-orange-soft text-orange-mid" },
+  // { name: "Delhi NCR", listings: 950, tint: "bg-purple-soft text-purple-mid" },
+  // { name: "Pune", listings: 780, tint: "bg-green-soft text-green-mid" },
+  // { name: "Hyderabad", listings: 620, tint: "bg-blue-soft text-blue-mid" },
+  // { name: "Chennai", listings: 540, tint: "bg-pink-soft text-pink-mid" },
+  // { name: "Kolkata", listings: 380, tint: "bg-yellow-soft text-yellow-mid" },
+  // { name: "Ahmedabad", listings: 290, tint: "bg-teal-soft text-teal-mid" },
 ];
 
 export const FAQ_ITEMS: FaqItem[] = [
@@ -247,7 +247,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Which cities are supported?",
     answer:
-      "We're active in 15+ cities across India including Bangalore, Delhi NCR, Mumbai, Pune, Hyderabad, Chennai, Kolkata, and Ahmedabad — with more cities added every month.",
+      "We're currently active in Gurugram and Bangalore — with more cities added every month.",
   },
   {
     question: "How do I report a problem?",

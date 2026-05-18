@@ -1,34 +1,15 @@
 import { Helmet } from "react-helmet-async";
 
 import SemanticSearchClient from "@/components/page-clients/SemanticSearchClient";
-
-const BASE_URL = import.meta.env.VITE_APP_URL ?? "https://360ghar.com";
+import { buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/utils/seo";
+import { BASE_URL } from "@/lib/config";
 
 export function SemanticSearchPage() {
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: BASE_URL,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Search",
-        item: `${BASE_URL}/search`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: "Semantic Search",
-        item: `${BASE_URL}/search/semantic`,
-      },
-    ],
-  };
+  const breadcrumbLd = buildBreadcrumbJsonLd([
+    homeBreadcrumb(),
+    { name: "Search", item: `${BASE_URL}/search` },
+    { name: "Semantic Search", item: `${BASE_URL}/search/semantic` },
+  ]);
 
   return (
     <>

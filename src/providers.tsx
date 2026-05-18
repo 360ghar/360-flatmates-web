@@ -1,26 +1,37 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { NuqsAdapter } from "nuqs/adapters/react-router";
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { type ReactNode, useCallback, useEffect, useRef, useSyncExternalStore, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useSSE } from "@/hooks/useSSE";
 import { ApiClientError, setAccessToken, setRefreshTokenHandler } from "@/lib/api";
 import { uiStore } from "@/lib/stores/ui-store";
 import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
+import { searchStore } from "@/lib/stores/search-store";
 import { Toast, ToastViewport } from "@/components/ui/Toast";
+import { PageSpinner } from "@/components/ui/Spinner";
 
-const TOKEN_REFRESH_KEY = "__auth_refresh_in_flight";
+let refreshPromise: Promise<string | null> | null = null;
 
 function ProviderInternals({
   children,
-  onForceLogout
 }: {
   children: ReactNode;
-  onForceLogout: () => void;
 }) {
   const { session, loading } = useAuth();
 
   const isAuthenticated = !loading && !!session;
+
+  const queryClient = useQueryClient();
+  const wasAuthenticated = useRef(isAuthenticated);
+
+  useEffect(() => {
+    if (wasAuthenticated.current && !isAuthenticated) {
+      queryClient.clear();
+      searchStore.getState().resetFilters();
+    }
+    wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated, queryClient]);
 
   useEffect(() => {
     const token = session?.access_token ?? null;
@@ -29,38 +40,27 @@ function ProviderInternals({
 
   useEffect(() => {
     setRefreshTokenHandler(async () => {
-      try {
-        const { getSupabaseBrowserClient } = await import(
-          "@/lib/supabase/client"
-        );
-        const supabase = getSupabaseBrowserClient();
+      if (refreshPromise) return refreshPromise;
 
-        if (window.sessionStorage.getItem(TOKEN_REFRESH_KEY)) {
-          await new Promise((r) => {
-            const check = setInterval(() => {
-              if (!window.sessionStorage.getItem(TOKEN_REFRESH_KEY)) {
-                clearInterval(check);
-                r(undefined);
-              }
-            }, 100);
-          });
-          const { data } = await supabase.auth.getSession();
-          return data.session?.access_token ?? null;
-        }
-
-        window.sessionStorage.setItem(TOKEN_REFRESH_KEY, "1");
+      refreshPromise = (async () => {
         try {
+          const { getSupabaseBrowserClient } = await import(
+            "@/lib/supabase/client"
+          );
+          const supabase = getSupabaseBrowserClient();
           const { data, error } = await supabase.auth.refreshSession();
           if (error) throw error;
           const newToken = data.session?.access_token ?? null;
           if (newToken) setAccessToken(newToken);
           return newToken;
+        } catch {
+          return null;
         } finally {
-          window.sessionStorage.removeItem(TOKEN_REFRESH_KEY);
+          refreshPromise = null;
         }
-      } catch {
-        return null;
-      }
+      })();
+
+      return refreshPromise;
     });
 
     return () => setRefreshTokenHandler(null);
@@ -93,9 +93,17 @@ function ProviderInternals({
     applyTheme(uiStore.getState().theme);
     applyPalette(uiStore.getState().palette);
 
+    let prevTheme = uiStore.getState().theme;
+    let prevPalette = uiStore.getState().palette;
     const unsub = uiStore.subscribe((state) => {
-      applyTheme(state.theme);
-      applyPalette(state.palette);
+      if (state.theme !== prevTheme) {
+        prevTheme = state.theme;
+        applyTheme(state.theme);
+      }
+      if (state.palette !== prevPalette) {
+        prevPalette = state.palette;
+        applyPalette(state.palette);
+      }
     });
 
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
@@ -113,33 +121,26 @@ function ProviderInternals({
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-paper">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   return children;
 }
 
 function ToastContainer() {
-  const [toasts, setToasts] = useState(uiStore.getState().toasts);
-  const toastsRef = useRef(toasts);
-
-  useEffect(() => {
-    toastsRef.current = toasts;
-  }, [toasts]);
-
-  useEffect(() => {
-    const unsub = uiStore.subscribe((state) => {
-      if (state.toasts !== toastsRef.current) {
-        toastsRef.current = state.toasts;
-        setToasts(state.toasts);
-      }
-    });
-    return unsub;
-  }, []);
+  const toasts = useSyncExternalStore(
+    (cb) => {
+      let prev = uiStore.getState().toasts;
+      return uiStore.subscribe(() => {
+        const next = uiStore.getState().toasts;
+        if (next !== prev) {
+          prev = next;
+          cb();
+        }
+      });
+    },
+    () => uiStore.getState().toasts
+  );
 
   if (toasts.length === 0) return null;
 
@@ -159,13 +160,6 @@ function ToastContainer() {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
-  const onForceLogout = useCallback(() => {
-    import("@/lib/supabase/client").then(({ getSupabaseBrowserClient }) => {
-      getSupabaseBrowserClient().auth.signOut();
-    });
-    window.location.href = "/login";
-  }, []);
-
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -191,7 +185,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <NuqsAdapter>
       <QueryClientProvider client={queryClient}>
-        <ProviderInternals onForceLogout={onForceLogout}>{children}</ProviderInternals>
+        <ProviderInternals>{children}</ProviderInternals>
         <ToastContainer />
       </QueryClientProvider>
     </NuqsAdapter>

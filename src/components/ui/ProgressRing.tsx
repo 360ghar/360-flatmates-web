@@ -17,6 +17,63 @@ const sizeMap: Record<ProgressRingSize, { box: number; stroke: number; text: str
   xl: { box: 80, stroke: 6, text: "text-body-md" }
 };
 
+export interface RingSvgProps {
+  box: number;
+  stroke: number;
+  percentage: number;
+  trackColor?: string;
+  fillColor?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export function RingSvg({
+  box,
+  stroke,
+  percentage,
+  trackColor = "currentColor",
+  fillColor = "currentColor",
+  className,
+  style,
+}: RingSvgProps) {
+  const radius = (box - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      height={box}
+      viewBox={`0 0 ${box} ${box}`}
+      width={box}
+      style={style}
+    >
+      <circle
+        cx={box / 2}
+        cy={box / 2}
+        fill="none"
+        r={radius}
+        stroke={trackColor}
+        strokeWidth={stroke}
+      />
+      <circle
+        className="ring-draw"
+        cx={box / 2}
+        cy={box / 2}
+        fill="none"
+        r={radius}
+        stroke={fillColor}
+        strokeDasharray={circumference}
+        strokeDashoffset={dashOffset}
+        strokeLinecap="round"
+        strokeWidth={stroke}
+        transform={`rotate(-90 ${box / 2} ${box / 2})`}
+      />
+    </svg>
+  );
+}
+
 function toneForValue(value: number): string {
   if (value >= 70) {
     return "text-success";
@@ -39,9 +96,6 @@ export function ProgressRing({
 }: ProgressRingProps) {
   const percentage = clampPercentage(value);
   const config = sizeMap[size];
-  const radius = (config.box - config.stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference - (percentage / 100) * circumference;
 
   return (
     <div
@@ -54,39 +108,17 @@ export function ProgressRing({
       style={{ width: config.box, height: config.box }}
       {...props}
     >
-      <svg
-        aria-hidden="true"
-        className="absolute inset-0 -rotate-90"
-        height={config.box}
-        viewBox={`0 0 ${config.box} ${config.box}`}
-        width={config.box}
-      >
-        <circle
-          className="text-line"
-          cx={config.box / 2}
-          cy={config.box / 2}
-          fill="none"
-          r={radius}
-          stroke="currentColor"
-          strokeWidth={config.stroke}
-        />
-        <circle
-          className={cn(toneForValue(percentage), "ring-draw")}
-          cx={config.box / 2}
-          cy={config.box / 2}
-          fill="none"
-          r={radius}
-          stroke="currentColor"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
-          strokeWidth={config.stroke}
-        />
-      </svg>
+      <RingSvg
+        box={config.box}
+        stroke={config.stroke}
+        percentage={percentage}
+        trackColor="var(--color-line)"
+        fillColor="currentColor"
+        className={cn(toneForValue(percentage), "absolute inset-0 -rotate-90")}
+      />
       {showValue ? (
         <span className={cn("font-bold tabular-nums text-ink", config.text)}>{percentage}%</span>
       ) : null}
     </div>
   );
 }
-

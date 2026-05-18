@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { ImagePlus, X } from "lucide-react";
 import { useCreateProperty, useUploadPropertyImage } from "@/hooks/queries";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import type { PropertyCreate } from "@/lib/api/types";
 import {
   LISTING_SHARING_TYPE_OPTIONS
@@ -63,6 +64,7 @@ export function PostPage() {
 
   const createProperty = useCreateProperty();
   const uploadImage = useUploadPropertyImage();
+  const { upload: uploadImageFile } = useImageUpload();
 
   function patchForm(patch: Partial<PropertyCreate>) {
     setForm((prev) => ({ ...prev, ...patch }));
@@ -142,29 +144,26 @@ export function PostPage() {
     const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
     const newImages: PendingImage[] = await Promise.all(
       imageFiles.map(
-        (f) =>
-          new Promise<PendingImage>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              resolve({
-                id: `${f.name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                file: f,
-                preview: reader.result as string,
-                uploaded: false,
-                uploading: false
-              });
+        async (f) => {
+          try {
+            const preview = await uploadImageFile(f);
+            return {
+              id: `${f.name}-${crypto.randomUUID()}`,
+              file: f,
+              preview,
+              uploaded: false,
+              uploading: false
             };
-            reader.onerror = () => {
-              resolve({
-                id: `${f.name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                file: f,
-                preview: "",
-                uploaded: false,
-                uploading: false
-              });
+          } catch {
+            return {
+              id: `${f.name}-${crypto.randomUUID()}`,
+              file: f,
+              preview: "",
+              uploaded: false,
+              uploading: false
             };
-            reader.readAsDataURL(f);
-          })
+          }
+        }
       )
     );
     setPendingImages((prev) => [...prev, ...newImages]);
@@ -175,7 +174,7 @@ export function PostPage() {
         ...newImages.filter((i) => i.preview).map((i) => i.preview)
       ]
     }));
-  }, []);
+  }, [uploadImageFile]);
 
   function removeImage(id: string) {
     setPendingImages((prev) => prev.filter((i) => i.id !== id));

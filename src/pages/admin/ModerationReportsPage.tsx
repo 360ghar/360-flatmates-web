@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   Ban,
@@ -28,15 +28,20 @@ export function ModerationReportsPage() {
   const [pendingAction, setPendingAction] = useState<ReportAction | null>(null);
   const [actionNotes, setActionNotes] = useState("");
 
-  const reports = data?.reports ?? [];
-  const filtered = search
-    ? reports.filter(
-        (r: ReportAdmin) =>
-          r.reporter_name.toLowerCase().includes(search.toLowerCase()) ||
-          r.reported_name.toLowerCase().includes(search.toLowerCase()) ||
-          r.reason.toLowerCase().includes(search.toLowerCase())
-      )
-    : reports;
+  const filtered = useMemo(
+    () => {
+      const reports = data?.reports ?? [];
+      return search
+        ? reports.filter(
+            (r: ReportAdmin) =>
+              r.reporter_name.toLowerCase().includes(search.toLowerCase()) ||
+              r.reported_name.toLowerCase().includes(search.toLowerCase()) ||
+              r.reason.toLowerCase().includes(search.toLowerCase())
+          )
+        : reports;
+    },
+    [search, data]
+  );
 
   function openActionModal(report: ReportAdmin, action: ReportAction) {
     setSelectedReport(report);
@@ -71,6 +76,12 @@ export function ModerationReportsPage() {
     dismiss: "Dismiss",
     warn: "Warn User",
     suspend: "Suspend User"
+  };
+
+  const actionVariantMap: Record<ReportAction, "primary" | "secondary" | "tertiary"> = {
+    suspend: "primary",
+    warn: "secondary",
+    dismiss: "tertiary",
   };
 
   const statusBadgeMap: Record<string, "pending" | "confirmed" | "rejected"> = {
@@ -158,13 +169,7 @@ export function ModerationReportsPage() {
             </Button>
             <Button
               size="compact"
-              variant={
-                pendingAction === "suspend"
-                  ? "primary"
-                  : pendingAction === "warn"
-                    ? "secondary"
-                    : "tertiary"
-              }
+              variant={pendingAction ? actionVariantMap[pendingAction] : "tertiary"}
               loading={reportAction.isPending}
               onClick={handleConfirmAction}
             >

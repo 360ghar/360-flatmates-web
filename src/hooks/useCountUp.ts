@@ -1,54 +1,42 @@
 import { useEffect, useRef, useState } from "react";
+import { useInView } from "@/hooks/useInView";
 
-/**
- * Animated counter hook. Counts from 0 to target over duration ms.
- * Triggers when element enters viewport (uses IntersectionObserver).
- * Uses ease-out-quart easing.
- */
 export function useCountUp(
   target: number,
   { duration = 1500, enabled = true }: { duration?: number; enabled?: boolean } = {}
 ): { ref: React.RefObject<HTMLElement | null>; value: number } {
-  const ref = useRef<HTMLElement | null>(null);
+  const { ref, inView } = useInView<HTMLElement>({ threshold: 0.3 });
   const [value, setValue] = useState(target);
   const hasAnimated = useRef(false);
+  const lastValue = useRef(target);
 
   useEffect(() => {
-    if (!enabled || hasAnimated.current) return;
+    if (!enabled || hasAnimated.current || !inView) return;
 
-    const element = ref.current;
-    if (!element) return;
+    hasAnimated.current = true;
+    setValue(0);
+    lastValue.current = 0;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          observer.unobserve(element);
-          setValue(0);
+    const start = performance.now();
+    const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
 
-          const start = performance.now();
-          const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutQuart(progress);
+      const nextValue = Math.round(easedProgress * target);
+      if (nextValue !== lastValue.current) {
+        lastValue.current = nextValue;
+        setValue(nextValue);
+      }
 
-          const animate = (now: number) => {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const easedProgress = easeOutQuart(progress);
-            setValue(Math.round(easedProgress * target));
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
 
-            if (progress < 1) {
-              requestAnimationFrame(animate);
-            }
-          };
-
-          requestAnimationFrame(animate);
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [target, duration, enabled]);
+    requestAnimationFrame(animate);
+  }, [target, duration, enabled, inView]);
 
   return { ref, value };
 }

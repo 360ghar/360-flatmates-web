@@ -1,3 +1,4 @@
+import { getEnv } from "@/lib/env";
 import { ApiClientError, mapStatusToAppError } from "./errors";
 
 export type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -34,13 +35,10 @@ export interface ApiClientOptions {
   defaultHeaders?: HeadersInit;
 }
 
-const DEFAULT_BASE_URL = "https://api.360ghar.com/api/v1";
-
 function resolveBaseUrl(baseUrl?: string): string {
   return (
     baseUrl ??
-    import.meta.env.VITE_API_BASE_URL ??
-    DEFAULT_BASE_URL
+    getEnv().VITE_API_BASE_URL
   ).replace(/\/$/, "");
 }
 
@@ -153,7 +151,7 @@ export class HttpApiClient implements ApiAdapter {
     return h;
   }
 
-  private async doFetch<TResponse, TBody>(
+  private async doFetch<_TResponse, TBody>(
     req: ApiRequest<TBody>,
     token: string | null
   ): Promise<Response> {

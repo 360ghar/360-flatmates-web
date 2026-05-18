@@ -1,9 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type { IncomingLikeSummary, MatchSummary } from "@/lib/api/types";
 
-export function useIncomingLikes(limit = 20, offset = 0) {
-  return useQuery({
+export const matchesOptions = queryOptions({
+  queryKey: ["matches"],
+  queryFn: () =>
+    apiClient.request<MatchSummary[]>({
+      method: "GET",
+      path: "/flatmates/matches"
+    })
+});
+
+export function incomingLikesOptions(limit = 20, offset = 0) {
+  return queryOptions({
     queryKey: ["incoming-likes", limit, offset],
     queryFn: () =>
       apiClient.request<IncomingLikeSummary[]>({
@@ -14,15 +23,12 @@ export function useIncomingLikes(limit = 20, offset = 0) {
   });
 }
 
+export function useIncomingLikes(limit = 20, offset = 0) {
+  return useQuery(incomingLikesOptions(limit, offset));
+}
+
 export function useMatches() {
-  return useQuery({
-    queryKey: ["matches"],
-    queryFn: () =>
-      apiClient.request<MatchSummary[]>({
-        method: "GET",
-        path: "/flatmates/matches"
-      })
-  });
+  return useQuery(matchesOptions);
 }
 
 export function useUnmatchMutation() {

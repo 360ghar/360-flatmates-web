@@ -2,13 +2,15 @@
 
 ## Context
 
-The 360 Flatmates mobile app (Flutter) has 27+ screens, 38+ API endpoints, Supabase Auth, real-time SSE, swipe deck, chat, visits, listings, and an 8-step onboarding flow. The web application is a **greenfield project** -- the repo at `360-flatmates-web` contains only an OpenAPI spec file and empty placeholder files. This PRD defines the complete product and technical specification for building a Next.js web app that replicates all mobile features and adds web-specific features (advanced search, saved searches, analytics dashboard, etc.) using the existing backend API.
+The 360 Flatmates mobile app (Flutter) has 27+ screens, 38+ API endpoints, Supabase Auth, real-time SSE, swipe deck, chat, visits, listings, and an 8-step onboarding flow. The web application is a **greenfield project** -- the repo at `360-flatmates-web` contains only an OpenAPI spec file and empty placeholder files. This PRD defines the complete product and technical specification for building a Vite + React Router v7 SPA that replicates all mobile features and adds web-specific features (advanced search, saved searches, analytics dashboard, etc.) using the existing backend API.
+
+> **Architecture note:** The project was originally specified as Next.js but implemented as a Vite 8 + React Router v7 client-side SPA. All pages are CSR. SEO for public pages should be addressed via pre-rendering (e.g., prerender spa plugin) or a separate SSR layer if needed in future.
 
 ---
 
 ## 1. Product Overview
 
-360 Flatmates Web is a greenfield Next.js web application that mirrors and extends the existing Flutter mobile client. The web app serves two strategic purposes: (a) providing a full-featured authenticated experience for existing mobile users who prefer desktop browsing, and (b) creating a publicly indexable discovery surface for SEO-driven acquisition of new users.
+360 Flatmates Web is a greenfield Vite + React Router v7 SPA that mirrors and extends the existing Flutter mobile client. The web app serves two strategic purposes: (a) providing a full-featured authenticated experience for existing mobile users who prefer desktop browsing, and (b) creating a publicly indexable discovery surface for SEO-driven acquisition of new users.
 
 The product combines three user intents under one roof -- finding a co-hunter, advertising a spare room, and being open to either -- powered by a 6-dimension compatibility engine, a swipe-based discovery metaphor adapted for desktop, structured listing templates, rich chat with visit scheduling, and a society insights layer. The web version introduces features that leverage the desktop form factor: advanced multi-filter search panels, saved searches with email/push alerts, a Room Poster analytics dashboard, keyboard-driven swipe navigation, and server-clustered map views.
 
@@ -42,39 +44,39 @@ College friends both starting new jobs. Need a third person. Mode: Co-Hunter (gr
 
 Note: `/explore` renders the map for both public and authenticated users. Unauthenticated users see a limited view (no compatibility scores, auth wall on contact).
 
-| Route | Page | Rendering |
-|-------|------|-----------|
-| `/` | Landing page | SSG |
-| `/discover` | Browse listings (public feed) | SSR + ISR (5min) |
-| `/discover/[id]` | Listing detail page | SSR |
-| `/search` | Advanced search with 25+ filters | SSR |
-| `/search/semantic` | Semantic/vector search | SSR |
-| `/stats` | City statistics (cold-start counter) | ISR (15min) |
-| `/share/[id]` | Share card (OG image target) | SSR |
+| Route | Page | Notes |
+|-------|------|-------|
+| `/` | Landing page | CSR (SEO via pre-render if needed) |
+| `/discover` | Browse listings (public feed) | CSR |
+| `/discover/[id]` | Listing detail page | CSR (SEO via pre-render if needed) |
+| `/search` | Advanced search with 25+ filters | CSR |
+| `/search/semantic` | Semantic/vector search | CSR |
+| `/stats` | City statistics (cold-start counter) | CSR |
+| `/share/[id]` | Share card (OG image target) | CSR |
 
 ### 3.2 Authenticated Surface (auth required)
 
-| Route | Page | Rendering |
-|-------|------|-----------|
+| Route | Page | Notes |
+|-------|------|-------|
 | `/login` | Phone OTP + Password auth | CSR |
 | `/onboarding/*` | Multi-step onboarding flow | CSR |
-| `/home` | Personalized home feed | SSR |
+| `/home` | Personalized home feed | CSR |
 | `/swipe` | Swipe deck (desktop-adapted) | CSR |
-| `/likes` | Incoming likes | SSR |
-| `/chats` | Conversation list | SSR |
+| `/likes` | Incoming likes | CSR |
+| `/chats` | Conversation list | CSR |
 | `/chats/[id]` | Chat thread | CSR |
 | `/explore` | Map view (public + authenticated) | CSR |
 | `/post` | Listing builder (8-step) | CSR |
-| `/manage` | Manage listings (Room Poster) | SSR |
-| `/dashboard` | Room Poster analytics dashboard | SSR |
-| `/visits` | Upcoming/past visits | SSR |
-| `/visits/[id]` | Visit detail | SSR |
-| `/profile` | Profile view/edit | SSR |
-| `/profile/[id]` | Public profile view | SSR |
+| `/manage` | Manage listings (Room Poster) | CSR |
+| `/dashboard` | Room Poster analytics dashboard | CSR |
+| `/visits` | Upcoming/past visits | CSR |
+| `/visits/[id]` | Visit detail | CSR |
+| `/profile` | Profile view/edit | CSR |
+| `/profile/[id]` | Public profile view | CSR |
 | `/settings` | App settings | CSR |
-| `/notifications` | Notification center | SSR |
-| `/saved-searches` | Saved searches CRUD | SSR |
-| `/alerts` | Search alerts management | SSR |
+| `/notifications` | Notification center | CSR |
+| `/saved-searches` | Saved searches CRUD | CSR |
+| `/alerts` | Search alerts management | CSR |
 
 ### 3.3 Mode-Dependent Navigation
 
@@ -262,13 +264,13 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 
 ### 6.1 Public Pages (6)
 
-1. `/` -- Landing page (SSG)
-2. `/discover` -- Public listing browse (SSR + ISR 5min)
-3. `/discover/[id]` -- Listing detail (SSR)
-4. `/search` -- Advanced search (SSR)
-5. `/search/semantic` -- Semantic search (SSR)
-6. `/stats` -- City statistics (ISR 15min)
-7. `/share/[id]` -- Share card redirect (SSR)
+1. `/` -- Landing page (CSR, SEO via pre-render if needed)
+2. `/discover` -- Public listing browse (CSR)
+3. `/discover/[id]` -- Listing detail (CSR)
+4. `/search` -- Advanced search (CSR)
+5. `/search/semantic` -- Semantic search (CSR)
+6. `/stats` -- City statistics (CSR)
+7. `/share/[id]` -- Share card redirect (CSR)
 
 ### 6.2 Auth Pages (2)
 
@@ -277,32 +279,32 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 
 ### 6.3 Authenticated Pages (19)
 
-10. `/home` -- Personalized feed (SSR)
+10. `/home` -- Personalized feed (CSR)
 11. `/swipe` -- Swipe deck (CSR)
-12. `/likes` -- Incoming likes grid (SSR)
-13. `/chats` -- Conversation list (SSR)
+12. `/likes` -- Incoming likes grid (CSR)
+13. `/chats` -- Conversation list (CSR)
 14. `/chats/[id]` -- Chat thread (CSR)
 15. `/explore` -- Map view (CSR)
 16. `/post` -- New listing builder (CSR)
 17. `/post/review` -- Listing review status (CSR)
-18. `/manage` -- Listing management (SSR)
-19. `/dashboard` -- Room Poster analytics (SSR)
-20. `/visits` -- Visits list (SSR)
-21. `/visits/[id]` -- Visit detail (SSR)
-22. `/profile` -- Profile view/edit (SSR)
-23. `/profile/[id]` -- Public profile view (SSR)
+18. `/manage` -- Listing management (CSR)
+19. `/dashboard` -- Room Poster analytics (CSR)
+20. `/visits` -- Visits list (CSR)
+21. `/visits/[id]` -- Visit detail (CSR)
+22. `/profile` -- Profile view/edit (CSR)
+23. `/profile/[id]` -- Public profile view (CSR)
 24. `/settings` -- Settings (CSR)
 25. `/settings/blocked-users` -- Blocked users list (CSR)
 26. `/settings/notifications` -- Notification preferences (CSR)
-27. `/notifications` -- Notification center (SSR)
-28. `/saved-searches` -- Saved searches (SSR)
-29. `/alerts` -- Search alerts (SSR)
+27. `/notifications` -- Notification center (CSR)
+28. `/saved-searches` -- Saved searches (CSR)
+29. `/alerts` -- Search alerts (CSR)
 
 ### 6.4 Legal & Utility Pages (8)
 
-30. `/terms` -- Terms & Conditions (SSG)
-31. `/privacy` -- Privacy Policy (SSG)
-32. `/about` -- About 360 Flatmates (SSG)
+30. `/terms` -- Terms & Conditions (CSR)
+31. `/privacy` -- Privacy Policy (CSR)
+32. `/about` -- About 360 Flatmates (CSR)
 33. `/not-found` -- 404 page (static)
 34. `/error` -- 500 error page (static)
 35. `/maintenance` -- Maintenance page (static)
@@ -310,8 +312,8 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 
 ### 6.5 Admin Pages (3, separate route group)
 
-37. `/admin/moderation/listings` -- Listing review queue (SSR)
-38. `/admin/moderation/reports` -- Report review queue (SSR)
+37. `/admin/moderation/listings` -- Listing review queue (CSR)
+38. `/admin/moderation/reports` -- Report review queue (CSR)
 39. `/admin/moderation/prescreen/[id]` -- AI pre-screen trigger (CSR)
 
 ---
@@ -520,25 +522,25 @@ Seven pages are fully indexable by search engines:
 
 ### 10.2 Technical SEO
 
-- **Next.js Metadata API**: `generateMetadata()` on all SSR/SSG pages with dynamic titles, descriptions, OG tags, Twitter cards
+- **Meta tags**: Dynamic `<title>`, `<meta name="description">`, OG tags, and Twitter cards on all public pages via React Helmet or document.title
 - **JSON-LD Structured Data**: `RealEstateListing` schema on listing detail pages, `BreadcrumbList` on all pages, `FAQPage` on landing
-- **Sitemap.xml**: Dynamic sitemap generated from `GET /properties?property_type=flatmate&limit=1000` + city pages, regenerated every 24 hours via `next-sitemap`
+- **Sitemap.xml**: Dynamic sitemap generated from `GET /properties?property_type=flatmate&limit=1000` + city pages, regenerated every 24 hours via a build script or server endpoint
 - **Robots.txt**: Allow all public routes, disallow `/api/`, `/chats/`, `/swipe/`, `/onboarding/`, `/admin/`
 - **Canonical URLs**: Set on all pages, trailing slash normalization
 - **Core Web Vitals targets**: LCP < 2.5s, FID < 100ms, CLS < 0.1
-- **Image optimization**: Next.js `<Image>` with AVIF/WebP, responsive srcsets, blur placeholders
-- **Font loading**: `next/font/google` for Fraunces (variable), Inter, JetBrains Mono, Instrument Serif with `display: swap` and subset preload
+- **Image optimization**: `<img>` with `srcset` for AVIF/WebP, responsive sizes, blur placeholders
+- **Font loading**: Google Fonts CDN for Fraunces (variable), Inter, JetBrains Mono, Instrument Serif with `display=swap` and subset preload
 
-### 10.3 ISR Configuration
+### 10.3 Cache Invalidation
 
-| Route | Revalidation |
-|-------|-------------|
-| `/discover` | 5 minutes |
-| `/discover/[id]` | 10 minutes (on-demand revalidation on listing update) |
-| `/stats` | 15 minutes |
-| `/` (landing) | 24 hours |
+| Route | Strategy |
+|-------|----------|
+| `/discover` | TanStack Query staleTime 5min + SSE invalidation on listing update |
+| `/discover/[id]` | TanStack Query staleTime 10min + SSE on-demand invalidation on listing update |
+| `/stats` | TanStack Query staleTime 15min |
+| `/` (landing) | TanStack Query staleTime 24hr |
 
-On-demand revalidation: when a listing is approved, updated, or paused, trigger `revalidatePath('/discover/[id]')` and `revalidatePath('/discover')` from the admin moderation action.
+On-demand revalidation: when a listing is approved, updated, or paused, the SSE `property_update` event invalidates the `properties` and `discover` query keys.
 
 ---
 
@@ -548,49 +550,48 @@ On-demand revalidation: when a listing is approved, updated, or paused, trigger 
 
 | Route | Strategy | Rationale |
 |-------|----------|-----------|
-| `/` | SSG | Stable content, infrequent updates |
-| `/discover` | SSR + ISR 5min | Fresh content, SEO-critical |
-| `/discover/[id]` | SSR | Dynamic listing data, SEO-critical |
-| `/search` | SSR | SEO-critical, URL-driven |
-| `/stats` | ISR 15min | Slowly changing data |
+| `/` | CSR | Stable content, infrequent updates |
+| `/discover` | CSR | Fresh content, SEO-critical (consider pre-render) |
+| `/discover/[id]` | CSR | Dynamic listing data |
+| `/search` | CSR | URL-driven, client-side |
+| `/stats` | CSR | Slowly changing data |
 | `/login` | CSR | No SEO need, interactive |
 | `/onboarding/*` | CSR | Interactive multi-step form |
-| `/home` | SSR | Personalized but cacheable per-user |
+| `/home` | CSR | Personalized per-user |
 | `/swipe` | CSR | Highly interactive, no SEO |
-| `/likes` | SSR | Personalized, refreshable |
-| `/chats` | SSR | Personalized, refreshable |
+| `/likes` | CSR | Personalized, refreshable |
+| `/chats` | CSR | Personalized, refreshable |
 | `/chats/[id]` | CSR | Highly interactive, real-time |
 | `/explore` | CSR | Map is client-side interactive |
 | `/post` | CSR | Complex form, no SEO |
-| `/manage` | SSR | Personalized, refreshable |
-| `/dashboard` | SSR | Personalized analytics |
-| `/visits` | SSR | Personalized, refreshable |
-| `/profile` | SSR | Personalized, refreshable |
+| `/manage` | CSR | Personalized, refreshable |
+| `/dashboard` | CSR | Personalized analytics |
+| `/visits` | CSR | Personalized, refreshable |
+| `/profile` | CSR | Personalized, refreshable |
 | `/settings` | CSR | Interactive, no SEO |
-| `/notifications` | SSR | Personalized, refreshable |
-| `/saved-searches` | SSR | Personalized, refreshable |
-| `/alerts` | SSR | Personalized, refreshable |
+| `/notifications` | CSR | Personalized, refreshable |
+| `/saved-searches` | CSR | Personalized, refreshable |
+| `/alerts` | CSR | Personalized, refreshable |
 | `/post/review` | CSR | Interactive status polling |
-| `/profile/[id]` | SSR | SEO for public profiles |
+| `/profile/[id]` | CSR | Public profile view |
 | `/settings/blocked-users` | CSR | Interactive, no SEO |
 | `/settings/notifications` | CSR | Interactive, no SEO |
-| `/terms` | SSG | Stable legal content |
-| `/privacy` | SSG | Stable legal content |
-| `/about` | SSG | Stable content |
+| `/terms` | CSR | Stable legal content |
+| `/privacy` | CSR | Stable legal content |
+| `/about` | CSR | Stable content |
 | `/forgot-password` | CSR | Interactive, no SEO |
-| `/not-found` | Static | Error page |
-| `/error` | Static | Error page |
-| `/maintenance` | Static | Error page |
+| `/not-found` | CSR | Error page |
+| `/error` | CSR | Error page |
+| `/maintenance` | CSR | Error page |
 
 ### 11.2 Bundle Optimization
 
-- **React Server Components**: Use RSC for all SSR/SSG pages; data fetching in server components eliminates client-side waterfalls
-- **Code splitting**: Each route is a separate chunk; heavy components (Map, SwipeDeck, ChatThread) are lazy-loaded
+- **Code splitting**: Each route is a separate chunk; heavy components (Map, SwipeDeck, ChatThread) are lazy-loaded via `React.lazy`
 - **Tree shaking**: Import only used icons from `lucide-react`; barrel imports banned
-- **Dynamic imports**: `next/dynamic` with `ssr: false` for map components, swipe deck, and chat input
+- **Dynamic imports**: `React.lazy` + `Suspense` for map components, swipe deck, and chat input
 - **Critical CSS**: Tailwind purge ensures only used utilities ship; custom CSS modules for component-specific styles
-- **Image optimization**: `next/image` with `sizes` prop, AVIF/WebP, blur placeholder data URLs
-- **Font subsetting**: Google Fonts loaded via `next/font/google` with automatic subsetting and preloading
+- **Image optimization**: Responsive `srcset` with `sizes` prop, AVIF/WebP via CDN, blur placeholder data URLs
+- **Font subsetting**: Google Fonts loaded via CDN with `display: swap` and subsetting
 - **Target budget**: Initial JS < 150KB per route, total page weight < 500KB
 
 ### 11.3 Caching Strategy
@@ -598,7 +599,6 @@ On-demand revalidation: when a listing is approved, updated, or paused, trigger 
 | Layer | TTL | Key |
 |-------|-----|-----|
 | TanStack Query (browser) | Per-query staleTime | Structured query key |
-| Next.js Data Cache | ISR revalidation period | Route + params |
 | CDN (Vercel/Cloudflare) | 5min-24hr per route | URL + headers |
 | Browser HTTP cache | 60s for API, 1yr for static | Cache-Control headers |
 | Service Worker (future) | Offline-first for static assets | Precache manifest |
@@ -616,21 +616,19 @@ The web app uses `@supabase/supabase-js` for authentication:
 - **Session management**: `supabase.auth.getSession()` returns JWT access token + refresh token
 - **Token refresh**: Supabase JS SDK handles auto-refresh; `onAuthStateChange` listener updates Zustand auth store
 
-### 12.2 Auth Middleware Flow
+### 12.2 Auth Guard Flow
 
-Next.js middleware (`middleware.ts`) runs on every request:
+React Router route guards (AuthGuard component) run on every navigation:
 
-1. Check for Supabase session cookie
+1. Check for Supabase session
 2. If no session and route requires auth: show Auth Wall Modal (inline OTP login) or redirect to `/login?redirect={pathname}` for full-page auth
 3. If session exists, validate with `supabase.auth.getUser()`
 4. If token expired: attempt refresh via `supabase.auth.refreshSession()`
 5. If refresh fails: clear session, redirect to `/login`
-6. Inject user ID and token into request headers for RSC data fetching
 
 ### 12.3 Auth-Protected API Calls
 
-- **Server components**: Use Supabase server client with cookie-based session for RSC data fetching
-- **Client components**: Access token from Zustand auth store, passed as `Authorization: Bearer {token}` header
+- **Client-side only**: Access token from Zustand auth store, passed as `Authorization: Bearer {token}` header
 - **API client interceptor**: Fetch wrapper that:
   1. Attaches Bearer token from auth store
   2. On 401 response: attempt token refresh
@@ -858,7 +856,7 @@ AppError (base)
 
 | Surface | Component | Behavior |
 |---------|-----------|----------|
-| Page-level (SSR) | `error.tsx` boundary | Full-page error with retry, back navigation, and status code |
+| Page-level | `ErrorFallback` component | Full-page error with retry, back navigation, and status code |
 | Page-level (CSR) | React Error Boundary | Error card with retry button, 200ms fade-in + slide-up animation |
 | List/Grid empty | `EmptyState` component | Illustration + message + optional CTA, breathing icon animation |
 | List/Grid loading | `Skeleton` component | Shimmer gradient placeholders (card/list/feed/profile variants) |
@@ -911,7 +909,7 @@ All events follow `object_action` naming with a consistent property schema:
 - `PostHog` for product analytics (event capture, session replay, feature flags)
 - `Sentry` for error tracking and performance monitoring
 - Analytics wrapper utility in `lib/analytics/` with typed event tracking
-- Server-side page views tracked via Next.js middleware
+- Server-side page views tracked via client-side router events
 - Client-side events tracked via `useEffect` + router events
 
 ---
@@ -921,70 +919,47 @@ All events follow `object_action` naming with a consistent property schema:
 ```
 360-flatmates-web/
   src/
-    app/                          # Next.js App Router
+    app/                          # React Router v7 pages
       (public)/                   # Public route group (no auth required)
-        page.tsx                  # Landing page
-        loading.tsx               # Public page skeleton
-        discover/
-          page.tsx                # Public listing browse
-          loading.tsx             # Feed skeleton
-          [id]/page.tsx           # Listing detail
-          [id]/loading.tsx        # Listing detail skeleton
-        search/
-          page.tsx                # Advanced search
-          loading.tsx             # Search results skeleton
-          semantic/page.tsx       # Semantic search
-        stats/page.tsx            # City statistics
-        share/[id]/page.tsx       # Share card redirect
-        terms/page.tsx            # Terms & Conditions
-        privacy/page.tsx          # Privacy Policy
-        about/page.tsx            # About 360 Flatmates
-        layout.tsx                # Public layout (nav + footer)
+        LandingPage.tsx           # Landing page
+        DiscoverPage.tsx          # Public listing browse
+        ListingDetailPage.tsx     # Listing detail
+        SearchPage.tsx            # Advanced search
+        SemanticSearchPage.tsx    # Semantic search
+        StatsPage.tsx             # City statistics
+        ShareCardPage.tsx         # Share card redirect
+        TermsPage.tsx             # Terms & Conditions
+        PrivacyPage.tsx           # Privacy Policy
+        AboutPage.tsx             # About 360 Flatmates
       (auth)/                     # Auth route group
-        login/page.tsx            # Phone OTP + Password
-        forgot-password/page.tsx  # Password reset flow
-        loading.tsx               # Auth page skeleton
-        layout.tsx                # Auth layout (centered card)
+        LoginPage.tsx             # Phone OTP + Password
+        ForgotPasswordPage.tsx   # Password reset flow
       (app)/                      # Authenticated route group
-        home/page.tsx             # Personalized home feed
-        home/loading.tsx          # Feed skeleton
-        swipe/page.tsx            # Swipe deck
-        likes/page.tsx            # Incoming likes
-        chats/
-          page.tsx                # Conversation list
-          [id]/page.tsx           # Chat thread
-          [id]/loading.tsx        # Chat skeleton
-        explore/page.tsx          # Map view (authenticated)
-        post/page.tsx             # New listing builder
-        post/review/page.tsx      # Listing review status
-        manage/page.tsx           # Listing management
-        dashboard/page.tsx        # Room Poster dashboard
-        visits/
-          page.tsx                # Visits list
-          [id]/page.tsx           # Visit detail
-        profile/
-          page.tsx                # Profile view/edit
-          [id]/page.tsx           # Public profile
-        settings/page.tsx         # Settings
-        settings/blocked-users/page.tsx # Blocked users list
-        settings/notifications/page.tsx # Notification preferences
-        notifications/page.tsx    # Notification center
-        saved-searches/page.tsx   # Saved searches
-        alerts/page.tsx           # Search alerts
-        onboarding/               # Multi-step onboarding
-          page.tsx                # Entry point
-          [step]/page.tsx         # Per-step pages
-        layout.tsx                # App layout (sidebar + content)
+        HomePage.tsx              # Personalized home feed
+        SwipePage.tsx             # Swipe deck
+        LikesPage.tsx             # Incoming likes
+        ChatsPage.tsx             # Conversation list
+        ChatThreadPage.tsx        # Chat thread
+        ExplorePage.tsx           # Map view (authenticated)
+        PostPage.tsx              # New listing builder
+        PostReviewPage.tsx        # Listing review status
+        ManageListingsPage.tsx    # Listing management
+        DashboardPage.tsx         # Room Poster dashboard
+        VisitsPage.tsx            # Visits list
+        VisitDetailPage.tsx       # Visit detail
+        ProfilePage.tsx           # Profile view/edit
+        PublicProfilePage.tsx     # Public profile
+        SettingsPage.tsx          # Settings
+        BlockedUsersPage.tsx      # Blocked users list
+        NotificationPrefsPage.tsx # Notification preferences
+        NotificationsPage.tsx     # Notification center
+        SavedSearchesPage.tsx     # Saved searches
+        AlertsPage.tsx            # Search alerts
+        OnboardingPage.tsx       # Multi-step onboarding
       (admin)/                    # Admin route group
-        admin/moderation/
-          listings/page.tsx       # Listing review queue
-          reports/page.tsx        # Report review queue
-          prescreen/[id]/page.tsx # AI pre-screen
-        layout.tsx                # Admin layout
-      api/                        # Next.js API routes (if needed for webhooks)
-      layout.tsx                  # Root layout (fonts, providers)
-      not-found.tsx               # 404 page
-      error.tsx                   # Global error boundary
+        ListingReviewPage.tsx    # Listing review queue
+        ReportReviewPage.tsx     # Report review queue
+        PrescreenPage.tsx        # AI pre-screen
     components/
       ui/                         # Design system atoms
         button.tsx
@@ -1073,43 +1048,41 @@ All events follow `object_action` naming with a consistent property schema:
         config.ts
     styles/
       globals.css                  # Tailwind directives + CSS custom properties
-      fonts.css                    # Font-face declarations (if not using next/font)
-    middleware.ts                  # Auth middleware
+      fonts.css                    # Font-face declarations (Google Fonts CDN)
+    App.tsx                        # Root app with React Router routes
+    main.tsx                       # Entry point (Vite)
   public/
     icons/                         # PWA icons, favicons
     illustrations/                 # Empty state illustrations
     og/                            # OG image templates
   docs/
     flatmates-openapi.yaml         # OpenAPI 3.1.0 spec (source of truth)
-  next.config.ts
-  tailwind.config.ts
+  vite.config.ts
   tsconfig.json
   package.json
-  .env.local                       # SUPABASE_URL, SUPABASE_ANON_KEY, API_BASE_URL, NEXT_PUBLIC_*
+  .env.local                       # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_BASE_URL
 ```
 
 ---
 
 ## 19. Environment Variables
 
+All environment variables use the `VITE_` prefix (required by Vite to expose vars to client-side code).
+
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase publishable key (safe for client) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes (server) | Supabase service role key (server-only RSC) |
-| `NEXT_PUBLIC_API_BASE_URL` | Yes | FastAPI backend base URL (e.g., `https://api.360ghar.com/api/v1`) |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Yes | Google Maps JS API key for map view |
-| `NEXT_PUBLIC_FCM_VAPID_KEY` | Yes | Firebase Cloud Messaging VAPID key for web push |
-| `NEXT_PUBLIC_POSTHOG_KEY` | No | PostHog analytics API key |
-| `NEXT_PUBLIC_POSTHOG_HOST` | No | PostHog host (self-hosted option) |
-| `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry DSN for error reporting |
-| `NEXT_PUBLIC_APP_URL` | Yes | Canonical app URL (e.g., `https://flatmates.360ghar.com`) |
-| `NEXT_PUBLIC_DEFAULT_CITY` | No | Default city for new users (default: `Bangalore`) |
+| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key (safe for client) |
+| `VITE_API_BASE_URL` | Yes | FastAPI backend base URL (e.g., `https://api.360ghar.com/api/v1`) |
+| `VITE_GOOGLE_MAPS_API_KEY` | Yes | Google Maps JS API key for map view |
+| `VITE_FCM_VAPID_KEY` | Yes | Firebase Cloud Messaging VAPID key for web push |
+| `VITE_POSTHOG_KEY` | No | PostHog analytics API key |
+| `VITE_POSTHOG_HOST` | No | PostHog host (self-hosted option) |
+| `VITE_SENTRY_DSN` | No | Sentry DSN for error reporting |
+| `VITE_APP_URL` | Yes | Canonical app URL (e.g., `https://flatmates.360ghar.com`) |
+| `VITE_DEFAULT_CITY` | No | Default city for new users (default: `Bangalore`) |
 
-Server-only variables (not exposed to client):
-| `REVALIDATION_SECRET` | Yes | Secret for on-demand ISR revalidation webhooks |
-
-Validation: Use `@t3-oss/env-nextjs` or `zod` to validate all env vars at build time. Invalid/missing required vars should fail the build.
+Validation: Use `zod` to validate all env vars at app startup. Invalid/missing required vars should fail immediately with a clear error message.
 
 ---
 
@@ -1119,16 +1092,16 @@ Validation: Use `@t3-oss/env-nextjs` or `zod` to validate all env vars at build 
 
 **Goal:** Project scaffold, auth, bootstrap, public discovery surface.
 
-- Next.js App Router scaffold with TypeScript, Tailwind, `next/font`
+- Vite + React Router v7 scaffold with TypeScript, Tailwind, Google Fonts CDN
 - Design system atoms: Button, Card, Chip, Input, SearchBar, Avatar, Skeleton, Badge, ProgressRing
 - Supabase Auth integration (Phone OTP + Password)
-- Auth middleware with route protection
+- Auth guard with route protection
 - Bootstrap flow: `GET /flatmates/bootstrap` -> catalog loading -> profile check
 - Public pages: Landing, Discover (listing browse), Listing Detail, City Stats
 - API client with auth interceptor and error mapping
 - OpenAPI type generation pipeline
 - TanStack Query provider setup
-- SEO: Metadata API, sitemap.xml, robots.txt, JSON-LD on listing pages
+- SEO: Meta tags, sitemap.xml, robots.txt, JSON-LD on listing pages
 - FCM web push token registration
 
 ### Phase 2 -- Core Authenticated Experience (Weeks 5-8)
@@ -1171,13 +1144,13 @@ Validation: Use `@t3-oss/env-nextjs` or `zod` to validate all env vars at build 
 **Goal:** Production readiness, performance, accessibility, monitoring.
 
 - Accessibility audit and remediation (WCAG 2.1 AA)
-- Performance optimization: RSC streaming, dynamic imports, bundle analysis
+- Performance optimization: code splitting (React.lazy), dynamic imports, bundle analysis
 - Dark mode full test pass across all pages
 - English + Hindi localization
 - PostHog analytics integration
 - Sentry error tracking
 - Playwright E2E test suite for critical paths
-- On-demand ISR revalidation webhook
+- On-demand cache revalidation webhook
 - Service worker for offline static asset caching (stretch)
 - Load testing and CDN configuration
 - Production deployment
@@ -1309,7 +1282,7 @@ User-facing and technical terms map as follows:
 
 ## 23. Security Headers
 
-Next.js middleware sets the following security headers on all responses:
+Security headers are set via the Vite server and/or CDN/edge layer on all responses:
 
 | Header | Value | Purpose |
 |--------|-------|---------|
@@ -1353,7 +1326,7 @@ On every pull request:
 - **Preview**: Per-PR deployment on Vercel preview URL
 - **Production**: Deploy on merge to `main` branch
 - **Branch naming**: `feature/*`, `fix/*`, `chore/*`
-- **On-demand revalidation**: Webhook from FastAPI on listing status change triggers `revalidatePath()`
+- **On-demand cache revalidation**: SSE `property_update` event from FastAPI on listing status change triggers TanStack Query invalidation
 
 ### 25.3 Environment Strategy
 
@@ -1380,11 +1353,11 @@ On every pull request:
 All color tokens, typography, border radii, spacing, shadows, gradients, frost effects, and animation durations from the mobile `DESIGN.md` map directly to CSS custom properties in the web app. Key mappings:
 
 - **Colors**: Direct hex/rgba values as CSS custom properties on `:root` and `[data-theme="dark"]`
-- **Typography**: `next/font/google` loads Fraunces (variable), Inter, JetBrains Mono, Instrument Serif; Tailwind `theme.extend.fontFamily` maps to CSS variables; Fraunces variable settings (`opsz`, `SOFT`, `WONK`) applied via `font-variation-settings` utility class
-- **Border radius**: Tailwind `theme.extend.borderRadius` with design token names
-- **Spacing**: Tailwind `theme.extend.spacing` with design token names
-- **Shadows**: Tailwind `theme.extend.boxShadow` with design token names (warm ink tints, terracotta-tinted CTA shadows)
-- **Animation**: Tailwind `theme.extend.transitionDuration` and `theme.extend.animation` with design token names from the mobile animation guidelines
+- **Typography**: Google Fonts CDN loads Fraunces (variable), Inter, JetBrains Mono, Instrument Serif; Tailwind v4 `@theme` directive maps to CSS variables; Fraunces variable settings (`opsz`, `SOFT`, `WONK`) applied via `font-variation-settings` utility class
+- **Border radius**: CSS custom properties with design token names in `@theme`
+- **Spacing**: CSS custom properties with design token names in `@theme`
+- **Shadows**: CSS custom properties with design token names in `@theme` (warm ink tints, terracotta-tinted CTA shadows)
+- **Animation**: CSS keyframes + custom properties with design token names in `@theme`
 - **Frost/Glassmorphism**: `backdrop-filter: blur(3px)` + semi-transparent background
 
 ## Appendix B: Compatibility Engine (Web Implementation)

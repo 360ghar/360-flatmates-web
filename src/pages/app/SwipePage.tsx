@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useSwipeDeck, useSwipeAction } from "@/hooks/queries";
 import { useKeyboardSwipe } from "@/hooks/useKeyboardSwipe";
@@ -10,10 +10,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { SwipeDeck, type SwipeProfile } from "@/components/organisms/SwipeDeck";
 import { formatLocation, formatMoveInTimeline } from "@/lib/utils/format";
-
-/* -------------------------------------------------------------------------- */
-/*  Helpers                                                                   */
-/* -------------------------------------------------------------------------- */
 
 function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
   return {
@@ -66,7 +62,10 @@ export function SwipePage() {
     setCardQueue
   } = useSwipeStore();
 
-  const swipeProfiles: SwipeProfile[] = (profiles ?? []).map(peerToSwipeProfile);
+  const swipeProfiles: SwipeProfile[] = useMemo(
+    () => (profiles ?? []).map(peerToSwipeProfile),
+    [profiles]
+  );
 
   /* ----- Track the deck's current index for keyboard swipe ----- */
   const [deckIndex, setDeckIndex] = useState(0);
@@ -140,8 +139,6 @@ export function SwipePage() {
   }, [currentProfile, handleSwipeAction]);
 
   const handleKeyboardExpand = useCallback(() => {
-    // Expansion is now handled inside SwipeDeck via Space key
-    // This callback is kept for keyboard swipe hook compatibility
   }, []);
 
   const handleKeyboardDismiss = useCallback(() => {

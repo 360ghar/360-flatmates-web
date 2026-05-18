@@ -1,6 +1,7 @@
-import { type FormEvent, type HTMLAttributes, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, type HTMLAttributes, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import { PrefetchLink } from "../ui/PrefetchLink";
 import {
   BarChart3,
   Bell,
@@ -26,6 +27,7 @@ import { type UserMode } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Logo } from "../ui/Logo";
 import { SearchBar } from "../ui/SearchBar";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import { cn, focusRing } from "../ui/component-utils";
 
 export interface ShellUser {
@@ -89,8 +91,14 @@ export function AppShell({
   className,
   ...props
 }: AppShellProps) {
-  const visibleItems = navItems.filter((item) => item.showFor.includes(mode));
-  const mobileItems = visibleItems.filter((item) => !item.sidebarOnly).slice(0, 5);
+  const visibleItems = useMemo(
+    () => navItems.filter((item) => item.showFor.includes(mode)),
+    [navItems, mode]
+  );
+  const mobileItems = useMemo(
+    () => visibleItems.filter((item) => !item.sidebarOnly).slice(0, 5),
+    [visibleItems]
+  );
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const asideRef = useRef<HTMLElement | null>(null);
@@ -159,7 +167,6 @@ export function AppShell({
 
   const currentWidth = collapsed ? SIDEBAR_WIDTH_COLLAPSED : sidebarWidth;
 
-  /** Prefix-match so "/chats/123" highlights "Chats", "/profile/edit" highlights "Profile", etc. */
   const isActive = useCallback(
     (href: string) => {
       if (!activeHref) return false;
@@ -188,7 +195,7 @@ export function AppShell({
           ))}
         </nav>
         {user ? (
-          <Link
+          <PrefetchLink
             to="/profile"
             className={cn(
               "mb-3 flex items-center gap-3 rounded-[9px] p-2 hover:bg-paper-3",
@@ -205,7 +212,7 @@ export function AppShell({
                 ) : null}
               </div>
             ) : null}
-          </Link>
+          </PrefetchLink>
         ) : null}
         <Button
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -243,13 +250,13 @@ export function AppShell({
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-paper px-5 md:px-6">
           {/* Mobile: greeting with avatar */}
           {user ? (
-            <Link to="/profile" className={cn("flex items-center gap-3 md:hidden", focusRing)}>
+            <PrefetchLink to="/profile" className={cn("flex items-center gap-3 md:hidden", focusRing)}>
               <Avatar name={user.name} size="sm" src={user.avatarUrl} />
               <div className="min-w-0">
                 <p className="truncate text-h3 font-semibold text-ink">Hi, {user.name.split(" ")[0]}!</p>
                 {user.city ? <p className="truncate text-caption text-ink-2">{user.city}</p> : null}
               </div>
-            </Link>
+            </PrefetchLink>
           ) : (
             <div className="md:hidden">
               <Logo compact />
@@ -257,13 +264,13 @@ export function AppShell({
           )}
           {/* Desktop: greeting on the left */}
           {user ? (
-            <Link to="/profile" className={cn("hidden min-w-0 items-center gap-3 md:flex", focusRing)}>
+            <PrefetchLink to="/profile" className={cn("hidden min-w-0 items-center gap-3 md:flex", focusRing)}>
               <Avatar name={user.name} size="sm" src={user.avatarUrl} />
               <div className="min-w-0">
                 <p className="truncate text-h3 font-semibold text-ink">Hi, {user.name.split(" ")[0]}!</p>
                 {user.city ? <p className="truncate text-caption text-ink-2">{user.city}</p> : null}
               </div>
-            </Link>
+            </PrefetchLink>
           ) : null}
           {title ? <h1 className="hidden min-w-0 truncate text-h3 font-semibold text-ink md:block">{title}</h1> : null}
           <form
@@ -279,7 +286,8 @@ export function AppShell({
             />
           </form>
           {topBarActions}
-          <Link
+          <ThemeToggle size="sm" className="hidden md:flex" />
+          <PrefetchLink
             to="/search"
             aria-label="Search"
             className={cn(
@@ -288,8 +296,8 @@ export function AppShell({
             )}
           >
             <Search aria-hidden="true" className="h-5 w-5" />
-          </Link>
-          <Link to="/notifications" aria-label="Notifications" className={cn("flex h-10 w-10 items-center justify-center rounded-[9px] text-ink-3 hover:bg-paper-3 hover:text-ink", focusRing)}>
+          </PrefetchLink>
+          <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-10 w-10 items-center justify-center rounded-[9px] text-ink-3 hover:bg-paper-3 hover:text-ink", focusRing)}>
             <span className="relative">
               <Bell aria-hidden="true" className="h-5 w-5" />
               {notificationCount ? (
@@ -298,7 +306,7 @@ export function AppShell({
                 </span>
               ) : null}
             </span>
-          </Link>
+          </PrefetchLink>
         </header>
         <main id="main" className="min-h-[calc(100vh-64px)] px-5 py-6 md:px-6">{children}</main>
       </div>
@@ -328,7 +336,7 @@ function ShellNavLink({
   const Icon = item.icon;
 
   return (
-    <Link
+    <PrefetchLink
       to={item.href}
       aria-current={active ? "page" : undefined}
       title={collapsed ? item.label : undefined}
@@ -344,6 +352,6 @@ function ShellNavLink({
       {item.badge ? (
         <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-accent" />
       ) : null}
-    </Link>
+    </PrefetchLink>
   );
 }

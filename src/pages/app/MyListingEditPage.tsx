@@ -5,13 +5,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useProperty, useUpdateProperty, useUploadPropertyImage } from "@/hooks/queries";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import { uiStore } from "@/lib/stores/ui-store";
 import {
   GENDER_PREFERENCE_VALUES,
   LISTING_SHARING_TYPE_OPTIONS,
   SOCIETY_TYPE_VALUES,
-  type ListingSharingType,
 } from "@/lib/data";
+import {
+  genderPreferenceSchema,
+  listingSharingTypeSchema,
+  societyTypeSchema,
+} from "@/lib/schemas/enums";
+import { toSelectOptions, stripEmptyFields } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input, TextArea, SelectField } from "@/components/ui/Input";
@@ -35,9 +41,9 @@ const listingSchema = z.object({
   bedrooms: z.number().min(0).optional(),
   bathrooms: z.number().min(0).optional(),
   available_from: z.string().optional(),
-  gender_preference: z.enum(GENDER_PREFERENCE_VALUES).optional(),
-  sharing_type: z.enum(LISTING_SHARING_TYPE_OPTIONS.map((o) => o.value as ListingSharingType)).optional(),
-  society_type: z.enum(SOCIETY_TYPE_VALUES).optional(),
+  gender_preference: genderPreferenceSchema.optional(),
+  sharing_type: listingSharingTypeSchema.optional(),
+  society_type: societyTypeSchema.optional(),
   video_tour_url: z.string().url().optional().or(z.literal("")),
   is_available: z.boolean().optional()
 });
@@ -46,20 +52,11 @@ type ListingFormData = z.infer<typeof listingSchema>;
 
 /* ── Select option helpers ───────────────────────────────── */
 
-const genderPrefOptions = GENDER_PREFERENCE_VALUES.map((v) => ({
-  value: v,
-  label: v.charAt(0).toUpperCase() + v.slice(1)
-}));
+const genderPrefOptions = toSelectOptions(GENDER_PREFERENCE_VALUES);
 
-const sharingTypeOptions = LISTING_SHARING_TYPE_OPTIONS.map((o) => ({
-  value: o.value,
-  label: o.label
-}));
+const sharingTypeOptions = toSelectOptions(LISTING_SHARING_TYPE_OPTIONS);
 
-const societyTypeOptions = SOCIETY_TYPE_VALUES.map((v) => ({
-  value: v,
-  label: v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-}));
+const societyTypeOptions = toSelectOptions(SOCIETY_TYPE_VALUES);
 
 /* ── Page component ──────────────────────────────────────── */
 
@@ -71,6 +68,7 @@ export function MyListingEditPage() {
   const { data: property, isLoading, error, refetch } = useProperty(propertyId);
   const updateProperty = useUpdateProperty(propertyId);
   const uploadImage = useUploadPropertyImage();
+  const { upload: uploadImageFile } = useImageUpload();
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -134,12 +132,7 @@ export function MyListingEditPage() {
   function onSubmit(data: ListingFormData) {
     setServerError(null);
 
-    const payload: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== "" && value !== undefined) {
-        payload[key] = value;
-      }
-    }
+    const payload = stripEmptyFields(data as Record<string, unknown>);
 
     updateProperty.mutate(payload, {
       onSuccess: () => {
@@ -163,15 +156,7 @@ export function MyListingEditPage() {
     setImageUploading(true);
 
     try {
-      /* Convert file to a data URL for the upload payload.
-         In a production app, this would first upload to a signed
-         cloud storage URL, then pass the resulting public URL. */
-      const reader = new FileReader();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const dataUrl = await uploadImageFile(file);
 
       uploadImage.mutate(
         {

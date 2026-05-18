@@ -12,6 +12,27 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { VisitCard } from "@/components/molecules/VisitCard";
 import { cn } from "@/components/ui/component-utils";
+import type { StatusTone } from "@/components/ui/Badge";
+import type { Tone } from "@/components/ui/component-utils";
+
+const VISIT_STATUS_BADGE: Record<string, StatusTone> = {
+  requested: "pending",
+  confirmed: "confirmed",
+  reschedule_suggested: "pending",
+  cancelled: "cancelled",
+  completed: "completed",
+};
+
+const VISIT_CONTEXT_CONFIG: Record<string, { tone: Tone; label: string }> = {
+  property_tour: { tone: "teal", label: "Property Tour" },
+  flatmate_meet: { tone: "purple", label: "Flatmate Meet" },
+};
+
+function ratingToInterestLevel(rating: number): "high" | "medium" | "low" {
+  if (rating >= 4) return "high";
+  if (rating >= 3) return "medium";
+  return "low";
+}
 
 /* ---------- Star Rating ---------- */
 
@@ -121,8 +142,7 @@ export function VisitDetailPage() {
     updateVisit.mutate(
       {
         visitor_feedback: feedbackComment,
-        interest_level:
-          feedbackRating >= 4 ? "high" : feedbackRating >= 3 ? "medium" : "low",
+        interest_level: ratingToInterestLevel(feedbackRating),
       },
       {
         onSuccess: () => {
@@ -151,23 +171,15 @@ export function VisitDetailPage() {
       <Card className="p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <span className="text-body-md text-ink-2">Visit Type</span>
-          <Badge tone={visit.visit_context === "property_tour" ? "teal" : "purple"}>
-            {visit.visit_context === "property_tour" ? "Property Tour" : "Flatmate Meet"}
+          <Badge tone={VISIT_CONTEXT_CONFIG[visit.visit_context]?.tone ?? "neutral"}>
+            {VISIT_CONTEXT_CONFIG[visit.visit_context]?.label ?? visit.visit_context}
           </Badge>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-body-md text-ink-2">Status</span>
           <Badge
             variant="status"
-            status={
-              visit.status === "confirmed"
-                ? "confirmed"
-                : visit.status === "cancelled"
-                  ? "cancelled"
-                  : visit.status === "completed"
-                    ? "completed"
-                    : "pending"
-            }
+            status={VISIT_STATUS_BADGE[visit.status] ?? "pending"}
           />
         </div>
         {visit.special_requirements && (

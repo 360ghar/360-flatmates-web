@@ -2,6 +2,8 @@ import { useCountUp } from "@/hooks/useCountUp";
 import { RevealSection } from "@/components/ui/RevealSection";
 import { STATS } from "./landing-data";
 
+const ALL_STATS = [...STATS, ...STATS];
+
 function StatItem({
   numericValue,
   suffix,
@@ -17,7 +19,7 @@ function StatItem({
     if (target === 10000) return `${(val / 1000).toFixed(0)}K+`;
     if (target === 5000) return `${(val / 1000).toFixed(0)}K+`;
     if (target === 86) return `${val}%`;
-    if (target === 15) return `${val}+`;
+    if (target === 2) return `${val}`;
     return String(val);
   };
 
@@ -36,8 +38,6 @@ function StatItem({
 }
 
 export function StatsMarquee() {
-  const allItems = [...STATS, ...STATS];
-
   return (
     <section
       className="relative bg-surface py-20 md:py-24 overflow-hidden border-y border-line-low"
@@ -54,7 +54,7 @@ export function StatsMarquee() {
 
       <div className="overflow-hidden" aria-label="Platform statistics">
         <div className="animate-marquee flex gap-0 whitespace-nowrap py-10">
-          {allItems.map((stat, i) => (
+          {ALL_STATS.map((stat, i) => (
             <div
               key={i}
               aria-hidden={i >= STATS.length ? "true" : undefined}

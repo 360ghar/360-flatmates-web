@@ -1,16 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type { RoomPosterDashboard, ListingAnalytics } from "@/lib/api/types";
 
+export const dashboardOptions = queryOptions({
+  queryKey: ["dashboard", "stats"],
+  queryFn: () =>
+    apiClient.request<RoomPosterDashboard>({
+      method: "GET",
+      path: "/flatmates/web/dashboard"
+    })
+});
+
 export function useDashboardStats() {
-  return useQuery({
-    queryKey: ["dashboard", "stats"],
-    queryFn: () =>
-      apiClient.request<RoomPosterDashboard>({
-        method: "GET",
-        path: "/flatmates/web/dashboard"
-      })
-  });
+  return useQuery(dashboardOptions);
 }
 
 export function useListingAnalytics(propertyId: number) {

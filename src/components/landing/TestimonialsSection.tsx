@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RevealSection } from "@/components/ui/RevealSection";
 import { TESTIMONIALS } from "./landing-data";
 
@@ -11,12 +11,40 @@ const AVATAR_MAP: Record<string, number> = {
 
 export function TestimonialsSection() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startInterval = () => {
+    if (intervalRef.current === null) {
+      intervalRef.current = setInterval(() => {
+        setActiveIndex((prev) => (prev + 1) % TESTIMONIALS.length);
+      }, 6000);
+    }
+  };
+
+  const stopInterval = () => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % TESTIMONIALS.length);
-    }, 6000);
-    return () => clearInterval(interval);
+    startInterval();
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopInterval();
+      } else {
+        startInterval();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      stopInterval();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, []);
 
   return (

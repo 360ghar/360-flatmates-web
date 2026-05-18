@@ -1,36 +1,21 @@
 import { useStore } from "zustand";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Sun, Moon, Monitor } from "lucide-react";
-import { uiStore, type ThemePreference } from "@/lib/stores/ui-store";
+import { uiStore, type ThemePreference, THEME_OPTIONS } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { cn } from "@/components/ui/component-utils";
+import { SelectableCardGrid } from "@/components/molecules/SelectableCardGrid";
 
-const THEME_OPTIONS: Array<{
-  value: ThemePreference;
-  label: string;
-  description: string;
-  icon: typeof Sun;
-}> = [
-  {
-    value: "light",
-    label: "Light",
-    description: "Warm off-white paper background with dark text",
-    icon: Sun
-  },
-  {
-    value: "dark",
-    label: "Dark",
-    description: "Warm charcoal background with light text",
-    icon: Moon
-  },
-  {
-    value: "system",
-    label: "System",
-    description: "Follows your device appearance setting",
-    icon: Monitor
-  }
-];
+const THEME_ICONS: Record<ThemePreference, React.ReactNode> = {
+  light: <Sun aria-hidden="true" className="h-6 w-6" />,
+  dark: <Moon aria-hidden="true" className="h-6 w-6" />,
+  system: <Monitor aria-hidden="true" className="h-6 w-6" />,
+};
+const THEME_DESCRIPTIONS: Record<ThemePreference, string> = {
+  light: "Warm off-white paper background with dark text",
+  dark: "Warm charcoal background with light text",
+  system: "Follows your device appearance setting",
+};
 
 const LIGHT_SWATCHES = [
   { token: "Paper", className: "bg-paper" },
@@ -60,42 +45,16 @@ export function AppearancePage() {
         <h1 className="text-h1">Appearance</h1>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {THEME_OPTIONS.map((option) => {
-          const Icon = option.icon;
-          const selected = theme === option.value;
-
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setTheme(option.value)}
-              aria-pressed={selected}
-              className={cn(
-                "flex items-center gap-4 rounded-2xl border p-4 text-left transition-colors",
-                selected
-                  ? "border-[1.5px] border-accent bg-accent-soft"
-                  : "border-line bg-surface hover:border-accent/40 hover:shadow-hover"
-              )}
-            >
-              <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
-                  selected ? "bg-accent text-surface" : "bg-paper-3 text-ink-2"
-                }`}
-              >
-                <Icon aria-hidden="true" className="h-6 w-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-body-md font-semibold text-ink">{option.label}</p>
-                <p className="text-caption text-ink-3">{option.description}</p>
-              </div>
-              {selected && (
-                <div className="h-3 w-3 shrink-0 rounded-full bg-accent" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <SelectableCardGrid<ThemePreference>
+        options={THEME_OPTIONS.map((o) => ({
+          value: o.value,
+          label: o.label,
+          description: THEME_DESCRIPTIONS[o.value],
+        }))}
+        iconMap={THEME_ICONS}
+        selected={theme}
+        onSelect={setTheme}
+      />
 
       <h2 className="text-label-md text-ink-3 mt-2 px-1">Theme Preview</h2>
       <Card className="p-4">

@@ -18,6 +18,12 @@ import { PriceText } from "@/components/ui/PriceText";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView } from "@/components/ui/StateViews";
 import { humanizeSnakeCase, formatSharingType } from "@/lib/utils";
+import type { StatusTone } from "@/components/ui/Badge";
+
+const PROPERTY_MOD_STATUS_BADGE: Record<string, StatusTone> = {
+  approved: "confirmed",
+  rejected: "rejected",
+};
 
 export function PrescreenPage() {
   const { id } = useParams<{ id: string }>();
@@ -210,13 +216,7 @@ export function PrescreenPage() {
                   <div className="mt-3">
                     <Badge
                       variant="status"
-                      status={
-                        property.property_status === "approved"
-                          ? "confirmed"
-                          : property.property_status === "rejected"
-                            ? "rejected"
-                            : "pending"
-                      }
+                      status={PROPERTY_MOD_STATUS_BADGE[property.property_status ?? ""] ?? "pending"}
                     />
                   </div>
                 </Card>

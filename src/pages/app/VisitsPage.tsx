@@ -68,26 +68,27 @@ function CalendarView({ visits }: { visits: Visit[] }) {
   }
 
   const monthLabel = currentDate.toLocaleString("en-IN", { month: "long", year: "numeric" });
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  // Build calendar grid cells (6 rows x 7 cols)
-  const cells: Array<{ day: number | null; dateStr: string }> = [];
-  // Leading empty cells
-  for (let i = 0; i < startDayOfWeek; i++) {
-    cells.push({ day: null, dateStr: "" });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    cells.push({ day: d, dateStr });
-  }
-  // Trailing empty cells to fill the last week
-  const remaining = 7 - (cells.length % 7);
-  if (remaining < 7) {
-    for (let i = 0; i < remaining; i++) {
-      cells.push({ day: null, dateStr: "" });
+  const { cells, todayStr } = useMemo(() => {
+    const today = new Date();
+    const tStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    const c: Array<{ day: number | null; dateStr: string }> = [];
+    for (let i = 0; i < startDayOfWeek; i++) {
+      c.push({ day: null, dateStr: "" });
     }
-  }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      c.push({ day: d, dateStr });
+    }
+    const remaining = 7 - (c.length % 7);
+    if (remaining < 7) {
+      for (let i = 0; i < remaining; i++) {
+        c.push({ day: null, dateStr: "" });
+      }
+    }
+    return { cells: c, todayStr: tStr };
+  }, [year, month, startDayOfWeek, daysInMonth]);
 
   function handleCalendarKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowLeft") {

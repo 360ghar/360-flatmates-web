@@ -1,17 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type { CatalogEntry, CatalogCity, CatalogLocality, CatalogAmenity } from "@/lib/api/types";
 
+export const catalogsOptions = queryOptions({
+  queryKey: ["catalogs"],
+  queryFn: () =>
+    apiClient.request<CatalogEntry[]>({
+      method: "GET",
+      path: "/flatmates/catalogs"
+    }),
+  staleTime: 30 * 60 * 1000
+});
+
 function useAllCatalogs() {
-  return useQuery({
-    queryKey: ["catalogs"],
-    queryFn: () =>
-      apiClient.request<CatalogEntry[]>({
-        method: "GET",
-        path: "/flatmates/catalogs"
-      }),
-    staleTime: 30 * 60 * 1000
-  });
+  return useQuery(catalogsOptions);
 }
 
 export function useCities() {

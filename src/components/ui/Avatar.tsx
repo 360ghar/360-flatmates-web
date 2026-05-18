@@ -1,6 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { Pencil } from "lucide-react";
-import { cn, getInitials } from "./component-utils";
+import { cn, getInitials, clampPercentage } from "./component-utils";
+import { RingSvg } from "./ProgressRing";
 
 export type AvatarSize = "compact" | "sm" | "md" | "lg" | "xl";
 export type AvatarShape = "editorial" | "circle";
@@ -59,13 +60,9 @@ export function Avatar({
   const roundedClass = shape === "circle" ? "rounded-full" : "rounded-xl";
   const initials = getInitials(name);
 
-  /** Build the animated SVG ring when `animated` is true and `ringValue` is provided */
   const renderRing = ringValue !== undefined && animated;
   const ringConfig = ringSizeMap[size];
-  const ringRadius = (ringConfig.box - ringConfig.stroke) / 2;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const ringPercentage = ringValue !== undefined ? Math.min(100, Math.max(0, ringValue)) : 0;
-  const ringDashOffset = ringCircumference - (ringPercentage / 100) * ringCircumference;
+  const ringPercentage = ringValue !== undefined ? clampPercentage(ringValue) : 0;
 
   return (
     <div className={cn("relative inline-flex shrink-0", className)} {...props}>
@@ -76,41 +73,18 @@ export function Avatar({
         />
       ) : null}
       {renderRing ? (
-        <svg
-          aria-hidden="true"
+        <RingSvg
+          box={ringConfig.box}
+          stroke={ringConfig.stroke}
+          percentage={ringPercentage}
+          trackColor="var(--color-line)"
+          fillColor="var(--color-accent)"
           className="pointer-events-none absolute"
           style={{
-            width: ringConfig.box,
-            height: ringConfig.box,
             top: -ringConfig.inset,
             left: -ringConfig.inset,
           }}
-          viewBox={`0 0 ${ringConfig.box} ${ringConfig.box}`}
-        >
-          {/* Background track */}
-          <circle
-            cx={ringConfig.box / 2}
-            cy={ringConfig.box / 2}
-            fill="none"
-            r={ringRadius}
-            stroke="var(--color-line)"
-            strokeWidth={ringConfig.stroke}
-          />
-          {/* Animated foreground arc (terracotta accent) */}
-          <circle
-            className="ring-draw"
-            cx={ringConfig.box / 2}
-            cy={ringConfig.box / 2}
-            fill="none"
-            r={ringRadius}
-            stroke="var(--color-accent)"
-            strokeDasharray={ringCircumference}
-            strokeDashoffset={ringDashOffset}
-            strokeLinecap="round"
-            strokeWidth={ringConfig.stroke}
-            transform={`rotate(-90 ${ringConfig.box / 2} ${ringConfig.box / 2})`}
-          />
-        </svg>
+        />
       ) : null}
       <span
         className={cn(

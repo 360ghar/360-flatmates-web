@@ -41,12 +41,7 @@ function createMinimalPng(r: number, g: number, b: number): string {
   ihdrData[11] = 0; // filter: adaptive
   ihdrData[12] = 0; // interlace: none
 
-  // IDAT chunk type
   const idatType = new Uint8Array([0x49, 0x44, 0x41, 0x54]); // "IDAT"
-  const idatPayload = new Uint8Array(ihdrData.length + idatType.length + zlibData.length);
-  idatPayload.set(ihdrData, 0);
-  // Wait — IDAT should contain the type + compressed data, not IHDR
-  // Let me redo this properly
 
   const signature = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
@@ -191,9 +186,18 @@ export function generateBlurPlaceholder(hexColor: string): string {
   return createMinimalPng(r, g, b);
 }
 
-export const BLUR_PLACEHOLDERS = {
-  warm: generateBlurPlaceholder("#E8DCC8"),
-  neutral: generateBlurPlaceholder("#D4D0C8"),
-  avatar: generateBlurPlaceholder("#C8BFAA"),
-  city: generateBlurPlaceholder("#B8B0A0"),
-} as const;
+type BlurPlaceholderKey = "warm" | "neutral" | "avatar" | "city";
+
+let blurPlaceholdersCache: Record<BlurPlaceholderKey, string> | null = null;
+
+export function getBlurPlaceholders(): Record<BlurPlaceholderKey, string> {
+  if (!blurPlaceholdersCache) {
+    blurPlaceholdersCache = {
+      warm: generateBlurPlaceholder("#E8DCC8"),
+      neutral: generateBlurPlaceholder("#D4D0C8"),
+      avatar: generateBlurPlaceholder("#C8BFAA"),
+      city: generateBlurPlaceholder("#B8B0A0"),
+    };
+  }
+  return blurPlaceholdersCache;
+}

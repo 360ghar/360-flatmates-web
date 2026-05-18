@@ -4,7 +4,6 @@ export interface AuthStoreState {
   isLoginModalOpen: boolean;
   pendingRedirect: string | null;
   authError: string | null;
-  toggleLoginModal: () => void;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   setPendingRedirect: (path: string) => void;
@@ -18,8 +17,6 @@ export const useAuthStore = create<AuthStoreState>()((set) => ({
   pendingRedirect: null,
   authError: null,
 
-  toggleLoginModal: () =>
-    set((state) => ({ isLoginModalOpen: !state.isLoginModalOpen })),
   openLoginModal: () => set({ isLoginModalOpen: true }),
   closeLoginModal: () => set({ isLoginModalOpen: false }),
 

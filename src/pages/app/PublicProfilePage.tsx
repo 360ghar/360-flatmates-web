@@ -13,8 +13,13 @@ import { ErrorState } from "@/components/ui/StateViews";
 import { TrustBadge } from "@/components/ui/TrustBadge";
 import { ProfileDetailsCard } from "@/components/molecules/ProfileDetailsCard";
 import { humanizeSnakeCase } from "@/lib/utils";
+import { buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/utils/seo";
+import { BASE_URL } from "@/lib/config";
 
-const BASE_URL = import.meta.env.VITE_APP_URL ?? "https://360ghar.com";
+const breadcrumbLd = buildBreadcrumbJsonLd([
+  homeBreadcrumb(),
+  { name: "Profile" },
+]);
 
 export function PublicProfilePage() {
   const { id } = useParams();
@@ -44,24 +49,6 @@ export function PublicProfilePage() {
       }
     );
   }, [createConversation, profileId, navigate]);
-
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: BASE_URL,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Profile",
-      },
-    ],
-  };
 
   if (isLoading) {
     return (

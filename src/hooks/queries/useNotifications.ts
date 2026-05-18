@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   FlatmatesNotification,
@@ -8,8 +8,8 @@ import type {
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
-export function useNotifications(filters?: NotificationFilters) {
-  return useQuery({
+export function notificationsOptions(filters?: NotificationFilters) {
+  return queryOptions({
     queryKey: ["notifications", filters],
     queryFn: () =>
       apiClient.request<FlatmatesNotification[]>({
@@ -18,6 +18,10 @@ export function useNotifications(filters?: NotificationFilters) {
         query: (filters ?? {}) as Record<string, QueryValue>
       })
   });
+}
+
+export function useNotifications(filters?: NotificationFilters) {
+  return useQuery(notificationsOptions(filters));
 }
 
 export function useMarkNotificationRead() {

@@ -46,13 +46,32 @@ interface KeyObservation {
  * invalidation keys from being mis-categorised as query definitions.
  */
 function extractKeysFromModule(
-  mod: Record<string, (...args: unknown[]) => unknown>,
+  mod: Record<string, unknown>,
   moduleName: string
 ): KeyObservation[] {
   const observations: KeyObservation[] = [];
 
-  for (const [exportName, fn] of Object.entries(mod)) {
-    if (typeof fn !== "function") continue;
+  for (const [exportName, value] of Object.entries(mod)) {
+    // Handle queryOptions objects (non-function exports with queryKey)
+    if (
+      value !== null &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      "queryKey" in (value as object)
+    ) {
+      const key = (value as { queryKey: unknown }).queryKey;
+      if (Array.isArray(key)) {
+        observations.push({
+          queryKey: key,
+          source: `${moduleName}.${exportName}`,
+          category: "query",
+        });
+      }
+      continue;
+    }
+
+    if (typeof value !== "function") continue;
+    const fn = value as (...args: unknown[]) => unknown;
     const body = fn.toString();
 
     // 1. Collect character ranges of all invalidateQueries calls so we can
@@ -176,7 +195,7 @@ const expectedScopes: Record<string, string[]> = {
   useVisits: ["visits"],
   useNotifications: ["notifications"],
   useDashboard: ["dashboard"],
-  useMatches: ["matches"],
+  useMatches: ["matches", "incoming-likes"],
   useMapView: ["map"],
   useShareCard: ["share-card"],
 };
@@ -206,7 +225,7 @@ describe("TanStack Query key contracts", () => {
   it("each module uses its expected scope prefix(es)", () => {
     for (const { mod, name } of modules) {
       const observations = extractKeysFromModule(
-        mod as unknown as Record<string, (...args: unknown[]) => unknown>,
+        mod as Record<string, unknown>,
         name
       );
       const queriesInModule = observations.filter((o) => o.category === "query");
@@ -288,7 +307,7 @@ describe("TanStack Query key contracts", () => {
 
     for (const { mod, name } of modules) {
       const observations = extractKeysFromModule(
-        mod as unknown as Record<string, (...args: unknown[]) => unknown>,
+        mod as Record<string, unknown>,
         name
       );
       const invalidations = observations.filter(

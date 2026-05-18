@@ -149,7 +149,7 @@ Dark mode overrides (see Dark Mode section for full palette details):
 
 ### Font Families
 
-Loaded via `next/font/google` with `display: swap` and subset preload:
+Loaded via Google Fonts CDN with `display: swap` and subset preload:
 
 - **Display / Headlines:** Fraunces (variable) — variable optical-size serif, editorial, confident. Uses `opsz` and `SOFT` CSS font-variation-settings for typographic warmth. Weight 400.
 - **Body / UI:** Inter — clean, readable, neutral workhorse sans-serif
@@ -431,7 +431,7 @@ All shadow tokens have reduced-intensity warm dark mode variants:
 - Shape: 12px rounded square (editorial style); circular variant available for profile photos
 - Fallback: CSS `background: linear-gradient(135deg, #C96442, rgba(201,100,66,0.72))`, white initials centered
 - Shadow: `0 4px 10px rgba(31,26,20,0.08)`
-- With image: `next/image` with blur placeholder data URL, `border-radius` + `overflow: hidden`
+- With image: `<img>` with blur placeholder data URL, `border-radius` + `overflow: hidden`
 - Optional ring: animated terracotta arc-draw on mount (300ms, ease-out) via SVG `<circle>` + `stroke-dashoffset` animation
 
 ### Logo (36 FLATMATES)
@@ -452,7 +452,7 @@ shared directory).
 |-----------|---------|-----------------|
 | `<PageLayout>` | Unified page scaffold — paper bg, min-height screen, padding, 200ms fade-in entry | `bg-paper min-h-screen p-6 animate-fade-in` |
 | `<AsyncView>` | Async state handler — renders loading/data/empty/error from TanStack Query | Suspense boundary + error boundary |
-| `<NetworkImage>` | Network image with placeholder/error fallback (replaces raw `<img>`) | `next/image` with blurDataURL |
+| `<NetworkImage>` | Network image with placeholder/error fallback (replaces raw `<img>`) | `<img>` with blurDataURL |
 | `<Card>` | Content card container (interactive hover/press glow, optional gradient/border-glow) | `bg-surface rounded-2xl shadow-sm` |
 | `<Chip>` | Filter/tag chip with choice variant (selection spring animation) | `rounded-full px-3.5 py-2` |
 | `<PageHeader>` | Page header with optional back button and actions | `flex items-center gap-3` |
@@ -546,32 +546,32 @@ Sidebar styling:
 Detailed page layouts, modals, and micro-interactions are specified in
 `plans/ui_ux.md` Sections 5-7. This section provides a route summary only.
 
-| Route | Page Name | Rendering |
-|-------|-----------|-----------|
-| `/` | Home / Discover | CSR |
-| `/onboarding` | Onboarding | SSR |
-| `/choose-role` | Mode Selection | SSR |
-| `/location` | Location Selection | SSR |
-| `/auth/login` | Login | SSR |
-| `/auth/signup` | Sign Up | SSR |
-| `/explore` | Explore / Map View | CSR |
-| `/search` | Search & Filters | CSR |
-| `/swipe` | Swipe Deck | CSR |
-| `/likes` | Likes (incoming) | CSR |
-| `/matches` | Matches | CSR |
-| `/chats` | Chats (with Matches bar) | CSR |
-| `/chats/:id` | Chat Conversation | CSR |
-| `/listing/:id` | Listing Details | SSG+ISR |
-| `/listings/new` | Create Listing | CSR |
-| `/listings/manage` | Manage Listings | CSR |
-| `/profile` | Profile | CSR |
-| `/profile/edit` | Edit Profile | CSR |
-| `/bookings` | Bookings | CSR |
-| `/bookings/:id` | Booking Detail | CSR |
-| `/notifications` | Notifications | CSR |
-| `/settings` | Settings | CSR |
-| `/help` | Help & Support | SSG |
-| `/verify` | Verification | CSR |
+| Route | Page Name |
+|-------|-----------|
+| `/` | Home / Discover |
+| `/onboarding` | Onboarding |
+| `/choose-role` | Mode Selection |
+| `/location` | Location Selection |
+| `/auth/login` | Login |
+| `/auth/signup` | Sign Up |
+| `/explore` | Explore / Map View |
+| `/search` | Search & Filters |
+| `/swipe` | Swipe Deck |
+| `/likes` | Likes (incoming) |
+| `/matches` | Matches |
+| `/chats` | Chats (with Matches bar) |
+| `/chats/:id` | Chat Conversation |
+| `/listing/:id` | Listing Details |
+| `/listings/new` | Create Listing |
+| `/listings/manage` | Manage Listings |
+| `/profile` | Profile |
+| `/profile/edit` | Edit Profile |
+| `/bookings` | Bookings |
+| `/bookings/:id` | Booking Detail |
+| `/notifications` | Notifications |
+| `/settings` | Settings |
+| `/help` | Help & Support |
+| `/verify` | Verification |
 
 ---
 
@@ -716,7 +716,7 @@ Dark mode uses CSS custom properties toggled via `[data-theme]` attribute on `<h
 **Theme switching mechanism:**
 1. Default: check `prefers-color-scheme: dark` media query on initial load
 2. User override: toggle sets `[data-theme="dark"]` on `<html>` and persists to `localStorage`
-3. SSR hydration: set theme via inline `<script>` in `<head>` (before paint) to avoid flash:
+3. SPA theme init: set theme via inline `<script>` in `index.html` `<head>` (before paint) to avoid flash:
    ```html
    <script>
      const t = localStorage.getItem('theme');
@@ -725,7 +725,7 @@ Dark mode uses CSS custom properties toggled via `[data-theme]` attribute on `<h
      }
    </script>
    ```
-4. Tailwind: use `darkMode: ['class', '[data-theme="dark"]']` in `tailwind.config.ts`
+4. Tailwind v4: dark mode uses `[data-theme="dark"]` selector defined in `globals.css` `@theme` directive
 
 ### Dark Mode Palettes
 
@@ -848,15 +848,16 @@ A visually-hidden skip link is the first focusable element on every page:
 
 ## Image Strategy
 
-- **`next/image`** with `sizes` attribute for responsive images:
+- **Responsive images** with `srcset` and `sizes` attribute:
   ```jsx
-  <Image
+  <img
     src={url}
+    srcSet={`${url}?w=400 400w, ${url}?w=800 800w, ${url}?w=1200 1200w`}
     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-    blurDataURL={placeholder}
+    loading="lazy"
   />
   ```
 - **Blur placeholder**: Generate base64 data URLs at build time for above-fold images
-- **Format negotiation**: WebP/AVIF via `next/image` automatic format selection
-- **Lazy loading**: Below-fold images use `loading="lazy"` (default in `next/image`)
+- **Format negotiation**: Serve WebP/AVIF variants via CDN or `<picture>` element
+- **Lazy loading**: Below-fold images use `loading="lazy"`
 - **Error fallback**: Gray placeholder with icon for failed image loads

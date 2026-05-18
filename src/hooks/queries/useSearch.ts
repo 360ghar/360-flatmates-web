@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   PaginatedPropertyResponse,
@@ -11,8 +11,8 @@ import type {
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
-export function useWebSearch(filters: SearchFilters) {
-  return useQuery({
+export function webSearchOptions(filters: SearchFilters) {
+  return queryOptions({
     queryKey: ["search", "web", filters],
     queryFn: async () => {
       const response = await apiClient.request<PaginatedPropertyResponse>({
@@ -31,7 +31,6 @@ export function useWebSearch(filters: SearchFilters) {
           purpose: filters.purpose,
           bedrooms_min: filters.bedrooms_min,
           bedrooms_max: filters.bedrooms_max,
-          // GET /properties expects singular strings for these fields (not arrays)
           sharing_type: filters.sharing_type?.[0],
           gender_preference: filters.gender_preference?.[0],
           move_in: filters.move_in?.[0],
@@ -63,19 +62,21 @@ export function useWebSearch(filters: SearchFilters) {
   });
 }
 
-// Saved searches and alerts — endpoints not yet implemented in backend
-// Stubs to prevent 404 errors; will be enabled when backend adds these routes
+export function useWebSearch(filters: SearchFilters) {
+  return useQuery(webSearchOptions(filters));
+}
+
+export const savedSearchesOptions = queryOptions({
+  queryKey: ["search", "saved"],
+  queryFn: () =>
+    apiClient.request<SavedSearch[]>({
+      method: "GET",
+      path: "/flatmates/web/saved-searches"
+    })
+});
 
 export function useSavedSearches() {
-  return useQuery({
-    queryKey: ["search", "saved"],
-    queryFn: () =>
-      apiClient.request<SavedSearch[]>({
-        method: "GET",
-        path: "/flatmates/web/saved-searches"
-      }),
-    enabled: false
-  });
+  return useQuery({ ...savedSearchesOptions, enabled: false });
 }
 
 export function useCreateSavedSearch() {
@@ -109,16 +110,17 @@ export function useDeleteSavedSearch() {
   });
 }
 
+export const searchAlertsOptions = queryOptions({
+  queryKey: ["search", "alerts"],
+  queryFn: () =>
+    apiClient.request<SearchAlert[]>({
+      method: "GET",
+      path: "/flatmates/web/alerts"
+    })
+});
+
 export function useSearchAlerts() {
-  return useQuery({
-    queryKey: ["search", "alerts"],
-    queryFn: () =>
-      apiClient.request<SearchAlert[]>({
-        method: "GET",
-        path: "/flatmates/web/alerts"
-      }),
-    enabled: false
-  });
+  return useQuery({ ...searchAlertsOptions, enabled: false });
 }
 
 export function useCreateSearchAlert() {

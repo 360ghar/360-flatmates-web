@@ -6,6 +6,7 @@ export function useScrollProgress<T extends HTMLElement = HTMLElement>(
   const ref = useRef<T | null>(null);
   const [progress, setProgress] = useState(0);
   const rafId = useRef(0);
+  const lastProgress = useRef(0);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia(
@@ -29,7 +30,10 @@ export function useScrollProgress<T extends HTMLElement = HTMLElement>(
           (windowHeight - elementTop) / (windowHeight + elementHeight);
         const clamped = Math.min(1, Math.max(0, rawProgress));
 
-        setProgress(clamped);
+        if (clamped !== lastProgress.current) {
+          lastProgress.current = clamped;
+          setProgress(clamped);
+        }
         element.style.setProperty("--scroll-progress", String(clamped));
       });
     };

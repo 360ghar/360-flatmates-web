@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type { MapViewResponse, MapViewFilters, MapPin, Property, PaginatedPropertyResponse } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
@@ -17,8 +17,8 @@ function propertyToPin(p: Property): MapPin {
   };
 }
 
-export function useMapView(filters: MapViewFilters) {
-  return useQuery({
+export function mapViewOptions(filters: MapViewFilters) {
+  return queryOptions({
     queryKey: ["map", filters],
     queryFn: async () => {
       const response = await apiClient.request<PaginatedPropertyResponse>({
@@ -48,6 +48,12 @@ export function useMapView(filters: MapViewFilters) {
     enabled:
       filters.lat !== undefined &&
       filters.lng !== undefined,
+  });
+}
+
+export function useMapView(filters: MapViewFilters) {
+  return useQuery({
+    ...mapViewOptions(filters),
     placeholderData: {
       clusters: [],
       pins: [],

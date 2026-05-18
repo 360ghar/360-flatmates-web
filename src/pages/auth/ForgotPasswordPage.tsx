@@ -1,18 +1,17 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router";
-import { Eye, EyeOff } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PhoneInput, formatFullPhone } from "@/components/ui/PhoneInput";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { StepProgress } from "@/components/ui/StepProgress";
+import { PASSWORD_REGEX } from "@/lib/schemas/common";
 
 type ResetStep = "phone" | "verify" | "new-password";
 
 const STEP_LABELS = ["Verify phone", "Enter OTP", "New password"];
-
-const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 export function ForgotPasswordPage() {
   const { signInWithPhone, verifyOtp, updateUser } = useAuth();
@@ -22,8 +21,6 @@ export function ForgotPasswordPage() {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -171,40 +168,20 @@ export function ForgotPasswordPage() {
 
       {step === "new-password" && (
         <>
-          <div className="relative mt-5">
-            <Input
-              label="New password"
-              type={showNewPassword ? "text" : "password"}
-              placeholder="Min 8 characters"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <button
-              type="button"
-              aria-label={showNewPassword ? "Hide password" : "Show password"}
-              className="absolute right-3 top-[38px] text-ink-3 hover:text-ink"
-              onClick={() => setShowNewPassword((prev) => !prev)}
-            >
-              {showNewPassword ? <EyeOff aria-hidden="true" className="h-4 w-4" /> : <Eye aria-hidden="true" className="h-4 w-4" />}
-            </button>
-          </div>
-          <div className="relative mt-4">
-            <Input
-              label="Confirm password"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Re-enter password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <button
-              type="button"
-              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-              className="absolute right-3 top-[38px] text-ink-3 hover:text-ink"
-              onClick={() => setShowConfirmPassword((prev) => !prev)}
-            >
-              {showConfirmPassword ? <EyeOff aria-hidden="true" className="h-4 w-4" /> : <Eye aria-hidden="true" className="h-4 w-4" />}
-            </button>
-          </div>
+          <PasswordInput
+            label="New password"
+            placeholder="Min 8 characters"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="mt-5"
+          />
+          <PasswordInput
+            label="Confirm password"
+            placeholder="Re-enter password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="mt-4"
+          />
           <div className="mt-3 rounded-xl bg-paper-2 p-3 text-caption text-ink-2">
             Min 8 chars, 1 uppercase, 1 number, 1 special character.
           </div>

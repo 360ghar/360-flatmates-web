@@ -16,11 +16,13 @@ import {
   setupVisibilityNegotiation,
 } from "@/lib/sse/broadcast";
 import { setAccessToken } from "@/lib/api";
+import { getEnv } from "@/lib/env";
 import { uiStore } from "@/lib/stores/ui-store";
 
+const env = getEnv();
 const SSE_URL =
-  import.meta.env.VITE_SSE_URL ??
-  `${import.meta.env.VITE_API_BASE_URL ?? "https://api.360ghar.com/api/v1"}/flatmates/sse`;
+  env.VITE_SSE_URL ??
+  `${env.VITE_API_BASE_URL}/flatmates/sse`;
 
 interface UseSSEReturn {
   connectionState: SSEConnectionState;
@@ -141,10 +143,12 @@ export function useSSE(
 
   const handleStateChange = useCallback(
     (state: SSEConnectionState) => {
-      setConnectionState(state);
-
       const isConnected = state === SSEConnectionState.Connected;
-      uiStore.setState({ sseConnected: isConnected, sseState: state });
+      const current = uiStore.getState();
+      if (current.sseConnected !== isConnected || current.sseState !== state) {
+        uiStore.setState({ sseConnected: isConnected, sseState: state });
+      }
+      setConnectionState(state);
     },
     [],
   );
@@ -220,7 +224,6 @@ export function useSSE(
         ssePrimaryTab: false,
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, sseManagerOptions]);
 
   return { connectionState, isPrimaryTab };

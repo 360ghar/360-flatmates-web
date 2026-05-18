@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { getEnv } from "@/lib/env";
 
 /**
  * Singleton browser Supabase client.
@@ -14,9 +15,10 @@ export function getSupabaseBrowserClient() {
     return browserClient;
   }
 
+  const env = getEnv();
   browserClient = createClient(
-    import.meta.env.VITE_SUPABASE_URL!,
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY!
+    env.VITE_SUPABASE_URL,
+    env.VITE_SUPABASE_PUBLISHABLE_KEY
   );
 
   return browserClient;

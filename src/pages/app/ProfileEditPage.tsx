@@ -16,9 +16,19 @@ import {
   WORK_STYLE_VALUES,
   GENDER_PREFERENCE_VALUES,
   FLATMATE_MODE_OPTIONS,
-  type FlatmatesMode
 } from "@/lib/data";
-import { humanizeSnakeCase } from "@/lib/utils";
+import {
+  flatmatesModeSchema,
+  genderPreferenceSchema,
+  moveInTimelineSchema,
+  sleepScheduleSchema,
+  cleanlinessSchema,
+  foodHabitsSchema,
+  smokingDrinkingSchema,
+  guestsPolicySchema,
+  workStyleSchema,
+} from "@/lib/schemas/enums";
+import { toSelectOptions, stripEmptyFields } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input, TextArea, SelectField } from "@/components/ui/Input";
@@ -36,66 +46,39 @@ const profileSchema = z.object({
   locality: z.string().max(80).optional(),
   budget_min: z.number().min(0).optional(),
   budget_max: z.number().min(0).optional(),
-  move_in_timeline: z.enum(["immediate", "this_month", "next_month", "flexible"] as const).optional(),
-  sleep_schedule: z.enum(SLEEP_SCHEDULE_VALUES).optional(),
-  cleanliness: z.enum(CLEANLINESS_VALUES).optional(),
-  food_habits: z.enum(FOOD_HABITS_VALUES).optional(),
-  smoking_drinking: z.enum(SMOKING_DRINKING_VALUES).optional(),
-  guests_policy: z.enum(GUESTS_POLICY_VALUES).optional(),
-  work_style: z.enum(WORK_STYLE_VALUES).optional(),
+  move_in_timeline: moveInTimelineSchema.optional(),
+  sleep_schedule: sleepScheduleSchema.optional(),
+  cleanliness: cleanlinessSchema.optional(),
+  food_habits: foodHabitsSchema.optional(),
+  smoking_drinking: smokingDrinkingSchema.optional(),
+  guests_policy: guestsPolicySchema.optional(),
+  work_style: workStyleSchema.optional(),
   gender: z.string().optional(),
-  gender_preference: z.enum(GENDER_PREFERENCE_VALUES).optional(),
-  mode: z.enum(FLATMATE_MODE_OPTIONS.map((o) => o.value as FlatmatesMode)).optional()
+  gender_preference: genderPreferenceSchema.optional(),
+  mode: flatmatesModeSchema.optional()
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 /* ── Select option helpers ───────────────────────────────── */
 
-const timelineOptions = MOVE_IN_TIMELINE_OPTIONS.map((o) => ({
-  value: o.value,
-  label: o.label
-}));
+const timelineOptions = toSelectOptions(MOVE_IN_TIMELINE_OPTIONS);
 
-const sleepOptions = SLEEP_SCHEDULE_VALUES.map((v) => ({
-  value: v,
-  label: humanizeSnakeCase(v).replace(/\b\w/g, (c) => c.toUpperCase())
-}));
+const sleepOptions = toSelectOptions(SLEEP_SCHEDULE_VALUES);
 
-const cleanlinessOptions = CLEANLINESS_VALUES.map((v) => ({
-  value: v,
-  label: v.charAt(0).toUpperCase() + v.slice(1)
-}));
+const cleanlinessOptions = toSelectOptions(CLEANLINESS_VALUES);
 
-const foodOptions = FOOD_HABITS_VALUES.map((v) => ({
-  value: v,
-  label: humanizeSnakeCase(v).replace(/\b\w/g, (c) => c.toUpperCase())
-}));
+const foodOptions = toSelectOptions(FOOD_HABITS_VALUES);
 
-const smokingOptions = SMOKING_DRINKING_VALUES.map((v) => ({
-  value: v,
-  label: humanizeSnakeCase(v).replace(/\b\w/g, (c) => c.toUpperCase())
-}));
+const smokingOptions = toSelectOptions(SMOKING_DRINKING_VALUES);
 
-const guestsOptions = GUESTS_POLICY_VALUES.map((v) => ({
-  value: v,
-  label: humanizeSnakeCase(v).replace(/\b\w/g, (c) => c.toUpperCase())
-}));
+const guestsOptions = toSelectOptions(GUESTS_POLICY_VALUES);
 
-const workStyleOptions = WORK_STYLE_VALUES.map((v) => ({
-  value: v,
-  label: humanizeSnakeCase(v).replace(/\b\w/g, (c) => c.toUpperCase())
-}));
+const workStyleOptions = toSelectOptions(WORK_STYLE_VALUES);
 
-const genderPrefOptions = GENDER_PREFERENCE_VALUES.map((v) => ({
-  value: v,
-  label: v.charAt(0).toUpperCase() + v.slice(1)
-}));
+const genderPrefOptions = toSelectOptions(GENDER_PREFERENCE_VALUES);
 
-const modeOptions = FLATMATE_MODE_OPTIONS.map((o) => ({
-  value: o.value,
-  label: o.label
-}));
+const modeOptions = toSelectOptions(FLATMATE_MODE_OPTIONS);
 
 /* ── Page component ──────────────────────────────────────── */
 
@@ -165,13 +148,7 @@ export function ProfileEditPage() {
   function onSubmit(data: ProfileFormData) {
     setServerError(null);
 
-    /* Strip empty strings so the PATCH only sends changed fields */
-    const payload: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== "" && value !== undefined) {
-        payload[key] = value;
-      }
-    }
+    const payload = stripEmptyFields(data as Record<string, unknown>);
 
     updateProfile.mutate(payload, {
       onSuccess: () => {

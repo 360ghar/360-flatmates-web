@@ -5,6 +5,7 @@ import type { UserMode } from "@/components/ui/Badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyProfile } from "@/hooks/queries/useProfiles";
 import { uiStore } from "@/lib/stores/ui-store";
+import { PageSpinner } from "@/components/ui/Spinner";
 
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
@@ -23,11 +24,7 @@ export function AppLayout() {
     : undefined;
 
   if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-paper">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   if (!user) {

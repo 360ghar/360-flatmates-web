@@ -4,8 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TrustBadge } from "@/components/ui/TrustBadge";
-
-const BASE_URL = import.meta.env.VITE_APP_URL ?? "https://360ghar.com";
+import { BASE_URL } from "@/lib/config";
 
 const VALUES = [
   {

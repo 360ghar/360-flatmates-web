@@ -13,8 +13,7 @@ import {
   smokingDrinkingSchema,
   workStyleSchema
 } from "./enums";
-
-const optionalUrlSchema = z.string().url().optional();
+import { minMaxRefine, optionalUrlSchema } from "./common";
 
 export const lifestyleSchema = z.object({
   sleep_schedule: sleepScheduleSchema,
@@ -57,6 +56,8 @@ export const flatmatesProfileSchema = z.object({
   last_active_at: z.string().optional()
 });
 
+const budgetRefine = minMaxRefine("budget_min", "budget_max", "Minimum budget cannot exceed maximum budget");
+
 export const flatmatesProfileUpdateSchema = flatmatesProfileSchema
   .omit({
     id: true,
@@ -65,16 +66,7 @@ export const flatmatesProfileUpdateSchema = flatmatesProfileSchema
     last_active_at: true
   })
   .partial()
-  .refine(
-    (value) =>
-      value.budget_min === undefined ||
-      value.budget_max === undefined ||
-      value.budget_min <= value.budget_max,
-    {
-      message: "Minimum budget cannot exceed maximum budget",
-      path: ["budget_min"]
-    }
-  );
+  .refine(budgetRefine.check, budgetRefine.opts);
 
 export const flatmatesPeerSchema = flatmatesProfileSchema
   .pick({

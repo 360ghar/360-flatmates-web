@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   ConversationSummary,
@@ -8,15 +8,17 @@ import type {
   MessageListResponse
 } from "@/lib/api/types";
 
+export const conversationsOptions = queryOptions({
+  queryKey: ["conversations"],
+  queryFn: () =>
+    apiClient.request<ConversationSummary[]>({
+      method: "GET",
+      path: "/flatmates/conversations"
+    })
+});
+
 export function useConversations() {
-  return useQuery({
-    queryKey: ["conversations"],
-    queryFn: () =>
-      apiClient.request<ConversationSummary[]>({
-        method: "GET",
-        path: "/flatmates/conversations"
-      })
-  });
+  return useQuery(conversationsOptions);
 }
 
 export function useConversation(id: number) {

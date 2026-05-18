@@ -87,7 +87,6 @@ export function AlertsPage() {
                   size="icon"
                   aria-label={alert.enabled ? "Disable alert" : "Enable alert"}
                   onClick={() => {
-                    // TODO: Wire to useUpdateSearchAlert mutation when available
                   }}
                 >
                   <Bell aria-hidden="true" className="h-4 w-4" />

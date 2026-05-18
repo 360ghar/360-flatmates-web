@@ -69,9 +69,10 @@ export function createSearchStore(initialState: SearchStoreInitialState = {}) {
         viewMode: "grid",
         ...initialState,
         setFilter: (key, value) =>
-          set((state) => ({
-            filters: { ...state.filters, [key]: value, page: 1 }
-          })),
+          set((state) => {
+            if (state.filters[key] === value) return state;
+            return { filters: { ...state.filters, [key]: value, page: 1 } };
+          }),
         setFilters: (filters) =>
           set((state) => ({
             filters: { ...state.filters, ...filters, page: filters.page ?? 1 }
@@ -83,16 +84,17 @@ export function createSearchStore(initialState: SearchStoreInitialState = {}) {
         resetFilters: () => set({ filters: { ...DEFAULT_SEARCH_FILTERS } }),
         addRecentSearch: (query) => {
           const normalized = query.trim();
-          if (!normalized) {
-            return;
-          }
+          if (!normalized) return;
 
-          set((state) => ({
-            recentSearches: [
-              normalized,
-              ...state.recentSearches.filter((item) => item !== normalized)
-            ].slice(0, 5)
-          }));
+          set((state) => {
+            if (state.recentSearches[0] === normalized) return state;
+            return {
+              recentSearches: [
+                normalized,
+                ...state.recentSearches.filter((item) => item !== normalized)
+              ].slice(0, 5)
+            };
+          });
         },
         clearRecentSearches: () => set({ recentSearches: [] }),
         setViewMode: (viewMode) => set({ viewMode }),

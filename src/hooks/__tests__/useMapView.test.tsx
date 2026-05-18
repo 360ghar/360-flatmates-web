@@ -31,12 +31,19 @@ describe("useMapView hooks", () => {
 
   describe("useMapView(filters)", () => {
     it("uses query key ['map', filters]", async () => {
-      const mockResponse: MapViewResponse = {
+      const rawApiResponse = {
+        properties: [],
+        total: 0,
+        page: 1,
+        limit: 100,
+        total_pages: 0
+      };
+      const expectedCache: MapViewResponse = {
         clusters: [],
         pins: [],
         total_listings: 0
       };
-      mockRequest.mockResolvedValue(mockResponse);
+      mockRequest.mockResolvedValue(rawApiResponse);
 
       const filters = { lat: 12.97, lng: 77.59 };
       const queryClient = new QueryClient({
@@ -52,14 +59,16 @@ describe("useMapView hooks", () => {
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
 
       const cache = queryClient.getQueryData(["map", filters]);
-      expect(cache).toEqual(mockResponse);
+      expect(cache).toEqual(expectedCache);
     });
 
-    it("requests GET /flatmates/web/map with filters as query", async () => {
+    it("requests GET /properties with filters as query", async () => {
       mockRequest.mockResolvedValue({
-        clusters: [],
-        pins: [],
-        total_listings: 0
+        properties: [],
+        total: 0,
+        page: 1,
+        limit: 100,
+        total_pages: 0
       });
 
       const filters = { lat: 12.97, lng: 77.59, radius: 5 };
@@ -68,8 +77,8 @@ describe("useMapView hooks", () => {
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("GET");
-      expect(call.path).toBe("/flatmates/web/map");
-      expect(call.query).toEqual(filters);
+      expect(call.path).toBe("/properties");
+      expect(call.query).toMatchObject({ lat: 12.97, lng: 77.59, radius: 5 });
     });
 
     it("is enabled when lat and lng are defined", async () => {

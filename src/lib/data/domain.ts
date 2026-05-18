@@ -305,13 +305,13 @@ export const MESSAGE_TYPE_VALUES = [
 export type MessageType = (typeof MESSAGE_TYPE_VALUES)[number];
 
 export const POPULAR_CITIES = [
-  "Bangalore",
-  "Delhi NCR",
-  "Mumbai",
-  "Hyderabad",
-  "Pune",
   "Gurugram",
-  "Noida"
+  "Bangalore",
+  // "Delhi NCR",
+  // "Mumbai",
+  // "Hyderabad",
+  // "Pune",
+  // "Noida",
 ] as const;
 
 export const USER_REPORT_REASON_VALUES = [
@@ -348,4 +348,52 @@ export type ShareCardFormat = (typeof SHARE_CARD_FORMAT_VALUES)[number];
 export const DEVICE_PLATFORM_VALUES = ["ios", "android", "web"] as const;
 
 export type DevicePlatform = (typeof DEVICE_PLATFORM_VALUES)[number];
+
+export const USER_ROLE_VALUES = ["user", "admin", "agent"] as const;
+
+export type UserRole = (typeof USER_ROLE_VALUES)[number];
+
+export const USER_MATCH_STATUS_VALUES = ["active", "unmatched", "blocked"] as const;
+
+export type UserMatchStatus = (typeof USER_MATCH_STATUS_VALUES)[number];
+
+export const CONVERSATION_SOURCE_VALUES = ["listing_interest", "profile_match"] as const;
+
+export type ConversationSource = (typeof CONVERSATION_SOURCE_VALUES)[number];
+
+export const CONVERSATION_STATUS_VALUES = ["active", "archived", "blocked", "closed"] as const;
+
+export type ConversationStatus = (typeof CONVERSATION_STATUS_VALUES)[number];
+
+export const PROPERTY_LIFECYCLE_STATUS_VALUES = ["draft", "active", "paused", "expired"] as const;
+
+export type PropertyLifecycleStatus = (typeof PROPERTY_LIFECYCLE_STATUS_VALUES)[number];
+
+export const PROPERTY_MODERATION_STATUS_VALUES = ["pending_review", "approved", "rejected"] as const;
+
+export type PropertyModerationStatus = (typeof PROPERTY_MODERATION_STATUS_VALUES)[number];
+
+export const COMPATIBILITY_COLOR_VALUES = ["green", "amber", "red"] as const;
+
+export type CompatibilityColor = (typeof COMPATIBILITY_COLOR_VALUES)[number];
+
+export const INTEREST_LEVEL_VALUES = ["high", "medium", "low"] as const;
+
+export type InterestLevel = (typeof INTEREST_LEVEL_VALUES)[number];
+
+export const MODERATION_ACTION_VALUES = ["approve", "reject", "request_edit"] as const;
+
+export type ModerationAction = (typeof MODERATION_ACTION_VALUES)[number];
+
+export const REPORT_STATUS_VALUES = ["open", "under_review", "resolved", "dismissed"] as const;
+
+export type ReportStatus = (typeof REPORT_STATUS_VALUES)[number];
+
+export const REPORT_ACTION_VALUES = ["dismiss", "warn", "suspend"] as const;
+
+export type ReportAction = (typeof REPORT_ACTION_VALUES)[number];
+
+export const SOCIETY_TAG_VOTE_DIRECTION_VALUES = ["up", "down"] as const;
+
+export type SocietyTagVoteDirection = (typeof SOCIETY_TAG_VOTE_DIRECTION_VALUES)[number];
 

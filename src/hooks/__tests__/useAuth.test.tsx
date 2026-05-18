@@ -83,7 +83,7 @@ describe("useAuth", () => {
 
   it("sets user and session when getSession returns a session", async () => {
     const mockUser = { id: "user-1" };
-    const mockSession = { user: mockUser, access_token: "token" };
+    const mockSession = { user: mockUser, access_token: "token", expires_at: Math.floor(Date.now() / 1000) + 3600 };
     mockGetSession.mockResolvedValue({ data: { session: mockSession } });
 
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });

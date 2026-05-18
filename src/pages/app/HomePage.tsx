@@ -41,7 +41,6 @@ export function HomePage() {
 
   const anyLoading = bootstrapLoading || propertiesLoading || peersLoading || swipeLoading;
 
-  // Hydrate search store from profile on mount if search store city is empty
   useEffect(() => {
     const currentCity = searchStore.getState().filters.city;
     if (!currentCity && profile?.city) {
@@ -91,7 +90,8 @@ export function HomePage() {
           >
             {recommended.length > 0 ? (
               recommended.slice(0, 4).map((peer, i) => (
-                <div key={peer.id} className={`min-w-[180px] max-w-[200px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear card-appear-${Math.min(i + 1, 6)}`}>
+                <div key={peer.id} className="min-w-[180px] max-w-[200px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear"
+                    style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ProfileGridCard
                     profile={profileToProfileGridCardProps(peer)}
                     onOpen={(id) => navigate(`/profile/${id}`)}
@@ -113,7 +113,8 @@ export function HomePage() {
           >
             {listings.length > 0 ? (
               listings.slice(0, 4).map((property, i) => (
-                <div key={property.id} className={`min-w-[280px] max-w-[340px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear card-appear-${Math.min(i + 1, 6)}`}>
+                <div key={property.id} className="min-w-[280px] max-w-[340px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear"
+                    style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ListingCard
                     listing={propertyToListingCardProps(property)}
                     onOpen={(id) => navigate(`/listings/${id}`)}
@@ -135,7 +136,8 @@ export function HomePage() {
           >
             {nearbyPeers.length > 0 ? (
               nearbyPeers.slice(0, 4).map((peer, i) => (
-                <div key={peer.id} className={`min-w-[180px] max-w-[200px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear card-appear-${Math.min(i + 1, 6)}`}>
+                <div key={peer.id} className="min-w-[180px] max-w-[200px] md:max-w-none lg:min-w-0 lg:max-w-none snap-start lg:snap-align-none card-appear"
+                    style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ProfileGridCard
                     profile={profileToProfileGridCardProps(peer)}
                     onOpen={(id) => navigate(`/profile/${id}`)}

@@ -61,14 +61,6 @@ describe("useChatStore", () => {
     expect(useChatStore.getState().isTyping[10]).toBe(false);
   });
 
-  it("toggleInfoPanel flips showInfoPanel", () => {
-    useChatStore.getState().toggleInfoPanel();
-    expect(useChatStore.getState().showInfoPanel).toBe(true);
-
-    useChatStore.getState().toggleInfoPanel();
-    expect(useChatStore.getState().showInfoPanel).toBe(false);
-  });
-
   it("setShowInfoPanel sets showInfoPanel directly", () => {
     useChatStore.getState().setShowInfoPanel(true);
     expect(useChatStore.getState().showInfoPanel).toBe(true);

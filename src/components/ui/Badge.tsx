@@ -1,9 +1,10 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { cn, toneClasses, type Tone } from "./component-utils";
+import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data/domain";
 
 export type BadgeVariant = "default" | "mode" | "verified" | "status" | "count";
-export type UserMode = "room_poster" | "co_hunter" | "open_to_both";
+export type UserMode = FlatmatesMode;
 export type StatusTone = "confirmed" | "pending" | "rejected" | "completed" | "cancelled";
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -16,11 +17,12 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   dot?: boolean;
 }
 
-const modeConfig: Record<UserMode, { label: string; tone: Tone }> = {
-  room_poster: { label: "Room Poster", tone: "accent" },
-  co_hunter: { label: "Co-Hunter", tone: "teal" },
-  open_to_both: { label: "Open to Both", tone: "purple" }
-};
+const modeConfig: Record<UserMode, { label: string; tone: Tone }> = Object.fromEntries(
+  FLATMATE_MODE_OPTIONS.map((opt) => [
+    opt.value,
+    { label: opt.label, tone: opt.value === "room_poster" ? "accent" : opt.value === "co_hunter" ? "teal" : "purple" }
+  ])
+) as Record<UserMode, { label: string; tone: Tone }>;
 
 const statusTone: Record<StatusTone, Tone> = {
   confirmed: "success",

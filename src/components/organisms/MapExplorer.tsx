@@ -1,9 +1,10 @@
 import type { HTMLAttributes } from "react";
-import { LocateFixed, MapPin, Minus, Plus, SlidersHorizontal } from "lucide-react";
+import { MapPin, SlidersHorizontal } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Chip } from "../ui/Chip";
 import { EmptyState } from "../ui/StateViews";
 import { ListingMiniCard } from "../molecules/MiniCards";
+import { MapZoomControls } from "../molecules/MapZoomControls";
 import { cn } from "../ui/component-utils";
 
 export interface MapPinData {
@@ -84,17 +85,7 @@ export function MapExplorer({
             ))}
           </div>
         )}
-        <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
-          <Button aria-label="Zoom in" size="icon" variant="secondary" onClick={onZoomIn}>
-            <Plus aria-hidden="true" className="h-5 w-5" />
-          </Button>
-          <Button aria-label="Zoom out" size="icon" variant="secondary" onClick={onZoomOut}>
-            <Minus aria-hidden="true" className="h-5 w-5" />
-          </Button>
-          <Button aria-label="Locate me" size="icon" onClick={onLocate}>
-            <LocateFixed aria-hidden="true" className="h-5 w-5" />
-          </Button>
-        </div>
+        <MapZoomControls onZoomIn={onZoomIn} onZoomOut={onZoomOut} onLocate={onLocate} />
       </div>
     </section>
   );

@@ -49,12 +49,12 @@ describe("useDevices hooks", () => {
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("POST");
       expect(call.path).toBe("/notifications/devices/register");
-      expect(call.body).toEqual(payload);
+      expect(call.body).toEqual({ token: "abc123", platform: "ios" });
     });
   });
 
   describe("useUnregisterDeviceMutation", () => {
-    it("sends POST /notifications/devices/unregister with payload", async () => {
+    it("sends DELETE /notifications/devices/unregister with token as query param", async () => {
       mockRequest.mockResolvedValue({ message: "Device unregistered" });
 
       const payload = { device_token: "abc123" };
@@ -66,9 +66,9 @@ describe("useDevices hooks", () => {
 
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
-      expect(call.method).toBe("POST");
+      expect(call.method).toBe("DELETE");
       expect(call.path).toBe("/notifications/devices/unregister");
-      expect(call.body).toEqual(payload);
+      expect(call.query).toEqual({ token: "abc123" });
     });
   });
 });

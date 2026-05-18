@@ -38,6 +38,8 @@ vi.mock("@/lib/sse/broadcast", () => ({
 vi.mock("@/lib/stores/ui-store", () => ({
   uiStore: {
     getState: () => ({
+      sseConnected: false,
+      sseState: "disconnected",
       setSseConnected: vi.fn(),
       setSSEState: vi.fn(),
       setSSEPrimaryTab: vi.fn()
@@ -114,8 +116,9 @@ describe("useSSE", () => {
   });
 
   it("dispatches state change to connectionState", async () => {
+    const getToken = () => Promise.resolve("token");
     const { result } = renderHook(
-      () => useSSE(true, () => Promise.resolve("token")),
+      () => useSSE(true, getToken),
       { wrapper: createWrapper() }
     );
 
@@ -129,7 +132,9 @@ describe("useSSE", () => {
       onStateChange(SSEConnectionState.Connected);
     });
 
-    expect(result.current.connectionState).toBe(SSEConnectionState.Connected);
+    await waitFor(() => {
+      expect(result.current.connectionState).toBe(SSEConnectionState.Connected);
+    });
   });
 
   it("invalidates queries on notification event", async () => {

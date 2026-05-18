@@ -1,29 +1,15 @@
 import { Helmet } from "react-helmet-async";
 
 import StatsClient from "@/components/page-clients/StatsClient";
+import { buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/utils/seo";
+import { BASE_URL } from "@/lib/config";
 
-const BASE_URL = import.meta.env.VITE_APP_URL ?? "https://360ghar.com";
+const breadcrumbLd = buildBreadcrumbJsonLd([
+  homeBreadcrumb(),
+  { name: "City Stats", item: `${BASE_URL}/stats` },
+]);
 
 export function StatsPage() {
-  const breadcrumbLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: BASE_URL,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "City Stats",
-        item: `${BASE_URL}/stats`,
-      },
-    ],
-  };
-
   return (
     <>
       <Helmet>

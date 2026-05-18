@@ -26,12 +26,18 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/**/__tests__",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/__mocks__"
   ]
 }

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   FlatmatesProfile,
@@ -8,19 +8,17 @@ import type {
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
-export function useMyProfile() {
-  return useQuery({
-    queryKey: ["profile", "me"],
-    queryFn: () =>
-      apiClient.request<FlatmatesProfile>({
-        method: "GET",
-        path: "/flatmates/profile"
-      })
-  });
-}
+export const myProfileOptions = queryOptions({
+  queryKey: ["profile", "me"],
+  queryFn: () =>
+    apiClient.request<FlatmatesProfile>({
+      method: "GET",
+      path: "/flatmates/profile"
+    })
+});
 
-export function useProfile(id: number) {
-  return useQuery({
+export function profileOptions(id: number) {
+  return queryOptions({
     queryKey: ["profiles", id],
     queryFn: () =>
       apiClient.request<FlatmatesProfile>({
@@ -31,8 +29,8 @@ export function useProfile(id: number) {
   });
 }
 
-export function usePeers(filters?: PeerFilters) {
-  return useQuery({
+export function peerProfilesOptions(filters?: PeerFilters) {
+  return queryOptions({
     queryKey: ["profiles", "peers", filters],
     queryFn: () =>
       apiClient.request<FlatmatesPeer[]>({
@@ -41,6 +39,18 @@ export function usePeers(filters?: PeerFilters) {
         query: (filters ?? {}) as Record<string, QueryValue>
       })
   });
+}
+
+export function useMyProfile() {
+  return useQuery(myProfileOptions);
+}
+
+export function useProfile(id: number) {
+  return useQuery(profileOptions(id));
+}
+
+export function usePeers(filters?: PeerFilters) {
+  return useQuery(peerProfilesOptions(filters));
 }
 
 export function useUpdateProfile() {

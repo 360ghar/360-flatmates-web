@@ -69,6 +69,7 @@ export function DiscoverPage() {
     data: searchResults,
     isLoading: searchLoading,
     error: searchError,
+    refetch,
   } = useWebSearch(filters);
 
   const listings: ListingCardData[] = useMemo(() => {
@@ -113,6 +114,7 @@ export function DiscoverPage() {
               key={item}
               selected={params.filter === item}
               onClick={() => setParams({ filter: item, page: 1 })}
+              aria-label={`Filter by ${item}`}
             >
               {item}
             </Chip>
@@ -124,6 +126,7 @@ export function DiscoverPage() {
             data={listings.length > 0 ? listings : null}
             isLoading={searchLoading || citiesLoading}
             error={searchError}
+            onRetry={() => refetch()}
             loading={<Skeleton variant="feed" count={6} />}
             empty={
               <div className="col-span-full text-center py-12">

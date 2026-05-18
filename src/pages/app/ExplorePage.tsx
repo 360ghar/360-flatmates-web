@@ -31,7 +31,7 @@ const MapViewFallback = () => (
   </div>
 );
 
-// Default center: Gurgaon
+// Default center: Gurgaon (intentionally different from map-store's New Delhi default)
 const DEFAULT_CENTER: [number, number] = [28.4595, 77.0266];
 const DEFAULT_ZOOM = 12;
 
@@ -73,12 +73,16 @@ export function ExplorePage() {
     refetch,
   } = useMapView(mapFilters);
 
-  const activeFilters = [
-    filters.city,
-    filters.locality,
-    filters.sharing_type?.[0],
-    filters.move_in?.[0]
-  ].filter(Boolean) as string[];
+  const activeFilters = useMemo(
+    () =>
+      [
+        filters.city,
+        filters.locality,
+        filters.sharing_type?.[0],
+        filters.move_in?.[0]
+      ].filter(Boolean) as string[],
+    [filters.city, filters.locality, filters.sharing_type, filters.move_in]
+  );
 
   // Handle map viewport changes (pan/zoom)
   const handleViewportChange = useCallback((bounds: MapBounds, zoom: number) => {

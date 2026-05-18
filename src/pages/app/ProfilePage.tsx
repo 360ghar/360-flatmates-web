@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import {
   Bell,
@@ -9,16 +9,13 @@ import {
   LogOut,
   Trash2,
   Palette,
-  Sun,
-  Moon,
-  Monitor,
   AlertTriangle,
   Users,
 } from "lucide-react";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import { useAuth } from "@/hooks/useAuth";
 import { uiStore } from "@/lib/stores/ui-store";
-import type { ThemePreference } from "@/lib/stores/ui-store";
 import { MenuItemRow } from "@/components/molecules";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -28,36 +25,20 @@ import { Modal } from "@/components/ui/Modal";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { TrustBadge } from "@/components/ui/TrustBadge";
-
-const THEME_OPTIONS: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
-];
 
 export function ProfilePage() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { data: profile, isLoading, error, refetch } = useMyProfile();
   const updateProfile = useUpdateProfile();
+  const { upload: uploadImage } = useImageUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [theme, setThemeState] = useState<ThemePreference>(uiStore.getState().theme);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-
-  useEffect(() => {
-    const unsub = uiStore.subscribe((state) => {
-      setThemeState(state.theme);
-    });
-    return unsub;
-  }, []);
-
-  function setTheme(newTheme: ThemePreference) {
-    uiStore.getState().setTheme(newTheme);
-  }
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -105,15 +86,19 @@ export function ProfilePage() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
+    try {
+      const dataUrl = await uploadImage(file);
       updateProfile.mutate({ profile_image_url: dataUrl });
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Upload failed",
+        description: "Could not update your profile photo. Please try again.",
+      });
+    }
   };
 
   return (
@@ -211,27 +196,14 @@ export function ProfilePage() {
       </Card>
 
       {/* Inline theme toggle */}
-      <Card className="flex flex-col gap-3 p-5">
-        <h2 className="text-h3">Theme</h2>
-        <div className="flex gap-2">
-          {THEME_OPTIONS.map((option) => {
-            const Icon = option.icon;
-            const isActive = theme === option.value;
-            return (
-              <Button
-                key={option.value}
-                variant={isActive ? "primary" : "secondary"}
-                size="compact"
-                leadingIcon={<Icon aria-hidden="true" className="h-4 w-4" />}
-                onClick={() => setTheme(option.value)}
-                aria-pressed={isActive}
-                className="flex-1"
-              >
-                {option.label}
-              </Button>
-            );
-          })}
+      <Card className="flex items-center justify-between gap-4 p-5">
+        <div>
+          <h2 className="text-h3">Theme</h2>
+          <p className="text-caption text-ink-3 mt-0.5">
+            More options in <Link to="/settings/appearance" className="text-accent hover:underline">Appearance settings</Link>
+          </p>
         </div>
+        <ThemeToggle size="md" />
       </Card>
 
       {/* Privacy & Safety */}

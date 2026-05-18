@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { useMyProfile } from "@/hooks/queries";
 import { onboardingStore, ONBOARDING_STEPS } from "@/lib/stores/onboarding-store";
+import { humanizeSnakeCase } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { OnboardingStepContent } from "@/components/onboarding/OnboardingStepContent";
@@ -28,7 +29,7 @@ export function OnboardingPage() {
           totalSteps={ONBOARDING_STEPS.length}
           currentStep={currentStep}
           variant="linear"
-          labels={ONBOARDING_STEPS.map((s) => s.replace(/_/g, " "))}
+          labels={ONBOARDING_STEPS.map(humanizeSnakeCase)}
         />
         <div className="mt-6">
           <OnboardingStepContent stepKey={stepKey} />

@@ -11,7 +11,7 @@ const eslintConfig = tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/exhaustive-deps": "error",
       "react/react-in-jsx-scope": "off",
     }
   },
@@ -19,6 +19,7 @@ const eslintConfig = tseslint.config(
     ignores: [
       "dist/**",
       "node_modules/**",
+      ".next/**",
       ".agents/**",
       ".claude/**",
       ".factory/**",
@@ -31,7 +32,7 @@ const eslintConfig = tseslint.config(
   {
     rules: {
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
-      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-redundant-type-constituents": "off",
       "@typescript-eslint/no-namespace": "off",

@@ -8,7 +8,7 @@
 /* ── Fraunces (variable) — Display / Headlines ── */
 @font-face {
   font-family: "Fraunces";
-  src: url("/fonts/Fraunces-Variable.woff2") format("truetype-variations");
+  src: url("/fonts/Fraunces-Variable.ttf") format("truetype-variations");
   font-weight: 300 900;
   font-style: normal;
   font-display: swap;
@@ -17,7 +17,7 @@
 /* ── Inter (variable) — Body / UI ── */
 @font-face {
   font-family: "Inter";
-  src: url("/fonts/Inter-Variable.woff2") format("truetype-variations");
+  src: url("/fonts/Inter-Variable.ttf") format("truetype-variations");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -26,7 +26,7 @@
 /* ── JetBrains Mono (variable) — Mono / Eyebrow ── */
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("/fonts/JetBrainsMono-Variable.woff2") format("truetype-variations");
+  src: url("/fonts/JetBrainsMono-Variable.ttf") format("truetype-variations");
   font-weight: 100 800;
   font-style: normal;
   font-display: swap;
@@ -35,7 +35,7 @@
 /* ── Instrument Serif (italic) — Italic Serif ── */
 @font-face {
   font-family: "Instrument Serif";
-  src: url("/fonts/InstrumentSerif-Italic.woff2") format("truetype");
+  src: url("/fonts/InstrumentSerif-Italic.ttf") format("truetype");
   font-weight: 400;
   font-style: italic;
   font-display: swap;

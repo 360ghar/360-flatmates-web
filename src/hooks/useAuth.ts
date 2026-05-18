@@ -36,7 +36,6 @@ export function useAuth(): UseAuthReturn {
       setLoading(false);
     }, 5000);
 
-    // Fetch the initial session on mount
     supabase.auth
       .getSession()
       .then(async (result: { data: { session: Session | null } }) => {
@@ -48,7 +47,7 @@ export function useAuth(): UseAuthReturn {
           currentSession = refreshResult.data.session ?? currentSession;
         }
 
-        const testSession = currentSession ?? getPlaywrightSession();
+        const testSession = currentSession ?? (import.meta.env.DEV ? getPlaywrightSession() : null);
         setSession(testSession);
         setUser(testSession?.user ?? null);
         setLoading(false);
@@ -63,7 +62,7 @@ export function useAuth(): UseAuthReturn {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(
       (_event: string, newSession: Session | null) => {
-        const currentSession = newSession ?? getPlaywrightSession();
+        const currentSession = newSession ?? (import.meta.env.DEV ? getPlaywrightSession() : null);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setLoading(false);

@@ -7,10 +7,9 @@ import {
   propertyTypeSchema,
   societyTypeSchema
 } from "./enums";
+import { optionalUrlSchema } from "./common";
 
 export const LISTING_DRAFT_STORAGE_KEY = "360-flatmates-listing-draft";
-
-const optionalUrlSchema = z.string().url().optional();
 const optionalUrlArraySchema = z.array(z.string().url()).default([]);
 
 export const listingLocationStepSchema = z.object({

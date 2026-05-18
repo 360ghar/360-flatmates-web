@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { PageSpinner } from "@/components/ui/Spinner";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -26,9 +27,5 @@ export function AuthCallbackPage() {
     handleCallback();
   }, [searchParams, navigate]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-paper">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
-    </div>
-  );
+  return <PageSpinner />;
 }

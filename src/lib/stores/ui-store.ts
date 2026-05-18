@@ -5,9 +5,18 @@ import { type SSEConnectionState } from "@/lib/sse/types";
 
 export const UI_STORE_KEY = "360-flatmates-ui";
 
+export type ModalId = "settings" | "photo-viewer" | "report-user" | "visit-reschedule" | "delete-confirm";
+export type DrawerId = "filters" | "chat-info" | "profile-edit" | "notifications";
+
 export type ThemePreference = "light" | "dark" | "system";
 export type PalettePreference = "terracotta" | "ember" | "monsoon_teal";
 export type SidebarState = "expanded" | "collapsed";
+
+export const THEME_OPTIONS: ReadonlyArray<{ value: ThemePreference; label: string }> = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+  { value: "system", label: "System" },
+];
 
 export const SIDEBAR_WIDTH_DEFAULT = 200;
 export const SIDEBAR_WIDTH_MIN = 180;
@@ -29,8 +38,8 @@ export interface UiStoreState {
   palette: PalettePreference;
   sidebar: SidebarState;
   sidebarWidth: number;
-  activeModal: string | null;
-  activeDrawer: string | null;
+  activeModal: ModalId | null;
+  activeDrawer: DrawerId | null;
   sseConnected: boolean;
   sseState: SSEConnectionState;
   ssePrimaryTab: boolean;
@@ -40,9 +49,9 @@ export interface UiStoreState {
   setPalette: (palette: PalettePreference) => void;
   setSidebar: (sidebar: SidebarState) => void;
   setSidebarWidth: (width: number) => void;
-  openModal: (modal: string) => void;
+  openModal: (modal: ModalId) => void;
   closeModal: () => void;
-  openDrawer: (drawer: string) => void;
+  openDrawer: (drawer: DrawerId) => void;
   closeDrawer: () => void;
   setSseConnected: (connected: boolean) => void;
   setSSEState: (state: SSEConnectionState) => void;
@@ -71,7 +80,7 @@ export type UiStoreInitialState = Partial<
 >;
 
 function createToastId(): string {
-  return `toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return `toast-${crypto.randomUUID()}`;
 }
 
 export function createUiStore(initialState: UiStoreInitialState = {}) {
@@ -90,7 +99,7 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         reducedMotion: false,
         toasts: [],
         ...initialState,
-        setTheme: (theme) => set({ theme }),
+        setTheme: (theme) => set((state) => state.theme === theme ? state : { theme }),
         setPalette: (palette) => set({ palette }),
         setSidebar: (sidebar) => set({ sidebar }),
         setSidebarWidth: (sidebarWidth) => set({ sidebarWidth }),
@@ -98,9 +107,9 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         closeModal: () => set({ activeModal: null }),
         openDrawer: (activeDrawer) => set({ activeDrawer }),
         closeDrawer: () => set({ activeDrawer: null }),
-        setSseConnected: (sseConnected) => set({ sseConnected }),
-        setSSEState: (sseState) => set({ sseState }),
-        setSSEPrimaryTab: (ssePrimaryTab) => set({ ssePrimaryTab }),
+        setSseConnected: (sseConnected) => set((s) => s.sseConnected === sseConnected ? s : { sseConnected }),
+        setSSEState: (sseState) => set((s) => s.sseState === sseState ? s : { sseState }),
+        setSSEPrimaryTab: (ssePrimaryTab) => set((s) => s.ssePrimaryTab === ssePrimaryTab ? s : { ssePrimaryTab }),
         setReducedMotion: (reducedMotion) => set({ reducedMotion }),
         pushToast: (toast) => {
           const id = toast.id ?? createToastId();

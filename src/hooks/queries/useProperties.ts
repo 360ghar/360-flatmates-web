@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   Property,
@@ -11,8 +11,17 @@ import type {
   RenewListingPayload
 } from "@/lib/api/types";
 
-export function useProperty(id: number) {
-  return useQuery({
+export const myPropertiesOptions = queryOptions({
+  queryKey: ["properties", "mine"],
+  queryFn: () =>
+    apiClient.request<Property[]>({
+      method: "GET",
+      path: "/properties/me"
+    })
+});
+
+export function propertyOptions(id: number) {
+  return queryOptions({
     queryKey: ["properties", id],
     queryFn: () =>
       apiClient.request<Property>({
@@ -23,15 +32,12 @@ export function useProperty(id: number) {
   });
 }
 
+export function useProperty(id: number) {
+  return useQuery(propertyOptions(id));
+}
+
 export function useMyProperties() {
-  return useQuery({
-    queryKey: ["properties", "mine"],
-    queryFn: () =>
-      apiClient.request<Property[]>({
-        method: "GET",
-        path: "/properties/me"
-      })
-  });
+  return useQuery(myPropertiesOptions);
 }
 
 export function useCreateProperty() {

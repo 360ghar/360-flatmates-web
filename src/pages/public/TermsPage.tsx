@@ -1,8 +1,7 @@
 import { Helmet } from "react-helmet-async";
 
-import { Card } from "@/components/ui/Card";
-
-const BASE_URL = import.meta.env.VITE_APP_URL ?? "https://360ghar.com";
+import { LegalPage } from "@/components/molecules/LegalPage";
+import { BASE_URL } from "@/lib/config";
 
 const SECTIONS = [
   {
@@ -69,29 +68,17 @@ const SECTIONS = [
 
 export function TermsPage() {
   return (
-    <>
-      <Helmet>
-        <title>Terms & Conditions | 360 Flatmates</title>
-        <meta name="description" content="Read the 360 Flatmates terms and conditions. Understand your rights and responsibilities when using our flatmate matching, listing, and communication services." />
-        <link rel="canonical" href={`${BASE_URL}/terms`} />
-      </Helmet>
-      <main id="main" className="page-fade mx-auto max-w-3xl px-5 py-12 md:px-6">
-        <p className="text-eyebrow text-accent">Legal</p>
-        <h1 className="mt-3 text-h1">Terms & Conditions</h1>
-        <p className="mt-4 text-body-md text-ink-3">
-          Last updated: January 2025
-        </p>
-        <div className="mt-8 flex flex-col gap-5">
-          {SECTIONS.map((section) => (
-            <Card key={section.title} className="p-5">
-              <h2 className="text-h3">{section.title}</h2>
-              <p className="mt-3 max-w-[65ch] text-body-md text-ink-2">
-                {section.content}
-              </p>
-            </Card>
-          ))}
-        </div>
-      </main>
-    </>
+    <LegalPage
+      heading="Terms & Conditions"
+      updatedAt="January 2025"
+      sections={SECTIONS.map((s) => ({ title: s.title, content: s.content }))}
+      helmet={
+        <Helmet>
+          <title>Terms & Conditions | 360 Flatmates</title>
+          <meta name="description" content="Read the 360 Flatmates terms and conditions. Understand your rights and responsibilities when using our flatmate matching, listing, and communication services." />
+          <link rel="canonical" href={`${BASE_URL}/terms`} />
+        </Helmet>
+      }
+    />
   );
 }

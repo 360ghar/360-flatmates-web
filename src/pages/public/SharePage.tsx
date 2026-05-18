@@ -1,7 +1,6 @@
 import { useParams, Navigate } from "react-router";
 import { Helmet } from "react-helmet-async";
-
-const BASE_URL = import.meta.env.VITE_APP_URL ?? "https://360ghar.com";
+import { BASE_URL } from "@/lib/config";
 
 export function SharePage() {
   const { id } = useParams<{ id: string }>();

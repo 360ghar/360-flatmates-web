@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useDashboardStats } from "@/hooks/queries";
 import type { RoomPosterDashboard } from "@/lib/api/types";
@@ -51,6 +52,9 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { data: stats, isLoading, error, refetch } = useDashboardStats();
 
+  const metrics = useMemo(() => stats ? mapDashboardMetrics(stats) : [], [stats]);
+  const rows = useMemo(() => stats ? mapListingRows(stats) : [], [stats]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-5 page-fade">
@@ -76,8 +80,8 @@ export function DashboardPage() {
     <div className="page-fade">
       <h1 className="text-h1 mb-5">Dashboard</h1>
       <DashboardPanel
-        metrics={mapDashboardMetrics(stats)}
-        rows={mapListingRows(stats)}
+        metrics={metrics}
+        rows={rows}
         onEdit={(listingId) => {
           navigate(`/my-listings/${listingId}/edit`);
         }}

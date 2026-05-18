@@ -3,9 +3,12 @@ import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { Camera, Crosshair, Loader2 } from "lucide-react";
 import { useMyProfile, useCreateProfile, useUpdateProfile } from "@/hooks/queries";
+import { useImageUpload } from "@/hooks/useImageUpload";
+import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib/stores/onboarding-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { uiStore } from "@/lib/stores/ui-store";
+import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data/domain";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
@@ -17,12 +20,6 @@ import { humanizeSnakeCase } from "@/lib/utils";
 interface OnboardingStepContentProps {
   stepKey: OnboardingStepKey;
 }
-
-const MODE_OPTIONS = [
-  { value: "room_poster", label: "Room Poster" },
-  { value: "co_hunter", label: "Co-Hunter" },
-  { value: "open_to_both", label: "Open to Both" }
-];
 
 export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const navigate = useNavigate();
@@ -36,12 +33,12 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const nextStep = useStore(onboardingStore, (s) => s.nextStep);
   const previousStep = useStore(onboardingStore, (s) => s.previousStep);
 
+  const { upload: uploadImage } = useImageUpload();
+  const { geocode, geoLoading } = useReverseGeocode();
+
   // Photo upload state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-
-  // Geolocation state
-  const [geoLoading, setGeoLoading] = useState(false);
 
   const handleUseMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -53,34 +50,18 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
       return;
     }
 
-    setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-            { headers: { "User-Agent": "360FlatmatesWeb/1.0" } }
-          );
-          const data = await res.json();
-          const resolvedCity =
-            data.address?.city ||
-            data.address?.town ||
-            data.address?.city_district ||
-            data.address?.state_district ||
-            "";
-          const resolvedLocality =
-            data.address?.suburb ||
-            data.address?.neighbourhood ||
-            data.address?.quarter ||
-            "";
+          const result = await geocode(latitude, longitude);
 
-          if (resolvedCity) {
+          if (result.city) {
             patchDraft({
               location: {
                 ...draft.location,
-                city: resolvedCity,
-                locality: resolvedLocality || draft.location?.locality,
+                city: result.city,
+                locality: result.locality || draft.location?.locality,
                 lat: latitude,
                 lng: longitude,
               },
@@ -98,12 +79,9 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             title: "Reverse geocoding failed",
             description: "Could not resolve your location to a city.",
           });
-        } finally {
-          setGeoLoading(false);
         }
       },
       (err) => {
-        setGeoLoading(false);
         const message =
           err.code === err.PERMISSION_DENIED
             ? "Location permission was denied. Please enable it in your browser settings."
@@ -116,22 +94,18 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
     );
-  }, [draft.location, patchDraft]);
+  }, [draft.location, patchDraft, geocode]);
 
   const handlePhotoSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        setPhotoPreview(dataUrl);
-        patchDraft({ profile_image_url: dataUrl });
-      };
-      reader.readAsDataURL(file);
+      const dataUrl = await uploadImage(file);
+      setPhotoPreview(dataUrl);
+      patchDraft({ profile_image_url: dataUrl });
     },
-    [patchDraft]
+    [uploadImage, patchDraft]
   );
 
   const openFilePicker = useCallback(() => {
@@ -203,10 +177,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
         <>
           <h2 className="text-h2">How will you use 360 Flatmates?</h2>
           <SegmentedControl
-            options={MODE_OPTIONS}
+            options={[...FLATMATE_MODE_OPTIONS]}
             value={draft.mode ?? "open_to_both"}
             onValueChange={(value) =>
-              patchDraft({ mode: value as "room_poster" | "co_hunter" | "open_to_both" })
+              patchDraft({ mode: value as FlatmatesMode })
             }
             ariaLabel="Select your mode"
           />

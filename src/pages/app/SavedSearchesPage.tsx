@@ -2,6 +2,7 @@ import { Trash2, Search } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { useSavedSearches, useDeleteSavedSearch } from "@/hooks/queries";
+import { humanizeSnakeCase } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
@@ -36,7 +37,7 @@ export function SavedSearchesPage() {
             {data.map((search) => {
               const activeFilters = Object.entries(search.filters)
                 .filter(([, value]) => value !== undefined && value !== null && value !== "")
-                .map(([key]) => key.replace(/_/g, " "));
+                .map(([key]) => humanizeSnakeCase(key));
 
               return (
                 <Card key={search.id} className="flex items-center justify-between gap-4 p-4">

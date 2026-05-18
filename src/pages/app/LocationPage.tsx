@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { MapPin, Crosshair, Loader2 } from "lucide-react";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
+import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { searchStore } from "@/lib/stores/search-store";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -16,7 +17,7 @@ export function LocationPage() {
   const updateProfile = useUpdateProfile();
   const [city, setCity] = useState(profile?.city ?? "");
   const [submitting, setSubmitting] = useState(false);
-  const [geoLoading, setGeoLoading] = useState(false);
+  const { geocode, geoLoading } = useReverseGeocode();
 
   async function handleUseMyLocation() {
     if (!navigator.geolocation) {
@@ -28,25 +29,14 @@ export function LocationPage() {
       return;
     }
 
-    setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-            { headers: { "User-Agent": "360FlatmatesWeb/1.0" } }
-          );
-          const data = await res.json();
-          const resolvedCity =
-            data.address?.city ||
-            data.address?.town ||
-            data.address?.city_district ||
-            data.address?.state_district ||
-            "";
+          const result = await geocode(latitude, longitude);
 
-          if (resolvedCity) {
-            setCity(resolvedCity);
+          if (result.city) {
+            setCity(result.city);
           } else {
             uiStore.getState().pushToast({
               type: "error",
@@ -60,12 +50,9 @@ export function LocationPage() {
             title: "Reverse geocoding failed",
             description: "Could not resolve your location to a city.",
           });
-        } finally {
-          setGeoLoading(false);
         }
       },
       (err) => {
-        setGeoLoading(false);
         const message =
           err.code === err.PERMISSION_DENIED
             ? "Location permission was denied. Please enable it in your browser settings."

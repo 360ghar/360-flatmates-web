@@ -11,7 +11,6 @@ export interface ChatStoreState {
   setDraftMessage: (conversationId: number, message: string) => void;
   clearDraftMessage: (conversationId: number) => void;
   setTyping: (conversationId: number, typing: boolean) => void;
-  toggleInfoPanel: () => void;
   setShowInfoPanel: (show: boolean) => void;
 }
 
@@ -28,9 +27,10 @@ export const useChatStore = create<ChatStoreState>()((set, get) => ({
     get().draftMessages[conversationId] ?? "",
 
   setDraftMessage: (conversationId, message) =>
-    set((state) => ({
-      draftMessages: { ...state.draftMessages, [conversationId]: message }
-    })),
+    set((state) => {
+      if (state.draftMessages[conversationId] === message) return state;
+      return { draftMessages: { ...state.draftMessages, [conversationId]: message } };
+    }),
 
   clearDraftMessage: (conversationId) =>
     set((state) => {
@@ -40,11 +40,10 @@ export const useChatStore = create<ChatStoreState>()((set, get) => ({
     }),
 
   setTyping: (conversationId, typing) =>
-    set((state) => ({
-      isTyping: { ...state.isTyping, [conversationId]: typing }
-    })),
+    set((state) => {
+      if (state.isTyping[conversationId] === typing) return state;
+      return { isTyping: { ...state.isTyping, [conversationId]: typing } };
+    }),
 
-  toggleInfoPanel: () =>
-    set((state) => ({ showInfoPanel: !state.showInfoPanel })),
   setShowInfoPanel: (showInfoPanel) => set({ showInfoPanel })
 }));

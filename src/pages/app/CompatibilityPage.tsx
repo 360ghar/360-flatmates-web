@@ -17,11 +17,29 @@ const COLOR_TONE: Record<CompatibilityColor, "success" | "warning" | "error"> = 
   red: "error"
 };
 
+const COLOR_STATUS: Record<CompatibilityColor, "confirmed" | "pending" | "rejected"> = {
+  green: "confirmed",
+  amber: "pending",
+  red: "rejected"
+};
+
 const COLOR_LABEL: Record<CompatibilityColor, string> = {
   green: "Great Match",
   amber: "Workable Match",
   red: "Preference Gap"
 };
+
+const SCORE_BAR_COLOR: Record<"match" | "partial" | "mismatch", string> = {
+  match: "bg-success",
+  partial: "bg-warning",
+  mismatch: "bg-error",
+};
+
+function dimensionBarColor(match: boolean, score: number): "match" | "partial" | "mismatch" {
+  if (match) return "match";
+  if (score >= 40) return "partial";
+  return "mismatch";
+}
 
 function getDimensionLabel(key: string): string {
   const definition = LIFESTYLE_DIMENSIONS.find((d) => d.key === key);
@@ -46,13 +64,7 @@ function DimensionRow({ dimension }: { dimension: CompatibilityDimension }) {
       <div className="flex items-center gap-3">
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-paper-2">
           <div
-            className={`h-full rounded-full transition-all duration-300 ${
-              dimension.match
-                ? "bg-success"
-                : dimension.score >= 40
-                  ? "bg-warning"
-                  : "bg-error"
-            }`}
+            className={`h-full rounded-full transition-all duration-300 ${SCORE_BAR_COLOR[dimensionBarColor(dimension.match, dimension.score)]}`}
             style={{ width: `${dimension.score}%` }}
           />
         </div>
@@ -111,7 +123,7 @@ export function CompatibilityPage() {
               <div>
                 <Badge
                   tone={COLOR_TONE[breakdown.color]}
-                  status={breakdown.color === "green" ? "confirmed" : breakdown.color === "amber" ? "pending" : "rejected"}
+                  status={COLOR_STATUS[breakdown.color]}
                 >
                   {COLOR_LABEL[breakdown.color]}
                 </Badge>

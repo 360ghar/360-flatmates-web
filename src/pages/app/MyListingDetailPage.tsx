@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, Pencil } from "lucide-react";
-import { useMyProperties } from "@/hooks/queries";
+import { useProperty } from "@/hooks/queries";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -8,13 +8,17 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState, EmptyState } from "@/components/ui/StateViews";
 import { ListingCard } from "@/components/molecules/ListingCard";
 
+const PROPERTY_STATUS_LABEL: Record<string, string> = {
+  approved: "Published",
+  pending_review: "Under Review",
+};
+
 export function MyListingDetailPage() {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const listingId = params.id as string;
 
-  const { data: myProperties, isLoading, error, refetch } = useMyProperties();
-  const property = (myProperties ?? []).find((p) => String(p.id) === listingId);
+  const { data: property, isLoading, error, refetch } = useProperty(Number(listingId));
 
   if (isLoading) {
     return (
@@ -75,7 +79,7 @@ export function MyListingDetailPage() {
         <div className="flex flex-col gap-2 text-body-md text-ink-2">
           <p>
             <span className="font-semibold text-ink">Status:</span>{" "}
-            {property.property_status === "approved" ? "Published" : property.property_status === "pending_review" ? "Under Review" : "Draft"}
+            {PROPERTY_STATUS_LABEL[property.property_status ?? ""] ?? "Draft"}
           </p>
           <p>
             <span className="font-semibold text-ink">Views:</span> {property.view_count ?? 0}

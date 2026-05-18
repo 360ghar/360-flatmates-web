@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { CheckCircle2, Eye, XCircle } from "lucide-react";
 import { useAdminListings, useAdminModerate } from "@/hooks/queries";
@@ -20,15 +20,20 @@ export function ModerationListingsPage() {
   });
   const moderate = useAdminModerate();
 
-  const listings = data?.listings ?? [];
-  const filtered = search
-    ? listings.filter(
-        (l: FlatmateListingAdmin) =>
-          l.title.toLowerCase().includes(search.toLowerCase()) ||
-          l.owner_name.toLowerCase().includes(search.toLowerCase()) ||
-          l.locality.toLowerCase().includes(search.toLowerCase())
-      )
-    : listings;
+  const filtered = useMemo(
+    () => {
+      const listings = data?.listings ?? [];
+      return search
+        ? listings.filter(
+            (l: FlatmateListingAdmin) =>
+              l.title.toLowerCase().includes(search.toLowerCase()) ||
+              l.owner_name.toLowerCase().includes(search.toLowerCase()) ||
+              l.locality.toLowerCase().includes(search.toLowerCase())
+          )
+        : listings;
+    },
+    [search, data]
+  );
 
   function handleAction(
     listingId: number,

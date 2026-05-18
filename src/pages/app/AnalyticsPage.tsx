@@ -4,24 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState, EmptyState } from "@/components/ui/StateViews";
 import { PageHeader } from "@/components/ui/Layout";
-
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  description?: string;
-}
-
-function StatCard({ label, value, description }: StatCardProps) {
-  return (
-    <Card className="flex flex-col gap-1 p-4">
-      <p className="text-label-md text-ink-3">{label}</p>
-      <p className="text-h2 text-ink tabular-nums">{value}</p>
-      {description ? (
-        <p className="text-caption text-ink-3">{description}</p>
-      ) : null}
-    </Card>
-  );
-}
+import { StatCard } from "@/components/molecules/StatCard";
 
 function DailyStatsTable({ dailyStats }: { dailyStats: Array<{ date: string; views: number; likes: number; shares: number }> }) {
   return (

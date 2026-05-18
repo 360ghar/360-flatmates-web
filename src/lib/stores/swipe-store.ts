@@ -30,9 +30,11 @@ export const useSwipeStore = create<SwipeStoreState>()((set) => ({
     set((state) => ({ currentIndex: state.currentIndex + 1 })),
   resetIndex: () => set({ currentIndex: 0 }),
 
-  setAnimating: (isAnimating) => set({ isAnimating }),
+  setAnimating: (isAnimating) =>
+    set((state) => (state.isAnimating === isAnimating ? state : { isAnimating })),
 
-  setDirection: (direction) => set({ direction }),
+  setDirection: (direction) =>
+    set((state) => (state.direction === direction ? state : { direction })),
   clearDirection: () => set({ direction: null }),
 
   setCardQueue: (cardQueue) => set({ cardQueue, currentIndex: 0 }),
@@ -42,9 +44,10 @@ export const useSwipeStore = create<SwipeStoreState>()((set) => ({
       currentIndex: 0
     })),
   pushCards: (cards) =>
-    set((state) => ({
-      cardQueue: [...state.cardQueue, ...cards]
-    })),
+    set((state) => {
+      if (cards.length === 0) return state;
+      return { cardQueue: [...state.cardQueue, ...cards] };
+    }),
 
   toggleExpanded: () =>
     set((state) => ({ isExpanded: !state.isExpanded })),

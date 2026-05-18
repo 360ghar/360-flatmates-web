@@ -3,35 +3,17 @@ import { useNavigate } from "react-router";
 import { Home, Search, Shuffle } from "lucide-react";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
 import type { UserMode } from "@/components/ui/Badge";
+import { FLATMATE_MODE_OPTIONS } from "@/lib/data/domain";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { SelectableCardGrid } from "@/components/molecules/SelectableCardGrid";
 import { uiStore } from "@/lib/stores/ui-store";
 
-const MODE_OPTIONS: Array<{
-  value: UserMode;
-  label: string;
-  description: string;
-  icon: typeof Home;
-}> = [
-  {
-    value: "room_poster",
-    label: "Room Poster",
-    description: "You have a room or property to list. Find compatible flatmates to fill it.",
-    icon: Home,
-  },
-  {
-    value: "co_hunter",
-    label: "Co-Hunter",
-    description: "You are looking for a room or flatmate. Browse listings and find your match.",
-    icon: Search,
-  },
-  {
-    value: "open_to_both",
-    label: "Open to Both",
-    description: "You might list a room or look for one. Get the full experience.",
-    icon: Shuffle,
-  },
-];
+const MODE_ICONS: Record<UserMode, React.ReactNode> = {
+  room_poster: <Home aria-hidden="true" className="h-6 w-6" />,
+  co_hunter: <Search aria-hidden="true" className="h-6 w-6" />,
+  open_to_both: <Shuffle aria-hidden="true" className="h-6 w-6" />,
+};
 
 export function ChooseRolePage() {
   const navigate = useNavigate();
@@ -74,42 +56,16 @@ export function ChooseRolePage() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {MODE_OPTIONS.map((option) => {
-          const Icon = option.icon;
-          const isSelected = selected === option.value;
-
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setSelected(option.value)}
-              aria-pressed={isSelected}
-              className="flex items-center gap-4 rounded-2xl border p-4 text-left transition-colors"
-              style={{
-                borderColor: isSelected ? "var(--color-accent)" : undefined,
-                borderWidth: isSelected ? "1.5px" : undefined,
-                backgroundColor: isSelected ? "var(--color-accent-soft)" : undefined,
-              }}
-            >
-              <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
-                  isSelected ? "bg-accent text-surface" : "bg-paper-3 text-ink-2"
-                }`}
-              >
-                <Icon aria-hidden="true" className="h-6 w-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-body-md font-semibold text-ink">{option.label}</p>
-                <p className="text-caption text-ink-3">{option.description}</p>
-              </div>
-              {isSelected && (
-                <div className="h-3 w-3 shrink-0 rounded-full bg-accent" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <SelectableCardGrid<UserMode>
+        options={FLATMATE_MODE_OPTIONS.map((o) => ({
+          value: o.value as UserMode,
+          label: o.label,
+          description: o.description,
+        }))}
+        iconMap={MODE_ICONS}
+        selected={selected}
+        onSelect={setSelected}
+      />
 
       <Button
         fullWidth

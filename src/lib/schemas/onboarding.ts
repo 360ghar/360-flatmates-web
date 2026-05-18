@@ -5,6 +5,7 @@ import {
   moveInTimelineSchema,
   nonNegotiableSchema
 } from "./enums";
+import { minMaxRefine } from "./common";
 import { lifestyleSchema } from "./profile";
 
 export const ONBOARDING_DRAFT_STORAGE_KEY = "360-flatmates-onboarding-draft";
@@ -30,11 +31,10 @@ export const onboardingBudgetTimelineFieldsSchema = z.object({
   move_in_timeline: moveInTimelineSchema
 });
 
+const budgetRefine = minMaxRefine("budget_min", "budget_max", "Minimum budget cannot exceed maximum budget");
+
 export const onboardingBudgetTimelineSchema = onboardingBudgetTimelineFieldsSchema
-  .refine((value) => value.budget_min <= value.budget_max, {
-    message: "Minimum budget cannot exceed maximum budget",
-    path: ["budget_min"]
-  });
+  .refine(budgetRefine.check, budgetRefine.opts);
 
 export const onboardingPreferencesSchema = z.object({
   gender_preference: genderPreferenceSchema.default("any"),

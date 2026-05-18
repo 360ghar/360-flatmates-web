@@ -25,22 +25,6 @@ export function getInitials(name: string): string {
   return initials || "36";
 }
 
-const INR_COMPACT = new Intl.NumberFormat("en-IN", {
-  maximumFractionDigits: 0
-});
-
-export function formatIndianPrice(value: number, suffix = "/mo"): string {
-  const absValue = Math.abs(value);
-
-  if (absValue >= 100000) {
-    const lakhs = value / 100000;
-    const formatted = Number.isInteger(lakhs) ? lakhs.toFixed(0) : lakhs.toFixed(1);
-    return `₹${formatted}L${suffix}`;
-  }
-
-  return `₹${INR_COMPACT.format(value)}${suffix}`;
-}
-
 export type Tone =
   | "accent"
   | "success"

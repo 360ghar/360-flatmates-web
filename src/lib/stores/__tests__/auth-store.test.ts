@@ -13,14 +13,6 @@ describe("useAuthStore", () => {
     expect(state.authError).toBeNull();
   });
 
-  it("toggleLoginModal flips isLoginModalOpen", () => {
-    useAuthStore.getState().toggleLoginModal();
-    expect(useAuthStore.getState().isLoginModalOpen).toBe(true);
-
-    useAuthStore.getState().toggleLoginModal();
-    expect(useAuthStore.getState().isLoginModalOpen).toBe(false);
-  });
-
   it("openLoginModal sets isLoginModalOpen to true", () => {
     useAuthStore.getState().openLoginModal();
     expect(useAuthStore.getState().isLoginModalOpen).toBe(true);

@@ -1,5 +1,6 @@
 import type { HTMLAttributes } from "react";
-import { cn, formatIndianPrice } from "./component-utils";
+import { cn } from "./component-utils";
+import { formatCurrencyINR } from "@/lib/utils/format";
 
 export type PriceTextVariant = "hero" | "card" | "inline";
 
@@ -24,7 +25,7 @@ export function PriceText({
 }: PriceTextProps) {
   return (
     <span className={cn("tabular-nums", variantClasses[variant], className)} {...props}>
-      {formatIndianPrice(value, suffix)}
+      {formatCurrencyINR(value)}{suffix}
     </span>
   );
 }

@@ -129,3 +129,38 @@ export function formatLifestyleLabel(
   return opt?.label ?? humanizeSnakeCase(value);
 }
 
+export function toTitleCase(value: string): string {
+  return value.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export function toSelectOptions(
+  source: readonly string[] | readonly { value: string; label: string }[]
+): SelectOption[] {
+  if (source.length === 0) return [];
+  if (typeof source[0] === "string") {
+    return (source as readonly string[]).map((v) => ({
+      value: v,
+      label: toTitleCase(humanizeSnakeCase(v)),
+    }));
+  }
+  return (source as readonly { value: string; label: string }[]).map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
+}
+
+export function stripEmptyFields(data: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== "" && value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+

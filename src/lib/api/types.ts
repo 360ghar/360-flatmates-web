@@ -3,6 +3,9 @@ import type {
   AlertFrequency,
   BoostDuration,
   Cleanliness,
+  CompatibilityColor,
+  ConversationSource,
+  ConversationStatus,
   DevicePlatform,
   FlatmatesMode,
   FlatmatesProfileStatus,
@@ -12,23 +15,32 @@ import type {
   LifestyleDimensionKey,
   ListingSharingType,
   MessageType,
+  ModerationAction,
   MoveInTimeline,
   NonNegotiable,
+  PropertyLifecycleStatus,
+  PropertyModerationStatus,
   PropertyPurpose,
   PropertyType,
+  ReportAction,
+  ReportStatus,
   SearchSort,
   SearchType,
   ShareCardFormat,
   SleepSchedule,
   SmokingDrinking,
+  SocietyTagVoteDirection,
   SocietyType,
   SwipeAction,
   SwipeTargetType,
+  UserMatchStatus,
   UserReportReason,
+  UserRole,
   UserReportStatus,
   VisitContext,
   VisitStatus,
-  WorkStyle
+  WorkStyle,
+  InterestLevel
 } from "@/lib/data";
 
 export type {
@@ -36,6 +48,9 @@ export type {
   AlertFrequency,
   BoostDuration,
   Cleanliness,
+  CompatibilityColor,
+  ConversationSource,
+  ConversationStatus,
   DevicePlatform,
   FlatmatesMode,
   FlatmatesProfileStatus,
@@ -45,19 +60,27 @@ export type {
   LifestyleDimensionKey,
   ListingSharingType,
   MessageType,
+  ModerationAction,
   MoveInTimeline,
   NonNegotiable,
+  PropertyLifecycleStatus,
+  PropertyModerationStatus,
   PropertyPurpose,
   PropertyType,
+  ReportAction,
+  ReportStatus,
   SearchSort,
   SearchType,
   ShareCardFormat,
   SleepSchedule,
   SmokingDrinking,
+  SocietyTagVoteDirection,
   SocietyType,
   SwipeAction,
   SwipeTargetType,
+  UserMatchStatus,
   UserReportReason,
+  UserRole,
   UserReportStatus,
   VisitContext,
   VisitStatus,
@@ -73,7 +96,7 @@ export interface User {
   email?: string;
   phone?: string;
   full_name?: string;
-  role?: "user" | "admin" | "agent";
+  role?: UserRole;
   is_active?: boolean;
   created_at?: string;
   preferences?: JsonObject;
@@ -179,9 +202,6 @@ export interface SwipeResult {
   did_match?: boolean;
 }
 
-export type UserMatchStatus = "active" | "unmatched" | "blocked";
-export type ConversationSource = "listing_interest" | "profile_match";
-export type ConversationStatus = "active" | "archived" | "blocked" | "closed";
 
 export interface ConversationPropertyContext {
   id: number;
@@ -275,7 +295,7 @@ export interface VisitUpdate {
   special_requirements?: string;
   visit_notes?: string;
   visitor_feedback?: string;
-  interest_level?: string;
+  interest_level?: InterestLevel;
   follow_up_required?: boolean;
   follow_up_date?: string;
 }
@@ -310,7 +330,7 @@ export interface Visit {
   special_requirements?: string;
   visit_notes?: string;
   visitor_feedback?: string;
-  interest_level?: string;
+  interest_level?: InterestLevel;
   follow_up_required?: boolean;
   follow_up_date?: string;
   cancellation_reason?: string;
@@ -325,8 +345,6 @@ export interface VisitList {
 
 export type VisitSlice = VisitList;
 
-export type PropertyLifecycleStatus = "draft" | "active" | "paused" | "expired";
-export type PropertyModerationStatus = "pending_review" | "approved" | "rejected";
 
 export interface PropertyCreate {
   property_type: PropertyType;
@@ -561,11 +579,11 @@ export interface MapViewFilters {
   lng: number;
   radius?: number;
   zoom_level?: number;
-  property_type?: string[];
+  property_type?: PropertyType[];
   price_min?: number;
   price_max?: number;
-  move_in?: string[];
-  sharing_type?: string[];
+  move_in?: MoveInTimeline[];
+  sharing_type?: ListingSharingType[];
 }
 
 export interface MapViewResponse {
@@ -630,7 +648,6 @@ export interface RoomPosterDashboard {
   }>;
 }
 
-export type CompatibilityColor = "green" | "amber" | "red";
 
 export interface CompatibilityDimension {
   name: LifestyleDimensionKey;
@@ -682,7 +699,6 @@ export interface MessageListResponse {
   has_more: boolean;
 }
 
-export type ModerationAction = "approve" | "reject" | "request_edit";
 
 export interface ListingModerationPayload {
   action: ModerationAction;
@@ -715,7 +731,6 @@ export interface AdminListingsResponse {
   offset: number;
 }
 
-export type ReportStatus = "open" | "under_review" | "resolved" | "dismissed";
 
 export interface ReportAdmin {
   id: number;
@@ -739,7 +754,6 @@ export interface AdminReportsResponse {
   offset: number;
 }
 
-export type ReportAction = "dismiss" | "warn" | "suspend";
 
 export interface ReportActionPayload {
   action: ReportAction;
@@ -933,15 +947,11 @@ export interface ProfileViewEventOut {
   created_at?: string;
 }
 
-// (MapViewFilters already defined above near MapPin/MapCluster)
-
 export interface ShareCardResponse {
   card_url: string;
   format: ShareCardFormat;
   expires_at?: string;
 }
-
-export type SocietyTagVoteDirection = "up" | "down";
 
 export interface SocietyTagVoteCreate {
   tag: string;
