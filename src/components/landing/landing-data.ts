@@ -3,6 +3,8 @@ import {
   BedDouble,
   CalendarCheck,
   CheckCircle,
+  Heart,
+  Home,
   MapPin,
   MessageSquareText,
   Moon,
@@ -19,12 +21,12 @@ import {
    Type definitions
    ───────────────────────────────────────────── */
 
-export interface FeatureItem {
+export interface BentoFeatureItem {
   title: string;
   description: string;
   icon: LucideIcon;
   tint: string;
-  layout?: "hero" | "icon-row" | "compact-card" | "tags-card";
+  span: "hero" | "wide" | "square";
   tags?: string[];
 }
 
@@ -38,8 +40,7 @@ export interface StepItem {
   number: string;
   title: string;
   description: string;
-  tint: string;
-  accent: string;
+  icon: LucideIcon;
 }
 
 export interface StatItem {
@@ -58,7 +59,6 @@ export interface TestimonialItem {
 export interface CityItem {
   name: string;
   listings: number;
-  tint: string;
 }
 
 export interface FaqItem {
@@ -66,66 +66,55 @@ export interface FaqItem {
   answer: string;
 }
 
-export interface AppPreviewStepItem {
-  title: string;
-  description: string;
-  tint: string;
-  icon: string;
-}
-
 /* ─────────────────────────────────────────────
-   Data constants
+   Data constants — Gen Z copy, punchy & direct
    ───────────────────────────────────────────── */
 
-export const FEATURES: FeatureItem[] = [
+export const BENTO_FEATURES: BentoFeatureItem[] = [
   {
-    title: "6-Dimension Matching",
+    title: "Matching that actually matters",
     description:
-      "Sleep schedule, cleanliness, food habits, guests policy, work style, and lifestyle preferences. Every dimension matters.",
+      "We go way beyond budget and pin code. 6 lifestyle dimensions — sleep, clean, food, guests, work, vibe — so your flatmate actually fits your life.",
     icon: Sparkles,
-    tint: "bg-orange-soft text-orange-mid",
-    layout: "hero",
+    tint: "bg-accent-soft text-accent",
+    span: "hero",
   },
   {
-    title: "Verified Listings",
-    description:
-      "Every listing is reviewed before going live. Real photos, real rents, real availability.",
+    title: "No fake listings, period",
+    description: "Every room gets reviewed before it goes live. Real photos, real rent, real availability.",
     icon: ShieldCheck,
     tint: "bg-green-soft text-green-mid",
-    layout: "compact-card",
+    span: "square",
   },
   {
-    title: "Safety First",
-    description:
-      "Phone OTP verification, profile moderation, and in-app reporting. Your safety is non-negotiable.",
+    title: "Safety built in",
+    description: "Phone OTP, profile checks, in-app reporting. We take your safety seriously so you don't have to worry.",
     icon: CheckCircle,
     tint: "bg-accent-soft text-accent",
-    layout: "compact-card",
+    span: "square",
   },
   {
-    title: "Schedule Visits",
-    description:
-      "Book property tours and flatmate meets directly from the app. No back-and-forth WhatsApp threads.",
+    title: "Book visits in 2 taps",
+    description: "No more WhatsApp ping-pong. Pick a slot, show up, done.",
     icon: CalendarCheck,
     tint: "bg-teal-soft text-teal-mid",
-    layout: "compact-card",
+    span: "square",
   },
   {
-    title: "Context-Aware Chat",
+    title: "Chat that starts with context",
     description:
-      "Conversations start with shared context: the listing, the compatibility score, the visit details.",
+      "No more \"hey\" from a stranger. Every conversation already has the listing, the match score, and visit details built in.",
     icon: MessageSquareText,
     tint: "bg-blue-soft text-blue-mid",
-    layout: "compact-card",
+    span: "wide",
   },
   {
-    title: "Society Vibe Tags",
-    description:
-      "Vegetarian friendly, pet friendly, quiet weekday rhythm, social weekends. Know the vibe before you move.",
+    title: "Vibe check before you move",
+    description: "Veg-only, pet-friendly, quiet weekdays, social weekends — know the deal before you sign anything.",
     icon: Users,
     tint: "bg-purple-soft text-purple-mid",
-    layout: "tags-card",
-    tags: ["Vegetarian friendly", "Pet friendly", "Quiet weekdays", "Social weekends"],
+    span: "wide",
+    tags: ["Veg-only", "Pet friendly", "Quiet weekdays", "Social weekends"],
   },
 ];
 
@@ -141,158 +130,126 @@ export const DIMENSIONS: DimensionItem[] = [
 export const STEPS: StepItem[] = [
   {
     number: "01",
-    title: "Set your preferences",
-    description: "Tell us your budget, location, and the lifestyle habits that matter to you.",
-    tint: "bg-accent-soft",
-    accent: "text-accent",
+    title: "Tell us your vibe",
+    description: "Budget, location, and the stuff that actually matters — like whether you're a night owl or a 6 AM gym person.",
+    icon: Sparkles,
   },
   {
     number: "02",
     title: "Get matched",
-    description: "Our 6-dimension engine finds flatmates and rooms that fit how you actually live.",
-    tint: "bg-teal-soft",
-    accent: "text-teal-mid",
+    description: "Our engine finds flatmates and rooms that fit how you actually live. Not just where. How.",
+    icon: Target,
   },
   {
     number: "03",
     title: "Move in",
-    description: "Schedule a visit, chat with context, and move in with confidence.",
-    tint: "bg-green-soft",
-    accent: "text-green-mid",
+    description: "Book a visit, chat with context, sign up. That's it. Welcome home.",
+    icon: Home,
   },
 ];
 
-/** Used by StatsMarquee — single source of truth. */
 export const STATS: StatItem[] = [
-  { display: "10K+", label: "Matched", numericValue: 10000 },
-  { display: "5K+", label: "Listings", numericValue: 5000 },
-  { display: "86%", label: "Avg. Compatibility", numericValue: 86 },
-  { display: "2", label: "Cities", numericValue: 2 },
+  { display: "10K+", label: "Matches made", numericValue: 10000 },
+  { display: "5K+", label: "Rooms listed", numericValue: 5000 },
+  { display: "86%", label: "Avg. match score", numericValue: 86 },
+  { display: "2", label: "Cities live", numericValue: 2 },
 ];
 
 export const TESTIMONIALS: TestimonialItem[] = [
   {
     quote:
-      "I was dreading the flatmate search, but the compatibility score saved me from a bad match. Found someone who matches my sleep schedule and food habits on the first try.",
+      "I was dreading the flatmate hunt but the compatibility score literally saved me from moving in with someone who'd blast music at midnight. Found my person on the first try.",
     name: "Priya M.",
     city: "Bangalore",
     compatibility: 86,
   },
   {
     quote:
-      "The society vibe tags were a game-changer. I'm vegetarian and found a flat where everyone respects that. No awkward conversations needed.",
+      "The vibe tags are everything. I'm veg and found a flat where that's respected — no awkward convos, no passive-aggressive fridge wars. Already told 3 friends about it.",
     name: "Rohan K.",
     city: "Delhi NCR",
     compatibility: 92,
   },
-  // {
-  //   quote:
-  //     "Moving to a new city was stressful enough. 360 Flatmates made finding a flatmate who gets my work-from-home routine effortless.",
-  //   name: "Ananya S.",
-  //   city: "Pune",
-  //   compatibility: 79,
-  // },
-  // {
-  //   quote:
-  //     "Verified listings meant no more scam photos or fake rents. What I saw is what I got. Already recommended it to three friends.",
-  //   name: "Vikram T.",
-  //   city: "Hyderabad",
-  //   compatibility: 88,
-  // },
 ];
 
 export const CITIES: CityItem[] = [
-  { name: "Gurugram", listings: 860, tint: "bg-coral-soft text-coral-mid" },
-  { name: "Bangalore", listings: 1200, tint: "bg-teal-soft text-teal-mid" },
-  // { name: "Mumbai", listings: 1100, tint: "bg-orange-soft text-orange-mid" },
-  // { name: "Delhi NCR", listings: 950, tint: "bg-purple-soft text-purple-mid" },
-  // { name: "Pune", listings: 780, tint: "bg-green-soft text-green-mid" },
-  // { name: "Hyderabad", listings: 620, tint: "bg-blue-soft text-blue-mid" },
-  // { name: "Chennai", listings: 540, tint: "bg-pink-soft text-pink-mid" },
-  // { name: "Kolkata", listings: 380, tint: "bg-yellow-soft text-yellow-mid" },
-  // { name: "Ahmedabad", listings: 290, tint: "bg-teal-soft text-teal-mid" },
+  { name: "Gurugram", listings: 860 },
+  { name: "Bangalore", listings: 1200 },
 ];
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
-    question: "How does 360 Flatmates match people?",
+    question: "How do you actually match people?",
     answer:
-      "Our matching engine compares six lifestyle dimensions — sleep schedule, cleanliness, food habits, guests policy, work style, and lifestyle preferences — alongside budget, location, and listing details to find your most compatible flatmate.",
+      "We compare 6 lifestyle dimensions — sleep schedule, cleanliness, food habits, guests policy, work style, and general vibe — alongside budget and location. It's not just about who has a spare room, it's about who you can actually live with.",
   },
   {
-    question: "How are listings verified?",
+    question: "Are the listings legit?",
     answer:
-      "Every listing goes through a review process before going live. We verify real photos, accurate rents, and actual availability. Landlords and existing flatmates confirm details directly.",
+      "Yeah, every listing gets reviewed before it goes live. Real photos, real rent, real availability. Landlords and current flatmates confirm the details directly. No bait-and-switch.",
   },
   {
-    question: "Is my personal data safe?",
+    question: "Is my data safe?",
     answer:
-      "Yes. We use phone OTP verification, never share your contact details without consent, and follow industry-standard encryption. Your lifestyle preferences are used only for matching — never sold or shared.",
+      "Yep. Phone OTP login, no contact sharing without your say-so, and industry-standard encryption. Your lifestyle preferences are for matching only — we never sell or share them.",
   },
   {
-    question: "Can I visit before committing?",
+    question: "Can I visit before I commit?",
     answer:
-      "Absolutely. You can schedule property tours and flatmate meets directly from the app. No back-and-forth WhatsApp threads — just pick a time and show up.",
+      "Obviously. Book a visit right from the app — pick a time, show up. No WhatsApp back-and-forth needed.",
   },
   {
-    question: "What if my flatmate and I don't get along?",
+    question: "What if my flatmate turns out to be awful?",
     answer:
-      "While our 6-dimension matching significantly reduces incompatibility, we also provide in-app conflict resolution tools and reporting features. You can always find a new match through the platform.",
+      "Our matching cuts down on bad fits big time, but if things go sideways, you've got in-app reporting and conflict tools. And you can always find a new match on the platform.",
   },
   {
-    question: "Is 360 Flatmates free to use?",
+    question: "Is it free?",
     answer:
-      "Yes, searching and matching is completely free. Premium features like priority listings and enhanced profile visibility are available through affordable plans.",
+      "Searching and matching is 100% free. There are optional paid plans for stuff like priority listings and boosted profile visibility, but the core experience costs nothing.",
   },
   {
-    question: "Which cities are supported?",
+    question: "Which cities are you in?",
     answer:
-      "We're currently active in Gurugram and Bangalore — with more cities added every month.",
+      "We're live in Gurugram and Bangalore right now, with more cities dropping every month.",
   },
   {
-    question: "How do I report a problem?",
+    question: "How do I report someone?",
     answer:
-      "Use the in-app reporting feature on any listing or profile. Our moderation team reviews reports within 24 hours. For urgent safety concerns, use the emergency button available on every chat screen.",
-  },
-];
-
-export const APP_PREVIEW_STEPS: AppPreviewStepItem[] = [
-  {
-    title: "Preference Setup",
-    description: "Customize your 6-dimension lifestyle profile",
-    tint: "bg-accent-soft text-accent",
-    icon: "Sparkles",
-  },
-  {
-    title: "Smart Matches",
-    description: "Browse compatibility-scored flatmates and rooms",
-    tint: "bg-teal-soft text-teal-mid",
-    icon: "Target",
-  },
-  {
-    title: "Coordinate",
-    description: "Start conversations with shared listing details",
-    tint: "bg-green-soft text-green-mid",
-    icon: "MessageSquareText",
+      "Hit the report button on any listing or profile. Our team reviews it within 24 hours. For urgent stuff, there's an emergency button in every chat.",
   },
 ];
 
 /* ─────────────────────────────────────────────
-   Icon map for string-based icon lookups
+   Hero mini-card data
    ───────────────────────────────────────────── */
 
-export const ICON_MAP: Record<string, LucideIcon> = {
-  Sparkles,
-  ShieldCheck,
-  CalendarCheck,
-  MessageSquareText,
-  Users,
-  Moon,
-  SprayCan,
-  Utensils,
-  BedDouble,
-  Wine,
-  CheckCircle,
-  MapPin,
-  Target,
-};
+export const HERO_MINI_CARDS = [
+  {
+    type: "listing" as const,
+    price: "₹18,000/mo",
+    title: "Sunlit room in Koramangala",
+    location: "Koramangala 4th Block",
+    match: 86,
+  },
+  {
+    type: "compatibility" as const,
+    score: 92,
+    label: "Match Score",
+  },
+  {
+    type: "chat" as const,
+    message: "Hey! Saw we're a 92% match 😄",
+    time: "2m ago",
+  },
+  {
+    type: "verified" as const,
+    label: "Verified Profile",
+  },
+];
+
+/* ─────────────────────────────────────────────
+   Bento hero card dimension pills (used in FeatureBento)
+   ───────────────────────────────────────────── */
+
+export { Heart, MapPin };

@@ -92,7 +92,7 @@ export default function SemanticSearchClient() {
           eyebrow="Semantic search"
           title="Describe your ideal home"
         />
-        <Skeleton className="mt-6 h-96 w-full rounded-2xl" />
+        <Skeleton variant="searchResults" className="mt-6" />
       </main>
     );
   }

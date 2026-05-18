@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F4F3EE"/>
+      <stop offset="100%" style="stop-color:#E8E6DD"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C96442"/>
+      <stop offset="100%" style="stop-color:#A8523A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="8" fill="url(#accent)"/>
+  <rect x="0" y="622" width="1200" height="8" fill="url(#accent)"/>
+  <g transform="translate(600 240)">
+    <circle cx="0" cy="0" r="80" fill="none" stroke="#C96442" stroke-width="8" stroke-linecap="round" stroke-dasharray="400 503"/>
+    <polyline points="44,-62 75,-88 66,-49" fill="none" stroke="#C96442" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="600" y="390" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="700" fill="#1F1A14" text-anchor="middle">Find Your Flatmate, Find Your Vibe</text>
+  <text x="600" y="450" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#756F65" text-anchor="middle">Verified rooms and compatible flatmates across India</text>
+  <text x="600" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="600" fill="#C96442" text-anchor="middle">360ghar.com</text>
+</svg>

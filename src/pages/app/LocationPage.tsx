@@ -87,8 +87,25 @@ export function LocationPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4 p-4 md:p-6">
-        <Skeleton variant="listItem" count={3} />
+      <div className="flex flex-col gap-5 p-4 md:p-6 mx-auto max-w-lg">
+        {/* Title + description */}
+        <div className="flex flex-col gap-2">
+          <div className="h-7 w-3/4 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="h-4 w-full rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+        </div>
+        {/* Input field with label */}
+        <div className="flex flex-col gap-1.5">
+          <div className="h-3 w-8 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton variant="searchBar" />
+        </div>
+        {/* Popular cities chips */}
+        <div className="flex flex-col gap-2">
+          <div className="h-3 w-20 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <Skeleton variant="filterChips" count={6} />
+        </div>
+        {/* Two buttons */}
+        <div className="h-[52px] w-full rounded-[10px] border border-line shimmer animate-shimmer motion-reduce:animate-none" />
+        <div className="h-[52px] w-full rounded-[10px] shimmer animate-shimmer motion-reduce:animate-none" />
       </div>
     );
   }

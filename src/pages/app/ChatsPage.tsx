@@ -262,7 +262,7 @@ function ConversationsPanel({
       isLoading={isLoading}
       error={error}
       isEmpty={(data) => data.length === 0}
-      loading={<Skeleton variant="listItem" count={5} />}
+      loading={<Skeleton variant="conversationRow" count={5} />}
       empty={
         <EmptyState
           title="No conversations yet"

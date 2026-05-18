@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
@@ -45,6 +46,7 @@ export function LoginPage() {
 
   return (
     <>
+      <SeoHelmet title="Sign In" description="Sign in to your 360 Flatmates account to access compatible flatmate matches, verified listings, and in-app chat." canonicalUrl={`${SITE_URL}/login`} noindex />
       <h1 className="text-h1">Sign in</h1>
       <p className="mt-2 text-body-md text-ink-2">
         Enter your phone number and password to continue.

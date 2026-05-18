@@ -9,14 +9,23 @@
     <meta property="og:description" content="Verified homes. Compatible flatmates. Better living, together." />
     <meta property="og:site_name" content="360 Flatmates" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image" content="/og-image.svg" />
+    <meta property="og:locale" content="en_IN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@360ghar" />
+    <meta name="twitter:creator" content="@360ghar" />
     <link rel="icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="/fonts/Fraunces-Variable.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/Inter-Variable.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/JetBrainsMono-Variable.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/InstrumentSerif-Italic.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="stylesheet" href="/fonts/fonts.css" />
     <script>
       (() => {
         try {
-          const raw = localStorage.getItem("360-flatmates-ui");
+          const raw = localStorage.getItem("360_flatmates-ui");
           let theme = "light";
           let palette = "terracotta";
           if (raw) {
@@ -43,5 +52,7 @@
     </a>
     <div id="root"></div>
     <script type="module" src="/src/entry.tsx"></script>
+    <script defer data-domain="360ghar.com" src="https://plausible.io/js/script.js"></script>
+
   </body>
 </html>

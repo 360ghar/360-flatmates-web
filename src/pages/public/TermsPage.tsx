@@ -1,7 +1,6 @@
-import { Helmet } from "react-helmet-async";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { LegalPage } from "@/components/molecules/LegalPage";
-import { BASE_URL } from "@/lib/config";
 
 const SECTIONS = [
   {
@@ -68,17 +67,17 @@ const SECTIONS = [
 
 export function TermsPage() {
   return (
-    <LegalPage
-      heading="Terms & Conditions"
-      updatedAt="January 2025"
-      sections={SECTIONS.map((s) => ({ title: s.title, content: s.content }))}
-      helmet={
-        <Helmet>
-          <title>Terms & Conditions | 360 Flatmates</title>
-          <meta name="description" content="Read the 360 Flatmates terms and conditions. Understand your rights and responsibilities when using our flatmate matching, listing, and communication services." />
-          <link rel="canonical" href={`${BASE_URL}/terms`} />
-        </Helmet>
-      }
-    />
+    <>
+      <SeoHelmet
+        title="Terms & Conditions"
+        description="Read the 360 Flatmates terms and conditions. Understand your rights and responsibilities when using our flatmate matching, listing, and communication services."
+        canonicalUrl={`${SITE_URL}/terms`}
+      />
+      <LegalPage
+        heading="Terms & Conditions"
+        updatedAt="January 2025"
+        sections={SECTIONS.map((s) => ({ title: s.title, content: s.content }))}
+      />
+    </>
   );
 }

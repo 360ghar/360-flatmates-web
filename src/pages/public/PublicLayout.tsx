@@ -9,9 +9,10 @@ import { cn, focusRing } from "@/components/ui/component-utils";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 
 const NAV_LINKS = [
-  { href: "/about", label: "About" },
   { href: "/discover", label: "Discover" },
   { href: "/search", label: "Search" },
+  { href: "/blog", label: "Blog" },
+  { href: "/about", label: "About" },
 ] as const;
 
 export function PublicLayout() {
@@ -25,12 +26,12 @@ export function PublicLayout() {
           <Link to="/" aria-label="360 Flatmates home" className="shrink-0">
             <Logo compact />
           </Link>
-          <nav className="hidden items-center gap-10 md:flex" aria-label="Primary navigation">
+          <nav className="hidden items-center gap-8 md:flex" aria-label="Primary navigation">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className="text-label-lg text-ink-3 hover:text-accent transition-colors duration-300 tracking-widest"
+                className="text-label-lg text-ink-3 hover:text-accent transition-colors duration-300"
               >
                 {link.label}
               </Link>
@@ -99,7 +100,7 @@ export function PublicLayout() {
                   key={link.href}
                   to={link.href}
                   onClick={() => setDrawerOpen(false)}
-                  className="rounded-[9px] px-4 py-3 text-body-lg text-ink-2 hover:bg-paper-2 hover:text-accent"
+                  className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
                 >
                   {link.label}
                 </Link>
@@ -127,6 +128,16 @@ export function PublicLayout() {
                 <li>
                   <Link to="/discover" className="text-body-md text-ink-3 hover:text-accent transition-colors">
                     Browse Listings
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/search" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                    Search Flatmates
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/blog" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                    Guides & Tips
                   </Link>
                 </li>
                 <li>
@@ -164,11 +175,15 @@ export function PublicLayout() {
               &copy; {new Date().getFullYear()} 360 Flatmates. All rights reserved.
             </p>
             <div className="flex gap-8">
-              {['Instagram', 'LinkedIn', 'Twitter'].map(social => (
-                <span key={social} className="text-caption text-ink-4 tracking-widest uppercase" aria-hidden="true">
-                  {social}
-                </span>
-              ))}
+              <a href="https://www.instagram.com/360ghar" target="_blank" rel="noopener noreferrer" className="text-caption text-ink-4 tracking-widest uppercase hover:text-accent transition-colors">
+                Instagram
+              </a>
+              <a href="https://www.linkedin.com/company/360ghar" target="_blank" rel="noopener noreferrer" className="text-caption text-ink-4 tracking-widest uppercase hover:text-accent transition-colors">
+                LinkedIn
+              </a>
+              <a href="https://twitter.com/360ghar" target="_blank" rel="noopener noreferrer" className="text-caption text-ink-4 tracking-widest uppercase hover:text-accent transition-colors">
+                Twitter
+              </a>
             </div>
           </div>
         </div>

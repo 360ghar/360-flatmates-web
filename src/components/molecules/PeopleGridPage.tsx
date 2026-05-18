@@ -49,7 +49,7 @@ export function PeopleGridPage<T>({
         isLoading={query.isLoading}
         error={query.error}
         isEmpty={(data) => data.length === 0}
-        loading={<Skeleton variant="profile" count={6} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" />}
+        loading={<Skeleton variant="profileGridCard" count={6} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" />}
         empty={
           <EmptyState
             title={emptyTitle}

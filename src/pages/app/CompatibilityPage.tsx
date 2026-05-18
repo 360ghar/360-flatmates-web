@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressRing } from "@/components/ui/ProgressRing";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, ErrorState } from "@/components/ui/StateViews";
 
 const COLOR_TONE: Record<CompatibilityColor, "success" | "warning" | "error"> = {
@@ -99,8 +98,30 @@ export function CompatibilityPage() {
         onRetry={() => refetch()}
         loading={
           <div className="flex flex-col gap-4">
-            <Skeleton variant="profile" />
-            <Skeleton variant="block" count={4} className="h-4 w-full" />
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-[9px] shimmer animate-shimmer motion-reduce:animate-none" />
+              <div className="h-7 w-32 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+            </div>
+            <Card className="flex flex-col items-center gap-4 p-6 text-center">
+              <div className="h-28 w-28 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              <div className="h-5 w-24 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              <div className="h-4 w-48 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+            </Card>
+            <Card className="flex flex-col gap-4 p-5">
+              <div className="h-5 w-24 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={i} className="flex flex-col gap-1.5">
+                  <div className="h-4 w-32 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+                  <div className="h-2 w-full rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+                </div>
+              ))}
+            </Card>
+            <Card className="flex flex-col gap-3 p-5">
+              <div className="h-5 w-20 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              {Array.from({ length: 2 }, (_, i) => (
+                <div key={i} className="h-4 w-full rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              ))}
+            </Card>
           </div>
         }
         empty={

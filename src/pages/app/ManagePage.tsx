@@ -29,7 +29,17 @@ export function ManagePage() {
         isLoading={isLoading}
         error={error}
         isEmpty={(data) => data.length === 0}
-        loading={<Skeleton variant="card" count={3} />}
+        loading={
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="shimmer animate-shimmer motion-reduce:animate-none h-7 w-40 rounded-sm" />
+              <div className="shimmer animate-shimmer motion-reduce:animate-none h-10 w-32 rounded-[10px]" />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Skeleton variant="listingCard" count={3} />
+            </div>
+          </div>
+        }
         empty={
           <Card className="flex flex-col items-center gap-3 p-8 text-center">
             <p className="text-body-md text-ink-2">You have not posted any listings yet.</p>

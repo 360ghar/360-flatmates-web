@@ -94,11 +94,6 @@ export {
 } from "./useMatches";
 
 export {
-  useRegisterDeviceMutation,
-  useUnregisterDeviceMutation
-} from "./useDevices";
-
-export {
   useReportUserMutation
 } from "./useReports";
 

@@ -1,32 +1,22 @@
 import {
-  FeatureHighlights,
+  FeatureBento,
   HowItWorks,
-  AppPreview,
   CitiesShowcase,
   FAQAccordion,
   BottomCTA,
 } from "@/components/landing";
 import { LandingClientSections } from "@/components/landing/LandingClientSections";
 import { FAQ_ITEMS } from "@/components/landing/landing-data";
-import { Helmet } from "react-helmet-async";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 export function LandingPage() {
   return (
     <>
-      <Helmet>
-        <title>360 Flatmates — Find Compatible Flatmates & Rooms</title>
-        <meta name="description" content="Find compatible flatmates and verified rental listings across India. Compatibility scores, society vibe tags, and visit scheduling built in." />
-      </Helmet>
-      <main id="main" suppressHydrationWarning>
-        <LandingClientSections />
-        <FeatureHighlights />
-        <HowItWorks />
-        <AppPreview />
-        <CitiesShowcase />
-        <FAQAccordion />
-        <BottomCTA />
-
-        {/* Structured Data (JSON-LD) */}
+      <SeoHelmet
+        title="Find Compatible Flatmates & Verified Rooms Across India"
+        description="Find compatible flatmates and verified rental listings across India. 6-dimension compatibility matching, society vibe tags, visit scheduling, and in-app chat for better living."
+        canonicalUrl={SITE_URL}
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -44,6 +34,14 @@ export function LandingPage() {
             }),
           }}
         />
+      </SeoHelmet>
+      <main id="main" suppressHydrationWarning>
+        <LandingClientSections />
+        <FeatureBento />
+        <HowItWorks />
+        <CitiesShowcase />
+        <FAQAccordion />
+        <BottomCTA />
       </main>
     </>
   );

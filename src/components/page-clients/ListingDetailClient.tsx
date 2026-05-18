@@ -25,7 +25,7 @@ export default function ListingDetailClient() {
         data={listing}
         isLoading={isLoading}
         error={error}
-        loading={<ListingDetailSkeleton />}
+        loading={<Skeleton variant="listingDetail" />}
         empty={<EmptyState title="Listing not found" description="This listing may have been removed or is no longer available." />}
         errorView={<ErrorState onRetry={() => refetch()} />}
       >
@@ -104,17 +104,4 @@ export default function ListingDetailClient() {
   );
 }
 
-function ListingDetailSkeleton() {
-  return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(280px,480px)_1fr]">
-      <Skeleton className="aspect-[4/5] rounded-2xl" />
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-8 w-3/5" />
-        <Skeleton className="h-6 w-1/4" />
-        <Skeleton className="h-5 w-2/5" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-36 w-full rounded-2xl" />
-      </div>
-    </div>
-  );
-}
+

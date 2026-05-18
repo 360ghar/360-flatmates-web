@@ -6,7 +6,6 @@ import { humanizeSnakeCase } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView } from "@/components/ui/StateViews";
 
 export function SavedSearchesPage() {
@@ -24,7 +23,30 @@ export function SavedSearchesPage() {
         isLoading={isLoading}
         error={error}
         isEmpty={(data) => data.length === 0}
-        loading={<Skeleton variant="listItem" count={4} />}
+        loading={
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-4 w-28 rounded-sm" />
+                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-5 w-16 rounded-full" />
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-6 w-14 rounded-full" />
+                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-6 w-16 rounded-full" />
+                    <div className="shimmer animate-shimmer motion-reduce:animate-none h-6 w-12 rounded-full" />
+                  </div>
+                  <div className="shimmer animate-shimmer motion-reduce:animate-none mt-1 h-3 w-24 rounded-sm" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="shimmer animate-shimmer motion-reduce:animate-none h-9 w-9 rounded-[9px]" />
+                  <div className="shimmer animate-shimmer motion-reduce:animate-none h-9 w-9 rounded-[9px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        }
         empty={
           <p className="py-8 text-center text-body-md text-ink-3">
             No saved searches yet. Save a search from the search results page to revisit it later.

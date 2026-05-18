@@ -226,7 +226,11 @@ export function VisitsPage() {
           isLoading={isLoading}
           error={error}
           isEmpty={(data) => data.length === 0}
-          loading={<Skeleton variant="listItem" count={4} />}
+          loading={
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} variant="visitCard" />)}
+              </div>
+            }
           empty={
             <EmptyState
               title={
@@ -266,7 +270,11 @@ export function VisitsPage() {
             isLoading={isLoading}
             error={error}
             isEmpty={(data) => data.length === 0}
-            loading={<Skeleton variant="listItem" count={4} />}
+            loading={
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} variant="visitCard" />)}
+              </div>
+            }
             empty={
               <EmptyState
                 title={

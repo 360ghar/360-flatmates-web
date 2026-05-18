@@ -7,6 +7,9 @@ Allow: /about
 Allow: /terms
 Allow: /privacy
 Allow: /share
+Allow: /cities/
+Allow: /blog
+Allow: /compare
 Disallow: /app/
 Disallow: /admin/
 Disallow: /chats/
@@ -20,5 +23,9 @@ Disallow: /notifications/
 Disallow: /alerts/
 Disallow: /saved-searches/
 Disallow: /dashboard/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /auth/
 
 Sitemap: https://360ghar.com/sitemap.xml

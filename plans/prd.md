@@ -1060,7 +1060,7 @@ All events follow `object_action` naming with a consistent property schema:
   vite.config.ts
   tsconfig.json
   package.json
-  .env.local                       # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_BASE_URL
+  .env.local                       # VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, VITE_API_BASE_URL
 ```
 
 ---
@@ -1072,7 +1072,7 @@ All environment variables use the `VITE_` prefix (required by Vite to expose var
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key (safe for client) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase publishable key (safe for client) |
 | `VITE_API_BASE_URL` | Yes | FastAPI backend base URL (e.g., `https://api.360ghar.com/api/v1`) |
 | `VITE_GOOGLE_MAPS_API_KEY` | Yes | Google Maps JS API key for map view |
 | `VITE_FCM_VAPID_KEY` | Yes | Firebase Cloud Messaging VAPID key for web push |

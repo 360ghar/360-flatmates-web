@@ -1,7 +1,6 @@
-import { Helmet } from "react-helmet-async";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { LegalPage } from "@/components/molecules/LegalPage";
-import { BASE_URL } from "@/lib/config";
 
 const SECTIONS = [
   {
@@ -63,17 +62,17 @@ const SECTIONS = [
 
 export function PrivacyPage() {
   return (
-    <LegalPage
-      heading="Privacy Policy"
-      updatedAt="January 2025"
-      sections={SECTIONS.map((s) => ({ title: s.title, content: s.content }))}
-      helmet={
-        <Helmet>
-          <title>Privacy Policy | 360 Flatmates</title>
-          <meta name="description" content="Read the 360 Flatmates privacy policy. Learn how we collect, use, and protect your personal data, including phone verification, profile information, and communication records." />
-          <link rel="canonical" href={`${BASE_URL}/privacy`} />
-        </Helmet>
-      }
-    />
+    <>
+      <SeoHelmet
+        title="Privacy Policy"
+        description="Read the 360 Flatmates privacy policy. Learn how we collect, use, and protect your personal data, including phone verification, profile information, and communication records."
+        canonicalUrl={`${SITE_URL}/privacy`}
+      />
+      <LegalPage
+        heading="Privacy Policy"
+        updatedAt="January 2025"
+        sections={SECTIONS.map((s) => ({ title: s.title, content: s.content }))}
+      />
+    </>
   );
 }

@@ -19,10 +19,7 @@ import { setAccessToken } from "@/lib/api";
 import { getEnv } from "@/lib/env";
 import { uiStore } from "@/lib/stores/ui-store";
 
-const env = getEnv();
-const SSE_URL =
-  env.VITE_SSE_URL ??
-  `${env.VITE_API_BASE_URL}/flatmates/sse`;
+const SSE_URL = `${getEnv().VITE_API_BASE_URL}/flatmates/sse`;
 
 interface UseSSEReturn {
   connectionState: SSEConnectionState;

@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
-import { Helmet } from "react-helmet-async";
+import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
 
 import { useWebSearch } from "@/hooks/queries/useSearch";
 import { useAmenities, useCities } from "@/hooks/queries/useCatalogs";
@@ -15,11 +15,14 @@ import { type ListingCardData } from "@/components/molecules/ListingCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/Layout";
 
+const breadcrumbLd = buildBreadcrumbJsonLd([
+  homeBreadcrumb(),
+  { name: "Search", item: `${SITE_URL}/search` },
+]);
+
 export function SearchPage() {
   const navigate = useNavigate();
 
-  // ── URL-synced filter state via nuqs ──
-  // Deep-linking: /search?city=1&priceMax=15000 pre-fills all filters
   const [params, setParams] = useQueryStates(searchPageParams, {
     history: "replace",
     shallow: true,
@@ -50,7 +53,6 @@ export function SearchPage() {
     refetch,
   } = useWebSearch(filters);
 
-  // Sync nuqs-driven filters to searchStore so ExplorePage stays consistent
   useEffect(() => {
     searchStore.getState().setFilters(filters);
   }, [filters]);
@@ -143,13 +145,14 @@ export function SearchPage() {
   if (isLoading) {
     return (
       <>
-        <Helmet>
-          <title>Search Flatmates & Rooms | 360 Flatmates</title>
-          <meta name="description" content="Search for compatible flatmates and verified rental listings across Indian cities." />
-        </Helmet>
+        <SeoHelmet
+          title="Search Flatmates & Rooms"
+          description="Search for compatible flatmates and verified rental listings across Indian cities."
+          canonicalUrl={`${SITE_URL}/search`}
+        />
         <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
           <PageHeader eyebrow="Advanced search" title="Search Flatmates & Rooms" />
-          <Skeleton className="mt-6 h-96 w-full rounded-2xl" />
+          <Skeleton variant="searchResults" className="mt-6" />
         </main>
       </>
     );
@@ -157,10 +160,16 @@ export function SearchPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Search Flatmates & Rooms | 360 Flatmates</title>
-        <meta name="description" content="Search for compatible flatmates and verified rental listings across Indian cities." />
-      </Helmet>
+      <SeoHelmet
+        title="Search Flatmates & Rooms"
+        description="Search for compatible flatmates and verified rental listings across Indian cities by budget, location, amenities, and lifestyle preferences."
+        canonicalUrl={`${SITE_URL}/search`}
+      >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        />
+      </SeoHelmet>
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
         <PageHeader eyebrow="Advanced search" title="Search Flatmates & Rooms" />
         <div className="mt-6">

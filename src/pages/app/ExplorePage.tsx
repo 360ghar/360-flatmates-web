@@ -12,7 +12,6 @@ import {
   PROPERTY_TYPE_VALUES,
 } from "@/lib/data/domain";
 import { Button } from "@/components/ui/Button";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { FilterPanel, type FilterSection } from "@/components/molecules/FilterPanel";
 import { BottomSheet, Drawer } from "@/components/ui/Modal";
@@ -225,8 +224,14 @@ export function ExplorePage() {
 
   if (isLoading) {
     return (
-      <div className="-mx-5 -mt-6 -mb-6 flex h-[calc(100dvh-4rem)] items-center justify-center md:-mx-6">
-        <Skeleton variant="card" className="h-full w-full" />
+      <div className="-mx-5 -mt-6 -mb-6 flex h-[calc(100dvh-4rem)] flex-col items-center justify-center gap-4 md:-mx-6">
+        {/* Map placeholder */}
+        <div aria-hidden="true" className="h-full w-full rounded-none bg-paper-2 shimmer animate-shimmer motion-reduce:animate-none" />
+        {/* Floating button placeholders */}
+        <div className="absolute bottom-6 right-6 flex flex-col gap-3">
+          <div aria-hidden="true" className="h-12 w-12 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+          <div aria-hidden="true" className="h-12 w-12 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+        </div>
       </div>
     );
   }

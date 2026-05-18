@@ -1,0 +1,35 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router";
+
+const PLAUSIBLE_DOMAIN = "360ghar.com";
+const PLAUSIBLE_SCRIPT = "https://plausible.io/js/script.js";
+
+declare global {
+  interface Window {
+    plausible?: (...args: unknown[]) => void;
+  }
+}
+
+export function PlausibleProvider() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (window.plausible) {
+      window.plausible("pageview", { u: window.location.href });
+    }
+  }, [location.pathname]);
+
+  return (
+    <script
+      defer
+      data-domain={PLAUSIBLE_DOMAIN}
+      src={PLAUSIBLE_SCRIPT}
+    />
+  );
+}
+
+export function trackEvent(name: string, props?: Record<string, unknown>) {
+  if (window.plausible) {
+    window.plausible(name, { props });
+  }
+}

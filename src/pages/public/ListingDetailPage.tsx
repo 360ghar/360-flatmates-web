@@ -1,11 +1,9 @@
 import { useParams } from "react-router";
-import { Helmet } from "react-helmet-async";
+import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
 
 import ListingDetailClient from "@/components/page-clients/ListingDetailClient";
 import { useProperty } from "@/hooks/queries";
 import { formatLocation, formatRent } from "@/lib/utils";
-import { buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/utils/seo";
-import { BASE_URL } from "@/lib/config";
 
 export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,7 +11,7 @@ export function ListingDetailPage() {
 
   const { data: property } = useProperty(propertyId);
 
-  const url = `${BASE_URL}/discover/${id}`;
+  const url = `${SITE_URL}/discover/${id}`;
 
   const metaTitle = property?.title ?? "Listing Details";
   const metaDescription = property
@@ -30,7 +28,7 @@ export function ListingDetailPage() {
 
   const breadcrumbLd = buildBreadcrumbJsonLd([
     homeBreadcrumb(),
-    { name: "Discover", item: `${BASE_URL}/discover` },
+    { name: "Discover", item: `${SITE_URL}/discover` },
     { name: property?.title ?? "Listing", item: url },
   ]);
 
@@ -59,33 +57,27 @@ export function ListingDetailPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{metaTitle} | 360 Flatmates</title>
-        <meta name="description" content={metaDescription} />
-        <link rel="canonical" href={url} />
-        {property?.main_image_url && (
-          <meta property="og:image" content={property.main_image_url} />
-        )}
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:url" content={url} />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="360 Flatmates" />
-      </Helmet>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbLd),
-        }}
-      />
-      {listingLd && (
+      <SeoHelmet
+        title={metaTitle}
+        description={metaDescription}
+        canonicalUrl={url}
+        ogImage={property?.main_image_url}
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(listingLd),
+            __html: JSON.stringify(breadcrumbLd),
           }}
         />
-      )}
+        {listingLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(listingLd),
+            }}
+          />
+        )}
+      </SeoHelmet>
       <ListingDetailClient />
     </>
   );

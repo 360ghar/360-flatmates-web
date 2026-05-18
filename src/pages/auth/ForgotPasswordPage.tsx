@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button, buttonClasses } from "@/components/ui/Button";
@@ -79,6 +80,7 @@ export function ForgotPasswordPage() {
   if (success) {
     return (
       <>
+        <SeoHelmet title="Password Reset" description="Reset your 360 Flatmates password." canonicalUrl={`${SITE_URL}/forgot-password`} noindex />
         <h1 className="text-h1">Password reset</h1>
         <p className="mt-3 text-body-md text-ink-2">
           Your password has been updated successfully. You can now sign in with your new password.
@@ -92,6 +94,7 @@ export function ForgotPasswordPage() {
 
   return (
     <>
+      <SeoHelmet title="Reset Password" description="Reset your 360 Flatmates account password via phone OTP verification." canonicalUrl={`${SITE_URL}/forgot-password`} noindex />
       <h1 className="text-h1">Reset Password</h1>
       <p className="mt-2 text-body-md text-ink-2">
         Enter your phone number, verify the code, then set a new password.

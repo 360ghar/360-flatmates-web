@@ -59,9 +59,52 @@ export function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center gap-4 p-4 md:p-6">
-        <Skeleton variant="profile" />
-        <Skeleton variant="block" count={3} className="w-full max-w-md" />
+      <div className="flex flex-col items-center gap-4 p-4 md:p-6 max-w-2xl mx-auto">
+        {/* Profile header card: avatar + name + profession + badges */}
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm text-center w-full">
+          <div className="h-[120px] w-[120px] rounded-xl shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="h-7 w-24 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="h-4 w-32 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="flex gap-2">
+            <div className="h-5 w-16 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+            <div className="h-5 w-16 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+          </div>
+        </div>
+        {/* Menu section groups */}
+        <div className="flex flex-col gap-5 w-full">
+          {/* Profile section */}
+          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
+            <Skeleton variant="menuItemRow" />
+          </div>
+          {/* Activity section */}
+          <div className="h-3 w-14 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
+            <Skeleton variant="menuItemRow" count={2} />
+          </div>
+          {/* Preferences section */}
+          <div className="h-3 w-20 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
+            <Skeleton variant="menuItemRow" count={2} />
+          </div>
+          {/* Theme card with toggle placeholder */}
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+            <div className="flex flex-col gap-1">
+              <div className="h-5 w-16 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+              <div className="h-3 w-32 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+            </div>
+            <div className="h-8 w-14 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+          </div>
+          {/* Privacy & Safety section */}
+          <div className="h-3 w-24 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
+            <Skeleton variant="menuItemRow" count={2} />
+          </div>
+          {/* Account section with sign out / delete */}
+          <div className="h-3 w-16 rounded-sm shimmer animate-shimmer motion-reduce:animate-none" />
+          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
+            <Skeleton variant="menuItemRow" count={2} />
+          </div>
+        </div>
       </div>
     );
   }

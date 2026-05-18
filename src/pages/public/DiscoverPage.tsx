@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
-import { Helmet } from "react-helmet-async";
+import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
 
 import { useCities } from "@/hooks/queries/useCatalogs";
 import { useWebSearch } from "@/hooks/queries/useSearch";
@@ -25,7 +25,6 @@ const QUICK_FILTERS = [
   "Pet friendly",
 ] as const;
 
-/** Map quick-filter chip labels to SearchFilters fields */
 const QUICK_FILTER_MAP: Record<string, Partial<SearchFilters>> = {
   Nearby: { radius: 2 },
   "1BHK": { bedrooms_min: 1, bedrooms_max: 1 },
@@ -36,11 +35,14 @@ const QUICK_FILTER_MAP: Record<string, Partial<SearchFilters>> = {
   "Pet friendly": { features: ["pets_allowed"] },
 };
 
+const breadcrumbLd = buildBreadcrumbJsonLd([
+  homeBreadcrumb(),
+  { name: "Discover Listings", item: `${SITE_URL}/discover` },
+]);
+
 export function DiscoverPage() {
   const navigate = useNavigate();
 
-  // ── URL-synced filter state via nuqs ──
-  // Deep-linking: /discover?city=2&filter=Nearby pre-fills all filters
   const [params, setParams] = useQueryStates(discoverPageParams, {
     history: "replace",
     shallow: true,
@@ -55,7 +57,6 @@ export function DiscoverPage() {
         limit: 20,
         page: params.page,
       };
-      // Merge quick-filter mapping into base filters
       const quickFilter = params.filter ? QUICK_FILTER_MAP[params.filter] : undefined;
       if (quickFilter) {
         Object.assign(base, quickFilter);
@@ -86,10 +87,16 @@ export function DiscoverPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Discover Listings | 360 Flatmates</title>
-        <meta name="description" content="Browse verified room and flatmate listings across Indian cities with compatibility scores, society vibe tags, and visit scheduling." />
-      </Helmet>
+      <SeoHelmet
+        title="Discover Verified Rooms & Flatmates"
+        description="Browse verified room and flatmate listings across Indian cities with compatibility scores, society vibe tags, and visit scheduling."
+        canonicalUrl={`${SITE_URL}/discover`}
+      >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        />
+      </SeoHelmet>
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
         <PageHeader
           eyebrow="Public discovery"
@@ -127,7 +134,11 @@ export function DiscoverPage() {
             isLoading={searchLoading || citiesLoading}
             error={searchError}
             onRetry={() => refetch()}
-            loading={<Skeleton variant="feed" count={6} />}
+            loading={
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                <Skeleton variant="listingCard" count={6} />
+              </div>
+            }
             empty={
               <div className="col-span-full text-center py-12">
                 <p className="text-h3 text-ink-2">No listings found</p>

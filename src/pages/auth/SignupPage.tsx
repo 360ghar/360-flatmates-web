@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
@@ -86,6 +87,7 @@ export function SignupPage() {
 
   return (
     <>
+      <SeoHelmet title="Create Account" description="Sign up for 360 Flatmates to find compatible flatmates and verified rooms across India." canonicalUrl={`${SITE_URL}/signup`} noindex />
       <StepProgress
         totalSteps={2}
         currentStep={currentStepIndex}

@@ -43,8 +43,7 @@ export default function PublicProfileClient() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center gap-4 p-4 md:p-6">
-        <Skeleton variant="profile" />
-        <Skeleton variant="block" count={3} className="w-full max-w-md" />
+        <Skeleton variant="publicProfile" />
       </div>
     );
   }

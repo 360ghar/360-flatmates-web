@@ -76,7 +76,23 @@ export function HomePage() {
 
       {/* Feed sections */}
       {anyLoading ? (
-        <Skeleton variant="feed" count={3} />
+        <div className="flex flex-col gap-6">
+          <Skeleton variant="searchBar" />
+          <Skeleton variant="filterChips" count={5} />
+          {["Recommended for You", "New Listings", "Nearby Flatmates"].map((section) => (
+            <section key={section} className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="h-4 w-32 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+                <div className="h-3 w-14 rounded-full shimmer animate-shimmer motion-reduce:animate-none" />
+              </div>
+              <div className="flex gap-4 overflow-hidden lg:grid lg:grid-cols-2 xl:grid-cols-3">
+                {section === "New Listings"
+                  ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} variant="listingCard" />)
+                  : Array.from({ length: 3 }, (_, i) => <Skeleton key={i} variant="profileGridCard" />)}
+              </div>
+            </section>
+          ))}
+        </div>
       ) : bootstrapError ? (
         <AsyncView data={null} error={bootstrapError} onRetry={() => window.location.reload()}>
           {() => null}

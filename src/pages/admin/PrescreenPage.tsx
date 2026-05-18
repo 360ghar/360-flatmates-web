@@ -76,10 +76,62 @@ export function PrescreenPage() {
           onRetry={() => refetch()}
           loading={
             <div className="flex flex-col gap-6">
-              <Skeleton className="h-64 w-full rounded-2xl" />
-              <Skeleton className="h-8 w-3/5" />
-              <Skeleton className="h-4 w-4/5" />
-              <Skeleton className="h-4 w-2/5" />
+              {/* Image grid skeleton */}
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} className="aspect-[16/10] rounded-2xl" />
+                ))}
+              </div>
+              {/* Title/Price card skeleton */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <Skeleton className="h-7 w-3/5" />
+                <Skeleton className="mt-2 h-4 w-2/5" />
+                <Skeleton className="mt-3 h-8 w-1/4" />
+                <Skeleton className="mt-3 h-5 w-20 rounded-full" />
+              </div>
+              {/* Description card skeleton */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="mt-2 h-4 w-full" />
+                <Skeleton className="mt-1 h-4 w-4/5" />
+              </div>
+              {/* Property details grid skeleton */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <Skeleton className="h-3 w-28" />
+                <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <div key={i} className="flex flex-col gap-1">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Features card skeleton */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <Skeleton className="h-3 w-16" />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Skeleton key={i} className="h-6 w-20 rounded-full" />
+                  ))}
+                </div>
+              </div>
+              {/* Owner card skeleton */}
+              <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <Skeleton className="h-3 w-14" />
+                <div className="mt-3 flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex flex-col gap-1.5">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+              </div>
+              {/* Action bar skeleton */}
+              <div className="flex gap-3 pt-2">
+                <Skeleton className="h-10 flex-1 rounded-[10px]" />
+                <Skeleton className="h-10 flex-1 rounded-[10px]" />
+              </div>
             </div>
           }
         >

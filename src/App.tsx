@@ -23,6 +23,10 @@ const ListingDetailPage = lazy(() => import("./pages/public/ListingDetailPage").
 const SearchPage = lazy(() => import("./pages/public/SearchPage").then((m) => ({ default: m.SearchPage })));
 const SemanticSearchPage = lazy(() => import("./pages/public/SemanticSearchPage").then((m) => ({ default: m.SemanticSearchPage })));
 const SharePage = lazy(() => import("./pages/public/SharePage").then((m) => ({ default: m.SharePage })));
+const CityPage = lazy(() => import("./pages/public/CityPage").then((m) => ({ default: m.CityPage })));
+const BlogPage = lazy(() => import("./pages/public/BlogPage").then((m) => ({ default: m.BlogPage })));
+const BlogPostPage = lazy(() => import("./pages/public/BlogPostPage").then((m) => ({ default: m.BlogPostPage })));
+const ComparisonPage = lazy(() => import("./pages/public/ComparisonPage").then((m) => ({ default: m.ComparisonPage })));
 
 // Auth pages
 const LoginPage = lazy(() => import("./pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })));
@@ -87,6 +91,12 @@ export function App() {
               <Route index element={<LandingPage />} />
               <Route path="discover" element={<DiscoverPage />} />
               <Route path="discover/:id" element={<ListingDetailPage />} />
+              <Route path="search" element={<SearchPage />} />
+              <Route path="search/semantic" element={<SemanticSearchPage />} />
+              <Route path="cities/:slug" element={<CityPage />} />
+              <Route path="blog" element={<BlogPage />} />
+              <Route path="blog/:slug" element={<BlogPostPage />} />
+              <Route path="compare/:slug" element={<ComparisonPage />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="terms" element={<TermsPage />} />
               <Route path="privacy" element={<PrivacyPage />} />

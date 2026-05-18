@@ -1,10 +1,9 @@
 import { Link } from "react-router";
-import { Helmet } from "react-helmet-async";
+import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TrustBadge } from "@/components/ui/TrustBadge";
-import { BASE_URL } from "@/lib/config";
 
 const VALUES = [
   {
@@ -36,11 +35,11 @@ const VALUES = [
 export function AboutPage() {
   return (
     <>
-      <Helmet>
-        <title>About 360 Flatmates</title>
-        <meta name="description" content="Learn about 360 Flatmates, our mission to make flatmate matching smarter through compatibility scores, verified listings, and safety-first workflows across India." />
-        <link rel="canonical" href={`${BASE_URL}/about`} />
-      </Helmet>
+      <SeoHelmet
+        title="About Us"
+        description="Learn about 360 Flatmates, our mission to make flatmate matching smarter through compatibility scores, verified listings, and safety-first workflows across India."
+        canonicalUrl={`${SITE_URL}/about`}
+      />
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-12 md:px-6">
         <div className="text-center">
           <p className="text-eyebrow text-accent">About</p>
