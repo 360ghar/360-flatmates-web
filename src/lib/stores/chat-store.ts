@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createStore } from "zustand/vanilla";
 
 export interface ChatStoreState {
   activeConversationId: number | null;
@@ -14,7 +14,7 @@ export interface ChatStoreState {
   setShowInfoPanel: (show: boolean) => void;
 }
 
-export const useChatStore = create<ChatStoreState>()((set, get) => ({
+export const chatStore = createStore<ChatStoreState>()((set, get) => ({
   activeConversationId: null,
   draftMessages: {},
   isTyping: {},

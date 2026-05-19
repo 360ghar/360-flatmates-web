@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createStore } from "zustand/vanilla";
 import type { FlatmatesPeer } from "@/lib/api/types";
 
 export interface SwipeStoreState {
@@ -19,7 +19,7 @@ export interface SwipeStoreState {
   setExpanded: (expanded: boolean) => void;
 }
 
-export const useSwipeStore = create<SwipeStoreState>()((set) => ({
+export const swipeStore = createStore<SwipeStoreState>()((set) => ({
   currentIndex: 0,
   isAnimating: false,
   direction: null,

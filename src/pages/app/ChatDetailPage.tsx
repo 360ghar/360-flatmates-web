@@ -11,8 +11,8 @@ export function ChatDetailPage() {
   const { id } = useParams();
   const conversationId = Number(id);
 
-  const { data: conversation, isLoading: convLoading, error: convError } = useConversation(conversationId);
-  const { data: messagesData, isLoading: messagesLoading, error: messagesError } = useMessages(conversationId);
+  const { data: conversation, isLoading: convLoading, error: convError, refetch: refetchConversation } = useConversation(conversationId);
+  const { data: messagesData, isLoading: messagesLoading, error: messagesError, refetch: refetchMessages } = useMessages(conversationId);
   const { data: myProfile } = useMyProfile();
   const sendMessage = useSendMessage();
   const createVisit = useCreateVisit();
@@ -67,7 +67,7 @@ export function ChatDetailPage() {
         <ErrorState
           title="Could not load conversation"
           description="Please try again."
-          onRetry={() => window.location.reload()}
+          onRetry={() => { refetchConversation(); refetchMessages(); }}
         />
       </div>
     );

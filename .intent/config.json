@@ -1,0 +1,64 @@
+{
+  "scripts": [
+    {
+      "name": "dev",
+      "command": "npm run dev",
+      "mode": "service",
+      "category": "dev"
+    },
+    {
+      "name": "build",
+      "command": "npm run build",
+      "mode": "command",
+      "category": "build"
+    },
+    {
+      "name": "preview",
+      "command": "npm run preview",
+      "mode": "service",
+      "category": "dev"
+    },
+    {
+      "name": "lint",
+      "command": "npm run lint",
+      "mode": "command",
+      "category": "lint"
+    },
+    {
+      "name": "typecheck",
+      "command": "npm run typecheck",
+      "mode": "command",
+      "category": "typecheck"
+    },
+    {
+      "name": "test",
+      "command": "npm run test",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:integration",
+      "command": "npm run test:integration",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:e2e",
+      "command": "npm run test:e2e",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "generate:api-types",
+      "command": "npm run generate:api-types",
+      "mode": "command",
+      "category": "other"
+    },
+    {
+      "name": "generate:pwa-icons",
+      "command": "npm run generate:pwa-icons",
+      "mode": "command",
+      "category": "other"
+    }
+  ]
+}

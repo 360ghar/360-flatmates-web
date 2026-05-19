@@ -275,7 +275,7 @@ export function ProfilePage() {
             description="Installed on your device"
             disabled
             trailing={
-              <span className="text-caption font-semibold text-emerald-600 flex items-center gap-1 pr-1">
+              <span className="text-caption font-semibold text-success flex items-center gap-1 pr-1">
                 <Check className="h-3.5 w-3.5" /> Installed
               </span>
             }

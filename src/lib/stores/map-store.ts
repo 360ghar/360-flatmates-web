@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createStore } from "zustand/vanilla";
 
 export interface MapViewport {
   lat: number;
@@ -38,7 +38,7 @@ export const DEFAULT_CENTER: MapViewport = { lat: 28.6139, lng: 77.209 }; // New
 const DEFAULT_ZOOM = 12;
 const EMPTY_FILTERS: MapFilters = {};
 
-export const useMapStore = create<MapStoreState>()((set) => ({
+export const mapStore = createStore<MapStoreState>()((set) => ({
   center: DEFAULT_CENTER,
   zoom: DEFAULT_ZOOM,
   selectedPinId: null,

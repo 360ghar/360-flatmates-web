@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useSwipeDeck, useSwipeAction } from "@/hooks/queries";
 import { useKeyboardSwipe } from "@/hooks/useKeyboardSwipe";
-import { useSwipeStore } from "@/lib/stores/swipe-store";
+import { useStore } from "zustand";
+import { swipeStore } from "@/lib/stores/swipe-store";
 import type { FlatmatesPeer } from "@/lib/api/types";
 import { Button } from "@/components/ui/Button";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -56,13 +57,11 @@ export function SwipePage() {
   const [matchProfile, setMatchProfile] = useState<SwipeProfile | null>(null);
 
   /* ----- Zustand swipe store ----- */
-  const {
-    isAnimating: storeAnimating,
-    setAnimating: setStoreAnimating,
-    setDirection: setStoreDirection,
-    clearDirection: clearStoreDirection,
-    setCardQueue
-  } = useSwipeStore();
+  const storeAnimating = useStore(swipeStore, (s) => s.isAnimating);
+  const setStoreAnimating = useStore(swipeStore, (s) => s.setAnimating);
+  const setStoreDirection = useStore(swipeStore, (s) => s.setDirection);
+  const clearStoreDirection = useStore(swipeStore, (s) => s.clearDirection);
+  const setCardQueue = useStore(swipeStore, (s) => s.setCardQueue);
 
   const swipeProfiles: SwipeProfile[] = useMemo(
     () => (profiles ?? []).map(peerToSwipeProfile),
@@ -141,7 +140,7 @@ export function SwipePage() {
   }, [currentProfile, handleSwipeAction]);
 
   const handleKeyboardExpand = useCallback(() => {
-    useSwipeStore.getState().toggleExpanded();
+    swipeStore.getState().toggleExpanded();
   }, []);
 
   const handleKeyboardDismiss = useCallback(() => {
@@ -236,7 +235,13 @@ function MatchCelebration({
       const size = 6 + nextRand() * 10;
       const delay = nextRand() * 0.2;
       const duration = 0.8 + nextRand() * 0.6;
-      const colors = ["#C96442", "#E9A891", "#319795", "#E53E3E", "#D69E2E"];
+      const colors = [
+        "var(--color-accent)",
+        "var(--color-accent-300)",
+        "var(--color-teal-mid)",
+        "var(--color-error)",
+        "var(--color-warning)",
+      ];
       const color = colors[Math.floor(nextRand() * colors.length)];
 
       return {

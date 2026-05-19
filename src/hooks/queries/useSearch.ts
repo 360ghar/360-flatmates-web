@@ -15,7 +15,7 @@ export function webSearchOptions(filters: SearchFilters) {
   return queryOptions({
     queryKey: ["search", "web", filters],
     queryFn: async () => {
-      const response = await apiClient.request<any>({
+      const response = await apiClient.request<PaginatedPropertyResponse>({
         method: "GET",
         path: "/properties",
         auth: false,
@@ -46,14 +46,12 @@ export function webSearchOptions(filters: SearchFilters) {
         } as Record<string, QueryValue>,
       });
 
-      const results = Array.isArray(response) ? response : (response.properties ?? response.results ?? []);
-
       return {
-        results: results,
-        total: response.total ?? results.length,
-        page: response.page ?? 1,
-        limit: response.limit ?? 20,
-        total_pages: response.total_pages ?? 1,
+        results: response.properties,
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        total_pages: response.total_pages,
         search_type: "listings" as const,
         filters_applied: response.filters_applied,
         search_center: response.search_center,
@@ -73,7 +71,7 @@ export function infiniteWebSearchOptions(filters: Omit<SearchFilters, "page">) {
   return infiniteQueryOptions({
     queryKey: ["search", "web", "infinite", filters],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await apiClient.request<any>({
+      const response = await apiClient.request<PaginatedPropertyResponse>({
         method: "GET",
         path: "/properties",
         auth: false,
@@ -104,14 +102,12 @@ export function infiniteWebSearchOptions(filters: Omit<SearchFilters, "page">) {
         } as Record<string, QueryValue>,
       });
 
-      const results = Array.isArray(response) ? response : (response.properties ?? response.results ?? []);
-
       return {
-        results: results,
-        total: response.total ?? results.length,
-        page: response.page ?? pageParam,
-        limit: response.limit ?? filters.limit ?? 20,
-        total_pages: response.total_pages ?? 1,
+        results: response.properties,
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        total_pages: response.total_pages,
         search_type: "listings" as const,
         filters_applied: response.filters_applied,
         search_center: response.search_center,

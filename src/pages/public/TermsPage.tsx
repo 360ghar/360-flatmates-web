@@ -1,6 +1,6 @@
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
-import { LegalPage } from "@/components/molecules/LegalPage";
+import { LegalPage } from "@/components/organisms/LegalPage";
 
 const SECTIONS = [
   {

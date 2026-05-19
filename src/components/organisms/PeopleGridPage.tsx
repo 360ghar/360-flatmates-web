@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ProfileGridCard } from "@/components/molecules/ProfileGridCard";
+
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useBootstrap, useMyProfile, useWebSearch, usePeers, useSwipeDeck } from "@/hooks/queries";
 import { searchStore } from "@/lib/stores/search-store";
 import { propertyToListingCardProps, profileToProfileGridCardProps } from "@/lib/api/adapters";
+import type { Property } from "@/lib/api/types";
 import { Chip } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/ui/StateViews";
 import { SearchBar } from "@/components/ui/SearchBar";
@@ -25,7 +26,7 @@ const FILTER_TO_SEARCH: Record<string, string> = {
 export function HomePage() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<string>("Nearby");
-  const { isLoading: bootstrapLoading, error: bootstrapError } = useBootstrap();
+  const { isLoading: bootstrapLoading, error: bootstrapError, refetch: refetchBootstrap } = useBootstrap();
   const { data: profile } = useMyProfile();
   const newListingsFilters = profile?.city
     ? { city: profile.city, sort_by: "newest" as const, limit: 8, page: 1 }
@@ -40,14 +41,9 @@ export function HomePage() {
     profile?.city ? { city: profile.city, limit: 8 } : undefined
   );
 
-  const listings = newListingsData?.results ?? [];
+  const listings = (newListingsData?.results ?? []) as Property[];
   const nearbyPeers = recommendedPeers ?? [];
   const recommended = swipeDeckProfiles ?? [];
-
-  console.log("HOME PAGE DEBUG:", {
-    listings, nearbyPeers, recommended,
-    profile, bootstrapLoading, propertiesLoading, peersLoading, swipeLoading
-  });
 
   const anyLoading = bootstrapLoading || propertiesLoading || peersLoading || swipeLoading;
 
@@ -135,7 +131,7 @@ export function HomePage() {
           ))}
         </div>
       ) : bootstrapError ? (
-        <AsyncView data={null} error={bootstrapError} onRetry={() => window.location.reload()}>
+        <AsyncView data={null} error={bootstrapError} onRetry={() => refetchBootstrap()}>
           {() => null}
         </AsyncView>
       ) : (
@@ -173,7 +169,7 @@ export function HomePage() {
                 <div key={property.id} className="w-[280px] sm:w-[320px] md:w-[340px] shrink-0 snap-start card-appear"
                     style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ListingCard
-                    listing={propertyToListingCardProps(property as any)}
+                    listing={propertyToListingCardProps(property)}
                     onOpen={(id) => navigate(`/listing/${id}`)}
                   />
                 </div>

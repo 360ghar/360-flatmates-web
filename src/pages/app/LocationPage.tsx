@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { MapPin, Crosshair, Loader2 } from "lucide-react";
-import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
-import { useReverseGeocode } from "@/hooks/useReverseGeocode";
+import { useMyProfile, useUpdateProfile, useReverseGeocode } from "@/hooks/queries";
 import { searchStore } from "@/lib/stores/search-store";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -19,7 +18,7 @@ export function LocationPage() {
   const [submitting, setSubmitting] = useState(false);
   const { geocode, geoLoading } = useReverseGeocode();
 
-  async function handleUseMyLocation() {
+  function handleUseMyLocation() {
     if (!navigator.geolocation) {
       uiStore.getState().pushToast({
         type: "error",

@@ -1,6 +1,6 @@
 import { useMatches } from "@/hooks/queries/useMatches";
 import { profileToProfileGridCardProps } from "@/lib/api/adapters";
-import { PeopleGridPage } from "@/components/molecules/PeopleGridPage";
+import { PeopleGridPage } from "@/components/organisms/PeopleGridPage";
 
 export function MatchesPage() {
   const matchesQuery = useMatches();

@@ -1,11 +1,9 @@
-import { useState, useCallback } from "react";
-
-interface ReverseGeocodeResult {
+export interface ReverseGeocodeResult {
   city: string;
   locality: string;
 }
 
-async function reverseGeocode(
+export async function reverseGeocode(
   latitude: number,
   longitude: number
 ): Promise<ReverseGeocodeResult> {
@@ -13,6 +11,7 @@ async function reverseGeocode(
     `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
     { headers: { "User-Agent": "360FlatmatesWeb/1.0" } }
   );
+  if (!res.ok) throw new Error("Reverse geocoding request failed");
   const data = await res.json();
   const city =
     data.address?.city ||
@@ -26,18 +25,4 @@ async function reverseGeocode(
     data.address?.quarter ||
     "";
   return { city, locality };
-}
-
-export function useReverseGeocode() {
-  const [loading, setLoading] = useState(false);
-
-  const geocode = useCallback(
-    (latitude: number, longitude: number): Promise<ReverseGeocodeResult> => {
-      setLoading(true);
-      return reverseGeocode(latitude, longitude).finally(() => setLoading(false));
-    },
-    []
-  );
-
-  return { geocode, geoLoading: loading };
 }

@@ -4,7 +4,8 @@ import type {
   FlatmatesProfile,
   FlatmatesProfileUpdate,
   FlatmatesPeer,
-  PeerFilters
+  PeerFilters,
+  SwipeDeckResponse
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
@@ -33,13 +34,12 @@ export function peerProfilesOptions(filters?: PeerFilters) {
   return queryOptions({
     queryKey: ["profiles", "peers", filters],
     queryFn: async () => {
-      const res = await apiClient.request<any>({
+      const res = await apiClient.request<SwipeDeckResponse>({
         method: "GET",
         path: "/flatmates/profiles",
         query: (filters ?? {}) as Record<string, QueryValue>
       });
-      console.log("[DEBUG] /flatmates/profiles res:", res);
-      return Array.isArray(res) ? res : (res.profiles ?? res.data ?? res.results ?? []);
+      return res.profiles;
     }
   });
 }

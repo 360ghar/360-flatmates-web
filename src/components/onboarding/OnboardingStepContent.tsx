@@ -2,9 +2,8 @@ import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { Camera, Crosshair, Loader2 } from "lucide-react";
-import { useMyProfile, useCreateProfile, useUpdateProfile } from "@/hooks/queries";
+import { useMyProfile, useCreateProfile, useUpdateProfile, useReverseGeocode } from "@/hooks/queries";
 import { useImageUpload } from "@/hooks/useImageUpload";
-import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib/stores/onboarding-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -36,7 +35,6 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const { upload: uploadImage } = useImageUpload();
   const { geocode, geoLoading } = useReverseGeocode();
 
-  // Photo upload state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 

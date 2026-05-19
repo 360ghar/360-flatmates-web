@@ -112,3 +112,9 @@ export {
 export {
   useShareCard
 } from "./useShareCard";
+
+export {
+  useReverseGeocode
+} from "./useReverseGeocode";
+
+export type { ReverseGeocodeResult } from "./useReverseGeocode";
