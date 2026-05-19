@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Home, Search, Shuffle } from "lucide-react";
+import { Home, Search, Shuffle, Users } from "lucide-react";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
 import type { UserMode } from "@/components/ui/Badge";
 import { FLATMATE_MODE_OPTIONS } from "@/lib/data/domain";
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const MODE_ICONS: Record<UserMode, React.ReactNode> = {
   room_poster: <Home aria-hidden="true" className="h-6 w-6" />,
+  seeker: <Users aria-hidden="true" className="h-6 w-6" />,
   co_hunter: <Search aria-hidden="true" className="h-6 w-6" />,
   open_to_both: <Shuffle aria-hidden="true" className="h-6 w-6" />,
 };
