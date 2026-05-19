@@ -127,7 +127,7 @@ export class HttpApiClient implements ApiAdapter {
 
   constructor(options: ApiClientOptions = {}) {
     this.baseUrl = resolveBaseUrl(options.baseUrl);
-    this.fetcher = options.fetcher ?? fetch;
+    this.fetcher = options.fetcher ?? fetch.bind(window);
     this.getAccessToken = options.getAccessToken;
     this.onAuthFailure = options.onAuthFailure;
     this.defaultHeaders = options.defaultHeaders;
