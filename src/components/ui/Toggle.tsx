@@ -28,7 +28,7 @@ export function Toggle({
       aria-label={label}
       disabled={disabled}
       className={cn(
-        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
+        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent",
         interactiveMotion,
         focusRing,
         checked ? "bg-accent" : "bg-paper-3",

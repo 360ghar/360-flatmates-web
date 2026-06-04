@@ -26,9 +26,9 @@ const variantClasses: Record<ButtonVariant, string> = {
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  compact: "min-h-[42px] px-4 py-2 text-label-md",
-  default: "min-h-[52px] px-6 py-4 text-label-lg",
-  tall: "min-h-14 px-6 py-4 text-label-lg",
+  compact: "min-h-[var(--control-h-sm)] px-4 py-2 text-label-md",
+  default: "min-h-[var(--control-h-lg)] px-6 py-4 text-label-lg",
+  tall: "min-h-[var(--control-h-xl)] px-6 py-4 text-label-lg",
   icon: "h-10 w-10 p-2"
 };
 

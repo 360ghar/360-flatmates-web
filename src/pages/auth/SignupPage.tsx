@@ -26,6 +26,7 @@ export function SignupPage() {
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -71,6 +72,10 @@ export function SignupPage() {
       setError("Passwords do not match.");
       return;
     }
+    if (!acceptedTerms) {
+      setError("Please accept the Terms of Service and Privacy Policy.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -83,7 +88,7 @@ export function SignupPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [verifyOtp, signUp, phone, otp, password, confirmPassword, navigate]);
+  }, [verifyOtp, signUp, phone, otp, password, confirmPassword, acceptedTerms, navigate]);
 
   return (
     <>
@@ -178,6 +183,24 @@ export function SignupPage() {
           <div className="mt-3 rounded-xl bg-paper-2 p-3 text-caption text-ink-2">
             Min 8 chars, 1 uppercase, 1 number, 1 special character.
           </div>
+          <label className="mt-4 flex items-start gap-2 text-caption text-ink-2">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
+            />
+            <span>
+              I agree to the{" "}
+              <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                Privacy Policy
+              </Link>
+            </span>
+          </label>
           <div className="mt-5 flex gap-3">
             <Button
               variant="secondary"
@@ -192,7 +215,7 @@ export function SignupPage() {
             <Button
               fullWidth
               loading={submitting}
-              disabled={!otp || otp.length < 6 || !password || !confirmPassword}
+              disabled={!otp || otp.length < 6 || !password || !confirmPassword || !acceptedTerms}
               onClick={handleVerifyAndSignUp}
             >
               Verify & Sign up

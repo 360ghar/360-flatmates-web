@@ -1,10 +1,10 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
+  FlatmatesPeer,
   FlatmatesProfile,
   FlatmatesProfileUpdate,
   PeerFilters,
-  SwipeDeckResponse
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
@@ -32,14 +32,12 @@ export function profileOptions(id: number) {
 export function peerProfilesOptions(filters?: PeerFilters) {
   return queryOptions({
     queryKey: ["profiles", "peers", filters],
-    queryFn: async () => {
-      const res = await apiClient.request<SwipeDeckResponse>({
+    queryFn: () =>
+      apiClient.request<FlatmatesPeer[]>({
         method: "GET",
         path: "/flatmates/profiles",
         query: (filters ?? {}) as Record<string, QueryValue>
-      });
-      return res.profiles;
-    }
+      })
   });
 }
 

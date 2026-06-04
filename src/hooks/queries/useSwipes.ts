@@ -1,8 +1,8 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
+  FlatmatesPeer,
   SwipeDeckParams,
-  SwipeDeckResponse,
   SwipeRequest,
   SwipeResult,
 } from "@/lib/api/types";
@@ -12,7 +12,7 @@ export function swipeDeckOptions(filters?: SwipeDeckParams) {
   return queryOptions({
     queryKey: ["swipes", "deck", filters],
     queryFn: () =>
-      apiClient.request<SwipeDeckResponse>({
+      apiClient.request<FlatmatesPeer[]>({
         method: "GET",
         path: "/flatmates/profiles",
         query: (filters ?? {}) as Record<string, QueryValue>
@@ -21,10 +21,7 @@ export function swipeDeckOptions(filters?: SwipeDeckParams) {
 }
 
 export function useSwipeDeck(filters?: SwipeDeckParams) {
-  return useQuery({
-    ...swipeDeckOptions(filters),
-    select: (data: SwipeDeckResponse) => data.profiles
-  });
+  return useQuery(swipeDeckOptions(filters));
 }
 
 export function useSwipeAction() {

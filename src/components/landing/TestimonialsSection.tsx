@@ -11,9 +11,8 @@ export function TestimonialsSection() {
     <section className="bg-paper py-20 md:py-28 border-b border-line-low" aria-labelledby="testimonials-heading">
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <RevealSection className="mb-14 text-center">
-          <p className="text-eyebrow mb-5">Don't take our word for it</p>
           <h2 id="testimonials-heading" className="text-display text-4xl md:text-5xl text-ink">
-            Real people, <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">real flatmates</span>
+            10,000 people stopped settling.
           </h2>
         </RevealSection>
 

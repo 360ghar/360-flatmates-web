@@ -1,863 +1,549 @@
-# DESIGN.md — 360 Flatmates Web Design System
+# DESIGN.md - 360 Flatmates Web Design System
 
-> **Source of truth** for all UI tokens, component specifications, and visual
-> implementation targets for the 360 Flatmates web application. Every visual
-> change in this codebase should reference this file.
-
-## Register
-
-Product app. Ink on paper — editorial, craft, warm. The aesthetic is warm-editorial:
-approachable like a well-designed journal, polished enough for financial transactions
-(rent, deposits), and distinctive enough to feel human in a sea of generic property portals.
-
-**Physical scene:** A 26-year-old software engineer browsing on their laptop or phone in a
-Bangalore co-working space at 3 PM, natural daylight from floor-to-ceiling windows,
-slightly distracted by Slack pings. They need to find a flatmate in the next two weeks
-and are cautiously optimistic. The UI should feel like a helpful friend who works at a
-design studio — someone who appreciates good typography, warm surfaces, and editorial craft.
-
-**Desktop-specific goals:** Efficient keyboard navigation for power users, multi-column
-layouts that use screen real estate wisely, hover affordances that reveal depth without
-clutter, and responsive adaptation from wide desktop down to mobile.
+> **Single source of truth** for UI tokens, component specs, and interaction
+> standards for the 360 Flatmates web app. Every visual change references this
+> file, and every token/utility/component documented here exists in code
+> (`src/styles/globals.css`, `src/components/ui/`). If the doc and the code ever
+> disagree, that is a bug - fix it in the same change.
 
 ---
 
-## Color Tokens
+## 1. Principles
 
-### Primary Palette
+The product is a warm-editorial flatmate-matching app: approachable like a
+well-made journal, trustworthy enough for rent and deposits, and human in a sea
+of generic property portals. Core differentiator: **6-dimension lifestyle
+compatibility**, not budget-only filtering.
 
-| Token | Value | CSS Variable | Tailwind | Usage |
-|-------|-------|-------------|----------|-------|
-| **Primary (Accent)** | `#C96442` | `--color-accent` | `bg-accent` / `text-accent` | CTAs, active states, icons, progress bars, links |
-| **Primary Soft** | `rgba(201,100,66,0.10)` | `--color-accent-soft` | `bg-accent-soft` | Light terracotta bg tints, selected states |
-| **Primary Container** | `#F8D5C8` | `--color-accent-container` | `bg-accent-container` | Filled chip backgrounds, hover states |
+**Physical scene.** A 26-year-old engineer browsing on laptop or phone in a
+Bangalore co-working space at 3 PM, daylight from tall windows, half-distracted
+by Slack. They need a flatmate in two weeks and are cautiously optimistic. The
+UI should feel like a design-literate friend: good typography, warm surfaces,
+editorial craft, zero clutter.
 
-### Paper Scale (Background Surfaces)
+**Decision tenets** (use these when a spec is silent):
 
-| Token | Value | CSS Variable | Tailwind | Usage |
-|-------|-------|-------------|----------|-------|
-| **Paper** | `#F4F3EE` | `--color-paper` | `bg-paper` | Page scaffold background (warm off-white) |
-| **Paper 2** | `#EDEBE3` | `--color-paper-2` | `bg-paper-2` | Sidebar bg, elevated surface, chip bg |
-| **Paper 3** | `#E4E1D7` | `--color-paper-3` | `bg-paper-3` | Deeper surface, muted pill backgrounds |
-| **Paper 4** | `#D8D4C7` | `--color-paper-4` | `bg-paper-4` | Deepest paper shade, disabled fills |
-| **Surface (Card)** | `#FFFDF8` | `--color-surface` | `bg-surface` | Card backgrounds, input fills, modal surfaces |
-
-### Ink Scale (Text)
-
-| Token | Value | CSS Variable | Tailwind | Usage |
-|-------|-------|-------------|----------|-------|
-| **Ink (Text Primary)** | `#1F1A14` | `--color-ink` | `text-ink` | Headlines, titles, important text, prices |
-| **Ink 2 (Text Secondary)** | `#4A463E` | `--color-ink-2` | `text-ink-2` | Body text, descriptions, subtitles |
-| **Ink 3 (Text Tertiary)** | `#756F65` | `--color-ink-3` | `text-ink-3` | Timestamps, hints, placeholders, disabled text |
-| **Ink 4 (Text Quaternary)** | `#B5AFA3` | `--color-ink-4` | `text-ink-4` | Disabled outlines, faint dividers |
-
-### Line Scale (Borders)
-
-| Token | Value | CSS Variable | Tailwind | Usage |
-|-------|-------|-------------|----------|-------|
-| **Line** | `rgba(31,26,20,0.08)` | `--color-line` | `border-line` | Dividers, card borders, input borders |
-| **Line 2** | `rgba(31,26,20,0.04)` | `--color-line-2` | `border-line-2` | Subtle borders, faint separators |
-| **Line Low** | `rgba(31,26,20,0.04)` | `--color-line-low` | `border-line-low` | Disabled outlines, minimal contrast |
-
-### Semantic Colors
-
-| Token | Value | CSS Variable | Tailwind | Usage |
-|-------|-------|-------------|----------|-------|
-| **Success** | `#5B8C44` | `--color-success` | `text-success` | Match % rings, confirmed states, online indicators |
-| **Success Soft** | `rgba(91,140,68,0.12)` | `--color-success-soft` | `bg-success-soft` | Success bg tints |
-| **Error / Destructive** | `#B4452C` | `--color-error` | `text-error` | Logout, errors, delete actions, declined states |
-| **Error Soft** | `rgba(180,69,44,0.10)` | `--color-error-soft` | `bg-error-soft` | Error bg tints |
-| **Warning** | `#B57828` | `--color-warning` | `text-warning` | Pending states, reminders, expiring-soon badges |
-| **Warning Soft** | `rgba(181,120,40,0.10)` | `--color-warning-soft` | `bg-warning-soft` | Warning bg tints |
-| **Info** | `#C96442` (primary) | `--color-accent` | `text-accent` | Informational badges, tips, links |
-
-### Compatibility Score Colors
-
-| Threshold | Color | Value | Usage |
-|-----------|-------|-------|-------|
-| ≥ 70% | Green | `#5B8C44` | High compatibility ring fill |
-| 40–69% | Amber | `#B57828` | Medium compatibility ring fill |
-| < 40% | Red | `#B4452C` | Low compatibility ring fill |
-
-### Categorical Pastel Palette
-
-Eight categorical colors for data visualization, feature pills, profile badges, and
-compatibility dimension labels. Each has three tiers: soft (background), mid (icon/accent),
-and ink (text on soft).
-
-| Category | Soft (bg) | Mid (accent) | Ink (text on bg) | Usage |
-|----------|-----------|-------------|-------------------|-------|
-| **Blue** | `#E1EAF4` | `#5B88B5` | `#2A4868` | Gender filter, blue accent |
-| **Purple** | `#E7DDF1` | `#8B7BB8` | `#4A3E70` | Purple accent, lifestyle |
-| **Green** | `#DCEAD4` | `#6A9068` | `#2D4A2E` | Food habits (veg), nature |
-| **Yellow** | `#F5E8B8` | `#C49840` | `#5C4318` | Warning category, budget |
-| **Orange** | `#FCE0C8` | `#D17847` | `#5E3318` | Primary accent family, warmth |
-| **Teal** | `#CFE4DF` | `#5A9DA8` | `#1A4A52` | Location, explore, map |
-| **Pink** | `#F6DDE3` | `#C28098` | `#6B3548` | Profile, likes, social |
-| **Coral** | `#F8D5C8` | `#C96442` | `#5E3318` | Primary accent, CTAs |
-
-### CSS Custom Properties
-
-All color tokens are defined as CSS custom properties on `:root` (light mode) and overridden
-via `[data-theme="dark"]` on `<html>` (dark mode):
-
-```css
-:root {
-  --color-accent: #C96442;
-  --color-accent-soft: rgba(201,100,66,0.10);
-  --color-accent-container: #F8D5C8;
-  --color-paper: #F4F3EE;
-  --color-paper-2: #EDEBE3;
-  --color-paper-3: #E4E1D7;
-  --color-paper-4: #D8D4C7;
-  --color-surface: #FFFDF8;
-  --color-ink: #1F1A14;
-  --color-ink-2: #4A463E;
-  --color-ink-3: #756F65;
-  --color-ink-4: #B5AFA3;
-  --color-line: rgba(31,26,20,0.08);
-  --color-line-2: rgba(31,26,20,0.04);
-  --color-line-low: rgba(31,26,20,0.04);
-  --color-success: #5B8C44;
-  --color-success-soft: rgba(91,140,68,0.12);
-  --color-error: #B4452C;
-  --color-error-soft: rgba(180,69,44,0.10);
-  --color-warning: #B57828;
-  --color-warning-soft: rgba(181,120,40,0.10);
-  --color-surface-elevated: #FFFFFF;
-}
-```
-
-Dark mode overrides (see Dark Mode section for full palette details):
-
-```css
-[data-theme="dark"] {
-  --color-paper: #1A1612;
-  --color-surface: #2A2520;
-  --color-surface-elevated: #342E28;
-  --color-paper-2: #252018;
-  --color-ink: #F4F3EE;
-  --color-ink-2: #E4E1D7;
-  --color-line: rgba(31,26,20,0.16);
-  --color-accent: #C96442; /* unchanged */
-}
-```
+1. **Warmth over sterility.** Off-whites and warm ink, never pure `#000`/`#fff`
+   for content. Shadows are warm-ink tinted, never cool black.
+2. **One accent, used with intent.** Terracotta `#C96442` is the only brand
+   accent. Categorical pastels are for data/labels, not decoration.
+3. **Hierarchy by weight, color, and space - not raw size.** Restrained scale;
+   let whitespace and the serif display do the work.
+4. **Every interactive element earns four states minimum**: rest, hover, active,
+   focus-visible. Data-bearing surfaces also earn loading, empty, and error.
+5. **Motion is motivated.** It communicates hierarchy, feedback, or a state
+   change, and always collapses under `prefers-reduced-motion`.
+6. **Accessible by default.** WCAG AA for body, AAA target for hero copy; never
+   convey meaning by color alone.
+7. **Never use em dashes.** Use commas, colons, or parentheses instead. This is
+   a hard rule across all copy, labels, and microcopy.
 
 ---
 
-## Typography
+## 2. Token Architecture
 
-### Font Families
+Tokens live in `src/styles/globals.css`. There are three layers:
 
-Loaded via Google Fonts CDN with `display: swap` and subset preload:
+| Layer | What it is | Examples | When to use |
+|-------|-----------|----------|-------------|
+| **Primitive** | Raw palette/scale values | `--color-ink`, `--color-accent-500`, `--shadow-md` | Building new tokens |
+| **Semantic role** | Intent-named aliases over primitives | `--color-content`, `--color-surface-raised`, `--color-interactive`, `--color-focus` | **Preferred** in new component code |
+| **Component** | Local choices inside a component | Button variant classes | Inside one component only |
 
-- **Display / Headlines:** Fraunces (variable) — variable optical-size serif, editorial, confident. Uses `opsz` and `SOFT` CSS font-variation-settings for typographic warmth. Weight 400.
-- **Body / UI:** Inter — clean, readable, neutral workhorse sans-serif
-- **Mono / Eyebrow:** JetBrains Mono — code, terminals, eyebrow labels, tabular data
-- **Italic Serif:** Instrument Serif (italic) — italic emphasis, pull quotes, decorative text
+- Tailwind v4 generates utilities from the `@theme` block: every `--color-*`
+  becomes `text-* / bg-* / border-*`, every `--ease-*` becomes an `ease-*`
+  timing utility.
+- Semantic role aliases hold `var()` references, so they **re-resolve
+  automatically in dark mode** without separate dark overrides.
+- Theme is applied via `[data-theme="dark"]` on `<html>`; accent palette via
+  `[data-palette="ember" | "monsoon_teal"]`.
 
-### Type Scale
+### Semantic role map
 
-| Name | Size | Weight | Line Height | Letter Spacing | Font | CSS/Tailwind |
-|------|------|--------|-------------|----------------|------|-------------|
-| **Display** | 32px | Regular (400) | 1.05 | -0.035 | Fraunces | `text-display` |
-| **H1** | 28px | Regular (400) | 1.05 | -0.035 | Fraunces | `text-h1` |
-| **H2** | 24px | Regular (400) | 1.1 | -0.025 | Fraunces | `text-h2` |
-| **H3** | 16px | SemiBold (600) | 1.25 | -0.012 | Inter | `text-h3` |
-| **H4-H6** | 14px | SemiBold (600) | 1.3 | -0.01 | Inter | `text-h4` |
-| **Body Large** | 16px | Medium (500) | 1.5 | 0 | Inter | `text-body-lg` |
-| **Body Medium** | 14px | Medium (500) | 1.45 | 0 | Inter | `text-body-md` |
-| **Label Large** | 14px | Bold (700) | 1.0 | 0.5 | Inter | `text-label-lg` |
-| **Label Medium** | 12px | SemiBold (600) | 1.4 | 0.2 | Inter | `text-label-md` |
-| **Caption** | 12px | Regular (400) | 1.4 | 0 | Inter | `text-caption` |
-| **Eyebrow** | 10px | SemiBold (600) | 1.4 | 0.16em (uppercase) | JetBrains Mono | `text-eyebrow` |
-| **Italic Serif** | inherit | Regular (400) | inherit | -0.01 | Instrument Serif (italic) | `text-serif-italic` |
+| Role utility | Resolves to | Use for |
+|--------------|-------------|---------|
+| `text-content` | `ink` | Primary text |
+| `text-content-muted` | `ink-2` | Secondary text, body |
+| `text-content-subtle` | `ink-3` | Hints, timestamps, placeholders |
+| `text-content-faint` | `ink-4` | Disabled text, faint dividers |
+| `border-stroke` | `line` | Default borders |
+| `bg-surface-base` | `surface` | Card/input fill |
+| `bg-surface-raised` | `surface-elevated` | Elevated surfaces (modals, elevated cards) |
+| `text-interactive` / `bg-interactive` | `accent` | Interactive affordances |
+| `outline-focus` | `accent` | Focus rings |
 
-### Fraunces Variable Settings
-
-Headlines using Fraunces should set CSS `font-variation-settings` for optimal rendering:
-
-- **Display** (32px): `font-variation-settings: 'opsz' 144, 'SOFT' 50, 'WONK' 0;`
-- **H1** (28px): `font-variation-settings: 'opsz' 112, 'SOFT' 40, 'WONK' 0;`
-- **H2** (24px): `font-variation-settings: 'opsz' 96, 'SOFT' 30, 'WONK' 0;`
-
-`WONK: 0` disables alternate character forms for consistent readability.
-
-### Rules
-
-- Cap body line length at ~65-70 characters (`max-width: 65ch` or ~520px)
-- Headline-to-body scale ratio >= 1.25 (we use 28/16 = 1.75 for H1/body)
-- Never use em dashes; use commas, colons, or parentheses
-- Fraunces headlines should feel light and editorial — never bold the serif
-- Use Instrument Serif italic for inline emphasis instead of bold
-- Tabular/monospace text uses JetBrains Mono with `font-variant-numeric: tabular-nums`
+> New components should prefer the semantic roles. The appearance-named tokens
+> (`ink`, `paper`, `surface`, `line`, `accent`) remain valid and are used widely;
+> they are not deprecated.
 
 ---
 
-## Border Radius
+## 3. Color
 
-| Element | Radius | CSS | Tailwind |
-|---------|--------|-----|----------|
-| **Cards (listing, notification, menu)** | 16px | `border-radius: 16px` | `rounded-2xl` |
-| **Cards (flat, compact)** | 12px | `border-radius: 12px` | `rounded-xl` |
-| **Buttons (filled CTA)** | 10px | `border-radius: 10px` | `rounded-[10px]` |
-| **Buttons (outline/secondary)** | 10px | `border-radius: 10px` | `rounded-[10px]` |
-| **Icon buttons** | 9px | `border-radius: 9px` | `rounded-[9px]` |
-| **Inputs / Text Fields** | 9px | `border-radius: 9px` | `rounded-[9px]` |
-| **Chips / Pills** | 999px | `border-radius: 9999px` | `rounded-full` |
-| **Avatars (editorial)** | 12px | `border-radius: 12px` | `rounded-xl` |
-| **Avatars (circular)** | 999px | `border-radius: 9999px` | `rounded-full` |
-| **Icon containers** | 12px | `border-radius: 12px` | `rounded-xl` |
-| **Nav items** | 9px | `border-radius: 9px` | `rounded-[9px]` |
-| **Notification icon bg** | 999px | `border-radius: 9999px` | `rounded-full` |
-| **Dialog** | 8px | `border-radius: 8px` | `rounded-lg` |
-| **Snackbar / Toast** | 16px | `border-radius: 16px` | `rounded-2xl` |
-| **FAB / floating action** | 16px | `border-radius: 16px` | `rounded-2xl` |
-| **Toggle** | 999px | `border-radius: 9999px` | `rounded-full` |
+### 3.1 Primary (Accent) + tonal ramp
 
----
+| Token | Light | Dark | Tailwind | Usage |
+|-------|-------|------|----------|-------|
+| **Accent** | `#C96442` | `#C96442` (unchanged) | `bg-accent` / `text-accent` | CTAs, active states, links, icons |
+| **Accent Soft** | `rgba(201,100,66,.10)` | same | `bg-accent-soft` | Selected/tint backgrounds |
+| **Accent Container** | `#F8D5C8` | `rgba(201,100,66,.22)` | `bg-accent-container` | Filled chips, hover fills |
 
-## Spacing
+Full tonal ramp (`accent-50` … `accent-950`) exists for gradients and dark
+surfaces. In **dark mode the ramp inverts** (50 = darkest, 950 = lightest) so
+`accent-*` utilities keep their light→dark intent across themes.
 
-| Token | Value | Tailwind | Usage |
-|-------|-------|----------|-------|
-| **Screen edge padding** | 20-24px | `px-5` to `px-6` | Left/right margins for page content |
-| **Section gap** | 24-28px | `gap-6` to `gap-7` | Vertical space between major sections |
-| **Card internal padding** | 16px | `p-4` | Padding inside cards |
-| **Element gap (tight)** | 8px | `gap-2` | Between icon and label in a row |
-| **Element gap (normal)** | 12px | `gap-3` | Between form fields, list items |
-| **Element gap (relaxed)** | 16px | `gap-4` | Between heading and content |
-| **Element gap (section)** | 24px | `gap-6` | Between distinct content blocks |
-| **List item vertical spacing** | 12-16px | `gap-3` to `gap-4` | Between items in a list |
+| | 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 950 |
+|--|--|--|--|--|--|--|--|--|--|--|--|
+| Light | `#fdf5f1` | `#fae8de` | `#f8d5c8` | `#f0b49c` | `#e08e6e` | `#c96442` | `#b5533a` | `#964230` | `#7a352a` | `#642e26` | `#3a1810` |
+| Dark | `#3a1810` | `#4a2218` | `rgba(..,.22)` | `rgba(..,.36)` | `rgba(..,.52)` | `#c96442` | `#d17847` | `#e08e6e` | `#f0b49c` | `#fae8de` | `#fdf5f1` |
 
----
+### 3.2 Paper (backgrounds) & Surface
 
-## Shadows
+| Token | Light | Dark | Tailwind | Usage |
+|-------|-------|------|----------|-------|
+| **Paper** | `#F4F3EE` | `#1A1612` | `bg-paper` | Page scaffold |
+| **Paper 2** | `#EDEBE3` | `#252018` | `bg-paper-2` | Sidebar, chip/track bg |
+| **Paper 3** | `#E4E1D7` | `#342E28` | `bg-paper-3` | Deeper surface, pressed track |
+| **Paper 4** | `#D8D4C7` | `#3A3430` | `bg-paper-4` | Deepest, disabled fills |
+| **Surface** | `#FFFDF8` | `#2A2520` | `bg-surface` | Card/input fill (base) |
+| **Surface Elevated** | `#FFFFFF` | `#342E28` | `bg-surface-elevated` | Raised surfaces - genuinely lighter than `surface` so elevation reads |
 
-All shadows use warm ink tints (`rgba(31,26,20,...)`) instead of cool black.
-Primary-tinted shadows use terracotta (`rgba(201,100,66,...)`) instead of purple.
+### 3.3 Ink (text)
 
-### Shadow Scale
+| Token | Light | Dark | Tailwind | Contrast on surface (light) |
+|-------|-------|------|----------|------|
+| **Ink** | `#1F1A14` | `#F4F3EE` | `text-ink` | ~14:1 (AAA) |
+| **Ink 2** | `#4A463E` | `#E4E1D7` | `text-ink-2` | ~8:1 (AAA) |
+| **Ink 3** | `#756F65` | `#AAA397` | `text-ink-3` | ~4.7:1 (AA body) |
+| **Ink 4** | `#B5AFA3` | `#6A645C` | `text-ink-4` | decorative/disabled only - not for body |
 
-| Token | Value | Tailwind | Usage |
-|-------|-------|----------|-------|
-| **Shadow xs** | `0 1px 2px rgba(31,26,20,0.04)` | `shadow-xs` | Subtle nav items, flat cards |
-| **Shadow sm** | `0 2px 6px rgba(31,26,20,0.06)` | `shadow-sm` | Standard content cards |
-| **Shadow md** | `0 6px 18px rgba(31,26,20,0.08)` | `shadow-md` | Hover lift, elevated elements |
-| **Shadow lg** | `0 18px 60px rgba(31,26,20,0.12), 0 4px 16px rgba(31,26,20,0.06)` | `shadow-lg` | Modals, drawers, overlays |
+### 3.4 Line (borders)
 
-### Component Shadows
+| Token | Light | Dark | Tailwind |
+|-------|-------|------|----------|
+| **Line** | `rgba(31,26,20,.08)` | `rgba(244,243,238,.16)` | `border-line` |
+| **Line 2** | `rgba(31,26,20,.04)` | `rgba(244,243,238,.08)` | `border-line-2` |
+| **Line Low** | `rgba(31,26,20,.04)` | `rgba(244,243,238,.08)` | `border-line-low` |
 
-| Element | Value | Tailwind | Usage |
-|---------|-------|----------|-------|
-| **Cards** | `0 2px 6px rgba(31,26,20,0.06)` | `shadow-sm` | Subtle elevation for content cards |
-| **Elevated (FAB, dropdown)** | `0 4px 12px rgba(31,26,20,0.10)` | custom | Floating elements |
-| **Buttons (filled CTA)** | `0 2px 8px rgba(201,100,66,0.18)` | `shadow-cta` | Terracotta-tinted CTA shadow |
-| **Modal / Overlay** | `0 18px 60px rgba(31,26,20,0.12), 0 4px 16px rgba(31,26,20,0.06)` | `shadow-lg` | Overlay surfaces |
-| **Card hover glow** | `0 4px 16px rgba(201,100,66,0.08)` | `shadow-hover` | Terracotta-tinted ambient glow on hover |
-| **Card pressed** | `0 4px 12px rgba(31,26,20,0.10)` | custom | Elevated shadow for pressed cards |
-| **Bottom bar top** | `0 1px 2px rgba(31,26,20,0.04)` | `shadow-xs` | Top-edge shadow for bottom nav |
-| **Input focus glow** | `0 2px 12px rgba(201,100,66,0.12)` | `shadow-focus` | Terracotta-tinted glow for focused inputs |
+> Dark-mode line uses the **warm-white ink hue** (`244,243,238`), not the
+> dark-ink hue, so borders stay visible on dark surfaces.
 
-### Dark Mode Shadow Derivations
+### 3.5 Semantic status
 
-All shadow tokens have reduced-intensity warm dark mode variants:
-- Card: `0 1px 2px rgba(31,26,20,0.04)` (xs only)
-- Card hover: `0 2px 6px rgba(31,26,20,0.06)` (sm)
-- Terracotta glow: `0 2px 6px rgba(201,100,66,0.04)` (minimal)
-- Bottom bar: none (inherent dark-mode depth)
-- Navigation bar: none
+| Token | Value | Soft | Usage |
+|-------|-------|------|-------|
+| **Success** | `#5B8C44` | `bg-success-soft` | Match rings ≥70%, confirmed, online |
+| **Warning** | `#B57828` | `bg-warning-soft` | Pending, expiring, match 40-69% |
+| **Error** | `#B4452C` | `bg-error-soft` | Errors, destructive, declined, match <40% |
+| **Info** | `#C96442` (accent) | `bg-accent-soft` | Tips, informational badges |
 
----
+### 3.6 Categorical palette (3 tiers)
 
-## Frost / Glassmorphism Tokens
+Eight families for data viz, feature pills, profile/dimension labels. Each has
+**soft** (background), **mid** (icon/accent on neutral bg), and **ink**
+(accessible text *on* the soft background). Use `ink` for text on a `soft` fill;
+use `mid` for icons or text on paper/surface.
 
-| Token | CSS Value | Usage |
-|-------|-----------|-------|
-| **Frost blur** | `backdrop-filter: blur(9px)` | Frosted-glass surfaces (sigma 3.0 × 3 ≈ 9px pixel blur) |
-| **Frost overlay (light)** | `rgba(244,243,238,0.88)` | Paper-tinted overlay behind frosted surfaces |
-| **Frost overlay (dark)** | `rgba(26,22,18,0.88)` | Warm charcoal overlay on dark surfaces |
+| Family | Soft (light/dark) | Mid | Ink (light/dark) |
+|--------|------|-----|------|
+| Blue | `#E1EAF4` / `#253447` | `#5B88B5` | `#2A4868` / `#B8CDE4` |
+| Purple | `#E7DDF1` / `#33283F` | `#8B7BB8` | `#4A3E70` / `#CDBCE8` |
+| Green | `#DCEAD4` / `#273521` | `#6A9068` | `#2D4A2E` / `#BCD9AC` |
+| Yellow | `#F5E8B8` / `#43361C` | `#C49840` | `#5C4318` / `#E6CF8E` |
+| Orange | `#FCE0C8` / `#432A1C` | `#D17847` | `#5E3318` / `#F0C19A` |
+| Teal | `#CFE4DF` / `#203B38` | `#5A9DA8` | `#1A4A52` / `#A9D2CF` |
+| Pink | `#F6DDE3` / `#432833` | `#C28098` | `#6B3548` / `#E8B8C6` |
 
-### Frosted-Glass Surfaces
+Accessed in code via `toneClasses[tone]` (`src/components/ui/component-utils.ts`):
+`{ soft, text, inkText, border, icon, dot }`. **Use `inkText` for text on the
+matching soft background** (this is what gives chips/badges accessible contrast).
 
-| Surface | CSS | Usage |
-|---------|-----|-------|
-| **Bottom navigation bar** | `backdrop-blur-[9px]` + `bg-paper/88` | Semi-transparent paper surface over content |
-| **Bottom sheet** | `backdrop-blur-[9px]` + `bg-paper/92` | Sheet backdrop with `border-radius` + `overflow: hidden` |
-| **Sticky action bar** | `backdrop-blur-[9px]` + `bg-paper/88` | Sticky CTA bar with frosted-glass backdrop |
+### 3.7 Compatibility score colors
 
----
+`≥70%` → Success green · `40-69%` → Warning amber · `<40%` → Error red. Always
+pair the color with the numeric value (never color alone).
 
-## Gradient Tokens
+### 3.8 Palette themes
 
-| Token | CSS Value | Usage |
-|-------|-----------|-------|
-| **Primary gradient** | `linear-gradient(to bottom, rgba(201,100,66,0.95), #C96442)` | Subtle CTA depth |
-| **Surface gradient** | `linear-gradient(to bottom, rgba(244,243,238,0.5), #EDEBE3)` | Card depth wash |
-| **Shimmer gradient** | `linear-gradient(90deg, #EDEBE3, #FFFFFF, #EDEBE3)` | Skeleton loading animation |
-| **Success gradient** | `linear-gradient(135deg, #DCEAD4, #C2DAB2)` | Status banner wash |
-| **Warning gradient** | `linear-gradient(135deg, #F5E8B8, #E8D5A0)` | Status banner wash |
-| **Error gradient** | `linear-gradient(135deg, #F8D5C8, #F0C0B0)` | Status banner wash |
-| **Nudge gradient** | `linear-gradient(135deg, rgba(201,100,66,0.08), rgba(201,100,66,0.03))` | Waitlist / promo cards |
-| **Category gradients** | `linear-gradient(135deg, {pastel-soft}, #FFFFFF)` | Feature category cards |
+`[data-palette]` swaps the accent only (paper/ink unchanged):
+
+| Palette | Accent | Container |
+|---------|--------|-----------|
+| **Terracotta** (default) | `#C96442` | `#F8D5C8` |
+| **Ember** | `#D17847` | `#FCE0C8` |
+| **Monsoon Teal** | `#5A9DA8` | `#CFE4DF` |
 
 ---
 
-## Component Specifications
+## 4. Typography
 
-### Primary Button (Filled CTA)
+### 4.1 Families (loaded via `<link>` in `index.html`, `display: swap`)
 
-- Background: solid `#C96442` (terracotta, NOT gradient)
-- Text: white, 14px bold (Label Large), center-aligned
-- Padding: horizontal 24px, vertical 16px
-- Border radius: 10px
-- Height: 52px (standard), 56px (tall)
-- Full-width variant: `w-full`
-- Shadow: terracotta-tinted shadow (`shadow-cta`) when enabled
-- **Pressed**: `transform: scale(0.97)` (150ms ease-out), shadow reduces
-- **Hover** (desktop): background lightens 5%, shadow deepens to `shadow-hover`, 1px translateY
-- **Focus**: `:focus-visible` — 2px solid accent outline, 2px offset
-- **Disabled**: paper-4 bg, ink-3 text, no shadow, `cursor-not-allowed`
+- **Display / Headlines:** Fraunces (variable optical-size serif) - editorial,
+  confident; uses `opsz`/`SOFT` variation settings; never bold (weight 400).
+- **Body / UI:** Inter.
+- **Mono / Eyebrow / Tabular:** JetBrains Mono.
+- **Italic emphasis:** Instrument Serif (italic) - for inline emphasis and pull
+  quotes, in place of bold.
 
-### Secondary Button (Outline)
+### 4.2 Scale (as implemented - display sizes are fluid)
 
-- Border: 1.5px solid `#C96442` (or line for neutral)
-- Text: `#C96442` (or ink for neutral)
-- Same dimensions as filled button
-- No shadow
-- **Pressed**: `transform: scale(0.97)` (150ms ease-out), border animates to 0.7 alpha
-- **Hover** (desktop): subtle accent-soft bg tint
-- **Focus**: `:focus-visible` — 2px solid accent outline, 2px offset
-- **Disabled**: line border, ink-3 text, `cursor-not-allowed`
+| Class | Size | Weight | Line height | Tracking | Font |
+|-------|------|--------|-------------|----------|------|
+| `text-display` | `clamp(1.75rem, 4vw, 2.75rem)` | 400 | 1.0 | -0.02em | Fraunces |
+| `text-h1` | `clamp(1.5rem, 3vw, 2.25rem)` | 400 | 1.1 | -0.01em | Fraunces |
+| `text-h2` | `clamp(1.25rem, 2.5vw, 1.75rem)` | 400 | 1.2 | - | Fraunces |
+| `text-h3` | 1rem (16px) | 600 | 1.25 | -0.012em | Inter |
+| `text-h4` | 0.875rem (14px) | 600 | 1.3 | -0.01em | Inter |
+| `text-h5` | 0.8125rem (13px) | 600 | 1.35 | -0.005em | Inter |
+| `text-h6` | 0.75rem (12px) | 600 | 1.4 | 0 | Inter |
+| `text-body-lg` | 1rem (16px) | 500 | 1.5 | - | Inter |
+| `text-body-md` | 0.875rem (14px) | 500 | 1.45 | - | Inter |
+| `text-label-lg` | 0.875rem (14px) | 600 | 1.0 | 0.04em, uppercase | Inter |
+| `text-label-md` | 0.75rem (12px) | 600 | 1.4 | 0.02em | Inter |
+| `text-caption` | 0.75rem (12px) | 400 | 1.5 | - | Inter (ink-3) |
+| `text-eyebrow` | 0.6875rem (11px) | 600 | 1.4 | 0.2em, uppercase | JetBrains Mono (accent) |
+| `text-serif-italic` | inherit | 400 italic | inherit | - | Instrument Serif |
+| `.tabular` | - | - | - | `tabular-nums` | - |
 
-### Tertiary Button (Text)
+Display headlines scale fluidly with the viewport via `clamp()` - there is no
+separate per-breakpoint size override.
 
-- Text only, `#C96442` color, 14px medium weight
-- No border, no background, no shadow
-- Used for Skip, "See all", links
-- **Hover** (desktop): accent-soft bg tint, underline
-- **Focus**: `:focus-visible` — 2px solid accent outline, 2px offset
+### 4.3 Fraunces variation settings
 
-### Listing Card (Home Feed)
+`Display`: `'opsz' 144, 'SOFT' 50, 'WONK' 0` · `H1`: `'opsz' 112, 'SOFT' 40,
+'WONK' 0` · `H2`: `'opsz' 96, 'SOFT' 30, 'WONK' 0`. `WONK: 0` keeps letterforms
+readable.
 
-- **Mobile (<768px)**: vertical layout, full-width
-- **Desktop (≥768px)**: horizontal layout, image left (148px wide), content right
-- Image: aspect ratio 0.82, radius 16px, `object-fit: cover`
-- Image overlay: heart icon (top-right, 40px white circle bg)
-- Price: 26px bold, ink color (NOT terracotta)
-- Title: 16px semiBold (Fraunces for hero cards), below price
-- Location: row with pin icon + ink-2 text
-- Info pills: beds, baths, area as compact pills
-- Feature pills: furnished, wifi, etc.
-- Owner row: small avatar (34px) + name + interest count
-- Description: 2-line max, `line-clamp-2`
-- Footer: solid terracotta CTA button
-- Compatibility ring: 32px SVG `<circle>` with `stroke-dashoffset` animation, positioned above title
-- **Hover** (desktop): shadow deepens to `shadow-hover`, 1px translateY, subtle accent border glow
-- **Pressed**: `transform: scale(0.97)` (150ms ease-out), terracotta glow shadow
-- **Focus**: `:focus-visible` — 2px solid accent outline, 2px offset
+### 4.4 Rules
 
-### Profile Grid Card (Likes Tab — 2-Column Grid)
-
-- Layout: Column within fixed-width cell (~48% of container width)
-- Photo: top, 16px radius, 1:1 or 4:5 aspect ratio
-- Match % circle: green ring, top-right corner of photo, 44px — animated arc-draw on mount (300ms via SVG `stroke-dashoffset`)
-- Name: 15px bold, below photo
-- Age + location: 12px ink-2, below name
-- Profession: 12px ink-3, below location
-- "Match" CTA: full-width, solid terracotta, 10px radius, 42px height — scale bounce 0.8→1.0 on appear (`cubic-bezier(0.34, 1.56, 0.64, 1)`)
-- **Hover** (desktop): shadow lift, subtle accent glow
-- **Focus**: `:focus-visible` on the card wrapper
-
-### Menu Item Row (Profile / Settings)
-
-- Height: 56px
-- Layout: `flex` row — icon container (left), label (flex-1), chevron (right)
-- Icon container: 40×40px, `border-radius: 12px`, pastel-tinted bg matching category
-- Label: 15px medium weight, ink
-- Chevron: 20px, ink-3 color
-- Divider below each item (`border-b border-line`, except last in group)
-- Group spacing: 24px between groups
-- **Hover** (desktop): accent-soft bg tint on the row
-- **Pressed**: `transform: scale(0.98)` (150ms ease-out), terracotta-tinted highlight
-- **Focus**: `:focus-visible` — accent outline ring
-
-### Notification Card
-
-- Padding: 16px horizontal, 14px vertical
-- Layout: `flex` row — icon container (left), content (center, flex-1), time+dot (right)
-- Icon container: 48px circle, pastel bg per type:
-  - Booking confirmed: teal-soft
-  - New message: blue-soft
-  - Visit reminder: yellow-soft
-  - Listing approved: green-soft
-- Title: 15px semiBold, ink
-- Description: 13px regular, ink-2, 2 lines max (`line-clamp-2`)
-- Timestamp: 12px, ink-3, right-aligned
-- Unread indicator: 3px terracotta left accent border + 10px terracotta dot below timestamp
-- Card bg: surface (white), 16px radius, `shadow-sm`
-- **Hover** (desktop): paper-2 bg shift
-- **Focus**: `:focus-visible` ring
-
-### Search Bar
-
-- Height: 48px
-- Border radius: 9px
-- Background: surface white (light mode) / dark surface (dark mode)
-- Border: 1px solid line (`rgba(31,26,20,0.08)`)
-- Leading icon: search, 20px, ink-3
-- Placeholder: 14px regular, ink-3
-- Trailing icon: optional (location pin, clear, mic)
-- **Focus**: terracotta-tinted glow shadow (`shadow-focus`), `transform: scale(1.01)`, prefix icon turns terracotta, border color transitions to accent
-- **Hover** (desktop): subtle border color shift
-
-### Filter Chip
-
-- Selected: accent-container bg (`#F8D5C8`), terracotta text, optional terracotta border
-- Unselected: paper-2 bg, ink-2 text, line border
-- Radius: 999px (pill-shaped)
-- Padding: horizontal 14px, vertical 8px
-- Avatar/icon support: 16px icon before label
-- **Select**: `transform: scale(1.03)` with `cubic-bezier(0.34, 1.56, 0.64, 1)` (150ms), bg/text/border transition
-- **Deselect**: scale returns to 1.0
-- **Hover** (desktop): paper-2 → paper-3 bg for unselected
-- **Pressed**: `transform: scale(0.97)` (150ms ease-out)
-- **Focus**: `:focus-visible` ring
-- **Disabled**: paper-4 bg, ink-3 text, `cursor-not-allowed`
-
-### Avatar
-
-- Default size: 52px
-- Shape: 12px rounded square (editorial style); circular variant available for profile photos
-- Fallback: CSS `background: linear-gradient(135deg, #C96442, rgba(201,100,66,0.72))`, white initials centered
-- Shadow: `0 4px 10px rgba(31,26,20,0.08)`
-- With image: `<img>` with blur placeholder data URL, `border-radius` + `overflow: hidden`
-- Optional ring: animated terracotta arc-draw on mount (300ms, ease-out) via SVG `<circle>` + `stroke-dashoffset` animation
-
-### Logo (36 FLATMATES)
-
-- Compact mode: "36" at 28px extra-bold (Fraunces, `letter-spacing: -1.4px`) + rotate icon (30px) + "FLATMATES" at 13px (Inter, uppercase, `letter-spacing: 1.6px`)
-- Full mode: "36" at 38px extra-bold (Fraunces) + rotate icon (38px) + "FLATMATES" at 15px (Inter, uppercase, `letter-spacing: 1.6px`)
-- Color: terracotta (`#C96442`) for all elements
+- Body line length ≈ 65-70ch (`max-w-[65ch]`).
+- Emphasis = Instrument Serif italic of the **same headline**, never a random
+  injected serif word. Audit italic words with descenders (`g j p q y`) for
+  clearing (`leading-[1.1]` + a little bottom padding).
+- Eyebrows are rationed: at most one small uppercase label per ~3 sections on a
+  marketing surface.
 
 ---
 
-## Shared Component Library
+## 5. Spacing & Layout
 
-All pages should use these shared React components instead of duplicating layout,
-loading, and async-state patterns. Components live in `src/components/` (or a similar
-shared directory).
+Base unit **4px**; the working rhythm is the **8px** grid. Use Tailwind spacing
+utilities (`gap-*`, `p-*`, `space-*`) - all multiples of 4px.
 
-| Component | Purpose | Tailwind / CSS |
-|-----------|---------|-----------------|
-| `<PageLayout>` | Unified page scaffold — paper bg, min-height screen, padding, 200ms fade-in entry | `bg-paper min-h-screen p-6 animate-fade-in` |
-| `<AsyncView>` | Async state handler — renders loading/data/empty/error from TanStack Query | Suspense boundary + error boundary |
-| `<NetworkImage>` | Network image with placeholder/error fallback (replaces raw `<img>`) | `<img>` with blurDataURL |
-| `<Card>` | Content card container (interactive hover/press glow, optional gradient/border-glow) | `bg-surface rounded-2xl shadow-sm` |
-| `<Chip>` | Filter/tag chip with choice variant (selection spring animation) | `rounded-full px-3.5 py-2` |
-| `<PageHeader>` | Page header with optional back button and actions | `flex items-center gap-3` |
-| `<Skeleton>` | Shimmer loading placeholder (card, list, feed, profile variants) | `animate-shimmer bg-gradient-to-r` |
-| `<ErrorState>` | Error display with retry action (200ms fade-in + slide-up entry) | `animate-fade-slide-up` |
-| `<EmptyState>` | Empty state with illustration and message (200ms fade-in + breathing icon) | `animate-fade-in` + breathing keyframe |
-| `<BottomActionBar>` | Sticky bottom action bar for CTAs (frosted-glass backdrop) | `sticky bottom-0 backdrop-blur-[9px]` |
-| `<BottomSheet>` | Styled bottom sheet / drawer container (frosted-glass backdrop) | Radix Dialog or custom overlay |
-| `<SearchBar>` | Search input with leading/trailing icons (focus glow + scale lift) | `h-12 rounded-[9px] border-line` |
-| `<SegmentedControl>` | Tab-style segmented selector (sliding pill indicator) | Framer Motion `layoutId` for pill |
-| `<StepProgress>` | Multi-step progress indicator | `flex gap-1` with accent fills |
-| `<PriceText>` | Formatted price display | Fraunces + tabular-nums |
-| `<TrustBadge>` | Verified/trust indicator badge | icon + label pill |
-| `<ProfileMiniCard>` | Compact profile row (avatar + name + subtitle) | `flex items-center gap-3` |
-| `<ListingMiniCard>` | Compact listing row (thumbnail + title + price) | `flex items-center gap-3` |
+| Purpose | Token | Value |
+|---------|-------|-------|
+| Tight (icon ↔ label) | `gap-2` | 8px |
+| Normal (fields, list items) | `gap-3` | 12px |
+| Relaxed (heading ↔ content) | `gap-4` | 16px |
+| Block separation | `gap-6` | 24px |
+| Card internal padding | `p-4` | 16px |
+| Screen edge (mobile → desktop) | `px-5` → `px-12` | 20 → 48px |
+| Marketing section rhythm | `py-20` → `py-28` | 80 → 112px |
+
+**Containers:** content `max-w-7xl` (1280px) centered; full-bleed sections
+`max-w-screen-2xl` (1536px). Use CSS Grid over flex percentage math.
 
 ---
 
-## Navigation Structure
+## 6. Elevation
 
-### Responsive Navigation Strategy
+Elevation = **surface tier + shadow + (optional) 1px lift on interaction**.
+Shadows use warm-ink tints (`rgba(31,26,20,…)`); terracotta-tinted shadows use
+`rgba(201,100,66,…)`. Never pure-black shadows.
 
-The web app uses device-adaptive navigation — no single layout for all viewports.
+| Level | Helper (`elevation.*`) | Shadow (light) | Surface | Used for |
+|-------|------------------------|----------------|---------|----------|
+| **Flat** | `flat` | `shadow-xs` `0 1px 2px /.04` | `surface` | Nav items, compact cards |
+| **Raised** | `raised` | `shadow-sm` `0 2px 6px /.06` | `surface` | Standard content cards |
+| **Overlay** | `overlay` | `shadow-md` `0 6px 18px /.08` | `surface` / hover | Hover lift, dropdowns, FAB |
+| **Modal** | `modal` | `shadow-lg` (layered) | `surface-elevated` | Modals, drawers, toasts |
 
-| Breakpoint | Min-width | Navigation | Width |
-|-----------|-----------|------------|-------|
-| Mobile | 0 | Bottom nav (5 tabs) | Full-width, fixed bottom |
-| Tablet | 768px | Collapsed sidebar (icons only) | 64px fixed left |
-| Desktop | 1024px | Expanded sidebar (icons + labels) | 240px fixed left |
-| Wide | 1440px | Wider sidebar (icons + labels) | 280px fixed left |
+Component-tinted shadows: `shadow-cta` (terracotta CTA), `shadow-hover` (ambient
+glow), `shadow-focus` (input focus glow). **Dark mode** reduces all shadow
+intensity (dark surfaces carry inherent depth) and relies more on the
+`surface` → `surface-elevated` lightness step.
 
-### Mode-Dependent Tabs
-
-Every user has exactly one mode. Mode determines which navigation tabs they see.
-
-| Tab | Room Poster | Co-Hunter | Open to Both |
-|-----|------------|-----------|-------------|
-| **1** | Home (Feed) | Home (Feed) | Home (Feed) |
-| **2** | Post / Manage Property | Properties (Map View) | Properties (Map View) |
-| **3** | Swipe | Swipe | Swipe |
-| **4** | Chats | Chats | Chats |
-| **5** | Profile | Profile | Profile |
-
-### Tab Icons & Labels
-
-| Tab | Icon (default / active) | Label |
-|-----|------------------------|-------|
-| Home | `home` outlined / filled | Home |
-| Post (Room Poster) | `add-home` outlined / filled | Post |
-| Explore (Co-Hunter/Open) | `map` outlined / filled | Explore |
-| Swipe | `swap-horiz` | Swipe |
-| Chats | `chat-bubble` outlined / filled | Chats |
-| Profile | `person` outlined / filled | Profile |
-
-### Desktop Sidebar
-
-Desktop sidebar adds items beyond the 5 mobile tabs:
-
-| Item | Icon | Route |
-|------|------|-------|
-| Home | `home` | `/` |
-| Explore | `map` | `/explore` |
-| Swipe | `swap-horiz` | `/swipe` |
-| Chats | `chat-bubble` | `/chats` |
-| Bookings | `calendar` | `/bookings` |
-| Post Property | `add-home` | `/listings/new` |
-| My Listings | `building` | `/listings/manage` |
-| Profile | `person` | `/profile` |
-
-Sidebar styling:
-- Background: paper-2 (light), dark-paper-2 (dark)
-- Active item: accent-soft bg, accent text, 9px radius
-- Inactive item: ink-3 text, transparent bg
-- Hover: subtle paper-3 bg shift
-- Collapsed state: icons centered, labels hidden, tooltip on hover
-
-### Top Bar (Desktop/Tablet)
-
-- Position: fixed top, full-width (minus sidebar on desktop)
-- Height: 64px
-- Left: 36 FLATMATES logo (compact) — hidden on desktop when sidebar shows logo
-- Center: Search bar (desktop)
-- Right: Notification bell icon + user avatar (52px)
-- Background: paper with subtle bottom border-line
-- Mobile: Logo left, search + bell + avatar right
+`elevation` and `controlHeight` helpers live in
+`src/components/ui/component-utils.ts`.
 
 ---
 
-## Page Inventory
+## 7. Z-Index Scale
 
-Detailed page layouts, modals, and micro-interactions are specified in
-`plans/ui_ux.md` Sections 5-7. This section provides a route summary only.
+Single source of stacking order (`--z-*` in `:root`). Never invent ad-hoc
+`z-50`/`z-[999]` values; use the scale.
 
-| Route | Page Name |
-|-------|-----------|
-| `/` | Home / Discover |
-| `/onboarding` | Onboarding |
-| `/choose-role` | Mode Selection |
-| `/location` | Location Selection |
-| `/auth/login` | Login |
-| `/auth/signup` | Sign Up |
-| `/explore` | Explore / Map View |
-| `/search` | Search & Filters |
-| `/swipe` | Swipe Deck |
-| `/likes` | Likes (incoming) |
-| `/matches` | Matches |
-| `/chats` | Chats (with Matches bar) |
-| `/chats/:id` | Chat Conversation |
-| `/listing/:id` | Listing Details |
-| `/listings/new` | Create Listing |
-| `/listings/manage` | Manage Listings |
-| `/profile` | Profile |
-| `/profile/edit` | Edit Profile |
-| `/bookings` | Bookings |
-| `/bookings/:id` | Booking Detail |
-| `/notifications` | Notifications |
-| `/settings` | Settings |
-| `/help` | Help & Support |
-| `/verify` | Verification |
+| Token | Value | Layer |
+|-------|-------|-------|
+| `--z-base` | 0 | In-flow content |
+| `--z-raised` | 10 | Pop-ups within a section, sticky cell headers |
+| `--z-sticky` | 30 | Sticky bars, sticky nav |
+| `--z-overlay` | 40 | Scroll-progress bar, non-modal overlays |
+| (grain) | 50 | Global noise texture (`body::before`) |
+| `--z-modal` | 100 | Modals, drawers, bottom sheets |
+| `--z-toast` | 200 | Toasts (above modals) |
+| `--z-max` | 9999 | Skip link, escape hatch |
+
+Usage: `className="z-[var(--z-modal)]"`.
 
 ---
 
-## Animation Guidelines
+## 8. Radius & Shape
 
-### Animation Tokens
+One radius system; do not mix.
 
-| Animation | Duration | Curve | CSS / Framer Motion |
-|-----------|----------|-------|---------------------|
-| Page transition | 250ms | ease-out | `transition-opacity duration-250 ease-out` |
-| Tab switch | 200ms | ease-out | `duration-200 ease-out` |
-| Button press | 150ms | ease-out | `:active { transform: scale(0.97) } transition-transform duration-150 ease-out` |
-| Card appear (staggered) | 300ms | ease-out | `duration-300 ease-out` with 50ms stagger |
-| Page entry fade-in | 200ms | ease-out | `duration-200 ease-out` |
-| Stagger item delay | 50ms (cards), 100ms (menu groups) | — | `animation-delay` |
-| Breathing icon pulse | 2000ms | linear | `animation: breathe 2s linear infinite alternate` |
-| Swipe card rotation | varies | spring | Max 15° rotation, Framer Motion `spring` |
-| Compatibility ring fill | 300ms | ease-out | SVG `stroke-dashoffset` transition |
-| Avatar ring draw | 300ms | ease-out | SVG `stroke-dashoffset` transition |
-| Match celebration | <600ms | ease-out-expo | Framer Motion `animate` with `cubic-bezier(0.16,1,0.3,1)` |
-| Filter chip select | 150ms | ease-out-back | `transform: scale(1.03)` with `cubic-bezier(0.34,1.56,0.64,1)` |
-| Bottom sheet show/dismiss | 280ms | ease-out | `duration-280 ease-out` |
-| FAB expand | 250ms | ease-out-back | `cubic-bezier(0.34,1.56,0.64,1)` |
-| Skeleton shimmer | 1200ms | linear | `animation: shimmer 1200ms linear infinite` |
-| Segmented pill slide | 220ms | ease-out | Framer Motion `layoutId` for pill indicator |
-| Hover lift | 150ms | ease-out | `duration-150 ease-out` |
+| Element | Radius | Tailwind |
+|---------|--------|----------|
+| Cards (standard) | 16px | `rounded-2xl` |
+| Cards (compact) / icon containers / avatars (editorial) | 12px | `rounded-xl` |
+| Buttons | 10px | `rounded-[10px]` |
+| Inputs / nav items / icon buttons | 9px | `rounded-[9px]` |
+| Dialog (desktop) | 8px | `rounded-lg` |
+| Chips, toggles, pills, circular avatars | full | `rounded-full` |
 
-### Easing Curves (CSS)
-
-| Name | CSS cubic-bezier | Notes |
-|------|-------------------|-------|
-| ease-out | `cubic-bezier(0, 0, 0.2, 1)` | General deceleration |
-| ease-out-quart | `cubic-bezier(0.25, 1, 0.5, 1)` | Page transitions, overlays |
-| ease-out-back | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Slight overshoot for chips, FAB |
-| ease-out-expo | `cubic-bezier(0.16, 1, 0.3, 1)` | Match celebration, dramatic exits |
-
-### Motion Rules
-
-- Ease-out curves only (exponential: quart/quint/expo)
-- No bounce, no elastic (except intentional FAB/chip overshoot via ease-out-back)
-- Keep animations under 400ms for micro-interactions
-- Respect `prefers-reduced-motion` — see Accessibility section
-- Don't animate layout properties that trigger reflow (use `transform` and `opacity` instead)
-
-### Premium Motion Behaviors
-
-- **Press feedback**: All interactive cards, buttons, and menu items use `:active { transform: scale(0.97) }` via CSS transition (150ms ease-out). Return to 1.0 on release.
-- **Focus glow**: Search bar and focused inputs gain terracotta-tinted `box-shadow` glow (`shadow-focus`) + subtle `transform: scale(1.01)` on focus.
-- **Selection spring**: Chips scale to 1.03 with `cubic-bezier(0.34, 1.56, 0.64, 1)` overshoot on selection, returning to 1.0 on deselect.
-- **Staggered appear**: Feed cards fade in + slide up with 50ms stagger between items. Profile menu groups stagger with 100ms delay between groups.
-- **Animated ring**: Compatibility rings and avatar rings draw their SVG arc on mount (300ms, ease-out) via `stroke-dashoffset` transition.
-- **Frosted glass**: Bottom nav, bottom sheets, and bottom action bars use `backdrop-filter: blur(9px)` + semi-transparent paper surface (0.88-0.92 alpha). Apply `border-radius` + `overflow: hidden` to constrain blur bounds.
-- **Page entry**: `<PageLayout>` wraps body in 200ms opacity + translateY transition for silky page entry. Use Framer Motion `AnimatePresence` for route transitions.
-- **Sliding pill**: `<SegmentedControl>` uses Framer Motion `layoutId` for a sliding selection indicator (220ms, ease-out).
-- **Entry animations**: `<EmptyState>` and `<ErrorState>` fade in + slide up on mount (200ms). Empty-state icons have a subtle 2s breathing (pulse) animation.
+Rule of thumb: containers 12-16px, controls 9-10px, anything pill-shaped is
+fully rounded. Radius vars: `--radius-card/compact/button/control`.
 
 ---
 
-## Hover & Focus States
+## 9. Motion
 
-Web requires hover and focus affordances that the mobile app does not have.
+### 9.1 Tokens
 
-### Hover Patterns
+| Durations (`--duration-*`) | Easings (`--ease-*`) |
+|----------------------------|----------------------|
+| `fast` 120ms · `normal` 200ms · `slow` 300ms · `slowest` 400ms | `standard` `cubic-bezier(0,0,.2,1)` · `emphasized` `cubic-bezier(.16,1,.3,1)` · `spring` `cubic-bezier(.34,1.56,.64,1)` |
 
-| Component | Hover Effect |
-|-----------|-------------|
-| Primary Button | bg lightens 5%, shadow deepens to `shadow-hover`, 1px translateY |
-| Secondary Button | subtle accent-soft bg tint |
-| Tertiary Button | accent-soft bg tint, underline |
-| Listing Card | shadow deepens to `shadow-hover`, 1px translateY, subtle accent border glow |
-| Profile Card | shadow lift, subtle accent glow |
-| Menu Item Row | accent-soft bg tint on the row |
-| Notification Card | paper-2 bg shift |
-| Filter Chip (unselected) | paper-2 → paper-3 bg |
-| Search Bar | subtle border color shift |
-| Sidebar nav item | subtle paper-3 bg shift |
-| Avatar (clickable) | subtle scale 1.02, shadow lift |
+`ease-standard` general deceleration · `ease-emphasized` entrances/overlays ·
+`ease-spring` chips/FAB/celebration overshoot. The shared `interactiveMotion`
+class (`component-utils.ts`) applies `--duration-fast` + `--ease-standard` and
+collapses to none under reduced motion.
 
-### Focus Patterns
+### 9.2 Choreography (CSS utilities in `globals.css`)
 
-All interactive elements must have a visible `:focus-visible` indicator for keyboard users.
-Mouse clicks should NOT show the focus ring (use `:focus-visible`, not `:focus`).
+- **Press:** `:active { scale(0.97) }` on buttons/cards/menu items (150ms).
+- **Focus glow:** inputs gain `shadow-focus` + `scale(1.01)`.
+- **Selection spring:** chips `scale(1.03)` with `--ease-spring`.
+- **Staggered reveal:** `.stagger-1`…`.stagger-6` (80ms steps),
+  `.hero-stagger-1`…`-5` (60ms), `.stagger-reveal > *` / `.stagger-cascade > *`
+  using `--i` (60ms × index). Drive scroll reveals with `RevealSection` +
+  `useInView` (IntersectionObserver) - never `window` scroll listeners.
+- **SVG draw:** `.ring-draw` animates `stroke-dashoffset` (300-800ms) for
+  compatibility/avatar rings.
+- Named keyframes available: `page-fade`, `fade-slide-up`, `slide-up`,
+  `drawer-in`, `bottom-sheet-in`, `scale-in`, `match-pop`, `shimmer`, `breathe`,
+  `float-subtle`, `gradient-shift`, `cascade-in`, `spin-slow`.
 
-| Component | Focus Ring |
-|-----------|-----------|
-| Buttons | 2px solid accent outline, 2px offset, `border-radius` matches button |
-| Cards | 2px solid accent outline, 2px offset |
-| Inputs / Search Bar | border transitions to accent, `shadow-focus` glow |
-| Chips | 2px solid accent outline, 2px offset |
-| Menu Items | accent outline ring on the row |
-| Links | 2px solid accent underline-offset |
-| Sidebar nav item | accent outline ring inside the item |
+### 9.3 Reduced motion (mandatory)
 
-CSS utility: `focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2`
+`@media (prefers-reduced-motion: reduce)` disables animations, transforms, and
+infinite loops (already enforced globally in `globals.css`). Any motion above a
+trivial hover must degrade gracefully. Keep ease-out curves only; no bounce
+except the intentional `ease-spring` overshoot on chips/FAB.
 
 ---
 
-## Dark Mode
+## 10. Iconography
 
-All tokens above apply to both light and dark modes. Dark mode specifics:
-
-### Dark Mode Token Map
-
-| Token | Light | Dark | CSS Variable |
-|-------|-------|------|-------------|
-| Scaffold (paper) | `#F4F3EE` | `#1A1612` | `--color-paper` |
-| Surface | `#FFFFFF` | `#2A2520` | `--color-surface` |
-| Surface Elevated | `#FFFFFF` | `#342E28` | `--color-surface-elevated` |
-| Paper 2 | `#EDEBE3` | `#252018` | `--color-paper-2` |
-| Ink (primary) | `#1F1A14` | `#F4F3EE` | `--color-ink` |
-| Ink 2 (secondary) | `#4A463E` | `#E4E1D7` | `--color-ink-2` |
-| Ink 3 (tertiary) | `#756F65` | `#AAA397` | `--color-ink-3` |
-| Line | `rgba(31,26,20,0.08)` | `rgba(31,26,20,0.16)` | `--color-line` |
-| Accent | `#C96442` | `#C96442` (unchanged) | `--color-accent` |
-
-Key dark mode rules:
-- Primary accent stays `#C96442` (terracotta works well on dark)
-- Ink text → lightened warm equivalents
-- Shadows reduce significantly (dark mode has inherent depth)
-- Line/border alpha increases from 0.08 to 0.16 for visibility
-- Categorical pastel soft tiers darken to maintain contrast
-- All pages must be tested in dark mode after any light-mode changes
-
-### Dark Mode Implementation
-
-Dark mode uses CSS custom properties toggled via `[data-theme]` attribute on `<html>`:
-
-```css
-:root { /* light tokens — see CSS Custom Properties section above */ }
-
-[data-theme="dark"] {
-  --color-paper: #1A1612;
-  --color-surface: #2A2520;
-  --color-surface-elevated: #342E28;
-  --color-paper-2: #252018;
-  --color-ink: #F4F3EE;
-  --color-ink-2: #E4E1D7;
-  --color-line: rgba(31,26,20,0.16);
-}
-```
-
-**Theme switching mechanism:**
-1. Default: check `prefers-color-scheme: dark` media query on initial load
-2. User override: toggle sets `[data-theme="dark"]` on `<html>` and persists to `localStorage`
-3. SPA theme init: set theme via inline `<script>` in `index.html` `<head>` (before paint) to avoid flash:
-   ```html
-   <script>
-     const t = localStorage.getItem('theme');
-     if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
-       document.documentElement.dataset.theme = 'dark';
-     }
-   </script>
-   ```
-4. Tailwind v4: dark mode uses `[data-theme="dark"]` selector defined in `globals.css` `@theme` directive
-
-### Dark Mode Palettes
-
-Three accent palette options for dark mode:
-
-| Palette | Accent | Soft | Container | Notes |
-|---------|--------|------|-----------|-------|
-| **Terracotta** (default) | `#C96442` | `rgba(201,100,66,0.10)` | `#F8D5C8` | Warm, matches brand |
-| **Ember** | `#D17847` | `rgba(209,120,71,0.10)` | `#FCE0C8` | Slightly warmer, orange-shifted |
-| **Monsoon Teal** | `#5A9DA8` | `rgba(90,157,168,0.10)` | `#CFE4DF` | Cool accent for contrast |
+- **Primary:** `lucide-react` - the default icon set for UI. Standardize stroke
+  at ~1.5-2; size at **16 / 20 / 24px** (`h-4`/`h-5`/`h-6`). Icons inherit
+  `currentColor`; tint with `text-*` (use `mid` tier on neutral bg, `inkText`
+  on soft fills).
+- **Material glyphs:** `GoogleIcon` renders Google Material Symbols where the
+  nav spec calls for them (`home`, `map`, `swap-horiz`, `chat-bubble`,
+  `person`, `add-home`).
+- One icon family per surface; never hand-roll SVG icon paths. Decorative icons
+  get `aria-hidden="true"`; meaningful icons get an accessible label.
 
 ---
 
-## Responsive Breakpoints
+## 11. Component Library
 
-| Breakpoint | Min-width | Layout | Tailwind |
-|-----------|-----------|--------|----------|
-| Mobile | 0 | Single column, bottom nav, full-width cards | default (no prefix) |
-| Tablet | 768px | Collapsed sidebar (64px), 2-column where applicable | `md:` |
-| Desktop | 1024px | Full sidebar (240px), multi-column, horizontal cards | `lg:` |
-| Wide | 1440px | Wider sidebar (280px), max-width containers | `xl:` |
+All shared primitives live in `src/components/ui/`. Pages must compose these
+rather than re-implement chrome/state handling.
 
-Tailwind config:
+### 11.1 System interaction states
 
-```ts
-screens: {
-  md: '768px',  // tablet
-  lg: '1024px', // desktop
-  xl: '1440px', // wide
-}
-```
+Every interactive primitive implements these (the matrix referenced per
+component below):
 
-Container max-widths:
-- Content area: `max-w-7xl` (1280px) centered within the viewport
-- Sidebar + content: sidebar width + `max-w-7xl` content
-- Full-bleed sections: `max-w-screen-2xl` (1536px)
+| State | Standard treatment |
+|-------|--------------------|
+| **Rest** | Token-defined fill/border/text |
+| **Hover** (desktop) | Subtle bg/border shift, +shadow or 1px lift |
+| **Active/Pressed** | `scale(0.97)` (150ms) |
+| **Focus-visible** | `focusRing` = 2px accent outline, 2px offset (keyboard only) |
+| **Disabled** | `paper-4` fill, `ink-3/4` text, no shadow, `cursor-not-allowed`, `pointer-events-none` |
+| **Loading** | Spinner or skeleton matching final shape; `aria-busy` |
+| **Selected** | `accent-container`/`accent-soft` fill + accent text/border |
+| **Error** | `border-error`, error text below, `aria-invalid` |
 
----
+Shared helpers: `focusRing`, `interactiveMotion`, `elevation`, `controlHeight`,
+`toneClasses`, `cn` (all in `component-utils.ts`).
 
-## Accessibility
+### 11.2 Control sizing
 
-### Core Rules
+Heights are tokenized: `--control-h-sm` 42 · `--control-h-md` 48 ·
+`--control-h-lg` 52 · `--control-h-xl` 56. **Touch target minimum `--touch-min`
+44px.** Documented compact exceptions (paired with adequate spacing): chips
+(36px), icon buttons (40px), switches.
 
-- Minimum touch/click target: 44×44px for all interactive elements
-- Color contrast ratio: minimum 4.5:1 for normal text, 3:1 for large text
-- Don't convey information by color alone (always pair with icons/text)
-- ARIA labels, roles, and live regions on all interactive elements
-- Visible focus indicators for keyboard users (see Focus Patterns above)
+### 11.3 Primitives
 
-### Keyboard Navigation
+| Component | File | Purpose | Key states / notes |
+|-----------|------|---------|--------------------|
+| **Button** | `Button.tsx` | primary / secondary / tertiary / icon × compact/default/tall/icon | Full matrix; heights from `--control-h-*`; loading spinner; `shadow-cta` on primary |
+| **Card** | `Card.tsx` | default / compact / **elevated** containers | `elevated` uses `surface-elevated` + `shadow-md`; `interactive` adds hover-lift + press + focus; `selected` = accent border + soft fill |
+| **Chip** | `Chip.tsx` | filter / choice / info / removable | `role` radio/checkbox; selected spring `scale(1.03)`; removable splits remove button to avoid nested interactives |
+| **Badge** | `Badge.tsx` | default / mode / verified / status / count | Tone via `toneClasses`; **text uses `inkText`** for contrast on soft fill |
+| **Input / TextArea / SelectField** | `Input.tsx` | labeled fields via `FieldWrapper` | Label above (mono), helper/error below, leading/trailing icons, focus glow + `scale(1.01)`, `aria-invalid`/`aria-describedby`; min-h `--control-h-md` |
+| **PhoneInput / PasswordInput** | `PhoneInput.tsx` / `PasswordInput.tsx` | formatted phone / show-hide password | Build on field chrome; password toggle has accessible label |
+| **Toggle** | `Toggle.tsx` | switch | `role="switch"`, `aria-checked`; knob slides 200ms; disabled opacity |
+| **SegmentedControl** | `SegmentedControl.tsx` | tabbed selector | `role="tablist"`, arrow-key roving focus, sliding `layoutId` pill (Framer Motion spring) |
+| **StepProgress** | `StepProgress.tsx` | multi-step indicator | Accent fills for completed steps |
+| **Modal / Drawer / BottomSheet** | `Modal.tsx` | overlays | `--z-modal`; `surface-elevated` panel; focus trap **+ focus restore on close**; Escape + overlay-click close; `aria-modal` |
+| **Toast / ToastViewport** | `Toast.tsx` | transient notifications | `--z-toast` (above modals); `role=status`/`alert` + `aria-live` polite/assertive by type |
+| **Skeleton** | `Skeleton.tsx` | shimmer placeholder | Match final layout; `aria-hidden`; `motion-reduce` safe |
+| **Spinner** | `Spinner.tsx` | indeterminate load | Use sparingly; prefer skeletons for content |
+| **StateViews** (`AsyncView`/`ErrorState`/`EmptyState`) | `StateViews.tsx` | load/empty/error wrappers | `ErrorState` always offers retry when `refetch` exists |
+| **Avatar** | `Avatar.tsx` | profile/owner image | Gradient initials fallback; editorial 12px or circular; optional animated ring |
+| **NetworkImage** | `NetworkImage.tsx` | image with blur/error fallback | Replaces raw `<img>`; graceful failed-load state |
+| **ProgressRing** | `ProgressRing.tsx` | compatibility/score ring | Animated `stroke-dashoffset`; tone by threshold; `role=progressbar` |
+| **SearchBar** | `SearchBar.tsx` | search input | 48px, focus glow + scale, leading/trailing icons |
+| **Logo / ThemeToggle / TrustBadge / PriceText / OrDivider / Layout / FullPageMessage / PrefetchLink** | respective files | brand, theme switch, trust pill, formatted price, auth divider, page scaffold, full-viewport message, prefetching link | See file; all consume tokens + `focusRing` where interactive |
 
-| Action | Key |
-|--------|-----|
-| Move focus forward | Tab |
-| Move focus backward | Shift+Tab |
-| Activate button/link | Enter or Space |
-| Dismiss modal / bottom sheet | Escape |
-| Navigate sidebar items | Arrow Up / Arrow Down |
-| Navigate tabs in segmented control | Arrow Left / Arrow Right |
-| Navigate swipe deck | Arrow Left (pass) / Arrow Right (like) |
-| Scroll within modals | Arrow keys (trapped focus) |
-| Skip to main content | Skip navigation link (first Tab press) |
+### 11.4 Utility classes (CSS, in `globals.css`)
 
-### Reduced Motion
-
-All animations respect `prefers-reduced-motion: reduce`:
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-```
-
-- Disable scale transforms on press
-- Simplify transitions to opacity-only
-- Remove confetti and celebration animations
-- Disable breathing pulse
-- Swipe deck uses instant card swap instead of spring animation
-
-### High Contrast
-
-`prefers-contrast: more` increases border and text contrast:
-
-```css
-@media (prefers-contrast: more) {
-  :root {
-    --color-line: rgba(31,26,20,0.20);
-    --color-ink-3: #6A645A;
-  }
-}
-```
-
-### Skip Navigation
-
-A visually-hidden skip link is the first focusable element on every page:
-
-```html
-<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-surface focus:px-4 focus:py-2 focus:rounded">
-  Skip to main content
-</a>
-```
+| Class | Purpose |
+|-------|---------|
+| `.bento-card` | Bento tile: `surface` bg, 16px radius, hover lift. **Sets `background` shorthand - to layer a gradient inside, paint it on an absolute child, not the same element.** |
+| `.card-glow` | Terracotta radial sheen on hover/focus-within |
+| `.accent-pill` | Mono uppercase accent pill (step numbers, tags) |
+| `.frosted` | `backdrop-filter: blur(var(--frost-blur))` + paper color-mix |
+| `.noise-texture` | SVG grain overlay (fixed, `pointer-events-none`) |
+| `.scroll-progress-bar` | Top reading-progress bar (`--z-overlay`) |
+| `.content-grid` | `auto-fit` responsive card grid |
+| `.hairline` | 0.5px line border |
+| Gradients | hero-glow (radial trio), nudge (terracotta waitlist wash), shimmer |
 
 ---
 
-## Performance Budget
+## 12. Patterns
+
+### 12.1 Async state (mandatory on every data page)
+
+Handle **loading, error, empty** for all API-backed UI:
+
+- **Loading:** content-shaped `<Skeleton>` matching the real layout (never a
+  bare spinner where a skeleton fits). `aria-hidden` + `motion-reduce` safe.
+- **Error:** never a full-page error on pages with non-API chrome. Render the
+  page shell + an inline `<ErrorState>` (with retry) for the API-dependent
+  section. Pages that *are* entirely the API response (maps, chat threads) may
+  use a full-page error.
+- **Empty:** composed `<EmptyState>` that shows how to populate.
+
+Use `<AsyncView>` for simple load/error/empty/render flows. Server state is
+owned by TanStack Query hooks (`src/hooks/queries/`); never mirror it into
+Zustand.
+
+### 12.2 Forms
+
+Label **above** input; helper text optional but present in markup; error text
+**below**. Never placeholder-as-label. `gap-2` within a field block. All field
+chrome lives in `FieldWrapper` (`Input.tsx`).
+
+### 12.3 Navigation (device-adaptive)
+
+| Breakpoint | Min | Navigation |
+|-----------|-----|-----------|
+| Mobile | 0 | Bottom nav (5 tabs) |
+| Tablet | 768px (`md`) | Collapsed icon sidebar (64px) |
+| Desktop | 1024px (`lg`) | Full sidebar (240px) |
+| Wide | 1440px (`xl`) | Wider sidebar (280px) |
+
+Tabs are mode-dependent (Room Poster / Co-Hunter / Open to Both). Top bar 64px.
+Theme toggle on: public header, app top bar, profile, `/settings/appearance`.
+
+### 12.4 Density
+
+Default density is documented above. A **compact** density (tighter paddings,
+`--control-h-sm`, `gap-2`) is available for data-dense surfaces; apply at the
+container level, never mix densities within one component.
+
+---
+
+## 13. Content & Voice
+
+- **Tone:** warm, direct, confident. Gen-Z-natural but trustworthy enough for
+  money. Concrete verbs over filler ("Find", "Book", "Match" - not "Elevate",
+  "Seamless", "Unleash").
+- **One label per intent.** Pick a single CTA label per action and reuse it
+  (e.g. one "Start matching", not "Join"/"Get started"/"Start swiping" mixed).
+- **No em dashes** anywhere (§1). Use commas, colons, parentheses.
+- **Errors:** plain, actionable, no blame ("We couldn't load your matches.
+  Retry?"). **Empty states:** say what goes here and how to add it.
+- **Names/numbers** in mock UI: realistic and locale-appropriate; never
+  "John Doe" / fake-precise stats presented as real.
+
+---
+
+## 14. Accessibility
+
+- **Contrast:** WCAG AA min for text (4.5:1 body, 3:1 large), AAA target for
+  hero copy. `ink-4` is decorative only. Categorical text on soft fills uses the
+  `inkText` tier.
+- **Targets:** 44px minimum (`--touch-min`); documented compact exceptions in
+  §11.2.
+- **Focus:** visible `:focus-visible` ring on every interactive element
+  (`focusRing`); mouse clicks don't show it. Modals trap focus and **restore it
+  on close**.
+- **Keyboard:** Tab/Shift-Tab, Enter/Space activate, Escape dismisses,
+  arrow-key roving in segmented/sidebar, skip link first in tab order.
+- **Color isn't the only signal** (icons/text accompany status color).
+- **Reduced motion / high contrast:** honored globally (§9.3;
+  `prefers-contrast: more` raises line + ink-3 contrast).
+
+---
+
+## 15. Dark Mode
+
+Dual-mode by default; design and test both. Theme via `[data-theme="dark"]` on
+`<html>`, set pre-paint by an inline script in `index.html` (reads
+`localStorage` then `prefers-color-scheme`). State lives in `uiStore`
+(`src/lib/stores/ui-store.ts`); reusable `<ThemeToggle>`.
+
+Rules: accent stays `#C96442`; ink lightens to warm equivalents; **borders use
+the warm-white line hue**; shadows reduce; `surface` → `surface-elevated`
+lightness step carries elevation; categorical soft tiers darken and pair with
+the light `inkText` tier. Full token values are in §3 (light/dark columns) and
+mirror `globals.css` exactly. Default to system preference unless the brand
+insists.
+
+---
+
+## 16. Performance Budget
 
 | Metric | Target |
 |--------|--------|
-| First Contentful Paint | < 1.5s |
-| Largest Contentful Paint | < 2.5s |
-| Cumulative Layout Shift | < 0.1 |
-| Total JS bundle (gzipped) | < 200KB |
-| Time to Interactive | < 3.0s |
+| FCP | < 1.5s |
+| LCP | < 2.5s (hero image preloaded/`priority`) |
+| CLS | < 0.1 (reserve space for images/fonts) |
+| INP | < 200ms |
+| JS bundle (gzip) | < 200KB |
+
+Apply grain/noise only to fixed `pointer-events-none` layers; lazy-load
+below-fold and heavy deps; animate only `transform`/`opacity`.
 
 ---
 
-## Image Strategy
+## 17. Maintenance
 
-- **Responsive images** with `srcset` and `sizes` attribute:
-  ```jsx
-  <img
-    src={url}
-    srcSet={`${url}?w=400 400w, ${url}?w=800 800w, ${url}?w=1200 1200w`}
-    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-    loading="lazy"
-  />
-  ```
-- **Blur placeholder**: Generate base64 data URLs at build time for above-fold images
-- **Format negotiation**: Serve WebP/AVIF variants via CDN or `<picture>` element
-- **Lazy loading**: Below-fold images use `loading="lazy"`
-- **Error fallback**: Gray placeholder with icon for failed image loads
+- This file is the source of truth. Any token/utility/component change updates
+  it **in the same commit**; nothing documented here may be fictional.
+- Keep `globals.css`, `component-utils.ts`, and this doc in lockstep (values
+  must match exactly).
+- `AGENTS.md` and `CLAUDE.md` mirror conventions referenced here - update them
+  when structure, tokens, or architecture change.
+- Visual PRs: reference the tokens used, include light **and** dark screenshots,
+  and verify the reduced-motion path.

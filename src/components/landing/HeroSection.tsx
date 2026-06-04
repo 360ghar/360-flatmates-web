@@ -8,6 +8,7 @@ import {
 import { buttonClasses } from "@/components/ui/Button";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { HERO_MINI_CARDS } from "./landing-data";
+import { AppStoreBadges } from "./AppStoreBadges";
 
 function HeroMiniCards() {
   const listingCard = HERO_MINI_CARDS.find((c) => c.type === "listing");
@@ -200,14 +201,8 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-6 items-center">
           {/* Left text column */}
           <div className="flex flex-col items-center text-center lg:text-left lg:items-start lg:col-span-7">
-            {/* High-quality Trust Badge Capsule */}
-            <div className="hero-animate hero-stagger-1 mb-6 inline-flex items-center gap-2 rounded-full bg-accent-soft border border-accent/15 px-4 py-1.5 text-accent shadow-xs">
-              <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-xs font-semibold uppercase tracking-wider">★ 4.9/5 Rating by 10,000+ flatmates</span>
-            </div>
-
             <div className="hero-animate hero-stagger-1">
-              <p className="text-eyebrow mb-3">
+              <p className="text-eyebrow mb-4">
                 Flatmate search, fixed
               </p>
             </div>
@@ -217,23 +212,28 @@ export function HeroSection() {
               className="hero-animate hero-stagger-2 text-display text-4xl sm:text-5xl lg:text-[4rem] text-ink leading-[1.08] tracking-tight"
             >
               Find your flatmate, <br className="hidden sm:inline" />
-              <span className="text-serif-italic text-accent italic text-5xl sm:text-6xl lg:text-[4.75rem]">not a nightmare</span>
+              <span className="text-serif-italic text-accent italic inline-block leading-[1.1] pb-1 text-5xl sm:text-6xl lg:text-[4.75rem]">not a nightmare</span>
             </h1>
 
-            <div className="hero-animate hero-stagger-3 mt-6 max-w-[48ch] text-body-lg text-ink-2 lg:mx-0 mx-auto leading-relaxed">
-              6-dimension lifestyle matching. 100% verified listings. No WhatsApp groups from hell. Move in with someone who matches your vibe.
+            <div className="hero-animate hero-stagger-3 mt-6 max-w-[46ch] text-body-lg text-ink-2 lg:mx-0 mx-auto leading-relaxed">
+              6-dimension lifestyle matching and 100% verified rooms. Move in with someone whose vibe actually fits yours.
             </div>
 
             <div className="hero-animate hero-stagger-4 mt-10 flex flex-col items-center gap-4 sm:flex-row lg:mx-0 mx-auto">
               <Link to="/discover" className={buttonClasses("primary", "tall") + " min-w-[200px] shadow-cta"}>
-                Start swiping
+                Start matching
               </Link>
-              <Link
-                to="/discover"
+              <a
+                href="#how-it-works-heading"
                 className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 border-b border-ink-4 hover:border-accent pb-1"
               >
-                See how it works
-              </Link>
+                How it works
+              </a>
+            </div>
+
+            <div className="hero-animate hero-stagger-6 mt-6 flex flex-col items-center gap-2.5 lg:items-start lg:mx-0 mx-auto">
+              <p className="text-label-md text-ink-4 uppercase tracking-wider text-[10px]">Also available on</p>
+              <AppStoreBadges variant="light" />
             </div>
           </div>
 

@@ -127,7 +127,7 @@ export function Input({
       {({ controlId, helperId, errorId }) => (
         <div
           className={cn(
-            "group flex min-h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
             interactiveMotion,
             error && "border-error",
             props.disabled && "bg-paper-4"
@@ -223,7 +223,7 @@ export function SelectField({
       {({ controlId, helperId, errorId }) => (
         <div
           className={cn(
-            "group flex min-h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
             interactiveMotion,
             error && "border-error",
             props.disabled && "bg-paper-4"

@@ -173,11 +173,6 @@ export interface SwipeDeckParams {
   budget_max?: number;
 }
 
-export interface SwipeDeckResponse {
-  profiles: FlatmatesPeer[];
-  total: number;
-}
-
 export interface SwipeHistoryParams {
   action?: SwipeAction;
   target_type?: SwipeTargetType;

@@ -1,5 +1,8 @@
 export { HeroSection } from "./HeroSection";
+export { AppStoreBadges } from "./AppStoreBadges";
 export { LandingClientSections } from "./LandingClientSections";
+export { TrustStrip } from "./TrustStrip";
+export { CompatibilitySection } from "./CompatibilitySection";
 export { FeatureBento } from "./FeatureBento";
 export { HowItWorks } from "./HowItWorks";
 export { CitiesShowcase } from "./CitiesShowcase";

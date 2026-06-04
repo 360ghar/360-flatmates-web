@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+
 import {
   FeatureBento,
   HowItWorks,
@@ -8,6 +10,24 @@ import {
 import { LandingClientSections } from "@/components/landing/LandingClientSections";
 import { FAQ_ITEMS } from "@/components/landing/landing-data";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
+
+const TestimonialsSection = lazy(() =>
+  import("@/components/landing/TestimonialsSection").then((m) => ({
+    default: m.TestimonialsSection,
+  })),
+);
+
+function TestimonialsFallback() {
+  return (
+    <section className="bg-paper py-20 md:py-28 border-b border-line-low">
+      <div className="mx-auto max-w-7xl px-5 md:px-12 text-center">
+        <h2 className="text-display text-4xl md:text-5xl text-ink">
+          10,000 people stopped settling.
+        </h2>
+      </div>
+    </section>
+  );
+}
 
 export function LandingPage() {
   return (
@@ -40,6 +60,9 @@ export function LandingPage() {
         <FeatureBento />
         <HowItWorks />
         <CitiesShowcase />
+        <Suspense fallback={<TestimonialsFallback />}>
+          <TestimonialsSection />
+        </Suspense>
         <FAQAccordion />
         <BottomCTA />
       </main>

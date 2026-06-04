@@ -76,7 +76,7 @@ export function BottomActionBar({ children, className, ...props }: BottomActionB
   return (
     <div
       className={cn(
-        "sticky bottom-0 z-20 -mx-5 mt-6 border-t border-line bg-paper/88 px-5 py-3 backdrop-blur-[9px] md:-mx-6 md:px-6",
+        "sticky bottom-0 z-[var(--z-sticky)] -mx-5 mt-6 border-t border-line bg-paper/88 px-5 py-3 backdrop-blur-[9px] md:-mx-6 md:px-6",
         className
       )}
       {...props}

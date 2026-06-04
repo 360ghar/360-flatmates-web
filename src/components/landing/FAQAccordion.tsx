@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { ChevronDown } from "lucide-react";
 import { FAQ_ITEMS } from "./landing-data";
 
@@ -9,9 +10,8 @@ export function FAQAccordion() {
     >
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <div className="mb-14 text-center">
-          <p className="text-eyebrow mb-5">FAQ</p>
           <h2 id="faq-heading" className="text-display max-w-xl mx-auto text-ink text-4xl md:text-5xl">
-            Got questions? <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">We got you</span>
+            Got questions? We've got answers.
           </h2>
         </div>
 
@@ -40,9 +40,12 @@ export function FAQAccordion() {
 
         <div className="mt-14 text-center">
           <p className="text-body-md text-ink-3 mb-5">Still confused?</p>
-          <button className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 border-b border-ink-4 hover:border-accent pb-1">
+          <Link
+            to="/about"
+            className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 border-b border-ink-4 hover:border-accent pb-1"
+          >
             Talk to us
-          </button>
+          </Link>
         </div>
       </div>
     </section>

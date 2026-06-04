@@ -33,12 +33,9 @@ describe("useSwipes hooks", () => {
 
   describe("useSwipeDeck(filters)", () => {
     it("uses query key ['swipes', 'deck', filters]", async () => {
-      const mockResponse = {
-        profiles: [
-          { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true }
-        ],
-        total: 1
-      };
+      const mockResponse = [
+        { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true }
+      ];
       mockRequest.mockResolvedValue(mockResponse);
 
       const filters = { city: "Bangalore" };
@@ -55,15 +52,14 @@ describe("useSwipes hooks", () => {
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
 
       const cache = queryClient.getQueryData(["swipes", "deck", filters]);
-      // The cache stores the raw SwipeDeckResponse; select only transforms data at the hook level
       expect(cache).toEqual(mockResponse);
     });
 
-    it("selects profiles from response", async () => {
+    it("returns profiles array from response", async () => {
       const profiles = [
         { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true }
       ];
-      mockRequest.mockResolvedValue({ profiles, total: 1 });
+      mockRequest.mockResolvedValue(profiles);
 
       const { result } = renderHook(() => useSwipeDeck(), {
         wrapper: createWrapper()
@@ -74,7 +70,7 @@ describe("useSwipes hooks", () => {
     });
 
     it("requests GET /flatmates/profiles with filters", async () => {
-      mockRequest.mockResolvedValue({ profiles: [], total: 0 });
+      mockRequest.mockResolvedValue([]);
 
       const filters = { city: "Bangalore", limit: 10 };
       renderHook(() => useSwipeDeck(filters), { wrapper: createWrapper() });

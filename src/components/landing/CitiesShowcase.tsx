@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 import { CITIES } from "./landing-data";
 import { NetworkImage } from "../ui/NetworkImage";
@@ -14,9 +15,8 @@ export function CitiesShowcase() {
     <section className="bg-surface py-20 md:py-24 border-b border-line-low" aria-labelledby="cities-heading">
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <div className="mb-14 text-center">
-          <p className="text-eyebrow mb-5">Where we're live</p>
           <h2 id="cities-heading" className="text-display max-w-xl mx-auto text-ink text-4xl md:text-5xl">
-            Live in the cities <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">that matter</span>
+            Live where you actually want to be.
           </h2>
         </div>
 
@@ -55,9 +55,12 @@ export function CitiesShowcase() {
         </div>
 
         <div className="mt-12 flex justify-center">
-          <button className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 border-b border-ink-4 hover:border-accent pb-1">
-            More cities dropping soon →
-          </button>
+          <Link
+            to="/discover"
+            className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 border-b border-ink-4 hover:border-accent pb-1"
+          >
+            Browse all rooms →
+          </Link>
         </div>
       </div>
     </section>

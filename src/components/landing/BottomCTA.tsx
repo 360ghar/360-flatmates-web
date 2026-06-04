@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { buttonClasses } from "@/components/ui/Button";
+import { AppStoreBadges } from "./AppStoreBadges";
 
 export function BottomCTA() {
   return (
@@ -28,7 +29,7 @@ export function BottomCTA() {
             to="/discover"
             className={buttonClasses("primary", "tall") + " min-w-[220px] !bg-white !text-accent shadow-cta hover:!bg-paper hover:scale-[1.04] active:scale-[0.96] transition-all duration-200"}
           >
-            Get started, it's free
+            Start matching
           </Link>
           <Link
             to="/login?intent=list-property"
@@ -38,9 +39,14 @@ export function BottomCTA() {
           </Link>
         </div>
 
-        <div className="mt-14 pt-10 border-t border-white/15 max-w-2xl mx-auto">
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <p className="text-label-md text-white/50 uppercase tracking-wider text-[10px]">Download the app</p>
+          <AppStoreBadges variant="dark" />
+        </div>
+
+        <div className="mt-10 pt-10 border-t border-white/15 max-w-2xl mx-auto">
           <p className="text-body-md text-white/70">
-            Join <span className="text-white font-semibold">10,000+</span> people who stopped settling for random flatmates.
+            Free to search and match. No WhatsApp groups required.
           </p>
         </div>
       </div>

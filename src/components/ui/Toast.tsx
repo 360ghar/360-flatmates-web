@@ -45,10 +45,10 @@ export function Toast({
 
   return (
     <div
-      role="status"
-      aria-live="polite"
+      role={type === "error" || type === "warning" ? "alert" : "status"}
+      aria-live={type === "error" || type === "warning" ? "assertive" : "polite"}
       className={cn(
-        "flex w-full max-w-[400px] gap-3 rounded-2xl border border-line bg-surface p-4 text-ink shadow-lg animate-fade-slide-up",
+        "flex w-full max-w-[400px] gap-3 rounded-2xl border border-line bg-surface-elevated p-4 text-ink shadow-lg animate-fade-slide-up",
         className
       )}
       {...props}
@@ -77,7 +77,7 @@ export function ToastViewport({ children, className, ...props }: ToastViewportPr
   return (
     <div
       className={cn(
-        "fixed inset-x-5 bottom-5 z-50 flex flex-col-reverse items-center gap-3 md:inset-x-auto md:right-6 md:items-end",
+        "fixed inset-x-5 bottom-5 z-[var(--z-toast)] flex flex-col-reverse items-center gap-3 md:inset-x-auto md:right-6 md:items-end",
         className
       )}
       {...props}

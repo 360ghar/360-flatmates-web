@@ -23,6 +23,7 @@ function useDialogFocus(open: boolean, onClose: () => void) {
     }
 
     const panel = panelRef.current;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     const focusableSelector =
       'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const focusable = panel?.querySelectorAll<HTMLElement>(focusableSelector);
@@ -57,7 +58,11 @@ function useDialogFocus(open: boolean, onClose: () => void) {
     }
 
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      // Restore focus to whatever was focused before the dialog opened.
+      previouslyFocused?.focus?.();
+    };
   }, [onClose, open]);
 
   return panelRef;
@@ -83,7 +88,7 @@ export function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-paper/88 p-0 backdrop-blur-[9px] md:items-center md:p-6">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-paper/88 p-0 backdrop-blur-[9px] md:items-center md:p-6">
       <button aria-label={closeLabel} className="absolute inset-0 cursor-default" type="button" onClick={onClose} />
       <div
         ref={panelRef}
@@ -91,7 +96,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          "relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-surface p-6 text-ink shadow-lg animate-fade-slide-up md:rounded-lg",
+          "relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-surface-elevated p-6 text-ink shadow-lg animate-fade-slide-up md:rounded-lg",
           size === "default" ? "md:max-w-[480px]" : "md:max-w-[600px]",
           className
         )}
@@ -147,7 +152,7 @@ export function Drawer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-paper/88 backdrop-blur-[9px]">
+    <div className="fixed inset-0 z-[var(--z-modal)] bg-paper/88 backdrop-blur-[9px]">
       <button aria-label="Close drawer" className="absolute inset-0 cursor-default" type="button" onClick={onClose} />
       <div
         ref={panelRef}
@@ -155,7 +160,7 @@ export function Drawer({
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          "absolute overflow-y-auto border-line bg-surface text-ink shadow-lg",
+          "absolute overflow-y-auto border-line bg-surface-elevated text-ink shadow-lg",
           side === "right"
             ? cn("bottom-0 right-0 top-0 border-l animate-drawer-in", width === "wide" ? "w-full md:w-[480px]" : "w-full md:w-[400px]")
             : cn(

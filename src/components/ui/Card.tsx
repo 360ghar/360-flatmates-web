@@ -11,10 +11,12 @@ export interface CardProps extends HTMLAttributes<HTMLElement> {
   selected?: boolean;
 }
 
+// Elevation tiers: surface tier + matching shadow. `elevated` lifts onto the
+// raised surface (pure white in light) for genuine depth over warm paper.
 const variantClasses: Record<CardVariant, string> = {
-  default: "rounded-2xl p-4 shadow-sm",
-  compact: "rounded-xl p-3 shadow-xs",
-  elevated: "rounded-2xl p-4 shadow-md"
+  default: "rounded-2xl p-4 bg-surface shadow-sm",
+  compact: "rounded-xl p-3 bg-surface shadow-xs",
+  elevated: "rounded-2xl p-4 bg-surface-elevated shadow-md"
 };
 
 export function Card({
@@ -30,7 +32,7 @@ export function Card({
     <Component
       tabIndex={interactive && tabIndex === undefined ? 0 : tabIndex}
       className={cn(
-        "border border-line bg-surface text-ink",
+        "border border-line text-ink",
         variantClasses[variant],
         selected && "border-[1.5px] border-accent bg-accent-soft",
         interactive &&

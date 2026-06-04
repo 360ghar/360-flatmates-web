@@ -1,6 +1,10 @@
 import { RevealSection } from "@/components/ui/RevealSection";
 import { STEPS } from "./landing-data";
 
+/* Connected stepper: three nodes sit on a single hairline connector (desktop),
+   replacing the previous three-equal-bordered-columns layout. The connector is
+   the rhythm change; on mobile the steps simply stack. */
+
 export function HowItWorks() {
   return (
     <section
@@ -11,30 +15,38 @@ export function HowItWorks() {
         <RevealSection className="mb-16 text-center">
           <p className="text-eyebrow mb-5">How it works</p>
           <h2 id="how-it-works-heading" className="text-display max-w-xl mx-auto text-ink text-4xl md:text-5xl">
-            Three steps to your <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">next home</span>
+            Three steps to your{" "}
+            <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">next home</span>
           </h2>
         </RevealSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative">
-          {STEPS.map((step) => {
+        <div className="relative grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
+          {/* Connector line runs between the three node centers (desktop only) */}
+          <div
+            className="pointer-events-none absolute top-8 hidden h-px bg-line md:block md:left-[16.67%] md:right-[16.67%]"
+            aria-hidden="true"
+          />
+
+          {STEPS.map((step, idx) => {
             const StepIcon = step.icon;
             return (
               <RevealSection
                 key={step.number}
-                className="flex flex-col gap-6 relative md:pl-8 md:border-l border-line-low/60 first:border-l-0"
+                staggerIndex={idx + 1}
+                className="relative flex flex-col items-center text-center md:px-4"
               >
-                <div className="flex items-baseline justify-between">
-                  <span className="text-display text-6xl md:text-7xl lg:text-8xl text-accent/25 font-extralight tracking-tighter select-none font-serif-italic italic">
+                <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border border-line bg-surface shadow-sm">
+                  <span className="font-serif-italic italic text-2xl text-accent select-none">
                     {step.number}
                   </span>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent border border-accent/10 shadow-xs">
-                    <StepIcon className="h-5 w-5" />
-                  </div>
                 </div>
-                <div>
-                  <h3 className="text-h1 text-2xl text-ink mb-3 leading-snug">{step.title}</h3>
-                  <p className="text-body-lg text-ink-3 leading-relaxed">{step.description}</p>
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <StepIcon className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                  <h3 className="text-h1 text-2xl text-ink leading-snug">{step.title}</h3>
                 </div>
+                <p className="mt-3 max-w-xs text-body-lg text-ink-3 leading-relaxed">
+                  {step.description}
+                </p>
               </RevealSection>
             );
           })}
@@ -43,4 +55,3 @@ export function HowItWorks() {
     </section>
   );
 }
-

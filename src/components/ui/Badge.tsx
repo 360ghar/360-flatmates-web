@@ -82,7 +82,7 @@ export function Badge({
       className={cn(
         "inline-flex min-h-6 items-center gap-1.5 rounded-full border px-2.5 py-1 text-label-md font-semibold",
         classes.soft,
-        classes.text,
+        classes.inkText,
         classes.border,
         className
       )}
