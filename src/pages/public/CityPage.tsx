@@ -4,6 +4,7 @@ import { buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TrustBadge } from "@/components/ui/TrustBadge";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useAuth } from "@/hooks/useAuth";
 import { useWebSearch } from "@/hooks/queries/useSearch";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
 import type { SearchFilters } from "@/lib/api/types";
@@ -29,6 +30,7 @@ const CITY_NEIGHBORHOODS: Record<string, string[]> = {
 export function CityPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const city = SUPPORTED_CITIES.find((c) => c.slug === slug);
 
@@ -162,7 +164,13 @@ export function CityPage() {
                     listing={listing}
                     ctaLabel="View Details"
                     onOpen={(id) => navigate(`/discover/${id}`)}
-                    onContact={() => navigate("/login")}
+                    onContact={(id) => {
+                      if (user) {
+                        navigate(`/discover/${id}`);
+                      } else {
+                        navigate(`/login?redirect=${encodeURIComponent(`/discover/${id}`)}`);
+                      }
+                    }}
                   />
                 ))}
               </div>

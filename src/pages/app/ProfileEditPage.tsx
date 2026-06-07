@@ -55,7 +55,9 @@ const profileSchema = z.object({
   work_style: workStyleSchema.optional(),
   gender: z.string().optional(),
   gender_preference: genderPreferenceSchema.optional(),
-  mode: flatmatesModeSchema.optional()
+  mode: flatmatesModeSchema.optional(),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal(""))
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -114,7 +116,9 @@ export function ProfileEditPage() {
       work_style: undefined,
       gender: "",
       gender_preference: undefined,
-      mode: undefined
+      mode: undefined,
+      email: "",
+      phone: ""
     }
   });
 
@@ -139,16 +143,31 @@ export function ProfileEditPage() {
         work_style: profile.work_style,
         gender: profile.gender ?? "",
         gender_preference: profile.gender_preference,
-        mode: profile.mode
+        mode: profile.mode,
+        email: profile.email ?? "",
+        phone: profile.phone ?? ""
       };
       reset(defaults);
     }
   }, [profile, isDirty, reset]);
 
+  const hasEmail = typeof profile?.email === "string" && profile.email.trim().length > 0;
+  const hasPhone = typeof profile?.phone === "string" && profile.phone.trim().length > 0;
+
   function onSubmit(data: ProfileFormData) {
     setServerError(null);
 
     const payload = stripEmptyFields(data as Record<string, unknown>);
+
+    if (hasEmail) {
+      delete payload.email;
+    }
+    if (hasPhone) {
+      delete payload.phone;
+    } else if (payload.phone) {
+      const digits = (payload.phone as string).replace(/\D/g, "").replace(/^91/, "").slice(-10);
+      payload.phone = `+91${digits}`;
+    }
 
     updateProfile.mutate(payload, {
       onSuccess: () => {
@@ -230,6 +249,29 @@ export function ProfileEditPage() {
             {serverError}
           </Card>
         )}
+
+        {/* Contact Information */}
+        <Card className="flex flex-col gap-4 p-5">
+          <h2 className="text-h3">Contact Information</h2>
+          <Input
+            label="Email"
+            type="email"
+            readOnly={hasEmail}
+            disabled={hasEmail}
+            error={errors.email?.message}
+            placeholder={hasEmail ? undefined : "Email address not available"}
+            {...register("email")}
+          />
+          <Input
+            label="Phone Number"
+            type="tel"
+            readOnly={hasPhone}
+            disabled={hasPhone}
+            error={errors.phone?.message}
+            placeholder={hasPhone ? undefined : "Phone number not available"}
+            {...register("phone")}
+          />
+        </Card>
 
         {/* Basic Info */}
         <Card className="flex flex-col gap-4 p-5">

@@ -26,6 +26,17 @@ export interface User {
   is_active?: boolean;
   created_at?: string;
   preferences?: JsonObject;
+  /** Whether the user's email has been confirmed (Supabase email_confirmed_at). */
+  email_verified?: boolean;
+  /** Whether the user's phone has been confirmed. */
+  phone_verified?: boolean;
+  /** Last auth method the user successfully used. */
+  last_auth_method?:
+    | "google"
+    | "email_password"
+    | "phone_password"
+    | "phone_otp"
+    | "email_otp";
 }
 
 export interface UserLocation {
@@ -66,7 +77,7 @@ export interface FlatmatesProfile {
 }
 
 export type FlatmatesProfileUpdate = Partial<
-  Omit<FlatmatesProfile, "id" | "email" | "phone" | "last_active_at">
+  Omit<FlatmatesProfile, "id" | "last_active_at">
 >;
 
 export interface FlatmatesPeer {

@@ -83,7 +83,6 @@ export interface SwipeProfile {
 export interface SwipeDeckProps extends HTMLAttributes<HTMLDivElement> {
   profiles: SwipeProfile[];
   currentIndex?: number;
-  superLikesRemaining?: number;
   onPass?: (profileId: string) => void;
   onLike?: (profileId: string) => void;
   onSuperLike?: (profileId: string) => void;
@@ -154,7 +153,6 @@ function getExitAnimation(direction: SwipeDirection) {
 export function SwipeDeck({
   profiles,
   currentIndex: controlledIndex,
-  superLikesRemaining,
   onPass,
   onLike,
   onSuperLike,
@@ -354,7 +352,6 @@ export function SwipeDeck({
         </AnimatePresence>
       </div>
       <SwipeActionBar
-        superLikesRemaining={superLikesRemaining}
         onLike={() => performSwipe("like", current.id)}
         onPass={() => performSwipe("pass", current.id)}
         onSuperLike={() => performSwipe("super_like", current.id)}

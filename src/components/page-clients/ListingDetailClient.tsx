@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router";
 import { MapPin, ShieldCheck } from "lucide-react";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useProperty } from "@/hooks/queries/useProperties";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
 import { formatCurrencyINR } from "@/lib/utils/format";
@@ -18,7 +19,18 @@ export default function ListingDetailClient() {
   const propertyId = Number(params.id);
 
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: property, isLoading, error, refetch } = useProperty(propertyId);
+
+  const handleContactOwner = () => {
+    if (user && property?.owner?.id) {
+      navigate(`/profile/${property.owner.id}`);
+    } else if (property?.owner?.id) {
+      navigate(`/login?redirect=${encodeURIComponent(`/profile/${property.owner.id}`)}`);
+    } else {
+      navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
+    }
+  };
 
   // Guard against invalid IDs before rendering content
   if (!params.id || isNaN(propertyId) || propertyId <= 0) {
@@ -244,12 +256,24 @@ export default function ListingDetailClient() {
               <div className="space-y-6">
                 <Card className="p-5 sticky top-24 border border-line bg-surface shadow-sm">
                   {/* Host Section */}
-                  <div className="flex items-center gap-3 border-b border-line pb-4 mb-4">
+                  <button
+                    type="button"
+                    className="flex items-center gap-3 border-b border-line pb-4 mb-4 w-full text-left hover:opacity-80 transition-opacity"
+                    onClick={() => {
+                      if (user && property?.owner?.id) {
+                        navigate(`/profile/${property.owner.id}`);
+                      } else if (property?.owner?.id) {
+                        navigate(`/login?redirect=${encodeURIComponent(`/profile/${property.owner.id}`)}`);
+                      } else {
+                        navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
+                      }
+                    }}
+                  >
                     <div className="relative">
                       <Avatar name={data.owner?.name ?? "Host"} size="lg" src={data.owner?.avatarUrl} />
                       <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-success border-2 border-surface animate-pulse" />
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <span className="text-eyebrow text-[9px] leading-none">Verified Landlord</span>
                       <h3 className="text-h3 font-semibold text-ink leading-tight flex items-center gap-1 mt-0.5">
                         {data.owner?.name ?? "Landlord"}
@@ -257,7 +281,8 @@ export default function ListingDetailClient() {
                       </h3>
                       <p className="text-caption text-ink-3 mt-0.5">Active today</p>
                     </div>
-                  </div>
+                    <span className="text-ink-3 text-sm">→</span>
+                  </button>
 
                   {/* Quick features list */}
                   <div className="space-y-3 mb-5">
@@ -273,9 +298,9 @@ export default function ListingDetailClient() {
 
                   {/* Actions inside the host card */}
                   <div className="flex flex-col gap-3">
-                    <Link to="/login" className={buttonClasses("primary", "default", true) + " w-full text-center py-2.5 font-semibold"}>
+                    <Button fullWidth className="py-2.5 font-semibold" onClick={handleContactOwner}>
                       Contact Owner
-                    </Link>
+                    </Button>
                     <Button variant="secondary" fullWidth className="py-2.5 border-line font-medium">
                       Save to Favorites
                     </Button>

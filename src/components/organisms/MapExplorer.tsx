@@ -38,8 +38,8 @@ export function MapExplorer({
   ...props
 }: MapExplorerProps) {
   return (
-    <section className={cn("relative flex min-h-[400px] md:min-h-[640px] flex-col overflow-hidden rounded-2xl border border-line bg-paper-2", className)} {...props}>
-      <div className="z-10 flex min-h-14 items-center gap-2 border-b border-line bg-surface px-3">
+    <section className={cn("relative flex min-h-[340px] md:min-h-[480px] flex-col overflow-hidden rounded-2xl border border-line bg-paper-2", className)} {...props}>
+      <div className="z-10 flex min-h-12 items-center gap-2 border-b border-line bg-surface px-3">
         <div className="flex flex-1 gap-2 overflow-x-auto">
           {filters.map((filter) => (
             <Chip key={filter} selected variant="filter">
@@ -61,11 +61,11 @@ export function MapExplorer({
         {pins.length === 0 ? (
           <EmptyState title="No map results" description="Adjust filters to see listings on the map." />
         ) : (
-          <div className="relative z-10 grid w-full max-w-lg gap-3 p-4">
+          <div className="relative z-10 grid w-full max-w-lg gap-2 p-3">
             {pins.slice(0, 4).map((pin) => (
               <button
                 type="button"
-                className="rounded-2xl border border-line bg-surface p-3 text-left shadow-sm hover:shadow-hover"
+                className="rounded-2xl border border-line bg-surface p-2.5 text-left shadow-sm hover:shadow-hover"
                 key={pin.id}
                 onClick={() => onPinSelect?.(pin.id)}
               >
@@ -76,7 +76,7 @@ export function MapExplorer({
                   title={pin.title}
                 />
                 {pin.compatibilityScore !== undefined ? (
-                  <p className="mt-2 flex items-center gap-1 text-caption text-success">
+                  <p className="mt-1 flex items-center gap-1 text-caption text-success">
                     <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
                     {pin.compatibilityScore}% compatibility
                   </p>

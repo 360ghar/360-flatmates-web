@@ -46,7 +46,7 @@ export function ListingMiniCard({
 }: ListingMiniCardProps) {
   return (
     <div className={cn("flex items-center gap-3", className)} {...props}>
-      <NetworkImage alt={title} src={imageUrl} wrapperClassName="h-14 w-14 shrink-0 rounded-xl" />
+      <NetworkImage alt={title} src={imageUrl} wrapperClassName="h-12 w-12 shrink-0 rounded-xl" />
       <div className="min-w-0">
         <p className="truncate text-body-md font-semibold text-ink">{title}</p>
         <div className="mt-1 flex items-center gap-2">

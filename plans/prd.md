@@ -122,7 +122,7 @@ Phone Auth occurs at `/login` before onboarding begins. Each step has a single p
 1. **Mode Selection**: Room Poster / Co-Hunter / Open to Both with icons and descriptions
 2. **Location Selection**: Popular cities from catalog + GPS detection + search
 3. **Basic Info**: Full name, age (18-100), profession
-4. **Profile Photo**: Image picker + upload to Supabase `profile-photos` bucket. Client-side compress to max 2MB, auto-crop to 1:1. Preview before upload.
+4. **Profile Photo**: Image picker + upload via backend API (Cloudinary). Client-side compress to max 2MB, auto-crop to 1:1. Preview before upload.
 5. **Lifestyle Quiz**: 6 dimension cards -- Sleep Schedule, Cleanliness, Food Habits, Smoking/Drinking, Guests Policy, Work Style -- each with 3-4 option chips
 6. **Budget & Timeline**: Budget min/max (range slider ₹5,000-100,000), Move-in timeline (immediate/this_month/next_month/flexible)
 7. **Preferences & Non-Negotiables**: Gender preference, 10 non-negotiable chips (food_veg_only, no_smoking, no_drinking, no_overnight_guests, no_pets, gender_female_only, gender_male_only, no_parties, min_tidy, early_riser)
@@ -163,7 +163,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 5. Match context card pinned at top (property photo, mode, locality, rent)
 6. Icebreaker suggestions and Q&A nudge in pre-message area
 7. Real-time messages via SSE (`/flatmates/sse`) with 5-second polling fallback
-8. Message types: text, image (upload to Supabase `chat-photos` bucket), visit_request
+8. Message types: text, image (upload via backend API/Cloudinary), visit_request
 9. Schedule Visit: Calendar date picker (up to 90 days) + time slot chips (Morning/Afternoon/Evening) + optional note -> `POST /visits` + sends chat message with `message_type=visit_request`
 10. Visit request card renders in chat thread with Confirm/Reschedule/Cancel actions
 11. Auto mark-as-read on conversation enter: `POST /flatmates/conversations/{id}/mark-read`
@@ -175,7 +175,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 1. Create listing: `/post` -> 8-step wizard
    - Step 0: Location (society name, address, city, locality)
    - Step 1: Society (type: gated/standalone, amenities, vibe tags)
-   - Step 2-3: Room (type: private/shared, furnishing, features, photo upload 2-10 to Supabase `listing-photos` bucket, video tour URL)
+   - Step 2-3: Room (type: private/shared, furnishing, features, photo upload 2-10 via backend API/Cloudinary, video tour URL)
    - Step 4: Flat (config 1-4BHK, floor, total floors, amenities)
    - Step 5: Costs (monthly rent, security deposit, maintenance, electricity, cook/maid/setup costs, total monthly outflow calc)
    - Step 6: About (typical day description, gender preference, age range 18-40, non-negotiables, available from date)
@@ -240,7 +240,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 | Visit Scheduling/Confirmation | Calendar date picker + time slot pills, same as mobile |
 | Match Flow + Q&A Nudge | Match celebration modal, Q&A bottom sheet |
 | Notifications | In-app notification center + FCM web push |
-| Profile Editing | Same fields, photo upload to Supabase Storage |
+| Profile Editing | Same fields, photo upload via backend API (Cloudinary) |
 | Mode-Dependent Navigation | Sidebar on desktop, bottom nav on mobile viewport |
 | Trust & Safety (Report/Block) | In-chat report, block, unmatch -- same API contracts |
 

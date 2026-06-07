@@ -2,20 +2,52 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useStore } from "zustand";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { authStore } from "@/lib/stores/auth-store";
+import {
+  checkIdentifierStatus as checkIdentifierStatusApi,
+  reportLastMethod,
+  type IdentifierStatus,
+} from "@/lib/api/auth";
+import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
 import type { Session, User } from "@supabase/supabase-js";
 
 interface UseAuthReturn {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signInWithPhone: (phone: string) => Promise<void>;
+  /** Login state-machine: ask the backend whether to show password or OTP. */
+  checkIdentifierStatus: (
+    identifier: string,
+    signal?: AbortSignal
+  ) => Promise<IdentifierStatus>;
+  /**
+   * Send a phone OTP. `shouldCreateUser` must be `false` for login & password
+   * reset (so an unknown/mistyped number cannot silently create an account) and
+   * `true` only for signup.
+   */
+  signInWithPhone: (phone: string, shouldCreateUser?: boolean) => Promise<void>;
+  /**
+   * Send a 6-digit email OTP. `shouldCreateUser` must be `false` for login &
+   * password reset and `true` only for signup. See {@link signInWithPhone}.
+   */
+  signInWithEmailOtp: (email: string, shouldCreateUser?: boolean) => Promise<void>;
   verifyOtp: (phone: string, token: string) => Promise<void>;
+  verifyEmailOtp: (email: string, token: string) => Promise<void>;
   signInWithPassword: (phone: string, password: string) => Promise<void>;
+  signInWithEmailPassword: (email: string, password: string) => Promise<void>;
   signUp: (phone: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   updateUser: (password: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  /** Add + send OTP to a new phone for the signed-in user (Google add-phone). */
+  addPhone: (phone: string) => Promise<void>;
+  /** Verify the phone-change OTP for the signed-in user. */
+  verifyPhoneChange: (phone: string, token: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /**
+   * Record a successful auth: persists the last-used method locally (masked
+   * identifier hint) and reports it to the backend (best-effort). Call after
+   * every successful sign-in/sign-up, including Google.
+   */
+  recordAuthSuccess: (method: AuthMethod, identifier?: string) => Promise<void>;
 }
 
 const TOKEN_EXPIRY_BUFFER_S = 5 * 60;
@@ -101,9 +133,29 @@ export function useAuth(): UseAuthReturn {
     initAuthSubscription();
   }, []);
 
+  const checkIdentifierStatus = useCallback(
+    (identifier: string, signal?: AbortSignal) =>
+      checkIdentifierStatusApi(identifier, signal),
+    []
+  );
+
   const signInWithPhone = useCallback(
-    async (phone: string) => {
-      const { error } = await supabase.auth.signInWithOtp({ phone });
+    async (phone: string, shouldCreateUser = false) => {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone,
+        options: { shouldCreateUser },
+      });
+      if (error) throw error;
+    },
+    [supabase]
+  );
+
+  const signInWithEmailOtp = useCallback(
+    async (email: string, shouldCreateUser = false) => {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser },
+      });
       if (error) throw error;
     },
     [supabase]
@@ -121,10 +173,33 @@ export function useAuth(): UseAuthReturn {
     [supabase]
   );
 
+  const verifyEmailOtp = useCallback(
+    async (email: string, token: string) => {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "email"
+      });
+      if (error) throw error;
+    },
+    [supabase]
+  );
+
   const signInWithPassword = useCallback(
     async (phone: string, password: string) => {
       const { error } = await supabase.auth.signInWithPassword({
         phone,
+        password
+      });
+      if (error) throw error;
+    },
+    [supabase]
+  );
+
+  const signInWithEmailPassword = useCallback(
+    async (email: string, password: string) => {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
         password
       });
       if (error) throw error;
@@ -144,11 +219,12 @@ export function useAuth(): UseAuthReturn {
   );
 
   const signInWithGoogle = useCallback(async () => {
+    const redirectTo =
+      import.meta.env.VITE_AUTH_REDIRECT_URL ??
+      `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo },
     });
     if (error) throw error;
   }, [supabase]);
@@ -161,9 +237,22 @@ export function useAuth(): UseAuthReturn {
     [supabase]
   );
 
-  const resetPassword = useCallback(
-    async (email: string) => {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const addPhone = useCallback(
+    async (phone: string) => {
+      // Triggers a phone-change OTP for the currently signed-in user.
+      const { error } = await supabase.auth.updateUser({ phone });
+      if (error) throw error;
+    },
+    [supabase]
+  );
+
+  const verifyPhoneChange = useCallback(
+    async (phone: string, token: string) => {
+      const { error } = await supabase.auth.verifyOtp({
+        phone,
+        token,
+        type: "phone_change"
+      });
       if (error) throw error;
     },
     [supabase]
@@ -174,18 +263,32 @@ export function useAuth(): UseAuthReturn {
     if (error) throw error;
   }, [supabase]);
 
+  const recordAuthSuccess = useCallback(
+    async (method: AuthMethod, identifier?: string) => {
+      setLastAuthMethod(method, identifier);
+      await reportLastMethod(method);
+    },
+    []
+  );
+
   return {
     user,
     session,
     loading,
+    checkIdentifierStatus,
     signInWithPhone,
+    signInWithEmailOtp,
     verifyOtp,
+    verifyEmailOtp,
     signInWithPassword,
+    signInWithEmailPassword,
     signUp,
     signInWithGoogle,
     updateUser,
-    resetPassword,
-    signOut
+    addPhone,
+    verifyPhoneChange,
+    signOut,
+    recordAuthSuccess
   };
 }
 

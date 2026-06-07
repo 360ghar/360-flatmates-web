@@ -35,6 +35,7 @@ export function propertyToListingCardProps(property: Property): ListingCardData 
     features: property.features,
     owner: property.owner
       ? {
+          id: property.owner.id,
           name: property.owner.full_name,
           avatarUrl: property.owner.profile_image_url
         }

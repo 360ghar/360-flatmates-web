@@ -13,6 +13,8 @@ interface PhoneInputProps {
   className?: string;
   id?: string;
   label?: string;
+  /** HTML autocomplete hint for the underlying input (defaults to `tel`). */
+  autoComplete?: string;
 }
 
 export function PhoneInput({
@@ -22,7 +24,8 @@ export function PhoneInput({
   autoFocus = false,
   className,
   id,
-  label
+  label,
+  autoComplete = "tel"
 }: PhoneInputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
@@ -55,6 +58,7 @@ export function PhoneInput({
           id={inputId}
           type="tel"
           inputMode="numeric"
+          autoComplete={autoComplete}
           placeholder="98765 43210"
           value={value}
           onChange={handleChange}

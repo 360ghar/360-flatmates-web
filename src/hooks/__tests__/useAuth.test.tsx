@@ -10,6 +10,7 @@ const mockVerifyOtp = vi.fn();
 const mockSignInWithPassword = vi.fn();
 const mockSignUp = vi.fn();
 const mockSignOut = vi.fn();
+const mockUpdateUser = vi.fn();
 
 const mockSupabaseAuth = {
   getSession: mockGetSession,
@@ -18,13 +19,28 @@ const mockSupabaseAuth = {
   verifyOtp: mockVerifyOtp,
   signInWithPassword: mockSignInWithPassword,
   signUp: mockSignUp,
-  signOut: mockSignOut
+  signOut: mockSignOut,
+  updateUser: mockUpdateUser
 };
 
 vi.mock("@/lib/supabase/client", () => ({
   getSupabaseBrowserClient: () => ({
     auth: mockSupabaseAuth
   })
+}));
+
+const mockCheckIdentifierStatus = vi.fn();
+const mockReportLastMethod = vi.fn();
+
+vi.mock("@/lib/api/auth", () => ({
+  checkIdentifierStatus: (...args: unknown[]) => mockCheckIdentifierStatus(...args),
+  reportLastMethod: (...args: unknown[]) => mockReportLastMethod(...args)
+}));
+
+const mockSetLastAuthMethod = vi.fn();
+
+vi.mock("@/lib/lastAuthMethod", () => ({
+  setLastAuthMethod: (...args: unknown[]) => mockSetLastAuthMethod(...args)
 }));
 
 import { useAuth, _resetAuthForTests } from "@/hooks/useAuth";
@@ -96,14 +112,30 @@ describe("useAuth", () => {
     expect(result.current.session).toEqual(mockSession);
   });
 
-  it("calls signInWithPhone and throws on error", async () => {
+  it("calls signInWithPhone with shouldCreateUser:false by default (login/reset safe)", async () => {
     mockSignInWithOtp.mockResolvedValue({ error: null });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
     await act(async () => {
       await result.current.signInWithPhone("+919876543210");
     });
-    expect(mockSignInWithOtp).toHaveBeenCalledWith({ phone: "+919876543210" });
+    expect(mockSignInWithOtp).toHaveBeenCalledWith({
+      phone: "+919876543210",
+      options: { shouldCreateUser: false }
+    });
+  });
+
+  it("calls signInWithPhone with shouldCreateUser:true for signup", async () => {
+    mockSignInWithOtp.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.signInWithPhone("+919876543210", true);
+    });
+    expect(mockSignInWithOtp).toHaveBeenCalledWith({
+      phone: "+919876543210",
+      options: { shouldCreateUser: true }
+    });
   });
 
   it("signInWithPhone re-throws Supabase error", async () => {
@@ -178,5 +210,112 @@ describe("useAuth", () => {
         await result.current.signOut();
       })
     ).rejects.toThrow("Sign out failed");
+  });
+
+  it("signInWithEmailOtp sends a 6-digit OTP with shouldCreateUser:false by default", async () => {
+    mockSignInWithOtp.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.signInWithEmailOtp("user@example.com");
+    });
+    expect(mockSignInWithOtp).toHaveBeenCalledWith({
+      email: "user@example.com",
+      options: { shouldCreateUser: false }
+    });
+  });
+
+  it("signInWithEmailOtp passes shouldCreateUser:true for signup", async () => {
+    mockSignInWithOtp.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.signInWithEmailOtp("user@example.com", true);
+    });
+    expect(mockSignInWithOtp).toHaveBeenCalledWith({
+      email: "user@example.com",
+      options: { shouldCreateUser: true }
+    });
+  });
+
+  it("verifyEmailOtp calls verifyOtp with email and type email", async () => {
+    mockVerifyOtp.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.verifyEmailOtp("user@example.com", "654321");
+    });
+    expect(mockVerifyOtp).toHaveBeenCalledWith({
+      email: "user@example.com",
+      token: "654321",
+      type: "email"
+    });
+  });
+
+  it("signInWithEmailPassword calls signInWithPassword with email", async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.signInWithEmailPassword("user@example.com", "secret");
+    });
+    expect(mockSignInWithPassword).toHaveBeenCalledWith({
+      email: "user@example.com",
+      password: "secret"
+    });
+  });
+
+  it("addPhone calls updateUser with phone", async () => {
+    mockUpdateUser.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.addPhone("+919876543210");
+    });
+    expect(mockUpdateUser).toHaveBeenCalledWith({ phone: "+919876543210" });
+  });
+
+  it("verifyPhoneChange calls verifyOtp with type phone_change", async () => {
+    mockVerifyOtp.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.verifyPhoneChange("+919876543210", "123456");
+    });
+    expect(mockVerifyOtp).toHaveBeenCalledWith({
+      phone: "+919876543210",
+      token: "123456",
+      type: "phone_change"
+    });
+  });
+
+  it("checkIdentifierStatus delegates to the auth API helper", async () => {
+    const status = {
+      exists: true,
+      verified: true,
+      has_password: true,
+      channel: "email",
+      next_step: "password"
+    };
+    mockCheckIdentifierStatus.mockResolvedValue(status);
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    let resolved: unknown;
+    await act(async () => {
+      resolved = await result.current.checkIdentifierStatus("user@example.com");
+    });
+    expect(mockCheckIdentifierStatus).toHaveBeenCalledWith("user@example.com", undefined);
+    expect(resolved).toEqual(status);
+  });
+
+  it("recordAuthSuccess persists the method locally and reports it to the backend", async () => {
+    mockReportLastMethod.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.recordAuthSuccess("phone_otp", "+919876543210");
+    });
+    expect(mockSetLastAuthMethod).toHaveBeenCalledWith("phone_otp", "+919876543210");
+    expect(mockReportLastMethod).toHaveBeenCalledWith("phone_otp");
   });
 });

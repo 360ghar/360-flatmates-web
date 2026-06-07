@@ -12,13 +12,13 @@ export interface PropertyDetailSheetProps {
 
 export function PropertyDetailSheet({ pin, onClose, onNavigate }: PropertyDetailSheetProps) {
   return (
-    <div className="md:hidden max-h-[45vh] overflow-y-auto border-t border-line bg-surface p-3 sm:p-4 shadow-sm">
-      <div className="flex items-start gap-3">
+    <div className="md:hidden max-h-[40vh] overflow-y-auto border-t border-line bg-surface p-2 sm:p-3 shadow-sm">
+      <div className="flex items-start gap-2.5">
         {pin.main_image_url && (
           <NetworkImage
             alt={pin.title}
             src={pin.main_image_url}
-            wrapperClassName="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-xl"
+            wrapperClassName="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-xl"
           />
         )}
         <div className="min-w-0 flex-1">
@@ -39,7 +39,7 @@ export function PropertyDetailSheet({ pin, onClose, onNavigate }: PropertyDetail
               <X aria-hidden="true" className="h-4 w-4" />
             </button>
           </div>
-          <div className="mt-2 sm:mt-3 flex gap-2">
+          <div className="mt-1.5 sm:mt-2 flex gap-2">
             <Button
               size="compact"
               fullWidth

@@ -21,7 +21,7 @@ const SECTIONS = [
   {
     title: "4. Data Storage and Security",
     content:
-      "Your data is stored on secure servers with encryption at rest and in transit. We use Supabase for authentication and data storage, which provides industry-standard security measures including SOC 2 compliance. We retain your data for as long as your account is active or as needed to provide services.",
+      "Your data is stored on secure servers with encryption at rest and in transit. We use Supabase for authentication and Cloudinary for media storage, both providing industry-standard security measures including SOC 2 compliance. We retain your data for as long as your account is active or as needed to provide services.",
   },
   {
     title: "5. Cookies and Tracking",

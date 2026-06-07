@@ -22,6 +22,7 @@ export interface ListingCardData {
   areaSqFt?: number;
   features?: string[];
   owner?: {
+    id?: number;
     name: string;
     avatarUrl?: string | null;
   };

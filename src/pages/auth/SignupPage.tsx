@@ -4,10 +4,13 @@ import { useNavigate } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useWebOtp } from "@/hooks/useWebOtp";
+import { useResendTimer } from "@/hooks/useResendTimer";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PhoneInput, formatFullPhone } from "@/components/ui/PhoneInput";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { ResendOtp } from "@/components/ui/ResendOtp";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { GoogleIcon } from "@/components/ui/GoogleIcon";
 import { OrDivider } from "@/components/ui/OrDivider";
@@ -19,7 +22,7 @@ const STEP_LABELS = ["Enter phone", "Verify OTP"];
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const { signInWithPhone, verifyOtp, signUp, signInWithGoogle } = useAuth();
+  const { signInWithPhone, verifyOtp, signUp, signInWithGoogle, recordAuthSuccess } = useAuth();
 
   const [step, setStep] = useState<SignupStep>("phone");
   const [phone, setPhone] = useState("");
@@ -29,9 +32,15 @@ export function SignupPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  const resendTimer = useResendTimer(30);
+
   const currentStepIndex = step === "phone" ? 0 : 1;
+
+  // SMS OTP autofill (Android Chrome) — active only on the verify step.
+  useWebOtp(step === "verify", setOtp);
 
   const handleGoogleSignUp = useCallback(async () => {
     setError(null);
@@ -48,14 +57,29 @@ export function SignupPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await signInWithPhone(formatFullPhone(phone));
+      // Signup: allow Supabase to create the account for this new phone.
+      await signInWithPhone(formatFullPhone(phone), true);
       setStep("verify");
+      resendTimer.start();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to send OTP. Please try again.");
     } finally {
       setSubmitting(false);
     }
-  }, [signInWithPhone, phone]);
+  }, [signInWithPhone, phone, resendTimer]);
+
+  const handleResendOtp = useCallback(async () => {
+    setError(null);
+    setResending(true);
+    try {
+      await signInWithPhone(formatFullPhone(phone), true);
+      resendTimer.start();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to resend code. Please try again.");
+    } finally {
+      setResending(false);
+    }
+  }, [signInWithPhone, phone, resendTimer]);
 
   const handleVerifyAndSignUp = useCallback(async () => {
     setError(null);
@@ -82,13 +106,14 @@ export function SignupPage() {
       const fullPhone = formatFullPhone(phone);
       await verifyOtp(fullPhone, otp);
       await signUp(fullPhone, password);
+      await recordAuthSuccess("phone_otp", fullPhone);
       navigate("/home");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to verify. Please try again.");
     } finally {
       setSubmitting(false);
     }
-  }, [verifyOtp, signUp, phone, otp, password, confirmPassword, acceptedTerms, navigate]);
+  }, [verifyOtp, signUp, recordAuthSuccess, phone, otp, password, confirmPassword, acceptedTerms, navigate]);
 
   return (
     <>
@@ -159,16 +184,21 @@ export function SignupPage() {
           />
           <Input
             label="OTP"
-            placeholder="6-digit code"
-            maxLength={6}
+            placeholder="4-digit code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={4}
             value={otp}
-            onChange={(e) => setOtp(e.target.value)}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
             className="mt-4"
             autoFocus
           />
+          <ResendOtp timer={resendTimer} onResend={handleResendOtp} loading={resending} />
           <PasswordInput
             label="Password"
             placeholder="Min 8 characters"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="mt-4"
@@ -176,6 +206,7 @@ export function SignupPage() {
           <PasswordInput
             label="Confirm password"
             placeholder="Re-enter password"
+            autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="mt-4"
@@ -213,9 +244,9 @@ export function SignupPage() {
               Back
             </Button>
             <Button
-              fullWidth
+              className="flex-1"
               loading={submitting}
-              disabled={!otp || otp.length < 6 || !password || !confirmPassword || !acceptedTerms}
+              disabled={!otp || otp.length < 4 || !password || !confirmPassword || !acceptedTerms}
               onClick={handleVerifyAndSignUp}
             >
               Verify & Sign up

@@ -33,6 +33,7 @@ const LoginPage = lazy(() => import("./pages/auth/LoginPage").then((m) => ({ def
 const SignupPage = lazy(() => import("./pages/auth/SignupPage").then((m) => ({ default: m.SignupPage })));
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage").then((m) => ({ default: m.ForgotPasswordPage })));
 const AuthCallbackPage = lazy(() => import("./pages/auth/AuthCallbackPage").then((m) => ({ default: m.AuthCallbackPage })));
+const AddPhonePage = lazy(() => import("./pages/auth/AddPhonePage").then((m) => ({ default: m.AddPhonePage })));
 
 // App pages
 const HomePage = lazy(() => import("./pages/app/HomePage").then((m) => ({ default: m.HomePage })));
@@ -110,6 +111,13 @@ export function App() {
                 <Route path="signup" element={<SignupPage />} />
                 <Route path="forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="auth/callback" element={<AuthCallbackPage />} />
+              </Route>
+            </Route>
+
+            {/* ── Authenticated auth-flow routes (post-Google add-phone) ── */}
+            <Route element={<AuthGuard />}>
+              <Route element={<AuthLayout />}>
+                <Route path="add-phone" element={<AddPhonePage />} />
               </Route>
             </Route>
 

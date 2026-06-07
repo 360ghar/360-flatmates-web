@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL, buildBreadcrumbJsonLd, homeBreadcrumb } from "@/lib/seo";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useCities } from "@/hooks/queries/useCatalogs";
 import { useWebSearch } from "@/hooks/queries/useSearch";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
@@ -42,6 +43,7 @@ const breadcrumbLd = buildBreadcrumbJsonLd([
 
 export function DiscoverPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [params, setParams] = useQueryStates(discoverPageParams, {
     history: "replace",
@@ -167,7 +169,13 @@ export function DiscoverPage() {
                     listing={listing}
                     ctaLabel="View Details"
                     onOpen={(id) => navigate(`/discover/${id}`)}
-                    onContact={() => navigate("/login")}
+                    onContact={(id) => {
+                      if (user) {
+                        navigate(`/discover/${id}`);
+                      } else {
+                        navigate(`/login?redirect=${encodeURIComponent(`/discover/${id}`)}`);
+                      }
+                    }}
                   />
                 </div>
               ))

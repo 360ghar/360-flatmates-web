@@ -187,7 +187,6 @@ export function SwipePage() {
           onEmptyAction={() => navigate("/explore")}
           onNearEnd={handleNearEnd}
           onIndexChange={setDeckIndex}
-          superLikesRemaining={3}
           isAnimating={storeAnimating}
         />
       </div>
