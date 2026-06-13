@@ -80,3 +80,40 @@ export async function reportLastMethod(method: AuthMethod): Promise<void> {
     /* best-effort — auth already succeeded */
   }
 }
+
+// ── Auth gate-state (centralized gate model) ─────────────────────────────────
+// The gate model: IDENTIFIER_VERIFICATION -> PASSWORD_SETUP -> PROFILE_COMPLETION
+// -> APP_ONBOARDING -> ACTIVE.  Computed on the backend; the client reads it
+// from GET /users/me/auth-state and routes accordingly.
+
+export type AuthStage =
+  | "identifier_verification"
+  | "password_setup"
+  | "profile_completion"
+  | "app_onboarding"
+  | "active";
+
+export interface AuthStateResponse {
+  stage: AuthStage;
+  next_action: string;
+  missing_fields: string[];
+}
+
+/**
+ * Fetch the current auth gate stage from the backend.
+ * Requires an authenticated session (the access token is attached by the apiClient).
+ *
+ * @param app the app slug whose onboarding to check (defaults to "flatmates").
+ */
+export function getAuthState(
+  app: string = "flatmates",
+  signal?: AbortSignal
+): Promise<AuthStateResponse> {
+  return apiClient.request<AuthStateResponse, { app: string }>({
+    method: "GET",
+    path: "/users/me/auth-state",
+    query: { app },
+    auth: true,
+    signal,
+  });
+}

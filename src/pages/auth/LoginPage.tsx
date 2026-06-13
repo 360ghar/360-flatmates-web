@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
@@ -13,6 +13,7 @@ import { ResendOtp } from "@/components/ui/ResendOtp";
 import { GoogleIcon } from "@/components/ui/GoogleIcon";
 import { OrDivider } from "@/components/ui/OrDivider";
 import { detectIdentifierChannel } from "@/lib/api/auth";
+import { authStore } from "@/lib/stores/auth-store";
 import { getLastAuthMethod, maskIdentifier } from "@/lib/lastAuthMethod";
 import { PASSWORD_REGEX } from "@/lib/schemas/common";
 
@@ -55,6 +56,7 @@ export function LoginPage() {
     verifyEmailOtp,
     updateUser,
     signInWithGoogle,
+    signInWithApple,
     recordAuthSuccess,
   } = useAuth();
 
@@ -77,6 +79,20 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+
+  /** Apple Sign-In is only available on iOS/Safari browsers. */
+  const isAppleSupported = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const supportsTouchCallout =
+      typeof CSS !== "undefined" && typeof CSS.supports === "function"
+        ? CSS.supports("-webkit-touch-callout", "none")
+        : false;
+    return (
+      supportsTouchCallout ||
+      /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent)
+    );
+  }, []);
 
   const resendTimer = useResendTimer(30);
 
@@ -89,6 +105,14 @@ export function LoginPage() {
 
   // SMS OTP autofill (Android Chrome) — only while awaiting a phone OTP.
   useWebOtp(step === "otp" && channel === "phone", setOtp);
+
+  // OTP verification creates a session before the flow is finished (the
+  // mandatory set-password step may still follow). Hold AuthRedirectGuard
+  // while on those steps so it cannot bounce the user to /home mid-flow.
+  useEffect(() => {
+    authStore.getState().setMidAuthFlow(step === "otp" || step === "set-password");
+    return () => authStore.getState().setMidAuthFlow(false);
+  }, [step]);
 
   const resolvedIdentifier = useMemo(
     () => (channel === "phone" ? normalizePhone(identifier) : identifier.trim()),
@@ -108,6 +132,17 @@ export function LoginPage() {
     }
   }, [signInWithGoogle]);
 
+  const handleAppleLogin = useCallback(async () => {
+    setError(null);
+    setAppleLoading(true);
+    try {
+      await signInWithApple();
+    } catch (err: unknown) {
+      setAppleLoading(false);
+      setError(err instanceof Error ? err.message : "Apple sign-in failed. Please try again.");
+    }
+  }, [signInWithApple]);
+
   const handleContinue = useCallback(async () => {
     setError(null);
     setSubmitting(true);
@@ -116,10 +151,12 @@ export function LoginPage() {
       if (status.next_step === "password") {
         setStep("password");
       } else {
-        // OTP-first. Only allow account creation when the identifier is unknown
-        // (login form doubles as signup for unknown identifiers); never create
-        // for an existing account — that would be a silent duplicate.
-        const allowCreate = !status.exists;
+        // OTP-first. Allow account creation when the identifier is unknown
+        // (login form doubles as signup for unknown identifiers) or the account
+        // is still unverified — some GoTrue versions reject a login-only OTP
+        // for unconfirmed accounts ("Signups not allowed for otp"). An existing
+        // account is never duplicated by shouldCreateUser=true.
+        const allowCreate = !status.exists || !status.verified;
         if (channel === "phone") {
           await signInWithPhone(resolvedIdentifier, allowCreate);
         } else {
@@ -291,10 +328,10 @@ export function LoginPage() {
 
   return (
     <>
-      <SeoHelmet title="Sign In" description="Sign in to your 360 Flatmates account to access compatible flatmate matches, verified listings, and in-app chat." canonicalUrl={`${SITE_URL}/login`} noindex />
-      <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Sign in</h1>
+      <SeoHelmet title="Sign In or Sign Up" description="Sign in to your 360 Flatmates account — or create one — to access compatible flatmate matches, verified listings, and in-app chat." canonicalUrl={`${SITE_URL}/login`} noindex />
+      <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Sign in or sign up</h1>
       <p className="mt-2 text-body-md text-ink-2">
-        Enter your credentials to find your <span className="text-serif-italic text-accent italic font-normal text-[18px]">vibe match</span>.
+        Enter your email or phone to find your <span className="text-serif-italic text-accent italic font-normal text-[18px]">vibe match</span> — we&apos;ll create an account if you&apos;re new.
       </p>
 
       {lastMethod && step === "identifier" && (
@@ -325,6 +362,25 @@ export function LoginPage() {
           Continue with Google
         </span>
       </Button>
+
+      {isAppleSupported && (
+        <Button
+          fullWidth
+          variant="secondary"
+          className="mt-3 bg-black text-white hover:bg-black/90"
+          aria-label="Continue with Apple"
+          data-method-highlight={lastMethod?.method === "apple" ? "true" : undefined}
+          loading={appleLoading}
+          onClick={handleAppleLogin}
+        >
+          <span className="flex items-center justify-center gap-2">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M17.05 12.04c-.03-3.18 2.6-4.71 2.72-4.78-1.49-2.18-3.81-2.47-4.62-2.51-1.97-.2-3.84 1.16-4.84 1.16-1 0-2.54-1.13-4.18-1.1-2.15.03-4.13 1.25-5.24 3.18-2.23 3.87-.57 9.6 1.61 12.74 1.06 1.54 2.33 3.28 4 3.22 1.61-.07 2.22-1.04 4.16-1.04 1.94 0 2.49 1.04 4.18 1.01 1.73-.03 2.82-1.57 3.88-3.12 1.22-1.79 1.73-3.52 1.75-3.61-.04-.02-3.36-1.29-3.39-5.11zM14.06 3.42c.89-1.08 1.49-2.58 1.33-4.08-1.28.05-2.84.85-3.76 1.93-.83.96-1.55 2.49-1.36 3.96 1.43.11 2.9-.72 3.79-1.81z"/>
+            </svg>
+            Continue with Apple
+          </span>
+        </Button>
+      )}
 
       <OrDivider className="my-5" />
 
@@ -468,11 +524,16 @@ export function LoginPage() {
         </>
       )}
 
-      <p className="mt-6 text-center text-body-md text-ink-2">
-        Don&apos;t have an account?{" "}
-        <Link to="/signup" className="text-accent hover:underline">
-          Sign up
+      <p className="mt-6 text-center text-caption text-ink-3">
+        By continuing, you agree to our{" "}
+        <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+          Privacy Policy
         </Link>
+        .
       </p>
     </>
   );
@@ -482,6 +543,8 @@ function describeMethod(method: string): string {
   switch (method) {
     case "google":
       return "Google";
+    case "apple":
+      return "Apple";
     case "email_password":
       return "email & password";
     case "phone_password":

@@ -4,6 +4,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { setLastAuthMethod } from "@/lib/lastAuthMethod";
 import { reportLastMethod } from "@/lib/api/auth";
+import type { AuthMethod } from "@/lib/lastAuthMethod";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -18,15 +19,19 @@ export function AuthCallbackPage() {
         const supabase = getSupabaseBrowserClient();
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
-          // OAuth (Google) success — record last-used method now that we have a
-          // session. The provider is read from the user identities; default to
-          // google since this callback handles the OAuth redirect flow.
           const user = data.session?.user;
           const email = typeof user?.email === "string" ? user.email : undefined;
-          setLastAuthMethod("google", email);
-          await reportLastMethod("google");
 
-          // New Google users have no phone → route to the skippable add-phone
+          // Detect the OAuth provider from the user identities to record the
+          // correct last-auth-method (google or apple).
+          const identities = user?.identities ?? [];
+          const provider = identities.length > 0 ? identities[0]?.provider : "google";
+          const method: AuthMethod = provider === "apple" ? "apple" : "google";
+
+          setLastAuthMethod(method, email);
+          await reportLastMethod(method);
+
+          // New OAuth users have no phone → route to the skippable add-phone
           // interstitial; otherwise honor the validated `next` target.
           const hasPhone = typeof user?.phone === "string" && user.phone.length > 0;
           const safeNext =

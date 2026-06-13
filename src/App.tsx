@@ -1,9 +1,9 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router";
+import { Routes, Route, Navigate } from "react-router";
 import { HelmetProvider } from "react-helmet-async";
 import { Providers } from "./providers";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { AuthGuard, AdminGuard, AuthRedirectGuard } from "./pages/guards";
+import { AuthGuard, AdminGuard, AuthRedirectGuard, GateGuard } from "./pages/guards";
 import { PublicLayout } from "./pages/public/PublicLayout";
 import { AuthLayout } from "./pages/auth/AuthLayout";
 import { AppLayout } from "./pages/app/AppLayout";
@@ -30,7 +30,6 @@ const ComparisonPage = lazy(() => import("./pages/public/ComparisonPage").then((
 
 // Auth pages
 const LoginPage = lazy(() => import("./pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })));
-const SignupPage = lazy(() => import("./pages/auth/SignupPage").then((m) => ({ default: m.SignupPage })));
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage").then((m) => ({ default: m.ForgotPasswordPage })));
 const AuthCallbackPage = lazy(() => import("./pages/auth/AuthCallbackPage").then((m) => ({ default: m.AuthCallbackPage })));
 const AddPhonePage = lazy(() => import("./pages/auth/AddPhonePage").then((m) => ({ default: m.AddPhonePage })));
@@ -108,7 +107,9 @@ export function App() {
             <Route element={<AuthRedirectGuard />}>
               <Route element={<AuthLayout />}>
                 <Route path="login" element={<LoginPage />} />
-                <Route path="signup" element={<SignupPage />} />
+                {/* Signup is unified into the login flow (it doubles as
+                    signup for unknown identifiers); keep inbound links alive. */}
+                <Route path="signup" element={<Navigate to="/login" replace />} />
                 <Route path="forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="auth/callback" element={<AuthCallbackPage />} />
               </Route>
@@ -123,7 +124,8 @@ export function App() {
 
             {/* ── Authenticated app routes ── */}
             <Route element={<AuthGuard />}>
-              <Route element={<AppLayout />}>
+              <Route element={<GateGuard />}>
+                <Route element={<AppLayout />}>
                 <Route path="home" element={<HomePage />} />
                 <Route path="search" element={<SearchPage />} />
                 <Route path="search/semantic" element={<SemanticSearchPage />} />
@@ -161,6 +163,7 @@ export function App() {
                 <Route path="help" element={<HelpPage />} />
                 <Route path="alerts" element={<AlertsPage />} />
                 <Route path="saved-searches" element={<SavedSearchesPage />} />
+                </Route>
               </Route>
             </Route>
 

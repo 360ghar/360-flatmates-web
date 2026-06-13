@@ -34,8 +34,8 @@ interface UseAuthReturn {
   verifyEmailOtp: (email: string, token: string) => Promise<void>;
   signInWithPassword: (phone: string, password: string) => Promise<void>;
   signInWithEmailPassword: (email: string, password: string) => Promise<void>;
-  signUp: (phone: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   updateUser: (password: string) => Promise<void>;
   /** Add + send OTP to a new phone for the signed-in user (Google add-phone). */
   addPhone: (phone: string) => Promise<void>;
@@ -74,6 +74,9 @@ export function _resetAuthForTests() {
     isLoginModalOpen: false,
     pendingRedirect: null,
     authError: null,
+    midAuthFlow: false,
+    authStage: "active",
+    missingProfileFields: [],
   });
 }
 
@@ -207,23 +210,23 @@ export function useAuth(): UseAuthReturn {
     [supabase]
   );
 
-  const signUp = useCallback(
-    async (phone: string, password: string) => {
-      const { error } = await supabase.auth.signUp({
-        phone,
-        password
-      });
-      if (error) throw error;
-    },
-    [supabase]
-  );
-
   const signInWithGoogle = useCallback(async () => {
     const redirectTo =
       import.meta.env.VITE_AUTH_REDIRECT_URL ??
       `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: { redirectTo },
+    });
+    if (error) throw error;
+  }, [supabase]);
+
+  const signInWithApple = useCallback(async () => {
+    const redirectTo =
+      import.meta.env.VITE_AUTH_REDIRECT_URL ??
+      `${window.location.origin}/auth/callback`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
       options: { redirectTo },
     });
     if (error) throw error;
@@ -282,8 +285,8 @@ export function useAuth(): UseAuthReturn {
     verifyEmailOtp,
     signInWithPassword,
     signInWithEmailPassword,
-    signUp,
     signInWithGoogle,
+    signInWithApple,
     updateUser,
     addPhone,
     verifyPhoneChange,

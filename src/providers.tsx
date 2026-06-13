@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useSSE } from "@/hooks/useSSE";
 import { ApiClientError, setAccessToken, setRefreshTokenHandler } from "@/lib/api";
+import { getAuthState } from "@/lib/api/auth";
+import { authStore } from "@/lib/stores/auth-store";
 import { useStore } from "zustand";
 import { uiStore } from "@/lib/stores/ui-store";
 import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
@@ -39,6 +41,29 @@ function ProviderInternals({
     const token = session?.access_token ?? null;
     setAccessToken(token);
   }, [session?.access_token, loading]);
+
+  // Fetch the backend-computed auth gate stage when the user is authenticated
+  // and not in the middle of a multi-step auth flow. The GateGuard reads
+  // authStore.authStage to route profile-completion / onboarding screens.
+  useEffect(() => {
+    const midAuthFlow = authStore.getState().midAuthFlow;
+    if (!isAuthenticated || midAuthFlow) return;
+
+    let cancelled = false;
+    getAuthState("flatmates")
+      .then((data) => {
+        if (!cancelled) {
+          authStore.getState().setAuthStage(data.stage, data.missing_fields);
+        }
+      })
+      .catch(() => {
+        // Non-fatal: default stage is "active" so the user proceeds.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     setRefreshTokenHandler(async () => {

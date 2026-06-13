@@ -15,6 +15,7 @@
 
 export type AuthMethod =
   | "google"
+  | "apple"
   | "email_password"
   | "phone_password"
   | "phone_otp"
