@@ -83,16 +83,8 @@ function HeroMiniCards() {
     if (card.type === "chat" && card.message) {
       return (
         <div className="flex items-start gap-3 w-full">
-          <div className="relative h-10 w-10 shrink-0 rounded-full overflow-hidden border border-line bg-paper-2 mt-0.5">
-            <img
-              src="/avatars/rohan.png"
-              alt="Chat partner avatar"
-              className="h-full w-full object-cover"
-              loading="lazy"
-              decoding="async"
-              width={40}
-              height={40}
-            />
+          <div className="relative h-10 w-10 shrink-0 rounded-full flex items-center justify-center border border-line bg-accent-soft text-accent font-semibold text-sm mt-0.5" aria-hidden="true">
+            RK
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
@@ -110,16 +102,8 @@ function HeroMiniCards() {
     if (card.type === "verified" && card.label) {
       return (
         <div className="flex items-center gap-3 w-full">
-          <div className="relative h-11 w-11 shrink-0 rounded-xl overflow-hidden border border-line bg-paper-2">
-            <img
-              src="/avatars/anya.png"
-              alt="Verified user profile avatar"
-              className="h-full w-full object-cover"
-              loading="lazy"
-              decoding="async"
-              width={44}
-              height={44}
-            />
+          <div className="relative h-11 w-11 shrink-0 rounded-xl flex items-center justify-center border border-line bg-accent-soft text-accent font-semibold text-sm" aria-hidden="true">
+            AM
             <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-surface" />
           </div>
           <div>
@@ -238,7 +222,7 @@ export function HeroSection() {
             </div>
 
             <div className="hero-animate hero-stagger-6 mt-6 flex flex-col items-center gap-2.5 lg:items-start lg:mx-0 mx-auto">
-              <p className="text-label-md text-ink-4 uppercase tracking-wider text-[10px]">Also available on</p>
+              <p className="text-label-md text-ink-3 dark:text-ink-2 uppercase tracking-wider text-[10px]">Also available on</p>
               <AppStoreBadges variant="light" />
             </div>
           </div>
