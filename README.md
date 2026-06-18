@@ -2,6 +2,12 @@
 
 A modern web platform for finding compatible roommates and shared living spaces. Built with React, TypeScript, and Tailwind CSS.
 
+## Overview
+
+[![360 Flatmates overview](.wiki/video/overview-poster.png)](.wiki/video/overview.mp4)
+
+*Click the poster to watch the full overview video (2:23)*
+
 ## Tech Stack
 
 - **Framework**: Vite + React Router v7 (SPA, no SSR)
@@ -73,6 +79,10 @@ See `.env.example` for all required variables:
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon key |
 | `VITE_GOOGLE_MAPS_API_KEY` | Google Maps / Geocoding |
 | `VITE_VAPID_PUBLIC_KEY` | Web push notifications |
+
+## Wiki
+
+Comprehensive codebase documentation is available in the [GitHub Wiki](https://github.com/360ghar/360-flatmates-web/wiki). The wiki source lives in `.wiki/` and is auto-published to the GitHub Wiki on push to main via `.github/workflows/publish-wiki.yml`. To re-render the video overview after major changes, run `npm run wiki:render-video`.
 
 ## License
 

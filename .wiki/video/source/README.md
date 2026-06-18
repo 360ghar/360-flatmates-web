@@ -20,7 +20,7 @@ This directory holds the editable HyperFrames composition, narration script, and
 ## How to re-render after edits
 
 ```bash
-cd wiki/video/source
+cd .wiki/video/source
 
 # 1. Install deps (first time only)
 npm install
@@ -28,8 +28,8 @@ npm install
 # 2. Lint the composition
 npx hyperframes lint .
 
-# 3. Render the visual-only video
-npx hyperframes render . -o out/visual.mp4 --fps 24 --quality draft --no-browser-gpu
+# 3. Render the visual-only video (medium quality)
+npx hyperframes render . -o out/visual.mp4 --fps 24 --quality medium --no-browser-gpu
 
 # 4. Regenerate narration if script.txt changed
 edge-tts --voice en-US-AriaNeural --rate "+0%" \
@@ -51,6 +51,16 @@ cp assets/narration.vtt ../captions.en.vtt
 ffmpeg -y -ss 00:00:08 -i out/visual.mp4 -frames:v 1 -update 1 \
   -vf "scale=1280:720" ../overview-poster.png
 ```
+
+Or from the repo root:
+
+```bash
+npm run wiki:render-video
+```
+
+## Font rendering
+
+The composition loads project fonts (Fraunces, Inter, JetBrains Mono, Instrument Serif) via Google Fonts CDN in `index.html`. No local font installation is needed. If the CDN is unreachable during rendering, HyperFrames will fall back to system fonts.
 
 ## Branding
 

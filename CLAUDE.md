@@ -126,5 +126,10 @@ Every page that fetches data must handle all three async states: **loading**, **
 
 ## Documentation Maintenance
 
+- **Wiki** (`.wiki/`): 58-page codebase wiki auto-published to GitHub Wiki on push to main via `.github/workflows/publish-wiki.yml`.
+  - Update wiki pages when architecture, features, systems, or primitives change significantly.
+  - Run `npm run wiki:render-video` to re-render the video overview after major changes.
+  - The video source lives in `.wiki/video/source/` and uses HyperFrames with project branding (terracotta `#C96442`, Fraunces/Inter typography).
 - **CLAUDE.md** and **AGENTS.md** must be updated whenever project structure, conventions, architecture, key commands, or design-system references change.
+- **DESIGN.md** is the single source of truth for UI tokens. Visual changes must update it in the same commit.
 - Before finalizing any change, verify these files still accurately describe the codebase.

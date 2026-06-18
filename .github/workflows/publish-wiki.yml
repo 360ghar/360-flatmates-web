@@ -1,0 +1,131 @@
+name: Publish wiki to GitHub Wiki
+
+on:
+  push:
+    branches: [main]
+    paths: ['.wiki/**']
+
+permissions:
+  contents: write
+
+jobs:
+  publish-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for wiki deploy token
+        id: check-token
+        run: |
+          if [ -n "${{ secrets.WIKI_DEPLOY_TOKEN }}" ]; then
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::WIKI_DEPLOY_TOKEN secret is not set. Skipping wiki publish. Create a PAT with 'repo' scope and add it as a repository secret named WIKI_DEPLOY_TOKEN."
+          fi
+
+      - name: Push wiki to GitHub Wiki
+        if: steps.check-token.outputs.has_token == 'true'
+        env:
+          WIKI_DEPLOY_TOKEN: ${{ secrets.WIKI_DEPLOY_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          REPO_OWNER="360ghar"
+          REPO_NAME="360-flatmates-web"
+
+          # Clone the wiki repo
+          git clone "https://x-access-token:${WIKI_DEPLOY_TOKEN}@github.com/${REPO_OWNER}/${REPO_NAME}.wiki.git" /tmp/wiki
+
+          # Clear existing content (preserve .git)
+          find /tmp/wiki -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+
+          # Copy all wiki markdown pages (preserve directory structure)
+          rsync -av --include='*/' --include='*.md' --exclude='*' .wiki/ /tmp/wiki/
+
+          # Copy images
+          if [ -d ".wiki/images" ]; then
+            mkdir -p /tmp/wiki/images
+            cp -r .wiki/images/* /tmp/wiki/images/
+          fi
+
+          # Copy rendered video assets (not the source project)
+          if [ -d ".wiki/video" ]; then
+            mkdir -p /tmp/wiki/video
+            [ -f ".wiki/video/overview.mp4" ] && cp .wiki/video/overview.mp4 /tmp/wiki/video/
+            [ -f ".wiki/video/overview-poster.png" ] && cp .wiki/video/overview-poster.png /tmp/wiki/video/
+            [ -f ".wiki/video/captions.en.vtt" ] && cp .wiki/video/captions.en.vtt /tmp/wiki/video/
+          fi
+
+          # Copy .wiki-meta.json for reference
+          cp .wiki/.wiki-meta.json /tmp/wiki/ 2>/dev/null || true
+
+          # Generate _Sidebar.md from pageOrder
+          cd /tmp/wiki
+          python3 -c "
+          import json, os
+
+          with open('.wiki-meta.json') as f:
+              meta = json.load(f)
+
+          section_names = {
+              'overview': 'Overview',
+              'by-the-numbers': 'By the numbers',
+              'lore': 'Lore',
+              'fun-facts': 'Fun facts',
+              'how-to-contribute': 'How to contribute',
+              'features': 'Features',
+              'systems': 'Systems',
+              'primitives': 'Primitives',
+              'api': 'API',
+              'deployment': 'Deployment',
+              'security': 'Security',
+              'background': 'Background',
+              'cleanup-opportunities': 'Cleanup opportunities',
+              'reference': 'Reference',
+              'maintainers': 'Maintainers',
+          }
+
+          lines = []
+          current_section = None
+
+          for path in meta['pageOrder']:
+              parts = path.split('/')
+              section = parts[0]
+
+              if section != current_section:
+                  if current_section is not None:
+                      lines.append('')
+                  title = section_names.get(section, section.replace('-', ' ').title())
+                  lines.append(f'## {title}')
+                  current_section = section
+
+              # Read title from file
+              page_title = path.replace('.md', '').replace('-', ' ').title()
+              filepath = os.path.join('.', path)
+              if os.path.exists(filepath):
+                  with open(filepath) as f:
+                      for line in f:
+                          if line.startswith('# '):
+                              page_title = line[2:].strip()
+                              break
+
+              wiki_path = path.replace('.md', '')
+              indent = '  ' if len(parts) > 2 else ''
+              lines.append(f'{indent}- [[{page_title}|{wiki_path}]]')
+
+          with open('_Sidebar.md', 'w') as f:
+              f.write('\n'.join(lines) + '\n')
+          "
+
+          # Commit and push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+          else
+            git commit -m "docs: update wiki from .wiki/"
+            git push
+            echo "Wiki published successfully."
+          fi

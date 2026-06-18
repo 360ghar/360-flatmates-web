@@ -1,6 +1,6 @@
 # Maintainers
 
-There is no `CODEOWNERS` file in this repo. The entire 360 Flatmates web codebase has a single contributor: **Saksham**. Every subsystem listed below is owned, written, and maintained by one person, with the most recent commit on **2026-06-15**. The table maps each major subsystem to that contributor and the last known activity.
+The `.github/CODEOWNERS` file assigns `@saksham1991999` as the default owner for the entire repository. The entire 360 Flatmates web codebase has a single contributor: **Saksham**. Every subsystem listed below is owned, written, and maintained by one person, with the most recent commit on **2026-06-18**. The table maps each major subsystem to that contributor and the last known activity.
 
 | Subsystem | Recent contributors | Last activity |
 | --- | --- | --- |
