@@ -1,0 +1,13 @@
+{
+  "name": "360-flatmates-web-wiki",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "render": "hyperframes render ."
+  },
+  "dependencies": {
+    "hyperframes": "0.4.44",
+    "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0"
+  }
+}

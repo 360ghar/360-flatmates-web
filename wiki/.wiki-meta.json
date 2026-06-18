@@ -1,0 +1,162 @@
+{
+  "generatedAt": "2026-06-18T16:30:00Z",
+  "commitHash": "0a1a0eb83a852e63572f189de9e9b2950a1af1fa",
+  "branch": "audit/full-platform-qa",
+  "pageCount": 58,
+  "topLevelSections": [
+    "overview",
+    "by-the-numbers",
+    "lore",
+    "fun-facts",
+    "how-to-contribute",
+    "features",
+    "systems",
+    "primitives",
+    "api",
+    "deployment",
+    "security",
+    "background",
+    "cleanup-opportunities",
+    "reference",
+    "maintainers"
+  ],
+  "pageOrder": [
+    "overview/index.md",
+    "overview/architecture.md",
+    "overview/getting-started.md",
+    "overview/glossary.md",
+    "by-the-numbers.md",
+    "lore.md",
+    "fun-facts.md",
+    "how-to-contribute/index.md",
+    "how-to-contribute/development-workflow.md",
+    "how-to-contribute/testing.md",
+    "how-to-contribute/debugging.md",
+    "how-to-contribute/patterns-and-conventions.md",
+    "how-to-contribute/tooling.md",
+    "features/index.md",
+    "features/compatibility-matching/index.md",
+    "features/compatibility-matching/swipe-deck.md",
+    "features/likes-and-matches.md",
+    "features/messaging.md",
+    "features/visits.md",
+    "features/listing-management.md",
+    "features/dashboard-analytics.md",
+    "features/admin-moderation.md",
+    "features/search-explore.md",
+    "features/discover.md",
+    "features/profile-onboarding.md",
+    "features/auth-flows.md",
+    "features/real-time.md",
+    "features/push-notifications.md",
+    "features/seo-prerendering.md",
+    "features/pwa-install.md",
+    "systems/index.md",
+    "systems/api-client.md",
+    "systems/state-management.md",
+    "systems/server-state.md",
+    "systems/design-system.md",
+    "systems/routing-guards.md",
+    "systems/validation-schemas.md",
+    "primitives/index.md",
+    "primitives/flatmate-profile.md",
+    "primitives/listing-property.md",
+    "primitives/compatibility-profile.md",
+    "primitives/lifestyle-dimensions.md",
+    "primitives/visit.md",
+    "primitives/conversation-message.md",
+    "primitives/notification.md",
+    "api/index.md",
+    "api/rest-endpoints.md",
+    "deployment.md",
+    "security.md",
+    "background/index.md",
+    "background/design-decisions.md",
+    "background/pitfalls.md",
+    "cleanup-opportunities.md",
+    "reference/index.md",
+    "reference/configuration.md",
+    "reference/data-models.md",
+    "reference/dependencies.md",
+    "maintainers.md"
+  ],
+  "images": [
+    {
+      "path": "images/web-landing.png",
+      "source_app": "web",
+      "source_flow": "landing-page",
+      "captured_at": "2026-06-18T16:08:00Z",
+      "wiki_pages": ["overview/index.md", "features/discover.md"],
+      "size_bytes": 688977
+    },
+    {
+      "path": "images/web-discover.png",
+      "source_app": "web",
+      "source_flow": "discover-feed",
+      "captured_at": "2026-06-18T16:08:00Z",
+      "wiki_pages": ["features/discover.md"],
+      "size_bytes": 635776
+    },
+    {
+      "path": "images/web-city-bangalore.png",
+      "source_app": "web",
+      "source_flow": "city-page",
+      "captured_at": "2026-06-18T16:09:00Z",
+      "wiki_pages": ["features/discover.md"],
+      "size_bytes": 752707
+    },
+    {
+      "path": "images/web-compare.png",
+      "source_app": "web",
+      "source_flow": "comparison-page",
+      "captured_at": "2026-06-18T16:09:00Z",
+      "wiki_pages": ["features/discover.md"],
+      "size_bytes": 309280
+    },
+    {
+      "path": "images/web-blog.png",
+      "source_app": "web",
+      "source_flow": "blog-index",
+      "captured_at": "2026-06-18T16:08:00Z",
+      "wiki_pages": ["features/discover.md"],
+      "size_bytes": 450617
+    },
+    {
+      "path": "images/web-stats.png",
+      "source_app": "web",
+      "source_flow": "stats-page",
+      "captured_at": "2026-06-18T16:08:00Z",
+      "wiki_pages": ["features/dashboard-analytics.md"],
+      "size_bytes": 305003
+    },
+    {
+      "path": "images/web-about.png",
+      "source_app": "web",
+      "source_flow": "about-page",
+      "captured_at": "2026-06-18T16:08:00Z",
+      "wiki_pages": [],
+      "size_bytes": 307388
+    }
+  ],
+  "videoOverview": {
+    "status": "ready",
+    "sizeBytes": 3001230,
+    "contentType": "video/mp4",
+    "generatedAt": "2026-06-18T16:26:00.000Z",
+    "durationSeconds": 142.68,
+    "captionTracks": [
+      {
+        "language": "en",
+        "label": "English",
+        "sizeBytes": 2930,
+        "contentType": "text/vtt"
+      }
+    ],
+    "warnings": [
+      "Video uses 360 Flatmates branding (terracotta #C96442, Fraunces/Inter typography) per user request, not the default Factory brand system.",
+      "Custom fonts (Fraunces, Inter, JetBrains Mono, Instrument Serif) are not installed locally; HyperFrames fell back to default fonts. Visual structure and colors are correct but typography differs from the production app.",
+      "TTS narration generated via edge-tts (en-US-AriaNeural) because local Kokoro TTS was not available.",
+      "Authenticated app screenshots skipped: TEST_PHONE env var was not set, so only unauthenticated public pages were captured."
+    ]
+  }
+}

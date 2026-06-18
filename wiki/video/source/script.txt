@@ -1,0 +1,21 @@
+Finding a flatmate in Bangalore used to mean a Facebook group post and a prayer. 360 Flatmates fixes that with a six-dimension lifestyle compatibility engine.
+
+It is a Vite and React nineteen single-page app. TypeScript strict, Tailwind four with CSS custom property tokens, Zustand for client state, TanStack Query for server state.
+
+The product differentiator is compatibility. Six lifestyle dimensions: sleep schedule, cleanliness, food habits, smoking and drinking, guests policy, and work style. Each peer is scored per dimension, weighted, and summed into one percentage.
+
+Three surfaces sit on top of that engine. A public marketing surface with prerendered city and blog pages. An authenticated app with a swipe deck, likes, matches, chat, and visits. And an admin moderation queue.
+
+The swipe deck is the heart of the experience. Drag, keyboard, or action bar. Every swipe is an optimistic mutation with rollback on error.
+
+Real-time runs over Server-Sent Events, not WebSockets. A single connection manager handles twelve event types, exponential backoff, and BroadcastChannel dedup across tabs.
+
+Auth goes through Supabase. Phone OTP, password, Google, and Apple. A gate-state guard enforces profile completion and onboarding before the user reaches the app.
+
+The build pipeline is unusual. After Vite builds the bundle, Playwright Chromium renders every public route to static HTML. This makes the SPA crawlable by LLM bots that do not run JavaScript.
+
+The design system is warm-editorial. Terracotta accent, Fraunces headlines, Inter body, a categorical palette with accessible ink tiers. Dark mode is first-class, applied via a data-theme attribute on the HTML element.
+
+Twenty-three commits, one contributor, thirty-eight thousand lines of TypeScript. The compatibility engine survived a rogue-agent deletion and was restored. Zero TODO comments in the source.
+
+360 Flatmates. Find your flatmate, not a nightmare.

@@ -1,0 +1,120 @@
+1
+00:00:00,100 --> 00:00:05,212
+Finding a flatmate in Bangalore used to mean a Facebook group post and a prayer.
+
+2
+00:00:05,162 --> 00:00:11,150
+360 Flatmates fixes that with a six-dimension lifestyle compatibility engine.
+
+3
+00:00:11,150 --> 00:00:14,812
+It is a Vite and React nineteen single-page app.
+
+4
+00:00:14,812 --> 00:00:23,675
+TypeScript strict, Tailwind four with CSS custom property tokens, Zustand for client state, TanStack Query for server state.
+
+5
+00:00:23,675 --> 00:00:27,187
+The product differentiator is compatibility.
+
+6
+00:00:27,187 --> 00:00:35,775
+Six lifestyle dimensions: sleep schedule, cleanliness, food habits, smoking and drinking, guests policy, and work style.
+
+7
+00:00:35,775 --> 00:00:40,962
+Each peer is scored per dimension, weighted, and summed into one percentage.
+
+8
+00:00:40,962 --> 00:00:44,150
+Three surfaces sit on top of that engine.
+
+9
+00:00:44,150 --> 00:00:48,762
+A public marketing surface with prerendered city and blog pages.
+
+10
+00:00:48,762 --> 00:00:54,612
+An authenticated app with a swipe deck, likes, matches, chat, and visits.
+
+11
+00:00:54,612 --> 00:00:57,325
+And an admin moderation queue.
+
+12
+00:00:57,325 --> 00:01:00,562
+The swipe deck is the heart of the experience.
+
+13
+00:01:00,562 --> 00:01:03,712
+Drag, keyboard, or action bar.
+
+14
+00:01:03,712 --> 00:01:08,187
+Every swipe is an optimistic mutation with rollback on error.
+
+15
+00:01:08,187 --> 00:01:12,550
+Real-time runs over Server-Sent Events, not WebSockets.
+
+16
+00:01:12,550 --> 00:01:20,337
+A single connection manager handles twelve event types, exponential backoff, and BroadcastChannel dedup across tabs.
+
+17
+00:01:20,337 --> 00:01:22,762
+Auth goes through Supabase.
+
+18
+00:01:22,762 --> 00:01:26,675
+Phone OTP, password, Google, and Apple.
+
+19
+00:01:26,675 --> 00:01:32,700
+A gate-state guard enforces profile completion and onboarding before the user reaches the app.
+
+20
+00:01:32,700 --> 00:01:35,425
+The build pipeline is unusual.
+
+21
+00:01:35,425 --> 00:01:41,925
+After Vite builds the bundle, Playwright Chromium renders every public route to static HTML.
+
+22
+00:01:41,925 --> 00:01:47,237
+This makes the SPA crawlable by LLM bots that do not run JavaScript.
+
+23
+00:01:47,237 --> 00:01:50,337
+The design system is warm-editorial.
+
+24
+00:01:50,337 --> 00:01:57,500
+Terracotta accent, Fraunces headlines, Inter body, a categorical palette with accessible ink tiers.
+
+25
+00:01:57,500 --> 00:02:03,587
+Dark mode is first-class, applied via a data-theme attribute on the HTML element.
+
+26
+00:02:03,587 --> 00:02:09,087
+Twenty-three commits, one contributor, thirty-eight thousand lines of TypeScript.
+
+27
+00:02:09,087 --> 00:02:14,100
+The compatibility engine survived a rogue-agent deletion and was restored.
+
+28
+00:02:14,100 --> 00:02:16,912
+Zero TODO comments in the source.
+
+29
+00:02:16,912 --> 00:02:19,625
+360 Flatmates.
+
+30
+00:02:19,625 --> 00:02:22,625
+Find your flatmate, not a nightmare.
+

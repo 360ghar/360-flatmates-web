@@ -1,0 +1,8 @@
+{
+  "render": {
+    "output": "out/360-flatmates-web-visual.mp4",
+    "fps": 24,
+    "quality": "draft",
+    "noBrowserGpu": true
+  }
+}

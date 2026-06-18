@@ -1,0 +1,21 @@
+{
+  "status": "ready",
+  "sizeBytes": 3001230,
+  "contentType": "video/mp4",
+  "generatedAt": "2026-06-18T16:26:00.000Z",
+  "durationSeconds": 142.68,
+  "captionTracks": [
+    {
+      "language": "en",
+      "label": "English",
+      "sizeBytes": 2930,
+      "contentType": "text/vtt"
+    }
+  ],
+  "warnings": [
+    "Video uses 360 Flatmates branding (terracotta #C96442, Fraunces/Inter typography) per user request, not the default Factory brand system.",
+    "Custom fonts (Fraunces, Inter, JetBrains Mono, Instrument Serif) are not installed locally; HyperFrames fell back to default fonts. Visual structure and colors are correct but typography differs from the production app.",
+    "TTS narration generated via edge-tts (en-US-AriaNeural) because local Kokoro TTS was not available.",
+    "Authenticated app screenshots skipped: TEST_PHONE env var was not set, so only unauthenticated public pages were captured."
+  ]
+}
