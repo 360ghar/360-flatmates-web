@@ -7,3 +7,6 @@ export * from "./search.types";
 export * from "./match.types";
 export * from "./notification.types";
 export * from "./admin.types";
+export * from "./payment.types";
+export * from "./blog.types";
+export * from "./batch.types";
