@@ -1674,15 +1674,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  listings:
+                  items:
                     type: array
                     items:
                       $ref: '#/components/schemas/FlatmateListingAdmin'
-                  total:
-                    type: integer
+                  next_cursor:
+                    type: string
+                    nullable: true
+                  has_more:
+                    type: boolean
                   limit:
                     type: integer
-                  offset:
+                  total:
                     type: integer
         '403':
           $ref: '#/components/responses/Forbidden'
@@ -1767,15 +1770,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  reports:
+                  items:
                     type: array
                     items:
                       $ref: '#/components/schemas/ReportAdmin'
-                  total:
-                    type: integer
+                  next_cursor:
+                    type: string
+                    nullable: true
+                  has_more:
+                    type: boolean
                   limit:
                     type: integer
-                  offset:
+                  total:
                     type: integer
         '403':
           $ref: '#/components/responses/Forbidden'
@@ -2491,6 +2497,423 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  # ===================== PAYMENTS (Razorpay) =====================
+  /payments/razorpay/order:
+    post:
+      tags: [Payments]
+      summary: Create a Razorpay order for a booking
+      description: |
+        Creates a Razorpay order on the gateway and persists the order id on the
+        local booking. The returned `key_id` and `order_id` are used to launch
+        the Razorpay checkout widget from the client. Idempotency is provided
+        per booking by reusing an open order if one exists.
+      operationId: createRazorpayOrder
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RazorpayOrderRequest'
+      responses:
+        '200':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RazorpayOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payments/razorpay/verify:
+    post:
+      tags: [Payments]
+      summary: Verify a Razorpay payment signature
+      description: |
+        Called by the client after the Razorpay checkout returns successfully.
+        The server validates the HMAC-SHA256 signature against the gateway
+        secret, marks the booking as paid, and persists the payment record.
+      operationId: verifyRazorpayPayment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RazorpayVerifyRequest'
+      responses:
+        '200':
+          description: Signature verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Signature mismatch or order already verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/methods:
+    get:
+      tags: [Payments]
+      summary: List saved payment methods
+      description: Returns a cursor-paginated list of the current user's payment methods.
+      operationId: listPaymentMethods
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of payment methods
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CursorPagePaymentMethod'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Payments]
+      summary: Add a payment method
+      description: |
+        Persists a tokenised payment method (e.g. a card token returned by
+        Razorpay) so the user can reuse it for future bookings.
+      operationId: addPaymentMethod
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentMethodCreate'
+      responses:
+        '201':
+          description: Payment method created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /payments/methods/{method_id}:
+    parameters:
+      - name: method_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [Payments]
+      summary: Update a payment method
+      description: |
+        Update mutable fields (e.g. `is_default`, `nickname`) on an existing
+        payment method. The gateway token is immutable; reissue a new method
+        to change card details.
+      operationId: updatePaymentMethod
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentMethodUpdate'
+      responses:
+        '200':
+          description: Updated payment method
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Payments]
+      summary: Remove a payment method
+      description: Detaches the payment method from the current user. The gateway-side token is retained for refund purposes until the underlying payment is fully settled.
+      operationId: deletePaymentMethod
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ===================== BATCH OPERATIONS =====================
+  /swipes/batch-remove:
+    post:
+      tags: [Swipes]
+      summary: Remove multiple swipes at once
+      description: |
+        Drops the current user's swipe records for the supplied property ids.
+        Returns the count actually removed and any ids that could not be
+        removed (e.g. they were already purged by the retention job).
+      operationId: batchRemoveSwipes
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchRemoveSwipesRequest'
+      responses:
+        '200':
+          description: Bulk removal result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchRemoveSwipesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /upload/media/batch-delete:
+    post:
+      tags: [Uploads]
+      summary: Delete multiple media items
+      description: |
+        Deletes the supplied media ids (Cloudinary public ids) in a single
+        round trip. The response lists per-id outcomes so the client can
+        surface granular toasts.
+      operationId: batchDeleteMedia
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchDeleteMediaRequest'
+      responses:
+        '200':
+          description: Bulk delete result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDeleteMediaResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===================== BLOG (public + admin) =====================
+  /blog/posts:
+    get:
+      tags: [Blog]
+      summary: List blog posts
+      description: |
+        Cursor-paginated list of blog posts. The `status` filter is honoured
+        for admin callers; public callers receive only `published` posts.
+      operationId: listBlogPosts
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/BlogPostStatus'
+        - in: query
+          name: category_id
+          schema:
+            type: integer
+        - in: query
+          name: tag_id
+          schema:
+            type: integer
+        - in: query
+          name: q
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Cursor-paginated post list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CursorPageBlogPost'
+
+  /blog/posts/{post_id}:
+    get:
+      tags: [Blog]
+      summary: Get a blog post by id
+      operationId: getBlogPost
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogPost'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/posts/preview/{token}:
+    get:
+      tags: [Blog]
+      summary: Read a blog post by preview token (public)
+      description: |
+        Returns the post associated with the given preview token. No auth is
+        required; the token is short-lived (default 72h).
+      operationId: getBlogPostPreview
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Preview response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogPostPreviewResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Preview token has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /blog/posts/{post_id}/preview-token:
+    post:
+      tags: [Blog]
+      summary: Mint a preview token for a blog post (admin)
+      operationId: createBlogPreviewToken
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlogPreviewTokenCreate'
+      responses:
+        '200':
+          description: Preview token created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogPreviewTokenResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/categories:
+    get:
+      tags: [Blog]
+      summary: List blog categories
+      operationId: listBlogCategories
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlogCategory'
+
+  /blog/tags:
+    get:
+      tags: [Blog]
+      summary: List blog tags
+      operationId: listBlogTags
+      responses:
+        '200':
+          description: Tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlogTag'
+
+  # ===================== AUTH WEBHOOKS =====================
+  /webhooks/auth/password-changed:
+    post:
+      tags: [Webhooks]
+      summary: Notify the backend of a password change
+      description: |
+        Sent by Supabase Auth on password change. The signature is verified
+        with HMAC-SHA256 using the `X-Signature` header; reject with 401 if
+        the signature does not match. Used to invalidate cached sessions
+        and trigger notification fan-out.
+      operationId: authPasswordChangedWebhook
+      parameters:
+        - in: header
+          name: X-Signature
+          required: true
+          schema:
+            type: string
+            description: HMAC-SHA256 signature of the raw request body using the webhook secret.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                event:
+                  type: string
+                  enum: [password_changed]
+                occurred_at:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: Signature verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -3131,22 +3554,38 @@ components:
           format: date-time
 
     VisitList:
+      description: Deprecated — use CursorPage of Visit instead.
       type: object
       properties:
-        visits:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/Visit'
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+        limit:
+          type: integer
         total:
           type: integer
 
     VisitSlice:
+      description: Deprecated — use CursorPage of Visit instead.
       type: object
       properties:
-        visits:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/Visit'
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+        limit:
+          type: integer
         total:
           type: integer
 
@@ -3439,19 +3878,21 @@ components:
           type: string
 
     UnifiedPropertyResponse:
+      description: Cursor-paginated property list (replaces old page-based response).
       type: object
       properties:
-        properties:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/Property'
-        total:
-          type: integer
-        page:
-          type: integer
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
         limit:
           type: integer
-        total_pages:
+        total:
           type: integer
         filters_applied:
           type: object
@@ -3751,11 +4192,12 @@ components:
               - $ref: '#/components/schemas/FlatmatesPeer'
         total:
           type: integer
-        page:
-          type: integer
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
         limit:
-          type: integer
-        total_pages:
           type: integer
         search_type:
           type: string
@@ -4231,3 +4673,380 @@ components:
         error_code:
           type: string
           description: Optional machine-readable error code
+
+    # ===================== MESSAGE =====================
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    # ===================== PAYMENTS =====================
+    RazorpayOrderStatus:
+      type: string
+      enum: [created, attempted, paid, failed, cancelled]
+
+    RazorpayOrderRequest:
+      type: object
+      required: [booking_id]
+      properties:
+        booking_id:
+          type: integer
+
+    RazorpayOrderResponse:
+      type: object
+      required: [order_id, amount, amount_paise, currency, status, key_id]
+      properties:
+        order_id:
+          type: string
+        amount:
+          type: number
+          description: Amount in major units (e.g. rupees)
+        amount_paise:
+          type: integer
+          description: Amount in paise (smallest INR unit)
+        currency:
+          type: string
+        receipt:
+          type: string
+        status:
+          $ref: '#/components/schemas/RazorpayOrderStatus'
+        key_id:
+          type: string
+          description: Razorpay key id used to launch the checkout widget
+        notes:
+          type: object
+          additionalProperties:
+            type: string
+        booking_label:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    RazorpayVerifyRequest:
+      type: object
+      required:
+        - booking_id
+        - razorpay_order_id
+        - razorpay_payment_id
+        - razorpay_signature
+      properties:
+        booking_id:
+          type: integer
+        razorpay_order_id:
+          type: string
+        razorpay_payment_id:
+          type: string
+        razorpay_signature:
+          type: string
+
+    PaymentMethod:
+      type: object
+      properties:
+        id:
+          type: integer
+        brand:
+          type: string
+        last4:
+          type: string
+        gateway_token:
+          type: string
+        vpa:
+          type: string
+        cardholder_name:
+          type: string
+        exp_month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        exp_year:
+          type: integer
+        is_default:
+          type: boolean
+        nickname:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PaymentMethodCreate:
+      type: object
+      required: [brand]
+      properties:
+        brand:
+          type: string
+        last4:
+          type: string
+          maxLength: 4
+        gateway_token:
+          type: string
+        vpa:
+          type: string
+        cardholder_name:
+          type: string
+        exp_month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        exp_year:
+          type: integer
+        is_default:
+          type: boolean
+        nickname:
+          type: string
+
+    PaymentMethodUpdate:
+      type: object
+      properties:
+        is_default:
+          type: boolean
+        nickname:
+          type: string
+        exp_month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        exp_year:
+          type: integer
+        cardholder_name:
+          type: string
+
+    CursorPagePaymentMethod:
+      description: Cursor-paginated payment method list.
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentMethod'
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+        limit:
+          type: integer
+        total:
+          type: integer
+
+    # ===================== BATCH =====================
+    BatchRemoveSwipesRequest:
+      type: object
+      required: [property_ids]
+      properties:
+        property_ids:
+          type: array
+          items:
+            type: integer
+
+    BatchRemoveSwipesResponse:
+      type: object
+      properties:
+        removed_count:
+          type: integer
+        failed_property_ids:
+          type: array
+          items:
+            type: integer
+        message:
+          type: string
+
+    BatchDeleteMediaRequest:
+      type: object
+      required: [media_ids]
+      properties:
+        media_ids:
+          type: array
+          items:
+            type: string
+
+    BatchDeleteMediaResponse:
+      type: object
+      properties:
+        deleted:
+          type: array
+          items:
+            type: string
+        failed:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              reason:
+                type: string
+
+    # ===================== BLOG =====================
+    BlogPostStatus:
+      type: string
+      enum: [draft, published, archived, scheduled]
+
+    BlogPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        excerpt:
+          type: string
+        body:
+          type: string
+        status:
+          $ref: '#/components/schemas/BlogPostStatus'
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        scheduled_for:
+          type: string
+          format: date-time
+          nullable: true
+        meta_title:
+          type: string
+        meta_description:
+          type: string
+        focus_keyword:
+          type: string
+        canonical_url:
+          type: string
+        og_image_url:
+          type: string
+        reading_time_minutes:
+          type: integer
+        word_count:
+          type: integer
+        cover_image_url:
+          type: string
+        author_id:
+          type: integer
+        author_name:
+          type: string
+        author_avatar_url:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogCategory'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogTag'
+        sources:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              url:
+                type: string
+        seo_metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    BlogCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+
+    BlogTag:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+
+    BlogPostPreviewResponse:
+      type: object
+      properties:
+        post:
+          $ref: '#/components/schemas/BlogPost'
+        token_valid:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+
+    BlogPreviewTokenCreate:
+      type: object
+      properties:
+        ttl_hours:
+          type: integer
+          minimum: 1
+          maximum: 720
+
+    BlogPreviewTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        url:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    CursorPageBlogPost:
+      description: Cursor-paginated blog post list.
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogPost'
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+        limit:
+          type: integer
+        total:
+          type: integer
+
+    # ===================== SHARED PARAMETERS =====================
+  parameters:
+    Cursor:
+      in: query
+      name: cursor
+      schema:
+        type: string
+      description: Opaque pagination cursor returned in a previous response.
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Maximum number of items to return. Defaults to the server's page size.
+    IncludeTotal:
+      in: query
+      name: include_total
+      schema:
+        type: boolean
+      description: Opt-in flag to include a `total` field in the response (off by default for performance).
