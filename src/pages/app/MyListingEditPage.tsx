@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useProperty, useUpdateProperty, useUploadPropertyImage } from "@/hooks/queries";
+import { useState } from "react";
+import {
+  useBatchDeleteMedia,
+  useProperty,
+  useUpdateProperty,
+  useUploadPropertyImage
+} from "@/hooks/queries";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
 import { uiStore } from "@/lib/stores/ui-store";
 import {
   GENDER_PREFERENCE_VALUES,
@@ -21,6 +28,7 @@ import { toSelectOptions, stripEmptyFields } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input, TextArea, SelectField } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -136,6 +144,9 @@ export function MyListingEditPage() {
 
     updateProperty.mutate(payload, {
       onSuccess: () => {
+        // Reset the form to the submitted values so isDirty clears (this also
+        // stops the unsaved-changes guard from firing on the post-save nav).
+        reset(data, { keepValues: true });
         uiStore.getState().pushToast({
           type: "success",
           title: "Listing updated",
@@ -147,6 +158,75 @@ export function MyListingEditPage() {
         setServerError(err instanceof Error ? err.message : "Failed to update listing");
       }
     });
+  }
+
+  /* ----- Multi-select photo deletion ----- */
+  const [multiSelect, setMultiSelect] = useState(false);
+  const [selectedPhotoIndexes, setSelectedPhotoIndexes] = useState<number[]>([]);
+  const batchDeleteMedia = useBatchDeleteMedia();
+
+  const handleTogglePhoto = (index: number) => {
+    setSelectedPhotoIndexes((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
+
+  const handleDeleteSelectedPhotos = () => {
+    const selected = (imageUrls ?? []).filter((_, i) =>
+      selectedPhotoIndexes.includes(i)
+    );
+    if (selected.length === 0) return;
+    batchDeleteMedia.mutate(
+      { media_ids: selected },
+      {
+        onSuccess: (result) => {
+          const remaining = (imageUrls ?? []).filter(
+            (_, i) => !selectedPhotoIndexes.includes(i)
+          );
+          updateProperty.mutate({ image_urls: remaining });
+          uiStore.getState().pushToast({
+            type: result.failed.length === 0 ? "success" : "warning",
+            title: `Deleted ${result.deleted.length} photo${result.deleted.length === 1 ? "" : "s"}`,
+            description:
+              result.failed.length > 0
+                ? `${result.failed.length} could not be removed`
+                : undefined
+          });
+          setSelectedPhotoIndexes([]);
+          setMultiSelect(false);
+        },
+        onError: () =>
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not delete photos"
+          })
+      }
+    );
+  };
+
+  /* Unsaved-changes guard: block in-app navigation while the form is dirty and
+     not in the middle of saving; surface a confirmation modal. */
+  const hasUnsavedChanges = isDirty && !updateProperty.isPending;
+  const blocker = useDirtyFormGuard(
+    hasUnsavedChanges,
+    "You have unsaved listing edits. Leaving will discard them."
+  );
+
+  /* ── Photo grid controls ─────────────────────────────────
+   * The PostPage wizard shows a "Main" badge and per-photo remove / set-as-main
+   * controls. We mirror those affordances here so the create and edit flows
+   * present the same UI. A full unification (shared <PhotoGrid> component) is
+   * TODO — see the F5 fix log. */
+  function removeImageAt(index: number) {
+    const next = (imageUrls ?? []).filter((_, i) => i !== index);
+    updateProperty.mutate({ image_urls: next });
+  }
+
+  function setImageAsMain(index: number) {
+    if (index === 0) return;
+    const urls = imageUrls ?? [];
+    const next = [urls[index], ...urls.filter((_, i) => i !== index)];
+    updateProperty.mutate({ image_urls: next });
   }
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -275,16 +355,151 @@ export function MyListingEditPage() {
 
         {/* Photos */}
         <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-h3">Photos</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-h3">Photos</h2>
+            {imageUrls.length > 1 ? (
+              <div className="flex items-center gap-2">
+                {multiSelect && selectedPhotoIndexes.length > 0 ? (
+                  <span className="text-body-sm text-ink-2">
+                    {selectedPhotoIndexes.length} selected
+                  </span>
+                ) : null}
+                <Button
+                  variant={multiSelect ? "primary" : "secondary"}
+                  size="compact"
+                  onClick={() => {
+                    setMultiSelect((prev) => {
+                      if (prev) setSelectedPhotoIndexes([]);
+                      return !prev;
+                    });
+                  }}
+                  aria-pressed={multiSelect}
+                >
+                  <Trash2 aria-hidden="true" className="mr-1 h-3.5 w-3.5" />
+                  {multiSelect ? "Exit select" : "Select to delete"}
+                </Button>
+              </div>
+            ) : null}
+          </div>
           {imageUrls.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {imageUrls.map((url, index) => (
-                <div key={index} className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl">
-                  <NetworkImage alt={`Photo ${index + 1}`} src={url} wrapperClassName="h-full w-full" />
-                </div>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {imageUrls.map((url, index) => {
+                const isSelected = selectedPhotoIndexes.includes(index);
+                return (
+                  <div
+                    key={`${url}-${index}`}
+                    className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-paper-2 ${
+                      isSelected ? "border-accent ring-2 ring-accent" : "border-line"
+                    }`}
+                  >
+                    <NetworkImage
+                      alt={`Photo ${index + 1}`}
+                      src={url}
+                      wrapperClassName="h-full w-full rounded-xl"
+                    />
+                    {/* Multi-select checkbox */}
+                    {multiSelect ? (
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePhoto(index)}
+                        aria-pressed={isSelected}
+                        aria-label={
+                          isSelected
+                            ? `Deselect photo ${index + 1}`
+                            : `Select photo ${index + 1}`
+                        }
+                        className="absolute inset-0 z-10 flex items-start justify-end p-2"
+                      >
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
+                            isSelected
+                              ? "border-accent bg-accent text-white"
+                              : "border-line bg-surface/80 text-ink-2"
+                          }`}
+                        >
+                          {isSelected ? (
+                            <svg
+                              aria-hidden="true"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 14 14"
+                              fill="none"
+                            >
+                              <path
+                                d="M2 7L5.5 10.5L12 4"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          ) : null}
+                        </span>
+                      </button>
+                    ) : (
+                      /* Remove button (single mode) */
+                      <button
+                        type="button"
+                        onClick={() => removeImageAt(index)}
+                        disabled={updateProperty.isPending}
+                        className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/60 text-paper opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-40"
+                        aria-label={`Remove photo ${index + 1}`}
+                      >
+                        <X aria-hidden="true" className="h-3 w-3" />
+                      </button>
+                    )}
+                    {/* Set-as-main button (hidden when already main) */}
+                    {!multiSelect && index !== 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setImageAsMain(index)}
+                        disabled={updateProperty.isPending}
+                        className="absolute bottom-1 right-1 rounded bg-surface px-1.5 py-0.5 text-caption font-semibold text-accent shadow-sm opacity-0 transition-opacity group-hover:opacity-100 hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
+                      >
+                        Set main
+                      </button>
+                    ) : null}
+                    {/* Main badge */}
+                    {index === 0 ? (
+                      <span className="absolute bottom-1 left-1 rounded bg-accent px-1.5 py-0.5 text-caption font-semibold text-paper">
+                        Main
+                      </span>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
           )}
+          {multiSelect ? (
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-line bg-paper-2 p-3">
+              <span className="text-body-sm text-ink-2">
+                {selectedPhotoIndexes.length} of {imageUrls.length} selected
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="compact"
+                  onClick={() => setSelectedPhotoIndexes([])}
+                  disabled={selectedPhotoIndexes.length === 0}
+                >
+                  Clear
+                </Button>
+                <Button
+                  variant="primary"
+                  size="compact"
+                  onClick={handleDeleteSelectedPhotos}
+                  disabled={
+                    selectedPhotoIndexes.length === 0 ||
+                    batchDeleteMedia.isPending
+                  }
+                >
+                  {batchDeleteMedia.isPending
+                    ? "Deleting…"
+                    : `Delete ${selectedPhotoIndexes.length || ""}`.trim()}
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[9px] border-2 border-dashed border-line bg-paper-2 px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
             <input
               type="file"
@@ -442,6 +657,32 @@ export function MyListingEditPage() {
         </div>
       </form>
       )}
+
+      {/* Unsaved-changes confirmation */}
+      <Modal
+        open={blocker.state === "blocked"}
+        onClose={() => blocker.reset?.()}
+        title="Discard unsaved listing changes?"
+        description="You have edits that haven't been saved. Leaving now will discard them."
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => blocker.reset?.()}
+              className="w-full md:w-auto"
+            >
+              Keep editing
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => blocker.proceed?.()}
+              className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+            >
+              Discard changes
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }
