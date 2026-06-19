@@ -1,85 +1,59 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useMemo, useState } from "react";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
-import { Card } from "@/components/ui/Card";
-import { NetworkImage } from "@/components/ui/NetworkImage";
-import { ArrowRight, Calendar, Clock } from "lucide-react";
+import { useBlogCategories, useBlogPosts, useInfiniteBlogPosts } from "@/hooks/queries";
+import { BlogPostCard } from "@/components/molecules/BlogPostCard";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/Button";
+import type { BlogPostStatus } from "@/lib/api/types";
 
-const BLOG_POSTS = [
-  {
-    slug: "how-to-find-compatible-flatmates",
-    title: "How to Find Compatible Flatmates: A Complete Guide",
-    excerpt: "Learn the 6 key dimensions that determine flatmate compatibility and how to evaluate potential matches before moving in.",
-    category: "Guide",
-    readTime: "8 min read",
-    date: "May 2025",
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&fm=webp&fit=crop&q=80",
-  },
-  {
-    slug: "flatmate-agreement-essentials",
-    title: "The Essential Flatmate Agreement Checklist",
-    excerpt: "Everything you need to cover in a flatmate agreement, from rent splitting to guest policies to cleaning schedules.",
-    category: "Guide",
-    readTime: "6 min read",
-    date: "April 2025",
-    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&fm=webp&fit=crop&q=80",
-  },
-  {
-    slug: "bangalore-rental-market-guide",
-    title: "Bangalore Rental Market Guide 2025",
-    excerpt: "Average rents, best neighborhoods, and what to look for when renting in India's tech capital.",
-    category: "Market Insights",
-    readTime: "10 min read",
-    date: "March 2025",
-    image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=800&fm=webp&fit=crop&q=80",
-  },
-  {
-    slug: "moving-in-with-strangers",
-    title: "Moving in with Strangers: Tips from Real Flatmates",
-    excerpt: "Real stories and practical advice from people who successfully found flatmates through 360 Flatmates.",
-    category: "Community",
-    readTime: "5 min read",
-    date: "February 2025",
-    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&fm=webp&fit=crop&q=80",
-  },
-  {
-    slug: "room-inspection-checklist",
-    title: "Room Inspection Checklist: What to Look For",
-    excerpt: "A comprehensive checklist for inspecting rooms before committing, from water pressure to mobile network coverage.",
-    category: "Guide",
-    readTime: "7 min read",
-    date: "January 2025",
-    image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&fm=webp&fit=crop&q=80",
-  },
-  {
-    slug: "flatmate-conflict-resolution",
-    title: "How to Handle Flatmate Conflicts Gracefully",
-    excerpt: "Practical strategies for resolving common flatmate disagreements without damaging the relationship.",
-    category: "Community",
-    readTime: "6 min read",
-    date: "December 2024",
-    image: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&fm=webp&fit=crop&q=80",
-  },
+const breadcrumb = [{ name: "Blog", item: `${SITE_URL}/blog` }];
+
+const STATUS_OPTIONS: Array<{ value: BlogPostStatus | "all"; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "published", label: "Published" },
+  { value: "draft", label: "Drafts" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "archived", label: "Archived" }
 ];
 
-const CATEGORIES = ["All", "Guide", "Market Insights", "Community"];
-
 export function BlogPage() {
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [status, setStatus] = useState<BlogPostStatus | "all">("published");
+  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
 
-  const breadcrumb = [{ name: "Blog", item: `${SITE_URL}/blog` }];
+  const { data: categories } = useBlogCategories();
+  const filters = useMemo(
+    () => ({
+      status: status === "all" ? undefined : status,
+      category_id: categoryId
+    }),
+    [status, categoryId]
+  );
+  const {
+    data: firstPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useBlogPosts({ ...filters, limit: 12 });
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteBlogPosts(filters);
 
   const collectionLd = buildCollectionPageSchema({
     name: "Flatmate Living Guides & Tips",
     description:
       "Expert guides on finding compatible flatmates, navigating rental markets, and building harmonious shared living spaces across India.",
     url: `${SITE_URL}/blog`,
-    breadcrumb,
+    breadcrumb
   });
 
-  const filteredPosts = activeCategory === "All"
-    ? BLOG_POSTS
-    : BLOG_POSTS.filter((post) => post.category === activeCategory);
+  // Prefer the infinite-query flat view; fall back to the first-page response.
+  const posts = infiniteData
+    ? infiniteData.pages.flatMap((page) => page.items)
+    : firstPage ?? [];
 
   return (
     <>
@@ -102,76 +76,102 @@ export function BlogPage() {
           </p>
         </div>
 
-        <div className="flex justify-center gap-3 flex-wrap">
-          {CATEGORIES.map((cat) => {
-            const isActive = cat === activeCategory;
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {STATUS_OPTIONS.map((option) => {
+            const isActive = option.value === status;
             return (
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
+                key={option.value}
+                type="button"
+                onClick={() => setStatus(option.value)}
                 className={`px-4 py-2 rounded-full text-label-md transition-all duration-300 hover:scale-[1.04] active:scale-95 cursor-pointer ${
                   isActive
                     ? "border border-accent bg-accent-soft text-accent shadow-xs"
                     : "border border-line-low bg-paper text-ink-2 hover:border-accent hover:text-accent hover:bg-surface"
                 }`}
-                style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+                style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
               >
-                {cat}
+                {option.label}
               </button>
             );
           })}
         </div>
 
-        <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPosts.map((post, index) => (
-            <Link
-              key={post.slug}
-              to={`/blog/${post.slug}`}
-              className="block group card-appear"
-              style={{ animationDelay: `${Math.min(index, 5) * 50}ms` }}
+        {categories && categories.length > 0 ? (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCategoryId(undefined)}
+              className={`px-3 py-1 rounded-full text-label-md border ${
+                categoryId === undefined
+                  ? "border-accent bg-accent-soft text-accent"
+                  : "border-line-low bg-surface text-ink-2 hover:border-accent hover:text-accent"
+              }`}
             >
-              <Card
-                className="overflow-hidden h-full flex flex-col border border-line-low hover:border-accent/20 hover:shadow-md transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
-                style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+              All categories
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setCategoryId(category.id)}
+                className={`px-3 py-1 rounded-full text-label-md border ${
+                  categoryId === category.id
+                    ? "border-accent bg-accent-soft text-accent"
+                    : "border-line-low bg-surface text-ink-2 hover:border-accent hover:text-accent"
+                }`}
               >
-                <div className="relative h-56 overflow-hidden bg-paper">
-                  <NetworkImage
-                    src={post.image}
-                    alt={post.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-103"
-                    width={800}
-                    height={400}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <span className="absolute top-3 left-3 bg-surface/90 backdrop-blur-sm px-3.5 py-1 rounded-full text-label-md text-accent font-semibold">
-                    {post.category}
-                  </span>
-                </div>
-                <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-h3 text-ink group-hover:text-accent transition-colors line-clamp-2">{post.title}</h3>
-                  <p className="text-body-md text-ink-2 mt-3 line-clamp-3 leading-relaxed flex-1">{post.excerpt}</p>
-                  
-                  <div className="mt-6 pt-4 border-t border-line-low flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-label-md text-ink-3">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {post.date}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5" />
-                        {post.readTime}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-label-md text-accent font-semibold group-hover:translate-x-1 transition-transform duration-200">
-                      Read <ArrowRight className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
+                {category.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {isLoading ? (
+          <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} variant="listingCard" />
+            ))}
+          </div>
+        ) : isError ? (
+          <div className="mt-16 text-center">
+            <p className="text-h3 text-ink-2 font-semibold">
+              Could not load blog posts
+            </p>
+            <p className="mt-2 text-body-md text-ink-3">
+              {error instanceof Error ? error.message : "Try again in a moment."}
+            </p>
+            <Button className="mt-4" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="mt-16 text-center">
+            <p className="text-h3 text-ink-2 font-semibold">No posts yet</p>
+            <p className="mt-2 text-body-md text-ink-3">
+              Check back soon — new guides land every week.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {posts.map((post, index) => (
+                <BlogPostCard key={post.id} post={post} index={index} />
+              ))}
+            </div>
+            {hasNextPage ? (
+              <div className="mt-8 flex items-center justify-center">
+                <Button
+                  variant="secondary"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Loading…" : "Load more posts"}
+                </Button>
+              </div>
+            ) : null}
+          </>
+        )}
       </main>
     </>
   );

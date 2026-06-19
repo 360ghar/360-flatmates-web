@@ -2,7 +2,7 @@ import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router";
 import { HelmetProvider } from "react-helmet-async";
 import { Providers } from "./providers";
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ErrorBoundary, RouteBoundary } from "./components/ErrorBoundary";
 import { AuthGuard, AdminGuard, AuthRedirectGuard, GateGuard } from "./pages/guards";
 import { PublicLayout } from "./pages/public/PublicLayout";
 import { AuthLayout } from "./pages/auth/AuthLayout";
@@ -26,6 +26,7 @@ const CityPage = lazy(() => import("./pages/public/CityPage").then((m) => ({ def
 const NeighborhoodPage = lazy(() => import("./pages/public/NeighborhoodPage").then((m) => ({ default: m.NeighborhoodPage })));
 const BlogPage = lazy(() => import("./pages/public/BlogPage").then((m) => ({ default: m.BlogPage })));
 const BlogPostPage = lazy(() => import("./pages/public/BlogPostPage").then((m) => ({ default: m.BlogPostPage })));
+const BlogPreviewPage = lazy(() => import("./pages/app/BlogPostPage").then((m) => ({ default: m.BlogPostPage })));
 const ComparisonPage = lazy(() => import("./pages/public/ComparisonPage").then((m) => ({ default: m.ComparisonPage })));
 
 // Auth pages
@@ -69,11 +70,14 @@ const VerifyPage = lazy(() => import("./pages/app/VerifyPage").then((m) => ({ de
 const HelpPage = lazy(() => import("./pages/app/HelpPage").then((m) => ({ default: m.HelpPage })));
 const AlertsPage = lazy(() => import("./pages/app/AlertsPage").then((m) => ({ default: m.AlertsPage })));
 const SavedSearchesPage = lazy(() => import("./pages/app/SavedSearchesPage").then((m) => ({ default: m.SavedSearchesPage })));
+const PaymentsPage = lazy(() => import("./pages/app/PaymentsPage").then((m) => ({ default: m.PaymentsPage })));
+const AddPaymentMethodPage = lazy(() => import("./pages/app/AddPaymentMethodPage").then((m) => ({ default: m.AddPaymentMethodPage })));
 // Admin pages
 const AdminStatsPage = lazy(() => import("./pages/admin/AdminStatsPage").then((m) => ({ default: m.AdminStatsPage })));
 const ModerationListingsPage = lazy(() => import("./pages/admin/ModerationListingsPage").then((m) => ({ default: m.ModerationListingsPage })));
 const ModerationReportsPage = lazy(() => import("./pages/admin/ModerationReportsPage").then((m) => ({ default: m.ModerationReportsPage })));
 const PrescreenPage = lazy(() => import("./pages/admin/PrescreenPage").then((m) => ({ default: m.PrescreenPage })));
+const BlogAdminPage = lazy(() => import("./pages/admin/BlogAdminPage").then((m) => ({ default: m.BlogAdminPage })));
 
 // Shared pages
 const NotFoundPage = lazy(() => import("./pages/public/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
@@ -87,38 +91,39 @@ export function App() {
             <Routes>
             {/* ── Public routes ── */}
             <Route element={<PublicLayout />}>
-              <Route index element={<LandingPage />} />
-              <Route path="discover" element={<DiscoverPage />} />
-              <Route path="discover/:id" element={<ListingDetailPage />} />
-              <Route path="cities/:slug" element={<CityPage />} />
-              <Route path="cities/:slug/:neighborhood" element={<NeighborhoodPage />} />
-              <Route path="blog" element={<BlogPage />} />
-              <Route path="blog/:slug" element={<BlogPostPage />} />
-              <Route path="compare/:slug" element={<ComparisonPage />} />
-              <Route path="about" element={<AboutPage />} />
-              <Route path="terms" element={<TermsPage />} />
-              <Route path="privacy" element={<PrivacyPage />} />
-              <Route path="stats" element={<StatsPage />} />
-              <Route path="maintenance" element={<MaintenancePage />} />
-              <Route path="error" element={<ErrorPage />} />
+              <Route index element={<RouteBoundary><LandingPage /></RouteBoundary>} />
+              <Route path="discover" element={<RouteBoundary><DiscoverPage /></RouteBoundary>} />
+              <Route path="discover/:id" element={<RouteBoundary><ListingDetailPage /></RouteBoundary>} />
+              <Route path="cities/:slug" element={<RouteBoundary><CityPage /></RouteBoundary>} />
+              <Route path="cities/:slug/:neighborhood" element={<RouteBoundary><NeighborhoodPage /></RouteBoundary>} />
+              <Route path="blog" element={<RouteBoundary><BlogPage /></RouteBoundary>} />
+              <Route path="blog/:slug" element={<RouteBoundary><BlogPostPage /></RouteBoundary>} />
+              <Route path="blog/preview/:token" element={<RouteBoundary><BlogPreviewPage previewMode={true} /></RouteBoundary>} />
+              <Route path="compare/:slug" element={<RouteBoundary><ComparisonPage /></RouteBoundary>} />
+              <Route path="about" element={<RouteBoundary><AboutPage /></RouteBoundary>} />
+              <Route path="terms" element={<RouteBoundary><TermsPage /></RouteBoundary>} />
+              <Route path="privacy" element={<RouteBoundary><PrivacyPage /></RouteBoundary>} />
+              <Route path="stats" element={<RouteBoundary><StatsPage /></RouteBoundary>} />
+              <Route path="maintenance" element={<RouteBoundary><MaintenancePage /></RouteBoundary>} />
+              <Route path="error" element={<RouteBoundary><ErrorPage /></RouteBoundary>} />
             </Route>
 
             {/* ── Auth routes ── */}
             <Route element={<AuthRedirectGuard />}>
               <Route element={<AuthLayout />}>
-                <Route path="login" element={<LoginPage />} />
+                <Route path="login" element={<RouteBoundary><LoginPage /></RouteBoundary>} />
                 {/* Signup is unified into the login flow (it doubles as
                     signup for unknown identifiers); keep inbound links alive. */}
-                <Route path="signup" element={<Navigate to="/login" replace />} />
-                <Route path="forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="auth/callback" element={<AuthCallbackPage />} />
+                <Route path="signup" element={<RouteBoundary><Navigate to="/login" replace /></RouteBoundary>} />
+                <Route path="forgot-password" element={<RouteBoundary><ForgotPasswordPage /></RouteBoundary>} />
+                <Route path="auth/callback" element={<RouteBoundary><AuthCallbackPage /></RouteBoundary>} />
               </Route>
             </Route>
 
             {/* ── Authenticated auth-flow routes (post-Google add-phone) ── */}
             <Route element={<AuthGuard />}>
               <Route element={<AuthLayout />}>
-                <Route path="add-phone" element={<AddPhonePage />} />
+                <Route path="add-phone" element={<RouteBoundary><AddPhonePage /></RouteBoundary>} />
               </Route>
             </Route>
 
@@ -126,43 +131,45 @@ export function App() {
             <Route element={<AuthGuard />}>
               <Route element={<GateGuard />}>
                 <Route element={<AppLayout />}>
-                <Route path="home" element={<HomePage />} />
-                <Route path="search" element={<SearchPage />} />
-                <Route path="search/semantic" element={<SemanticSearchPage />} />
-                <Route path="swipe" element={<SwipePage />} />
-                <Route path="likes" element={<LikesPage />} />
-                <Route path="matches" element={<MatchesPage />} />
-                <Route path="chats" element={<ChatsPage />} />
-                <Route path="chats/:id" element={<ChatDetailPage />} />
-                <Route path="explore" element={<ExplorePage />} />
-                <Route path="listing/:id" element={<ListingDetailPage />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="profile/edit" element={<ProfileEditPage />} />
-                <Route path="profile/:id" element={<PublicProfilePage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="settings/appearance" element={<AppearancePage />} />
-                <Route path="settings/notifications" element={<SettingsNotificationsPage />} />
-                <Route path="settings/blocked-users" element={<BlockedUsersPage />} />
-                <Route path="settings/report-problem" element={<ReportProblemPage />} />
-                <Route path="post" element={<PostPage />} />
-                <Route path="post/review" element={<PostReviewPage />} />
-                <Route path="manage" element={<ManagePage />} />
-                <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="dashboard/analytics" element={<AnalyticsPage />} />
-                <Route path="visits" element={<VisitsPage />} />
-                <Route path="visits/:id" element={<VisitDetailPage />} />
-                <Route path="compatibility/:id" element={<CompatibilityPage />} />
-                <Route path="my-listings/:id" element={<MyListingDetailPage />} />
-                <Route path="my-listings/:id/edit" element={<MyListingEditPage />} />
-                <Route path="choose-role" element={<ChooseRolePage />} />
-                <Route path="location" element={<LocationPage />} />
-                <Route path="onboarding" element={<OnboardingPage />} />
-                <Route path="onboarding/:step" element={<OnboardingStepPage />} />
-                <Route path="verify" element={<VerifyPage />} />
-                <Route path="help" element={<HelpPage />} />
-                <Route path="alerts" element={<AlertsPage />} />
-                <Route path="saved-searches" element={<SavedSearchesPage />} />
+                <Route path="home" element={<RouteBoundary><HomePage /></RouteBoundary>} />
+                <Route path="search" element={<RouteBoundary><SearchPage /></RouteBoundary>} />
+                <Route path="search/semantic" element={<RouteBoundary><SemanticSearchPage /></RouteBoundary>} />
+                <Route path="swipe" element={<RouteBoundary><SwipePage /></RouteBoundary>} />
+                <Route path="likes" element={<RouteBoundary><LikesPage /></RouteBoundary>} />
+                <Route path="matches" element={<RouteBoundary><MatchesPage /></RouteBoundary>} />
+                <Route path="chats" element={<RouteBoundary><ChatsPage /></RouteBoundary>} />
+                <Route path="chats/:id" element={<RouteBoundary><ChatDetailPage /></RouteBoundary>} />
+                <Route path="explore" element={<RouteBoundary><ExplorePage /></RouteBoundary>} />
+                <Route path="listing/:id" element={<RouteBoundary><ListingDetailPage /></RouteBoundary>} />
+                <Route path="notifications" element={<RouteBoundary><NotificationsPage /></RouteBoundary>} />
+                <Route path="profile" element={<RouteBoundary><ProfilePage /></RouteBoundary>} />
+                <Route path="profile/edit" element={<RouteBoundary><ProfileEditPage /></RouteBoundary>} />
+                <Route path="profile/:id" element={<RouteBoundary><PublicProfilePage /></RouteBoundary>} />
+                <Route path="settings" element={<RouteBoundary><SettingsPage /></RouteBoundary>} />
+                <Route path="settings/appearance" element={<RouteBoundary><AppearancePage /></RouteBoundary>} />
+                <Route path="settings/notifications" element={<RouteBoundary><SettingsNotificationsPage /></RouteBoundary>} />
+                <Route path="settings/blocked-users" element={<RouteBoundary><BlockedUsersPage /></RouteBoundary>} />
+                <Route path="settings/report-problem" element={<RouteBoundary><ReportProblemPage /></RouteBoundary>} />
+                <Route path="post" element={<RouteBoundary><PostPage /></RouteBoundary>} />
+                <Route path="post/review" element={<RouteBoundary><PostReviewPage /></RouteBoundary>} />
+                <Route path="manage" element={<RouteBoundary><ManagePage /></RouteBoundary>} />
+                <Route path="dashboard" element={<RouteBoundary><DashboardPage /></RouteBoundary>} />
+                <Route path="dashboard/analytics" element={<RouteBoundary><AnalyticsPage /></RouteBoundary>} />
+                <Route path="visits" element={<RouteBoundary><VisitsPage /></RouteBoundary>} />
+                <Route path="visits/:id" element={<RouteBoundary><VisitDetailPage /></RouteBoundary>} />
+                <Route path="compatibility/:id" element={<RouteBoundary><CompatibilityPage /></RouteBoundary>} />
+                <Route path="my-listings/:id" element={<RouteBoundary><MyListingDetailPage /></RouteBoundary>} />
+                <Route path="my-listings/:id/edit" element={<RouteBoundary><MyListingEditPage /></RouteBoundary>} />
+                <Route path="choose-role" element={<RouteBoundary><ChooseRolePage /></RouteBoundary>} />
+                <Route path="location" element={<RouteBoundary><LocationPage /></RouteBoundary>} />
+                <Route path="onboarding" element={<RouteBoundary><OnboardingPage /></RouteBoundary>} />
+                <Route path="onboarding/:step" element={<RouteBoundary><OnboardingStepPage /></RouteBoundary>} />
+                <Route path="verify" element={<RouteBoundary><VerifyPage /></RouteBoundary>} />
+                <Route path="help" element={<RouteBoundary><HelpPage /></RouteBoundary>} />
+                <Route path="alerts" element={<RouteBoundary><AlertsPage /></RouteBoundary>} />
+                <Route path="saved-searches" element={<RouteBoundary><SavedSearchesPage /></RouteBoundary>} />
+                <Route path="payments" element={<RouteBoundary><PaymentsPage /></RouteBoundary>} />
+                <Route path="payments/new" element={<RouteBoundary><AddPaymentMethodPage /></RouteBoundary>} />
                 </Route>
               </Route>
             </Route>
@@ -170,15 +177,17 @@ export function App() {
             {/* ── Admin routes ── */}
             <Route element={<AdminGuard />}>
               <Route path="admin" element={<AdminLayout />}>
-                <Route path="stats" element={<AdminStatsPage />} />
-                <Route path="moderation/listings" element={<ModerationListingsPage />} />
-                <Route path="moderation/reports" element={<ModerationReportsPage />} />
-                <Route path="moderation/prescreen/:id" element={<PrescreenPage />} />
+                <Route path="stats" element={<RouteBoundary><AdminStatsPage /></RouteBoundary>} />
+                <Route path="moderation/listings" element={<RouteBoundary><ModerationListingsPage /></RouteBoundary>} />
+                <Route path="moderation/reports" element={<RouteBoundary><ModerationReportsPage /></RouteBoundary>} />
+                <Route path="moderation/prescreen" element={<RouteBoundary><ModerationListingsPage /></RouteBoundary>} />
+                <Route path="moderation/prescreen/:id" element={<RouteBoundary><PrescreenPage /></RouteBoundary>} />
+                <Route path="blog" element={<RouteBoundary><BlogAdminPage /></RouteBoundary>} />
               </Route>
             </Route>
 
             {/* ── Catch-all ── */}
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="*" element={<RouteBoundary><NotFoundPage /></RouteBoundary>} />
           </Routes>
           </Suspense>
         </ErrorBoundary>

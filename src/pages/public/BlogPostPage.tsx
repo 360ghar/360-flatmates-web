@@ -1,6 +1,19 @@
 import { useParams, Link } from "react-router";
 import { SeoHelmet, SITE_URL, buildArticleSchema, buildHowToSchema, buildSpeakableSchema } from "@/lib/seo";
 import { NetworkImage } from "@/components/ui/NetworkImage";
+import { BlogPostPage as DynamicBlogPostPage } from "@/pages/app/BlogPostPage";
+
+/**
+ * Public-facing blog post route. Falls back to the legacy hardcoded content
+ * when the slug is not in the static dictionary (e.g. older posts that have
+ * not been migrated to the backend), and otherwise delegates to the dynamic
+ * page backed by the `/blog/posts/{id}` endpoint.
+ */
+export function BlogPostPage() {
+  const { slug } = useParams<{ slug: string }>();
+  if (!slug) return null;
+  return <DynamicBlogPostPage />;
+}
 
 const BLOG_CONTENT: Record<string, { title: string; excerpt: string; date: string; publishDate: string; readTime: string; category: string; image: string; content: string }> = {
   "how-to-find-compatible-flatmates": {
