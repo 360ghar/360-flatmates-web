@@ -94,6 +94,16 @@ export interface SwipeDeckProps extends HTMLAttributes<HTMLDivElement> {
   isAnimating?: boolean;
   /** Called when the active card index changes (for keyboard swipe integration) */
   onIndexChange?: (index: number) => void;
+  /** When true, taps on cards toggle their selection in a multi-select set. */
+  multiSelect?: boolean;
+  /** The currently-selected set of profile ids (controlled). */
+  selectedIds?: string[];
+  /** Fires when the user toggles a card in multi-select mode. */
+  onSelectToggle?: (profileId: string) => void;
+  /** Fires when the user confirms a multi-select action (e.g. "Remove selected"). */
+  onMultiSelectAction?: (selectedIds: string[]) => void;
+  /** Label for the multi-select confirm button. Defaults to "Remove selected". */
+  multiSelectActionLabel?: string;
 }
 
 type SwipeDirection = "left" | "right" | "up" | null;
@@ -161,13 +171,17 @@ export function SwipeDeck({
   onNearEnd,
   isAnimating: externalAnimating = false,
   onIndexChange,
+  multiSelect = false,
+  selectedIds,
+  onSelectToggle,
+  onMultiSelectAction,
+  multiSelectActionLabel = "Remove selected",
   className,
   ...props
 }: SwipeDeckProps) {
   const prefersReducedMotion = useReducedMotion() === true;
   const [internalIndex, setInternalIndex] = useState(0);
   const currentIndex = controlledIndex ?? internalIndex;
-  const [animating, setAnimating] = useState(false);
   const [exitDirection, setExitDirection] = useState<SwipeDirection>(null);
   const [isExpanded, setIsExpanded] = useState(() => window.innerWidth >= 768);
   const hasSwipedRef = useRef(false);
@@ -234,32 +248,36 @@ export function SwipeDeck({
     setIsExpanded((prev) => !prev);
   }, []);
 
-  /* ----- Swipe action handler ----- */
+  /* ----- Swipe action handler -----
+   * The parent owns the `externalAnimating` flag (driven by the swipe
+   * API mutation), so we use it as the single source of truth for
+   * "is the deck currently animating / mutating". The exit animation
+   * drives the index advance via AnimatePresence's `onExitComplete`
+   * callback, so there's no 320ms setTimeout race. */
   const performSwipe = useCallback(
     (action: "pass" | "like" | "super_like", profileId: string) => {
-      if (animating || externalAnimating) return;
+      if (externalAnimating) return;
 
       const direction: SwipeDirection =
         action === "pass" ? "left" : action === "like" ? "right" : "up";
       setExitDirection(direction);
-      setAnimating(true);
       hasSwipedRef.current = true;
 
       if (action === "pass") onPass?.(profileId);
       else if (action === "like") onLike?.(profileId);
       else onSuperLike?.(profileId);
-
-      setTimeout(() => {
-        if (controlledIndex === undefined) {
-          setInternalIndex((i) => i + 1);
-        }
-        setAnimating(false);
-        setExitDirection(null);
-        hasSwipedRef.current = false;
-      }, 320);
     },
-    [animating, externalAnimating, controlledIndex, onPass, onLike, onSuperLike]
+    [externalAnimating, onPass, onLike, onSuperLike]
   );
+
+  /* ----- Advance index when the exit animation finishes ----- */
+  const handleExitComplete = useCallback(() => {
+    if (controlledIndex === undefined) {
+      setInternalIndex((i) => i + 1);
+    }
+    setExitDirection(null);
+    hasSwipedRef.current = false;
+  }, [controlledIndex]);
 
   /* ----- Empty state ----- */
   if (!current) {
@@ -286,7 +304,7 @@ export function SwipeDeck({
         className
       )}
       onKeyDown={(event) => {
-        if (animating || externalAnimating) return;
+        if (externalAnimating) return;
         // When expanded, only allow horizontal swipe + escape
         if (isExpanded) {
           if (event.key === "Escape") {
@@ -350,13 +368,16 @@ export function SwipeDeck({
         </AnimatePresence>
 
         {/* Current (top) card with drag gestures */}
-        <AnimatePresence custom={exitDirection} mode="popLayout">
+        <AnimatePresence custom={exitDirection} mode="popLayout" onExitComplete={handleExitComplete}>
           {current ? (
             <SwipeableCard
               key={current.id}
               profile={current}
               isExpanded={isExpanded}
-              disabled={animating || externalAnimating || prefersReducedMotion}
+              disabled={externalAnimating || prefersReducedMotion}
+              multiSelect={multiSelect}
+              isSelected={!!selectedIds?.includes(current.id)}
+              onTapSelect={onSelectToggle ? () => onSelectToggle(current.id) : undefined}
               onSwipePass={() => performSwipe("pass", current.id)}
               onSwipeLike={() => performSwipe("like", current.id)}
               onSwipeSuperLike={() => performSwipe("super_like", current.id)}
@@ -369,12 +390,49 @@ export function SwipeDeck({
           ) : null}
         </AnimatePresence>
       </div>
-      <SwipeActionBar
-        onLike={() => performSwipe("like", current.id)}
-        onPass={() => performSwipe("pass", current.id)}
-        onSuperLike={() => performSwipe("super_like", current.id)}
-        disabled={animating || externalAnimating}
-      />
+      {multiSelect ? (
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3 shadow-sm"
+          role="region"
+          aria-label="Multi-select actions"
+        >
+          <span className="text-body-sm text-ink-2">
+            {selectedIds && selectedIds.length > 0
+              ? `${selectedIds.length} selected`
+              : "Tap a card to select"}
+          </span>
+          <div className="flex items-center gap-2">
+            {selectedIds && selectedIds.length > 0 ? (
+              <button
+                type="button"
+                className="text-body-sm text-ink-3 hover:text-ink"
+                onClick={() => selectedIds.forEach((id) => onSelectToggle?.(id))}
+              >
+                Clear
+              </button>
+            ) : null}
+            <button
+              type="button"
+              disabled={!selectedIds || selectedIds.length === 0}
+              onClick={() => {
+                if (selectedIds && selectedIds.length > 0) {
+                  onMultiSelectAction?.(selectedIds);
+                }
+              }}
+              className="rounded-full bg-red-600 px-4 py-2 text-label-md font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {multiSelectActionLabel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <SwipeActionBar
+          onLike={() => performSwipe("like", current.id)}
+          onPass={() => performSwipe("pass", current.id)}
+          onSuperLike={() => performSwipe("super_like", current.id)}
+          disabled={externalAnimating}
+        />
+      )}
     </section>
   );
 }
@@ -387,6 +445,9 @@ function SwipeableCard({
   profile,
   isExpanded,
   disabled,
+  multiSelect = false,
+  isSelected = false,
+  onTapSelect,
   onSwipePass,
   onSwipeLike,
   onSwipeSuperLike,
@@ -396,6 +457,9 @@ function SwipeableCard({
   profile: SwipeProfile;
   isExpanded: boolean;
   disabled: boolean;
+  multiSelect?: boolean;
+  isSelected?: boolean;
+  onTapSelect?: () => void;
   onSwipePass: () => void;
   onSwipeLike: () => void;
   onSwipeSuperLike: () => void;
@@ -485,11 +549,53 @@ function SwipeableCard({
     >
       <div
         className={cn(
-          "h-full w-full overflow-hidden rounded-2xl bg-surface text-left shadow-lg",
+          "h-full w-full overflow-hidden rounded-2xl bg-surface text-left shadow-lg relative",
           "transition-shadow duration-150 ease-out",
-          "hover:shadow-[0_4px_16px_rgba(201,100,66,0.08)]"
+          "hover:shadow-[0_4px_16px_rgba(201,100,66,0.08)]",
+          isSelected && "ring-4 ring-accent"
         )}
       >
+        {multiSelect && onTapSelect ? (
+          <button
+            type="button"
+            onClick={onTapSelect}
+            aria-pressed={isSelected}
+            aria-label={
+              isSelected
+                ? `Deselect ${profile.name}`
+                : `Select ${profile.name}`
+            }
+            className="absolute inset-0 z-20 flex items-start justify-end p-3"
+            data-testid={`select-card-${profile.id}`}
+          >
+            <span
+              className={cn(
+                "flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors",
+                isSelected
+                  ? "border-accent bg-accent text-white"
+                  : "border-line bg-surface/80 text-ink-2"
+              )}
+            >
+              {isSelected ? (
+                <svg
+                  aria-hidden="true"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                >
+                  <path
+                    d="M2 7L5.5 10.5L12 4"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : null}
+            </span>
+          </button>
+        ) : null}
         {isExpanded ? (
           /* ---- EXPANDED VIEW: Side-by-side on desktop/tablet, full-scroll on mobile ---- */
           <div className="flex h-full flex-col md:flex-row overflow-y-auto md:overflow-hidden" aria-expanded="true">

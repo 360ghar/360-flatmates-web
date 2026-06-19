@@ -1,6 +1,10 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
-import { useSwipeDeck, useSwipeAction } from "@/hooks/queries";
+import {
+  useBatchRemoveSwipes,
+  useSwipeDeck,
+  useSwipeAction
+} from "@/hooks/queries";
 import { useKeyboardSwipe } from "@/hooks/useKeyboardSwipe";
 import { useStore } from "zustand";
 import { swipeStore } from "@/lib/stores/swipe-store";
@@ -13,7 +17,10 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { SwipeDeck, type SwipeProfile } from "@/components/organisms/SwipeDeck";
 import { formatLocation, formatMoveInTimeline } from "@/lib/utils/format";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Star, Trash2 } from "lucide-react";
+
+const SWIPE_HINT_DISMISSED_KEY = "360-flatmates-swipe-hint-dismissed";
 
 function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
   return {
@@ -141,6 +148,20 @@ export function SwipePage() {
     [storeAnimating, swipeAction, swipeProfiles, setStoreAnimating, setStoreDirection, clearStoreDirection]
   );
 
+  /* ----- First-time hint overlay (F4-18) -----
+   * Show a one-time tooltip explaining keyboard shortcuts and action buttons.
+   * Dismissal state is persisted in localStorage so it only shows once. */
+  const [showHint, setShowHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !window.localStorage.getItem(SWIPE_HINT_DISMISSED_KEY);
+  });
+  const dismissHint = useCallback(() => {
+    setShowHint(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SWIPE_HINT_DISMISSED_KEY, "1");
+    }
+  }, []);
+
   /* ----- Keyboard support -----
    * Swipe keys (ArrowLeft/Right/Up, Space) are owned solely by SwipeDeck's
    * focusable <section> onKeyDown handler, which both fires the action callback
@@ -149,21 +170,57 @@ export function SwipePage() {
    * (window listener + section handler) and the global path could not advance
    * the uncontrolled deck. This hook is retained only to let Escape dismiss the
    * match-celebration overlay from anywhere on the page. */
-  const noop = useCallback(() => {}, []);
   const handleKeyboardDismiss = useCallback(() => {
     setMatchProfile(null);
   }, []);
 
   useKeyboardSwipe({
-    onPass: noop,
-    onLike: noop,
-    onSuperLike: noop,
-    onExpand: noop,
     onDismiss: handleKeyboardDismiss,
     enabled: !!matchProfile
   });
 
   /* ----- Rendering ----- */
+  /* ----- Multi-select for batch-unswipe ----- */
+  const [multiSelect, setMultiSelect] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const batchRemove = useBatchRemoveSwipes();
+
+  const handleSelectToggle = useCallback((profileId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(profileId)
+        ? prev.filter((id) => id !== profileId)
+        : [...prev, profileId]
+    );
+  }, []);
+
+  const handleMultiSelectAction = useCallback(
+    (ids: string[]) => {
+      const numericIds = ids
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id) && id > 0);
+      if (numericIds.length === 0) return;
+      batchRemove.mutate(
+        { property_ids: numericIds },
+        {
+          onSuccess: (result) => {
+            uiStore.getState().pushToast({
+              type: "success",
+              title: `Removed ${result.removed_count ?? numericIds.length} swipes`
+            });
+            setSelectedIds([]);
+            setMultiSelect(false);
+            refetch();
+          },
+          onError: () =>
+            uiStore.getState().pushToast({
+              type: "error",
+              title: "Could not remove swipes"
+            })
+        }
+      );
+    },
+    [batchRemove, refetch]
+  );
 
   if (isLoading) {
     return (
@@ -183,6 +240,25 @@ export function SwipePage() {
 
   return (
     <>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-3">
+        <span className="text-eyebrow text-ink-3 uppercase tracking-widest">
+          {multiSelect ? "Multi-select" : "Swipe through profiles"}
+        </span>
+        <Button
+          variant={multiSelect ? "primary" : "secondary"}
+          size="compact"
+          onClick={() => {
+            setMultiSelect((prev) => {
+              if (prev) setSelectedIds([]);
+              return !prev;
+            });
+          }}
+          aria-pressed={multiSelect}
+        >
+          <Trash2 aria-hidden="true" className="mr-1 h-3.5 w-3.5" />
+          {multiSelect ? "Exit select" : "Select to remove"}
+        </Button>
+      </div>
       <div className="flex justify-center py-2 md:py-4">
         <SwipeDeck
           profiles={swipeProfiles}
@@ -193,8 +269,17 @@ export function SwipePage() {
           onEmptyAction={() => navigate("/explore")}
           onNearEnd={handleNearEnd}
           isAnimating={storeAnimating}
+          multiSelect={multiSelect}
+          selectedIds={selectedIds}
+          onSelectToggle={handleSelectToggle}
+          onMultiSelectAction={handleMultiSelectAction}
         />
       </div>
+
+      {/* First-time swipe hint (F4-18) */}
+      <AnimatePresence>
+        {showHint ? <SwipeHintOverlay onDismiss={dismissHint} /> : null}
+      </AnimatePresence>
 
       {/* Match celebration overlay */}
       {matchProfile && (
@@ -211,6 +296,99 @@ export function SwipePage() {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/*  SwipeHintOverlay — first-time tooltip                                     */
+/* -------------------------------------------------------------------------- */
+
+function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.div
+      className="pointer-events-none fixed inset-0 z-40 flex items-end justify-center pb-32 md:pb-40"
+      role="dialog"
+      aria-label="Swipe controls overview"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <motion.div
+        className="pointer-events-auto relative w-[min(380px,calc(100vw-32px))] rounded-2xl border border-line bg-surface/95 p-5 shadow-2xl backdrop-blur-md"
+        initial={{ y: 12, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 12, opacity: 0 }}
+        transition={{ type: "spring", damping: 18, stiffness: 200 }}
+      >
+        <button
+          type="button"
+          aria-label="Dismiss swipe hint"
+          onClick={onDismiss}
+          className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
+        >
+          <X aria-hidden="true" className="h-4 w-4" />
+        </button>
+        <h3 className="text-body-md font-semibold text-ink">Quick swipe guide</h3>
+        <p className="mt-1 text-caption text-ink-3">
+          Swipe profiles with your keyboard or the action buttons below.
+        </p>
+        <ul className="mt-4 flex flex-col gap-2.5">
+          <HintRow
+            icon={<ArrowLeft aria-hidden="true" className="h-4 w-4 text-error" />}
+            label="Pass"
+            kbd="←"
+          />
+          <HintRow
+            icon={<ArrowUp aria-hidden="true" className="h-4 w-4 text-warning" />}
+            label="Super Like"
+            kbd="↑"
+          />
+          <HintRow
+            icon={<ArrowRight aria-hidden="true" className="h-4 w-4 text-success" />}
+            label="Like"
+            kbd="→"
+          />
+          <HintRow
+            icon={<Heart aria-hidden="true" className="h-4 w-4 text-success" />}
+            label="Tap buttons or swipe card"
+            kbd=""
+          />
+          <HintRow
+            icon={<Star aria-hidden="true" className="h-4 w-4 text-warning" />}
+            label="Expand profile details"
+            kbd="Space"
+          />
+        </ul>
+        <Button className="mt-5 w-full" size="compact" onClick={onDismiss}>
+          Got it
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function HintRow({
+  icon,
+  label,
+  kbd
+}: {
+  icon: React.ReactNode;
+  label: string;
+  kbd: string;
+}) {
+  return (
+    <li className="flex items-center justify-between gap-3 text-body-sm text-ink-2">
+      <span className="flex items-center gap-2">
+        {icon}
+        <span>{label}</span>
+      </span>
+      {kbd ? (
+        <kbd className="rounded-md border border-line bg-paper-2 px-2 py-0.5 font-mono text-caption text-ink-2">
+          {kbd}
+        </kbd>
+      ) : null}
+    </li>
+  );
+}
+
 
 function MatchCelebration({
   profile,
@@ -222,7 +400,7 @@ function MatchCelebration({
   onChat: () => void;
 }) {
   useEffect(() => {
-    const timer = setTimeout(onDismiss, 8000);
+    const timer = setTimeout(onDismiss, 4000);
     return () => clearTimeout(timer);
   }, [onDismiss]);
 
