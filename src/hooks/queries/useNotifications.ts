@@ -1,5 +1,4 @@
 import {
-  type InfiniteData,
   queryOptions,
   useInfiniteQuery,
   useMutation,
@@ -8,7 +7,6 @@ import {
 } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
-  FlatmatesNotification,
   NotificationCursorPage,
   MarkNotificationReadPayload,
   MarkAllNotificationsReadPayload,

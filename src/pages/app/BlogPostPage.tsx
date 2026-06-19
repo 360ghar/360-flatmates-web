@@ -104,12 +104,12 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
   }
 
   const articleLd = buildArticleSchema({
-    title: post.title,
+    headline: post.title,
     description: post.excerpt ?? post.meta_description ?? "",
-    image: post.cover_image_url ?? post.og_image_url,
+    image: post.cover_image_url ?? post.og_image_url ?? `${SITE_URL}/og-default.png`,
     url: `${SITE_URL}/blog/${post.slug}`,
     authorName: post.author_name,
-    publishedTime: post.published_at ?? undefined
+    datePublished: post.published_at ?? post.created_at ?? new Date().toISOString()
   });
 
   return (

@@ -1,7 +1,7 @@
 import { ArrowLeft, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAddPaymentMethod } from "@/hooks/queries";
@@ -24,23 +24,8 @@ const addPaymentMethodSchema = z
       .regex(/^\d{0,4}$/, "Digits only")
       .optional()
       .or(z.literal("")),
-    exp_month: z
-      .union([z.string(), z.number()])
-      .optional()
-      .transform((v) => (v === "" || v == null ? undefined : Number(v)))
-      .pipe(z.number().int().min(1).max(12).optional()),
-    exp_year: z
-      .union([z.string(), z.number()])
-      .optional()
-      .transform((v) => (v === "" || v == null ? undefined : Number(v)))
-      .pipe(
-        z
-          .number()
-          .int()
-          .min(2024)
-          .max(2099)
-          .optional()
-      ),
+    exp_month: z.string().optional().or(z.literal("")),
+    exp_year: z.string().optional().or(z.literal("")),
     cardholder_name: z.string().max(120).optional().or(z.literal("")),
     vpa: z
       .string()
@@ -104,7 +89,7 @@ export function AddPaymentMethodPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting }
   } = useForm<AddPaymentMethodForm>({
     resolver: zodResolver(addPaymentMethodSchema),
@@ -120,7 +105,7 @@ export function AddPaymentMethodPage() {
     }
   });
 
-  const selectedBrand = watch("brand");
+  const selectedBrand = useWatch({ control, name: "brand" }) ?? "Visa";
   const isUpi = selectedBrand === "UPI";
 
   const onSubmit = (values: AddPaymentMethodForm) => {
@@ -129,8 +114,14 @@ export function AddPaymentMethodPage() {
       {
         brand: values.brand,
         last4: values.last4 || undefined,
-        exp_month: values.exp_month,
-        exp_year: values.exp_year,
+        exp_month:
+          values.exp_month && values.exp_month !== ""
+            ? Number(values.exp_month)
+            : undefined,
+        exp_year:
+          values.exp_year && values.exp_year !== ""
+            ? Number(values.exp_year)
+            : undefined,
         cardholder_name: values.cardholder_name || undefined,
         vpa: values.vpa || undefined,
         nickname: values.nickname || undefined,

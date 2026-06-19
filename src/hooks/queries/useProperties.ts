@@ -1,5 +1,4 @@
 import {
-  type InfiniteData,
   queryOptions,
   useInfiniteQuery,
   useMutation,
@@ -18,7 +17,6 @@ import type {
   BoostListingResponse,
   RenewListingPayload
 } from "@/lib/api/types";
-import type { QueryValue } from "@/lib/api/client";
 
 const MY_PROPERTIES_PAGE_SIZE = 20;
 

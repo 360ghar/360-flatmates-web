@@ -3,6 +3,7 @@ import type {
   ConversationStatus,
   MessageType
 } from "@/lib/data";
+import type { CursorPage } from "./common.types";
 import type { FlatmatesPeer } from "./user.types";
 import type { JsonObject } from "./common.types";
 
@@ -77,4 +78,13 @@ export interface MessageListResponse {
   messages: MessageOut[];
   total: number;
   has_more: boolean;
+  /**
+   * Server-issued opaque cursor for the next page. May be `null` when
+   * the server has not yet migrated to opaque cursors and instead expects
+   * a derived `before=<oldest_message_id>` keyset value (in which case
+   * `useMessages` falls back to the message-id based pagination).
+   */
+  next_cursor?: string | null;
 }
+
+export type ConversationCursorPage = CursorPage<ConversationSummary>;

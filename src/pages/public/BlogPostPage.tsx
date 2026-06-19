@@ -4,14 +4,20 @@ import { NetworkImage } from "@/components/ui/NetworkImage";
 import { BlogPostPage as DynamicBlogPostPage } from "@/pages/app/BlogPostPage";
 
 /**
- * Public-facing blog post route. Falls back to the legacy hardcoded content
- * when the slug is not in the static dictionary (e.g. older posts that have
- * not been migrated to the backend), and otherwise delegates to the dynamic
- * page backed by the `/blog/posts/{id}` endpoint.
+ * Public-facing blog post route. The new system serves posts via the
+ * `BlogPostPage` from `app/` backed by `/blog/posts/{id}`. This shim
+ * delegates to that page for fresh slugs, and falls back to the legacy
+ * hardcoded dictionary (the `BLOG_CONTENT` map below) for older posts
+ * that have not yet been migrated to the backend.
  */
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
   if (!slug) return null;
+  // The legacy map covers a finite, pre-migration set of slugs. Anything
+  // else routes through the dynamic page which fetches from the backend.
+  if (BLOG_CONTENT[slug]) {
+    return <LegacyBlogPostPage />;
+  }
   return <DynamicBlogPostPage />;
 }
 
@@ -247,7 +253,7 @@ Successful co-living requires flexibility from all parties.
   },
 };
 
-export function BlogPostPage() {
+function LegacyBlogPostPage() {
   const { slug } = useParams<{ slug: string; }>();
   const post = BLOG_CONTENT[slug || ""];
 

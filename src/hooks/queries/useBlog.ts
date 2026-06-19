@@ -1,11 +1,9 @@
 import {
-  type InfiniteData,
   infiniteQueryOptions,
   queryOptions,
   useInfiniteQuery,
   useMutation,
-  useQuery,
-  useQueryClient
+  useQuery
 } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
@@ -14,8 +12,8 @@ import type {
   BlogPostFilters,
   BlogPostList,
   BlogPostPreviewResponse,
-  BlogPostPreviewTokenCreate,
-  BlogPostPreviewTokenResponse,
+  BlogPreviewTokenCreate,
+  BlogPreviewTokenResponse,
   BlogTag
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
@@ -146,16 +144,12 @@ export function useBlogTags() {
  * post in the list.
  */
 export function useCreateBlogPreviewToken() {
-  return useMutation<BlogPostPreviewTokenResponse, Error, { id: number; payload?: BlogPostPreviewTokenCreate }>({
+  return useMutation<BlogPreviewTokenResponse, Error, { id: number; payload?: BlogPreviewTokenCreate }>({
     mutationFn: ({ id, payload = {} }) =>
-      apiClient.request<BlogPostPreviewTokenResponse>({
+      apiClient.request<BlogPreviewTokenResponse>({
         method: "POST",
         path: `/blog/posts/${id}/preview-token`,
         body: payload
       })
   });
 }
-
-// Avoid "unused import" linting noise on InfiniteData when consumers do not
-// import it directly.
-export type { InfiniteData };

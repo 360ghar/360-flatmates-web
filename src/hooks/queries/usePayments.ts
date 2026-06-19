@@ -16,7 +16,6 @@ import type {
   RazorpayOrderResponse,
   RazorpayVerifyRequest
 } from "@/lib/api/types";
-import type { QueryValue } from "@/lib/api/client";
 
 /**
  * Local fallback alias — if the backend lists the payment methods as a flat

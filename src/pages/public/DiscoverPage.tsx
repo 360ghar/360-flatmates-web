@@ -80,7 +80,7 @@ export function DiscoverPage() {
       }
       return base;
     },
-    [cities, params.city, params.cursor, params.filter]
+    [cities, params.city, params.filter]
   );
 
   const {
