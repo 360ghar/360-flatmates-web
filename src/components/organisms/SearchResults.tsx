@@ -1,5 +1,5 @@
 import { type HTMLAttributes, type ReactNode, useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, SlidersHorizontal } from "lucide-react";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/StateViews";
 import { FilterPanel, type FilterSection } from "../molecules/FilterPanel";
@@ -11,8 +11,25 @@ export interface SearchResultsProps extends HTMLAttributes<HTMLElement> {
   listings: ListingCardData[];
   filters: FilterSection[];
   resultCount?: number;
+  /**
+   * Current page number, 1-based. Only used when `totalPages` is also
+   * supplied (i.e. when the server emitted a `total` field via
+   * `?include_total=true`). With cursor-only pagination this should be left
+   * undefined and `hasMore` should drive the "Load more" affordance.
+   */
   currentPage?: number;
+  /**
+   * Total page count. Only available when the backend supplied a `total`
+   * count for the current query. Omit to disable the numbered paginator;
+   * `hasMore` is then used to render a "Load more" button instead.
+   */
   totalPages?: number;
+  /** Whether more results are available via `loadMore` (cursor pagination). */
+  hasMore?: boolean;
+  /** Whether a fetch is in-flight (used to render a spinner on Load more). */
+  isFetchingMore?: boolean;
+  /** Triggered by the "Load more" button. */
+  onLoadMore?: () => void;
   sortControl?: ReactNode;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
@@ -30,6 +47,9 @@ export function SearchResults({
   resultCount = listings.length,
   currentPage = 1,
   totalPages = 1,
+  hasMore = false,
+  isFetchingMore = false,
+  onLoadMore,
   sortControl,
   searchValue,
   onSearchChange,
@@ -42,6 +62,10 @@ export function SearchResults({
   className,
   ...props
 }: SearchResultsProps) {
+  // Page-numbered paginator is only valid when the server provided a total
+  // count. Otherwise we fall back to the cursor-driven "Load more" affordance.
+  const hasTotalPages = totalPages > 1;
+  const showNumberedPaginator = hasTotalPages;
   const hasPrev = currentPage > 1;
   const hasNext = currentPage < totalPages;
 
@@ -124,8 +148,30 @@ export function SearchResults({
           </div>
         )}
 
-        {/* Pagination controls */}
-        {totalPages > 1 && (
+        {/* Cursor-driven "Load more" (preferred when total is unknown) */}
+        {!showNumberedPaginator && hasMore && (
+          <div className="mt-6 flex items-center justify-center">
+            <Button
+              variant="secondary"
+              size="compact"
+              onClick={() => onLoadMore?.()}
+              disabled={isFetchingMore}
+              aria-label="Load more results"
+            >
+              {isFetchingMore ? (
+                <>
+                  <Loader2 aria-hidden="true" className="mr-1.5 h-4 w-4 animate-spin" />
+                  Loading more…
+                </>
+              ) : (
+                "Load more"
+              )}
+            </Button>
+          </div>
+        )}
+
+        {/* Numbered paginator — only when the server supplied total count */}
+        {showNumberedPaginator && (
           <nav aria-label="Search results pagination" className="mt-6 flex items-center justify-center gap-2">
             <Button
               leadingIcon={<ChevronLeft aria-hidden="true" className="h-4 w-4" />}
@@ -173,7 +219,7 @@ export function SearchResults({
           </nav>
         )}
 
-        {totalPages <= 1 && onSaveSearch && (
+        {(!showNumberedPaginator || (showNumberedPaginator && !hasMore)) && onSaveSearch && (
           <div className="mt-6 flex items-center justify-center">
             <Button onClick={onSaveSearch}>Save this search</Button>
           </div>
