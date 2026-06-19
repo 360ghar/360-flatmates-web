@@ -15,7 +15,7 @@ export function CitiesShowcase() {
     <section className="bg-surface py-20 md:py-24 border-b border-line-low" aria-labelledby="cities-heading">
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <div className="mb-14 text-center">
-          <h2 id="cities-heading" className="text-display max-w-xl mx-auto text-ink text-4xl md:text-5xl">
+          <h2 id="cities-heading" className="text-display max-w-xl mx-auto text-ink">
             Live where you actually want to be.
           </h2>
         </div>

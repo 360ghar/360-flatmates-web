@@ -5,6 +5,10 @@ import type {
   ReportStatus
 } from "@/lib/data";
 import type { JsonObject } from "./common.types";
+import type { CursorPage } from "./common.types";
+
+// Re-export domain enums so consumers can import from "@/lib/api/types"
+export type { PropertyModerationStatus, ReportStatus };
 
 export interface ListingModerationPayload {
   action: ModerationAction;
@@ -30,12 +34,15 @@ export interface FlatmateListingAdmin {
   ai_prescreen_reason?: string;
 }
 
+/** @deprecated Use {@link AdminListingCursorPage} instead. */
 export interface AdminListingsResponse {
   listings: FlatmateListingAdmin[];
   total: number;
   limit: number;
   offset: number;
 }
+
+export type AdminListingCursorPage = CursorPage<FlatmateListingAdmin>;
 
 export interface ReportAdmin {
   id: number;
@@ -52,12 +59,15 @@ export interface ReportAdmin {
   updated_at?: string;
 }
 
+/** @deprecated Use {@link AdminReportCursorPage} instead. */
 export interface AdminReportsResponse {
   reports: ReportAdmin[];
   total: number;
   limit: number;
   offset: number;
 }
+
+export type AdminReportCursorPage = CursorPage<ReportAdmin>;
 
 export interface ReportActionPayload {
   action: ReportAction;
@@ -86,11 +96,11 @@ export interface DashboardStats {
 export interface AdminListingFilters {
   status?: PropertyModerationStatus;
   limit?: number;
-  offset?: number;
+  cursor?: string;
 }
 
 export interface AdminReportFilters {
   status?: ReportStatus;
   limit?: number;
-  offset?: number;
+  cursor?: string;
 }

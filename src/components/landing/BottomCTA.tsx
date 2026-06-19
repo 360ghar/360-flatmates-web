@@ -8,8 +8,10 @@ export function BottomCTA() {
       className="relative py-24 md:py-36 overflow-hidden bg-accent-950"
       aria-labelledby="bottom-cta-heading"
     >
-      {/* Accent gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-accent-700 via-accent-900 to-accent-950 opacity-90" />
+      {/* Accent gradient background. In light mode the bright terracotta ramp
+          (from-accent-700 → accent-950) reads as warm; in dark mode that same
+          ramp collapses to a flat brown, so we brighten and shift hue. */}
+      <div className="absolute inset-0 bg-gradient-to-br from-accent-700 via-accent-900 to-accent-950 opacity-90 dark:from-accent-600 dark:via-accent-800 dark:to-accent-950" />
       
       {/* Animated Mesh Glows */}
       <div className="absolute top-[-50%] left-[-20%] w-[80%] aspect-square rounded-full bg-accent-400/15 blur-[120px] pointer-events-none animate-pulse duration-[6000ms]" />
@@ -20,7 +22,7 @@ export function BottomCTA() {
 
       <div className="mx-auto max-w-5xl px-5 md:px-12 relative z-10 text-center">
         <p className="text-eyebrow mb-6 text-accent-300">Get started</p>
-        <h2 id="bottom-cta-heading" className="text-display mb-10 text-white text-4xl md:text-5xl lg:text-6xl max-w-2xl mx-auto leading-tight tracking-tight">
+        <h2 id="bottom-cta-heading" className="text-display mb-10 text-white lg:text-6xl max-w-2xl mx-auto leading-tight tracking-tight">
           Ready to find your <span className="text-serif-italic text-accent-300 italic font-normal text-5xl md:text-6xl lg:text-7xl">vibe match</span>?
         </h2>
 

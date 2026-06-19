@@ -188,7 +188,17 @@ export function ProfileEditPage() {
     if (hasPhone) {
       delete payload.phone;
     } else if (payload.phone) {
-      const digits = (payload.phone as string).replace(/\D/g, "").replace(/^91/, "").slice(-10);
+      // Accept any 10-digit Indian mobile number. Strip spaces, dashes, the
+      // country code prefix (91), and any other non-digits; require exactly
+      // 10 surviving digits (A-15). Anything else surfaces an inline error.
+      const digits = (payload.phone as string)
+        .replace(/\D/g, "")
+        .replace(/^91/, "")
+        .slice(-10);
+      if (digits.length !== 10) {
+        setServerError("Please enter a valid 10-digit phone number.");
+        return;
+      }
       payload.phone = `+91${digits}`;
     }
 
@@ -454,6 +464,11 @@ export function ProfileEditPage() {
             {...register("gender_preference")}
           />
         </Card>
+
+        {/* TODO(privacy): per-field privacy toggles (e.g. hide phone from
+            non-matches, hide budget from public profiles) belong here, but
+            the API does not yet support field-level visibility (A-8). Add
+            the controls once the backend defines a privacy-settings wire. */}
 
         {/* Submit */}
         <div className="flex flex-col gap-2 pb-6">

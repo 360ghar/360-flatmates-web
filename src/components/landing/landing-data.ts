@@ -185,6 +185,13 @@ export const TESTIMONIALS: TestimonialItem[] = [
     city: "Delhi NCR",
     compatibility: 92,
   },
+  {
+    quote:
+      "Booked a visit on a Tuesday, moved in by the weekend. The chat already had the listing pinned at the top, so it never felt like cold-messaging a stranger.",
+    name: "Ananya S.",
+    city: "Gurugram",
+    compatibility: 89,
+  },
 ];
 
 export const CITIES: CityItem[] = [

@@ -81,6 +81,9 @@ export function SeoHelmet({
   const metaDescription = description ?? DEFAULT_DESCRIPTION;
   const canonical = canonicalUrl ?? SITE_URL;
   const image = ogImage ?? DEFAULT_OG_IMAGE;
+  const ogImageAlt = ogImage
+    ? `Preview image for ${title ?? SITE_NAME}`
+    : `${SITE_NAME} — ${SITE_TAGLINE}`;
 
   const organizationSchema = buildOrganizationSchema();
   const webSiteSchema = buildWebSiteSchema();
@@ -111,6 +114,7 @@ export function SeoHelmet({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={metaDescription} />
       <meta property="og:image" content={image} />
+      <meta property="og:image:alt" content={ogImageAlt} />
       <meta property="og:url" content={canonical} />
       <meta property="og:type" content={ogType} />
       <meta property="og:site_name" content={SITE_NAME} />

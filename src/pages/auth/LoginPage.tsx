@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router";
 import { useNavigate, useSearchParams } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
@@ -17,6 +17,18 @@ import { authStore } from "@/lib/stores/auth-store";
 import { getLastAuthMethod, maskIdentifier } from "@/lib/lastAuthMethod";
 import { PASSWORD_REGEX } from "@/lib/schemas/common";
 import { resolveRedirect, normalizePhone } from "@/lib/redirect";
+import { PASSWORD_POLICY_HELPER_TEXT, PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
+
+/**
+ * Lightweight format gate so a malformed identifier never reaches the
+ * `/auth/identifier-status` endpoint (which would 422 and force a generic
+ * error). A pragmatic RFC-5322 subset is enough to catch typos like `"abc"`
+ * — which `detectIdentifierChannel` currently classifies as "email" — and
+ * to reject phone numbers that are clearly too short. Phone length is
+ * checked against the digit count (≥ 10) to accept our `+91` default as
+ * well as the raw 10-digit form.
+ */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Login state-machine:
@@ -39,7 +51,7 @@ type LoginStep = "identifier" | "password" | "otp" | "set-password";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     checkIdentifierStatus,
     signInWithPassword,
@@ -55,7 +67,14 @@ export function LoginPage() {
   } = useAuth();
 
   const [step, setStep] = useState<LoginStep>("identifier");
-  const [identifier, setIdentifier] = useState("");
+  // Seed the identifier from the URL on first render so a hard refresh during
+  // the OTP step doesn't leave the user staring at an empty input. The
+  // `?identifier=...` query param is set on `setStep("otp")` and cleared on
+  // `goBackToIdentifier`.
+  const [identifier, setIdentifier] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("identifier") ?? "";
+  });
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -70,11 +89,28 @@ export function LoginPage() {
    */
   const [otpAllowsCreate, setOtpAllowsCreate] = useState(false);
   // Surface the OAuth-callback failure (`/login?error=auth`) inline on first render.
-  const [error, setError] = useState<string | null>(() =>
-    searchParams.get("error") === "auth"
-      ? "We couldn't complete that sign-in. Please try again."
-      : null
-  );
+  const [error, setError] = useState<string | null>(() => {
+    if (searchParams.get("error") === "auth") {
+      return "We couldn't complete that sign-in. Please try again.";
+    }
+    return null;
+  });
+  // Clear the `?error=auth` query param on first render so a refresh doesn't
+  // re-surface the same toast and a copy/paste of the URL doesn't carry the
+  // error state forward.
+  useEffect(() => {
+    if (searchParams.get("error") === "auth") {
+      const next = new URLSearchParams(searchParams);
+      next.delete("error");
+      setSearchParams(next, { replace: true });
+    }
+    // Run only on first mount — re-running on every param change would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Track the in-flight identifier-status request so a stale response can't
+  // mutate state if the user re-submits the identifier step mid-flight.
+  const statusAbortRef = useRef<AbortController | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -83,14 +119,24 @@ export function LoginPage() {
   /** Apple Sign-In is only available on iOS/Safari browsers. */
   const isAppleSupported = useMemo(() => {
     if (typeof window === "undefined") return false;
+    // The WebKit-only `-webkit-touch-callout` CSS prop is the real gate — every
+    // iOS Safari version supports it, and no desktop browser does.
     const supportsTouchCallout =
       typeof CSS !== "undefined" && typeof CSS.supports === "function"
         ? CSS.supports("-webkit-touch-callout", "none")
         : false;
-    return (
-      supportsTouchCallout ||
-      /iPhone|iPad|iPod|Safari/i.test(navigator.userAgent)
-    );
+    if (supportsTouchCallout) return true;
+
+    // Fallback UA sniff: only treat as Apple when the UA *also* contains
+    // "Mobile" or "Mac" (desktop Safari shares the engine but a separate
+    // product, and we don't ship Apple Sign-In there). Crucially, exclude
+    // Chrome / Edge / Opera on iOS — they all masquerade as "Safari" in the UA
+    // but are not the platform owner.
+    const ua = navigator.userAgent;
+    const isAppleDevice = /iPhone|iPad|iPod/.test(ua);
+    const isMacSafari =
+      /Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR/.test(ua);
+    return isAppleDevice || isMacSafari;
   }, []);
 
   const resendTimer = useResendTimer(30);
@@ -151,9 +197,32 @@ export function LoginPage() {
 
   const handleContinue = useCallback(async () => {
     setError(null);
+
+    // Format gate: never let a malformed identifier reach the backend. The
+    // `detectIdentifierChannel` helper is too permissive (e.g. `"abc"` classifies
+    // as email), so we validate against a stricter shape first.
+    if (channel === "email" && !EMAIL_RE.test(resolvedIdentifier)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (channel === "phone") {
+      const digits = resolvedIdentifier.replace(/\D/g, "");
+      if (digits.length < 10) {
+        setError("Please enter a valid phone number (at least 10 digits).");
+        return;
+      }
+    }
+
+    // Abort any in-flight identifier-status check so a stale response can't
+    // mutate state after the user has already moved on.
+    statusAbortRef.current?.abort();
+    const controller = new AbortController();
+    statusAbortRef.current = controller;
+
     setSubmitting(true);
     try {
-      const status = await checkIdentifierStatus(resolvedIdentifier);
+      const status = await checkIdentifierStatus(resolvedIdentifier, controller.signal);
+      if (controller.signal.aborted) return;
       if (status.next_step === "password") {
         setStep("password");
       } else {
@@ -168,16 +237,26 @@ export function LoginPage() {
         } else {
           await signInWithEmailOtp(resolvedIdentifier, allowCreate);
         }
+        if (controller.signal.aborted) return;
         setOtpAllowsCreate(allowCreate);
         // Any account without a password (`has_password === false`, incl.
         // unknown identifiers) must set one after OTP — see `set-password` step.
         setMustSetPassword(status.has_password === false);
         setStep("otp");
+        // Persist the identifier in the URL so a refresh mid-OTP can resume
+        // the flow (the OTP itself is not persisted — the user re-sends).
+        const next = new URLSearchParams(searchParams);
+        next.set("identifier", resolvedIdentifier);
+        setSearchParams(next, { replace: true });
         resendTimer.start();
       }
     } catch (err: unknown) {
+      if (controller.signal.aborted) return;
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
+      if (statusAbortRef.current === controller) {
+        statusAbortRef.current = null;
+      }
       setSubmitting(false);
     }
   }, [
@@ -187,6 +266,8 @@ export function LoginPage() {
     signInWithPhone,
     signInWithEmailOtp,
     resendTimer,
+    searchParams,
+    setSearchParams,
   ]);
 
   const handleResendOtp = useCallback(async () => {
@@ -303,7 +384,7 @@ export function LoginPage() {
   const handleSetPassword = useCallback(async () => {
     setError(null);
     if (!PASSWORD_REGEX.test(password)) {
-      setError("Password must be at least 8 characters with 1 uppercase, 1 number, and 1 special character.");
+      setError(PASSWORD_POLICY_ERROR_TEXT);
       return;
     }
     if (password !== confirmPassword) {
@@ -354,7 +435,13 @@ export function LoginPage() {
     setOtp("");
     setMustSetPassword(false);
     setError(null);
-  }, []);
+    // Drop the resume-helper param so the URL reflects the visible state.
+    if (searchParams.get("identifier")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("identifier");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Editing the identifier after branching returns to the identifier step so a
   // stale password/OTP form is never submitted against a different identifier.
@@ -544,10 +631,18 @@ export function LoginPage() {
         );
       })()}
 
-      {/* Step 2c — mandatory set-password (non-skippable, no back/skip).
-          Reached only after a successful OTP verification on a passwordless
-          account. The session already exists, so login completes only once a
-          valid password is set. */}
+      {/* Step 2c — mandatory set-password.
+          The PASSWORD itself is non-skippable: the session already exists
+          (OTP verified), so login completes only once a valid password is set.
+          The IDENTIFIER, however, must remain switchable: if the user signed
+          in with the wrong email/phone by mistake, they need a way to bail
+          back to the identifier step without being trapped mid-flow.
+          TODO(F2+auth-store): a proper "use a different identifier" requires
+          a coordinated Supabase `signOut()` + `authStore.reset()` so the
+          freshly-created session from the OTP verify is torn down and the
+          identifier-status re-check is re-runnable. For now the link below
+          is intentionally inert (a comment-only marker) until that work is
+          scoped; tracking ticket lives in the F2 fix report. */}
       {step === "set-password" && (
         <form
           onSubmit={(e) => {
@@ -569,6 +664,7 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             className="mt-4"
             autoFocus
+            helperText={PASSWORD_POLICY_HELPER_TEXT}
           />
           <PasswordInput
             label="Confirm password"
@@ -578,9 +674,6 @@ export function LoginPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="mt-4"
           />
-          <div className="mt-3 rounded-xl bg-paper-2 p-3 text-caption text-ink-2">
-            Min 8 chars, 1 uppercase, 1 number, 1 special character.
-          </div>
           <Button
             type="submit"
             fullWidth
@@ -590,6 +683,16 @@ export function LoginPage() {
           >
             Set password &amp; continue
           </Button>
+          {/* TODO(F2+auth-store): wire to `authStore.reset()` + `signOut()` once
+              the session-reset path is added. See comment above. */}
+          <button
+            type="button"
+            disabled
+            className="mt-3 block w-full text-center text-caption text-ink-3 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label="Use a different identifier (not yet supported)"
+          >
+            Use a different identifier
+          </button>
         </form>
       )}
 

@@ -1,12 +1,15 @@
-import { useState } from "react";
-import { Link, Outlet } from "react-router";
-import { Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, Outlet, useLocation } from "react-router";
+import { Menu } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { buttonClasses } from "@/components/ui/Button";
 import { cn, focusRing } from "@/components/ui/component-utils";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
+import { Drawer } from "@/components/ui/Modal";
+import { OfflineBanner } from "@/components/ui/Layout";
+import { PWAInstallBanner } from "@/components/molecules/PWAInstallBanner";
 
 const NAV_LINKS = [
   { href: "/discover", label: "Discover" },
@@ -17,11 +20,33 @@ const NAV_LINKS = [
 
 export function PublicLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const { pathname } = useLocation();
+
+  // Close drawer on route change so navigation isn't blocked.
+  useEffect(() => {
+    if (drawerOpen) setDrawerOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Online/offline detection — surface a banner when the connection drops.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () => setOffline(!navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-paper text-ink">
       <ScrollProgressBar />
-      <header className="sticky top-0 z-30 border-b border-line-low bg-surface/80 backdrop-blur-xl">
+      <OfflineBanner visible={offline} />
+      <header className="sticky top-0 z-30 border-b border-line-low bg-surface/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-5 md:px-12">
           <Link to="/" aria-label="360 Flatmates home" className="shrink-0">
             <Logo compact />
@@ -67,72 +92,57 @@ export function PublicLayout() {
         </div>
       </header>
 
-      {drawerOpen && (
-        <div
-          className="fixed inset-0 z-40 md:hidden"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation menu"
-        >
-          <div
-            className="absolute inset-0 bg-ink/20 backdrop-blur-[4px]"
-            onClick={() => setDrawerOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="absolute inset-y-0 right-0 flex w-72 flex-col bg-surface shadow-lg animate-drawer-in">
-            <div className="flex h-16 items-center justify-between border-b border-line px-5">
-              <span className="text-label-lg text-ink">Menu</span>
-              <button
-                type="button"
-                onClick={() => setDrawerOpen(false)}
-                aria-label="Close navigation menu"
-                className={cn(
-                  "inline-flex h-10 w-10 items-center justify-center rounded-[9px] text-ink-2 hover:bg-paper-2",
-                  focusRing,
-                )}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <nav className="flex flex-col gap-1 p-4" aria-label="Mobile navigation">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  onClick={() => setDrawerOpen(false)}
-                  className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="mt-3 flex flex-col gap-3 border-t border-line pt-4">
-                <Link
-                  to="/login"
-                  onClick={() => setDrawerOpen(false)}
-                  className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/discover"
-                  onClick={() => setDrawerOpen(false)}
-                  className={buttonClasses("primary", "compact") + " h-10 shadow-cta text-center"}
-                >
-                  Join
-                </Link>
-                <div className="flex items-center gap-2 px-4 py-2">
-                  <ThemeToggle size="sm" />
-                  <span className="text-body-md text-ink-2">Dark mode</span>
-                </div>
-              </div>
-            </nav>
-          </div>
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        side="right"
+        width="standard"
+        className="md:hidden"
+        aria-label="Navigation menu"
+      >
+        <div className="flex h-16 items-center justify-between border-b border-line px-5">
+          <span className="text-label-lg text-ink">Menu</span>
         </div>
-      )}
+        <nav className="flex flex-col gap-1 p-4" aria-label="Mobile navigation">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              onClick={() => setDrawerOpen(false)}
+              className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <div className="mt-3 flex flex-col gap-3 border-t border-line pt-4">
+            <Link
+              to="/login"
+              onClick={() => setDrawerOpen(false)}
+              className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/discover"
+              onClick={() => setDrawerOpen(false)}
+              className={buttonClasses("primary", "compact") + " h-10 shadow-cta text-center"}
+            >
+              Join
+            </Link>
+            <div className="flex items-center gap-2 px-4 py-2">
+              <ThemeToggle size="sm" />
+              <span className="text-body-md text-ink-2">Dark mode</span>
+            </div>
+          </div>
+        </nav>
+      </Drawer>
 
-      <div className="flex-1"><Outlet /></div>
+      <div className="flex-1">
+        <PWAInstallBanner className="mx-auto mt-4 max-w-3xl px-5" pageviewLimit={3} variant="compact" />
+        <Outlet />
+      </div>
 
-      <footer className="bg-surface border-t border-line-low py-20">
+      <footer className="bg-surface border-t border-line-low py-20 pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto max-w-7xl px-5 md:px-12">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-24">
             <div className="lg:col-span-2 space-y-6">

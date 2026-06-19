@@ -3,6 +3,7 @@ import type { MapPin } from "@/lib/api/types";
 import { Button } from "@/components/ui/Button";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { PriceText } from "@/components/ui/PriceText";
+import { cn, focusRing } from "@/components/ui/component-utils";
 
 export interface PropertyDetailSheetProps {
   pin: MapPin;
@@ -33,7 +34,7 @@ export function PropertyDetailSheet({ pin, onClose, onNavigate }: PropertyDetail
             <button
               type="button"
               aria-label="Close"
-              className="shrink-0 rounded-[9px] p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink"
+              className={cn("shrink-0 rounded-[9px] p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink", focusRing)}
               onClick={onClose}
             >
               <X aria-hidden="true" className="h-4 w-4" />

@@ -17,6 +17,18 @@
  * in `scripts/lib/listings.ts`. Sharing that fetch guarantees the sitemap never
  * advertises a URL that this step has not rendered.
  *
+ * CONTRACT (read this if the build is failing with stale or empty dist/):
+ *   - This step requires `npx playwright install chromium` to have run (the
+ *     e2e workflow already does this; a build-only job must too). A build
+ *     without that install will fail at `chromium.launch()` — that is the
+ *     intended behaviour (a misconfigured CI must not ship un-prerendered
+ *     HTML to crawlers).
+ *   - Per-route failures are logged and the build continues; an infrastructure
+ *     failure (no dist/, preview server, browser launch) is fatal.
+ *   - A route present in the sitemap but NOT prerendered is a bug — both
+ *     sources are derived from the same `fetchDiscoverableListings` call so
+ *     they cannot drift under normal operation.
+ *
  * Robustness:
  *  - A single route failure logs a warning and continues; the build never fails
  *    because of one flaky route.

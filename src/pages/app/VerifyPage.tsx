@@ -6,6 +6,14 @@ import { Card } from "@/components/ui/Card";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { StepProgress } from "@/components/ui/StepProgress";
 
+// PLACEHOLDER: this page is a stub while the real verification flow (ID
+// upload + admin review + automatic phone/email cross-checks) is built out.
+// Per the B-* ticket series, the implementation is blocked on the backend
+// verification endpoints and the AdminQueue wiring. Until that lands, the
+// "Verify" button on each step just advances a local `completed` counter so
+// the UI can be exercised end-to-end. Replace with real status fetches
+// (`useVerificationStatus`) and side-effecting mutations once the API ships.
+
 const STEPS = [
   { key: "phone" as const, label: "Phone Verified", icon: Smartphone },
   { key: "id" as const, label: "ID Verification", icon: Shield },

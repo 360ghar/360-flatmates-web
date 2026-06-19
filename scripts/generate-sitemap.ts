@@ -43,7 +43,7 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { SITE_URL, SUPPORTED_CITIES } from "../src/lib/seo/config";
 import { CITY_NEIGHBORHOODS } from "../src/lib/seo/neighborhoods";
-import { fetchDiscoverableListings } from "./lib/listings";
+import { fetchDiscoverableListings, shouldFetchListingData } from "./lib/listings";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Static PUBLIC routes (verified against src/App.tsx → PublicLayout).
@@ -230,6 +230,12 @@ async function generateSitemap(): Promise<void> {
       title: listing.title,
     }));
 
+    // `listing.lastmod` comes from `created_at` on the public /properties
+    // payload (see scripts/lib/listings.ts). If the API ever stops sending
+    // created_at, we fall back to the build timestamp so the XML stays valid;
+    // TODO: if/when the backend returns a dedicated `updated_at` on the
+    // listing payload, plumb it through scripts/lib/listings.ts and drop the
+    // fallback here.
     entries.push({
       loc: `${SITE_URL}/discover/${listing.id}`,
       lastmod: listing.lastmod ?? lastmod,
@@ -237,6 +243,20 @@ async function generateSitemap(): Promise<void> {
       priority: "0.7",
       images: listingImages,
     });
+
+    // TODO: blocked on ADR-001 A-9. The /share/:id route does not exist in
+    // src/App.tsx yet, so emitting it in the sitemap would 404 every click.
+    // Once the ShareListingPage route lands, re-enable the entry below and
+    // add the same route to scripts/prerender.ts so prerender and sitemap
+    // stay in sync.
+    //
+    // entries.push({
+    //   loc: `${SITE_URL}/share/${listing.id}`,
+    //   lastmod: listing.lastmod ?? lastmod,
+    //   changefreq: "daily",
+    //   priority: "0.6",
+    //   image: listingImages?.[0] ? { loc: listingImages[0].loc, title: listing.title } : undefined,
+    // });
   }
 
   const hasImages = entries.some(
@@ -254,10 +274,15 @@ ${entries.map(renderUrl).join("")}
 
   const outputPath = resolve(process.cwd(), "public", "sitemap.xml");
   writeFileSync(outputPath, sitemap, "utf-8");
+  const listingsSkipped = dynamicListings.length === 0 && !shouldFetchListingData();
   console.log(
     `Sitemap generated at ${outputPath} with ${entries.length} URLs` +
       (hasImages ? ` (image sitemap: enabled)` : "") +
-      (!listingsOk ? ` (WARNING: listing fetch failed — listing URLs omitted)` : ""),
+      (!listingsOk
+        ? ` (WARNING: listing fetch failed — listing URLs omitted)`
+        : listingsSkipped
+          ? ` (listing URLs omitted — CONTEXT is not "production")`
+          : ""),
   );
 }
 

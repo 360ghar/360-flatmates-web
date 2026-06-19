@@ -12,7 +12,7 @@ function CountStat({
   format,
 }: {
   target: number;
-  format: (value: number) => string;
+  format: (value: number) => React.ReactNode;
 }) {
   const { ref, value } = useCountUp(target, { duration: 2200 });
   return <span ref={ref}>{format(value)}</span>;
@@ -48,7 +48,7 @@ export function TrustStrip() {
         <div className="grid grid-cols-2 gap-y-2 md:flex md:items-center md:divide-x md:divide-line-low/60">
           <TrustItem
             icon={Target}
-            value={<>86<span className="text-ink-3 text-xl md:text-2xl">%</span></>}
+            value={<CountStat target={86} format={(v) => <>{v}<span className="text-ink-3 text-xl md:text-2xl">%</span></>} />}
             label="Avg. match score"
           />
           <TrustItem

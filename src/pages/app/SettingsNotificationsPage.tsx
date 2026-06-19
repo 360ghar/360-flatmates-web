@@ -25,6 +25,10 @@ const NOTIFICATION_TOGGLES: NotificationToggle[] = [
   { key: "quiet_hours", label: "Quiet hours 10 PM to 8 AM", defaultOn: false }
 ];
 
+// TODO(typing): preferences is currently typed as Record<string, boolean> which
+// means the wire contract is unverified. Replace with a proper schema once the
+// backend finalises the notification-preferences wire (B-* items in the audit).
+
 function buildInitialToggles(savedPrefs: Record<string, boolean>): Record<string, boolean> {
   const initial: Record<string, boolean> = {};
   for (const t of NOTIFICATION_TOGGLES) {
@@ -54,6 +58,12 @@ export function SettingsNotificationsPage() {
       updateProfile.mutate(
         { preferences: pendingPrefs.current },
         {
+          onSuccess: () => {
+            uiStore.getState().pushToast({
+              type: "success",
+              title: "Notification preferences saved"
+            });
+          },
           onError: () => {
             uiStore.getState().pushToast({
               type: "error",
@@ -67,12 +77,25 @@ export function SettingsNotificationsPage() {
     }
   }, [updateProfile]);
 
-  // Flush any pending preferences on unmount
+  // Flush any pending preferences on unmount. Best-effort: the user has
+  // already navigated away, so we still attempt the save but log an error
+  // toast if it fails.
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (pendingPrefs.current) {
-        updateProfile.mutate({ preferences: pendingPrefs.current });
+        updateProfile.mutate(
+          { preferences: pendingPrefs.current },
+          {
+            onError: () => {
+              uiStore.getState().pushToast({
+                type: "error",
+                title: "Could not save preferences",
+                description: "Please reopen settings to retry."
+              });
+            }
+          }
+        );
         pendingPrefs.current = null;
       }
     };

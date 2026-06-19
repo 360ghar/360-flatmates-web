@@ -33,6 +33,9 @@ export interface DashboardPanelProps extends HTMLAttributes<HTMLElement> {
   metrics: DashboardMetric[];
   rows: ListingPerformanceRow[];
   /** Optional chart node. When omitted, no chart placeholder is rendered. */
+  // TODO: F5 — there is no chart library in the project yet; the chart slot
+  // is wired but intentionally empty. Picking + wiring a library is a larger
+  // pass and needs a design call.
   chart?: ReactNode;
   onViewAnalytics?: (listingId: string) => void;
   onBoost?: (listingId: string) => void;
@@ -139,24 +142,24 @@ export function DashboardPanel({
         {rows.map((row) => (
           <Card className="p-4" key={row.id} variant="compact">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-body-md font-semibold text-ink">{row.title}</h3>
+              <h3 className="min-w-0 text-body-md font-semibold text-ink">{row.title}</h3>
               <Badge tone={boostTone[row.boostStatus]}>{boostLabel[row.boostStatus]}</Badge>
             </div>
             <div className={cn("mt-3 grid gap-2 text-center", showVisits ? "grid-cols-4" : "grid-cols-3")}>
-              <div>
+              <div className="min-w-0">
                 <p className="text-caption text-ink-3">Views</p>
                 <p className="text-body-md font-semibold tabular-nums text-ink">{formatCount(row.views)}</p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-caption text-ink-3">Likes</p>
                 <p className="text-body-md font-semibold tabular-nums text-ink">{formatCount(row.likes)}</p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-caption text-ink-3">Chats</p>
                 <p className="text-body-md font-semibold tabular-nums text-ink">{formatCount(row.conversations)}</p>
               </div>
               {showVisits ? (
-                <div>
+                <div className="min-w-0">
                   <p className="text-caption text-ink-3">Visits</p>
                   <p className="text-body-md font-semibold tabular-nums text-ink">
                     {typeof row.visits === "number" ? formatCount(row.visits) : "n/a"}
@@ -164,7 +167,7 @@ export function DashboardPanel({
                 </div>
               ) : null}
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               <Button size="compact" variant="tertiary" onClick={() => onViewAnalytics?.(row.id)}>
                 Stats
               </Button>

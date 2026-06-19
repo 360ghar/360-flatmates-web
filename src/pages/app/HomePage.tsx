@@ -4,6 +4,9 @@ import { useBootstrap, useMyProfile, useWebSearch, usePeers, useSwipeDeck } from
 import { searchStore } from "@/lib/stores/search-store";
 import { propertyToListingCardProps, profileToProfileGridCardProps } from "@/lib/api/adapters";
 import type { Property } from "@/lib/api/types";
+import { debug } from "@/lib/debug";
+import { Card } from "@/components/ui/Card";
+import { Users, Building2, MapPin } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/ui/StateViews";
 import { SearchBar } from "@/components/ui/SearchBar";
@@ -15,31 +18,54 @@ import { ProfileGridCard } from "@/components/molecules/ProfileGridCard";
 
 const QUICK_FILTERS = ["Nearby", "1BHK", "Furnished", "Budget+", "Vegetarian"] as const;
 
-const FILTER_TO_SEARCH: Record<string, string> = {
-  Nearby: "?q=&sort=nearby",
-  "1BHK": "?q=1BHK",
-  Furnished: "?q=furnished",
-  "Budget+": "?q=budget&sort=price_asc",
-  Vegetarian: "?q=vegetarian",
+type QuickFilter = (typeof QUICK_FILTERS)[number];
+
+/**
+ * Map quick-filter labels to URL params understood by `/search` (see
+ * `lib/schemas/search-params.ts`). The previous mapping used `q` strings
+ * and the unknown `sort=nearby` / `sort=price_asc` keys, which silently
+ * no-op'd. We now use the structured `bedrooms` / `priceMax` params that
+ * the search page actually reads, and fall back to `q` for keyword-style
+ * filters that don't have a dedicated param yet.
+ */
+const QUICK_FILTER_TO_PARAMS: Record<QuickFilter, Record<string, string | number | undefined>> = {
+  Nearby: {},
+  "1BHK": { bedrooms: "1" },
+  Furnished: { q: "furnished" },
+  "Budget+": { priceMax: 10000 },
+  Vegetarian: { q: "vegetarian" }
 };
+
+function buildQuickFilterSearch(label: QuickFilter): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(QUICK_FILTER_TO_PARAMS[label])) {
+    if (value === undefined || value === "") continue;
+    params.set(key, String(value));
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
 
 export function HomePage() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<string>("Nearby");
   const { isLoading: bootstrapLoading, error: bootstrapError, refetch: refetchBootstrap } = useBootstrap();
   const { data: profile } = useMyProfile();
+  // Fire the queries unconditionally. Previously we gated on `profile?.city`,
+  // which silently produced empty sections for users whose profile hadn't yet
+  // resolved their city. The backend accepts the queries without a city
+  // filter, so we let them run with an empty filter set and rely on the
+  // empty-state messaging when there are no results.
   const newListingsFilters = profile?.city
-    ? { city: profile.city, sort_by: "newest" as const, limit: 8, page: 1 }
-    : undefined;
+    ? { city: profile.city, sort_by: "newest" as const, limit: 8 }
+    : { sort_by: "newest" as const, limit: 8 };
   const { data: newListingsData, isLoading: propertiesLoading, error: propertiesError } = useWebSearch(
-    newListingsFilters ?? { limit: 8, page: 1, sort_by: "newest" as const }
+    newListingsFilters
   );
-  const { data: recommendedPeers, isLoading: peersLoading, error: peersError } = usePeers(
-    profile?.city ? { city: profile.city, limit: 8 } : undefined
-  );
-  const { data: swipeDeckProfiles, isLoading: swipeLoading, error: swipeError } = useSwipeDeck(
-    profile?.city ? { city: profile.city, limit: 8 } : undefined
-  );
+  const peersFilters = profile?.city ? { city: profile.city, limit: 8 } : { limit: 8 };
+  const { data: recommendedPeers, isLoading: peersLoading, error: peersError } = usePeers(peersFilters);
+  const swipeFilters = profile?.city ? { city: profile.city, limit: 8 } : { limit: 8 };
+  const { data: swipeDeckProfiles, isLoading: swipeLoading, error: swipeError } = useSwipeDeck(swipeFilters);
 
   const listings = (newListingsData?.results ?? []).filter(
     (r): r is Property => "monthly_rent" in r
@@ -48,6 +74,16 @@ export function HomePage() {
   const recommended = swipeDeckProfiles ?? [];
 
   const anyLoading = bootstrapLoading || propertiesLoading || peersLoading || swipeLoading;
+
+  // Debug logging: surface query states and data shapes for diagnostics
+  debug.log("HomePage", "render", {
+    profile: profile ? { id: profile.id, city: profile.city, name: profile.full_name } : null,
+    bootstrap: { loading: bootstrapLoading, error: bootstrapError?.message },
+    properties: { loading: propertiesLoading, error: propertiesError?.message, count: listings.length },
+    peers: { loading: peersLoading, error: peersError?.message, count: nearbyPeers.length },
+    swipe: { loading: swipeLoading, error: swipeError?.message, count: recommended.length },
+    anyLoading,
+  });
 
   useEffect(() => {
     const currentCity = searchStore.getState().filters.city;
@@ -64,37 +100,56 @@ export function HomePage() {
   return (
     <div className="flex flex-col gap-6 page-fade">
       {/* Personalized Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 shadow-xs">
+      <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 shadow-xs md:grid md:grid-cols-2 md:gap-6 md:items-center">
         <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
         <div className="absolute bottom-[-30%] right-[-10%] w-[40%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
 
-        <p className="text-eyebrow text-accent uppercase tracking-[0.16em]">Dashboard</p>
-        <h1 className="mt-2 text-display text-3xl md:text-4xl text-ink font-normal leading-tight">
-          Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.split(" ")[0] || "Friend"}</span>
-        </h1>
-        <p className="mt-3 text-body-md text-ink-2 max-w-[65ch]">
-          Ready to find your vibe match? Check out your personal dashboard and recommendations below.
-        </p>
+        <div>
+          <p className="text-eyebrow text-accent uppercase tracking-[0.16em]">Dashboard</p>
+          <h1 className="mt-2 text-display text-3xl md:text-4xl text-ink font-normal leading-tight">
+            Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.split(" ")[0] || "Friend"}</span>
+          </h1>
+          <p className="mt-3 text-body-md text-ink-2 max-w-[65ch]">
+            Ready to find your vibe match? Check out your personal dashboard and recommendations below.
+          </p>
+        </div>
 
         {/* Dashboard Quick Stats */}
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-line bg-paper/50 p-4 hover:border-accent/20 transition-all duration-300">
-            <span className="text-h3 font-serif font-normal text-ink">{recommended.length}</span>
-            <p className="text-caption text-ink-3 mt-1">Recommended peers</p>
-          </div>
-          <div className="rounded-xl border border-line bg-paper/50 p-4 hover:border-accent/20 transition-all duration-300">
-            <span className="text-h3 font-serif font-normal text-ink">{listings.length}</span>
-            <p className="text-caption text-ink-3 mt-1">Property listings</p>
-          </div>
-          <div className="col-span-2 sm:col-span-1 rounded-xl border border-line bg-paper/50 p-4 hover:border-accent/20 transition-all duration-300">
-            <span className="text-h3 font-serif font-normal text-ink">{nearbyPeers.length}</span>
-            <p className="text-caption text-ink-3 mt-1">Nearby flatmates</p>
-          </div>
+        <div className="grid grid-cols-3 gap-2 mt-4 md:mt-0">
+          {[
+            { Icon: Users, value: recommended.length, label: "Recommended peers", to: "/swipe" },
+            { Icon: Building2, value: listings.length, label: "Property listings", to: "/search" },
+            { Icon: MapPin, value: nearbyPeers.length, label: "Nearby flatmates", to: "/explore?search_type=profiles" },
+          ].map(({ Icon, value, label, to }) => (
+            <Card
+              key={label}
+              variant="compact"
+              interactive
+              className="flex flex-col items-center gap-1 p-2.5"
+              onClick={() => navigate(to)}
+            >
+              <div className="flex items-center gap-1.5">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                  <Icon size={14} />
+                </div>
+                <span className="text-h5 tabular-nums text-ink">{value}</span>
+              </div>
+              <span className="text-caption text-ink-3 text-center leading-tight">{label}</span>
+            </Card>
+          ))}
         </div>
       </div>
 
       {/* Search bar — standalone per DESIGN.md spec */}
-      <SearchBar placeholder="Search by location, name or landmark" />
+      <SearchBar
+        placeholder="Search by location, name or landmark"
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            const value = (event.target as HTMLInputElement).value.trim();
+            if (value) navigate(`/search?q=${encodeURIComponent(value)}`);
+          }
+        }}
+      />
 
       {/* Quick filter chips */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 md:mx-0 md:px-0">
@@ -104,7 +159,7 @@ export function HomePage() {
             selected={activeFilter === item}
             onClick={() => {
               setActiveFilter(item);
-              navigate(`/search${FILTER_TO_SEARCH[item] ?? ""}`);
+              navigate(`/search${buildQuickFilterSearch(item)}`);
             }}
             className="snap-start"
           >

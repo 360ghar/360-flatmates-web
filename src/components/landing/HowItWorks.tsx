@@ -14,7 +14,7 @@ export function HowItWorks() {
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <RevealSection className="mb-16 text-center">
           <p className="text-eyebrow mb-5">How it works</p>
-          <h2 id="how-it-works-heading" className="text-display max-w-xl mx-auto text-ink text-4xl md:text-5xl">
+          <h2 id="how-it-works-heading" className="text-display max-w-xl mx-auto text-ink">
             Three steps to your{" "}
             <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-6xl">next home</span>
           </h2>

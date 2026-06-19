@@ -28,11 +28,12 @@ Key reference documents:
 
 ```bash
 npm run dev                 # Start Vite dev server (port 5173)
-npm run build               # TypeScript check + PWA icon generation + sitemap generation + Vite production build
+npm run build               # TypeScript check + PWA icon generation + sitemap generation + Vite production build + static HTML generation
 npm run lint                # ESLint check
 npm test                    # Run Vitest unit tests
 npm run test:e2e            # Playwright end-to-end tests
 npm run generate:pwa-icons  # Generate PWA standard & maskable PNG icons from favicon.svg
+npm run generate:static-html # Generate static HTML pages for crawlers (runs after vite build)
 ```
 
 ## Coding Style & Naming Conventions
@@ -62,6 +63,19 @@ npm run generate:pwa-icons  # Generate PWA standard & maskable PNG icons from fa
 ## Architecture Overview
 
 Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time updates via SSE with BroadcastChannel multi-tab dedup. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
+
+### Progressive Enhancement & SEO
+
+Build-time static HTML generation (`scripts/generate-static-html.ts`) produces crawler-friendly pages for all public routes without a browser — pure string-template injection into the Vite-built shell. Listing pages (`/discover/:id`) are generated from API data fetched at build time via `scripts/lib/listings.ts`. The generator writes `dist/<route>/index.html` files that Netlify serves directly (taking precedence over the SPA fallback `/* /index.html 200`). Blog content lives in `scripts/lib/blog-content.ts` (shared with `BlogPostPage.tsx`). Route templates live in `scripts/lib/route-content.ts`. Set `PRERENDER_LISTINGS=0` to skip per-listing generation for fast smoke builds. Listing fetches (sitemap + per-listing prerender) gate themselves on `process.env.CONTEXT === "production"` via `shouldFetchListingData()` in `scripts/lib/listings.ts`, so local builds and Netlify deploy previews skip the backend entirely and the SPA fallback handles deep listing links at runtime.
+
+### FOUC Mitigation
+
+Critical-path inline CSS in `index.html` `<head>` prevents flash of unstyled content:
+- `#root` starts `visibility: hidden` (hydration gate)
+- `entry.tsx` adds `.hydrated` class after React mounts → `#root` becomes `visibility: visible`
+- `.noscript-fallback` overrides parent `visibility: hidden` with `visibility: visible !important` — ensures no-JS users and crawlers see content even before hydration
+- Theme flash prevention: inline `<script>` reads localStorage and sets `data-theme` synchronously before paint
+- Dark mode: critical CSS uses `[data-theme="dark"]` selectors for correct colors before Tailwind loads
 
 ## Theme & Appearance
 

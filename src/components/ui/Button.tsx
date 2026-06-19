@@ -2,7 +2,14 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "reac
 import { Loader2 } from "lucide-react";
 import { cn, focusRing, interactiveMotion } from "./component-utils";
 
-export type ButtonVariant = "primary" | "secondary" | "tertiary" | "icon" | "google";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "icon"
+  | "google"
+  | "destructive"
+  | "inverted";
 export type ButtonSize = "compact" | "default" | "tall" | "icon";
 
 interface ButtonBase {
@@ -44,7 +51,11 @@ const variantClasses: Record<ButtonVariant, string> = {
   icon:
     "bg-transparent text-accent hover:bg-accent-soft disabled:bg-paper-4 disabled:text-ink-3",
   google:
-    "bg-white text-[#3c4043] border border-[#dadce0] shadow-sm hover:bg-[#f8f9fa] hover:shadow-md disabled:bg-paper-4 disabled:text-ink-3 disabled:border-transparent dark:bg-[#131314] dark:text-[#e3e3e3] dark:border-[#8e918f] dark:hover:bg-[#1e1f20]"
+    "bg-google-bg text-google-text border border-google-border shadow-sm hover:bg-google-hover hover:shadow-md disabled:bg-paper-4 disabled:text-ink-3 disabled:border-transparent",
+  destructive:
+    "bg-error text-white shadow-cta hover:-translate-y-px hover:bg-error/95 hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none",
+  inverted:
+    "bg-surface-elevated text-accent shadow-cta hover:-translate-y-px hover:bg-surface hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none"
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -54,6 +65,9 @@ const sizeClasses: Record<ButtonSize, string> = {
   icon: "h-10 w-10 p-2"
 };
 
+const baseClasses =
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-[10px] font-semibold active:scale-[0.97]";
+
 /** Shared classes for Link elements that should look like a Button. */
 export function buttonClasses(
   variant: ButtonVariant = "primary",
@@ -62,7 +76,7 @@ export function buttonClasses(
 ): string {
   const resolvedSize = size === "icon" ? "icon" : size;
   return cn(
-    "inline-flex shrink-0 items-center justify-center gap-2 rounded-[10px] font-semibold active:scale-[0.97]",
+    baseClasses,
     interactiveMotion,
     focusRing,
     variantClasses[variant],
@@ -89,7 +103,7 @@ export function Button({
   const isDisabled = disabled || loading;
 
   const sharedClassName = cn(
-    "inline-flex shrink-0 items-center justify-center gap-2 rounded-[10px] font-semibold active:scale-[0.97]",
+    baseClasses,
     as === "a" ? "cursor-pointer" : "disabled:pointer-events-none disabled:cursor-not-allowed",
     interactiveMotion,
     focusRing,

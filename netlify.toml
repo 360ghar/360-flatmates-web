@@ -1,7 +1,12 @@
 [build]
-  command = "npx playwright install chromium && npm run build"
+  command = "npm run build"
   publish = "dist"
 
 [build.environment]
   VITE_API_BASE_URL = "https://api.360ghar.com/api/v1"
-  PRERENDER_CONCURRENCY = "20"
+
+# Build-time listing fetches (sitemap + per-listing prerender) gate themselves
+# on `process.env.CONTEXT === "production"`. Netlify sets CONTEXT automatically
+# per deploy: `production` (push to main), `deploy-preview` (PR), or
+# `branch-deploy`. So preview builds skip listing fetches and local builds
+# (CONTEXT unset) skip them too — no PRERENDER_* env var is needed here.

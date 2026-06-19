@@ -15,6 +15,7 @@ import { maskIdentifier } from "@/lib/lastAuthMethod";
 import { authStore } from "@/lib/stores/auth-store";
 import { uiStore } from "@/lib/stores/ui-store";
 import { normalizePhone } from "@/lib/redirect";
+import { PASSWORD_POLICY_HELPER_TEXT, PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
 
 /**
  * Password reset — 6-digit OTP for BOTH channels (decision 1).
@@ -145,7 +146,7 @@ export function ForgotPasswordPage() {
     setError(null);
 
     if (!PASSWORD_REGEX.test(newPassword)) {
-      setError("Password must be at least 8 characters with 1 uppercase, 1 number, and 1 special character.");
+      setError(PASSWORD_POLICY_ERROR_TEXT);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -304,6 +305,7 @@ export function ForgotPasswordPage() {
             onChange={(e) => setNewPassword(e.target.value)}
             className="mt-5"
             autoFocus
+            helperText={PASSWORD_POLICY_HELPER_TEXT}
           />
           <PasswordInput
             label="Confirm password"
@@ -313,9 +315,6 @@ export function ForgotPasswordPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="mt-4"
           />
-          <div className="mt-3 rounded-xl bg-paper-2 p-3 text-caption text-ink-2">
-            Min 8 chars, 1 uppercase, 1 number, 1 special character.
-          </div>
           <Button
             type="submit"
             fullWidth

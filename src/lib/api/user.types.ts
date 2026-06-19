@@ -15,7 +15,7 @@ import type {
   UserRole,
   WorkStyle
 } from "@/lib/data";
-import type { JsonObject } from "./common.types";
+import type { CursorPage, JsonObject } from "./common.types";
 
 export interface User {
   id: number;
@@ -189,8 +189,10 @@ export interface PeerFilters {
   budget_max?: number;
   move_in?: MoveInTimeline;
   limit?: number;
-  offset?: number;
+  cursor?: string;
 }
+
+export type PeerCursorPage = CursorPage<FlatmatesPeer>;
 
 export interface SocietyTagVoteCreate {
   tag: string;

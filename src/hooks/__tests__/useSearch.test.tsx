@@ -1,8 +1,11 @@
-import { renderHook, waitFor, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+// The saved-searches and search-alerts hooks are localStorage-backed now
+// (the backend does not expose those endpoints). The web-search hook still
+// hits the network, so we keep the apiClient mock for that flow only.
 const mockRequest = vi.fn();
 vi.mock("@/lib/api", () => ({
   apiClient: { request: (...args: unknown[]) => mockRequest(...args) }
@@ -13,6 +16,10 @@ import {
   useSavedSearches,
   useCreateSavedSearch
 } from "@/hooks/queries/useSearch";
+import {
+  SAVED_SEARCHES_KEY,
+  SEARCH_ALERTS_KEY
+} from "@/lib/storage/saved-searches";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -30,6 +37,11 @@ function createWrapper() {
 describe("useSearch hooks", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
   });
 
   describe("useWebSearch(filters)", () => {
@@ -118,11 +130,19 @@ describe("useSearch hooks", () => {
   });
 
   describe("useSavedSearches", () => {
-    it("uses query key ['search', 'saved']", async () => {
-      const mockSearches = [
-        { id: 401, name: "Test Search", filters: {}, alert_enabled: true, alert_frequency: "daily", alert_channels: ["in_app"] }
+    it("uses query key ['search', 'saved'] and reads from localStorage", async () => {
+      const stored = [
+        {
+          id: 401,
+          user_id: 0,
+          name: "Test Search",
+          filters: {},
+          alert_enabled: true,
+          alert_frequency: "daily",
+          alert_channels: ["in_app"]
+        }
       ];
-      mockRequest.mockResolvedValue(mockSearches);
+      window.localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(stored));
 
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } }
@@ -134,39 +154,25 @@ describe("useSearch hooks", () => {
       );
 
       const { result } = renderHook(() => useSavedSearches(), { wrapper });
-      await act(async () => {
-        await result.current.refetch();
-      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       const cache = queryClient.getQueryData(["search", "saved"]);
-      expect(cache).toEqual(mockSearches);
+      expect(cache).toEqual([
+        expect.objectContaining({ id: 401, name: "Test Search" })
+      ]);
+      // Local-storage backed, so no network call should fire.
+      expect(mockRequest).not.toHaveBeenCalled();
     });
 
-    it("requests GET /flatmates/web/saved-searches", async () => {
-      mockRequest.mockResolvedValue([]);
-
+    it("returns an empty list when localStorage is empty", async () => {
       const { result } = renderHook(() => useSavedSearches(), { wrapper: createWrapper() });
-      await act(async () => {
-        await result.current.refetch();
-      });
-
-      const call = mockRequest.mock.calls[0][0];
-      expect(call.method).toBe("GET");
-      expect(call.path).toBe("/flatmates/web/saved-searches");
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toEqual([]);
     });
   });
 
   describe("useCreateSavedSearch", () => {
     it("invalidates ['search', 'saved'] on success", async () => {
-      mockRequest.mockResolvedValue({
-        id: 900,
-        name: "New Search",
-        filters: {},
-        alert_enabled: false,
-        alert_frequency: "daily",
-        alert_channels: ["in_app"]
-      });
-
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } }
       });
@@ -186,26 +192,32 @@ describe("useSearch hooks", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["search", "saved"] });
+      // Persisted to localStorage under the namespaced key.
+      const raw = window.localStorage.getItem(SAVED_SEARCHES_KEY);
+      expect(raw).toBeTruthy();
+      const parsed = JSON.parse(raw!);
+      expect(parsed[0]).toMatchObject({
+        name: "HSR under 30k",
+        filters: { q: "HSR", city: "Bangalore", price_max: 30000 }
+      });
     });
 
-    it("sends POST /flatmates/web/saved-searches", async () => {
-      mockRequest.mockResolvedValue({ id: 1, name: "Test" });
-
-      const payload = {
-        name: "Test Search",
-        filters: { q: "HSR" }
-      };
+    it("does not hit the network", async () => {
       const { result } = renderHook(() => useCreateSavedSearch(), {
         wrapper: createWrapper()
       });
 
-      result.current.mutate(payload);
+      result.current.mutate({
+        name: "Local Save",
+        filters: { q: "HSR" }
+      });
 
-      await waitFor(() => expect(mockRequest).toHaveBeenCalled());
-      const call = mockRequest.mock.calls[0][0];
-      expect(call.method).toBe("POST");
-      expect(call.path).toBe("/flatmates/web/saved-searches");
-      expect(call.body).toEqual(payload);
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockRequest).not.toHaveBeenCalled();
     });
   });
 });
+
+// Silence unused import warning for the alerts key (exported so consumers
+// that want to clear storage can do so without hard-coding the string).
+void SEARCH_ALERTS_KEY;

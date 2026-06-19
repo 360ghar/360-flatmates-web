@@ -23,6 +23,7 @@ export interface ThemeToggleProps {
 export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
   const theme = useStore(uiStore, (s) => s.theme);
   const setTheme = useStore(uiStore, (s) => s.setTheme);
+  const reducedMotion = useStore(uiStore, (s) => s.reducedMotion);
 
   const btnSize = size === "sm" ? "h-8 w-8" : "h-10 w-10";
   const iconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
@@ -60,7 +61,7 @@ export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
               <motion.span
                 layoutId="activeThemeBubble"
                 className="absolute inset-0 rounded-[7px] bg-accent-soft"
-                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
             <Icon aria-hidden="true" className={cn("relative z-10", iconSize)} />

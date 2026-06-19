@@ -8,7 +8,7 @@ import type {
   PropertyType,
   SocietyType
 } from "@/lib/data";
-import type { JsonObject } from "./common.types";
+import type { CursorPage, JsonObject } from "./common.types";
 
 export interface PropertyCreate {
   property_type: PropertyType;
@@ -101,12 +101,33 @@ export interface Property {
   owner?: PropertyOwner;
 }
 
+/** @deprecated Use {@link PropertyCursorPage} instead. */
 export interface PaginatedPropertyResponse {
   properties: Property[];
   total: number;
   page: number;
   limit: number;
   total_pages: number;
+  filters_applied?: JsonObject;
+  search_center?: {
+    latitude?: number;
+    longitude?: number;
+  };
+}
+
+export type PropertyCursorPage = CursorPage<Property>;
+
+/** Property search cursor page with optional filter metadata. */
+export interface PropertySearchCursorPage extends CursorPage<Property> {
+  filters_applied?: JsonObject;
+  search_center?: {
+    latitude?: number;
+    longitude?: number;
+  };
+}
+
+/** Filter metadata emitted with property search responses. */
+export interface PropertySearchMeta {
   filters_applied?: JsonObject;
   search_center?: {
     latitude?: number;

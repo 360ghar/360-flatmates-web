@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 import { Wrench } from "lucide-react";
+import { focusRing } from "@/components/ui/component-utils";
 
 export function MaintenancePage() {
   return (
@@ -21,7 +22,7 @@ export function MaintenancePage() {
         </p>
         <Link
           to="/"
-          className="mt-8 inline-flex h-12 items-center justify-center rounded-[10px] bg-accent px-6 text-label-lg text-white shadow-cta"
+          className={`mt-8 inline-flex h-12 items-center justify-center rounded-[10px] bg-accent px-6 text-label-lg text-white shadow-cta ${focusRing}`}
         >
           Return Home
         </Link>

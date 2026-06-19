@@ -2,7 +2,12 @@ import { z } from "zod";
 
 export const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
-export const optionalUrlSchema = z.string().url().optional();
+export const optionalUrlSchema = z
+  .string()
+  .url()
+  .optional()
+  .or(z.literal("").transform(() => undefined))
+  .or(z.null().transform(() => undefined));
 
 export function minMaxRefine<T extends Record<string, unknown>>(
   minField: keyof T & string,

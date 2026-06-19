@@ -356,10 +356,14 @@ export function ChatThread({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                submit();
-              }
+              // Audit F6 #16: skip Enter-to-send while an IME composition is
+              // active. Both the modern `isComposing` flag and the legacy
+              // `keyCode === 229` cover CJK and other IMEs that fire
+              // `keydown` Enter to commit the composition.
+              if (event.key !== "Enter" || event.shiftKey) return;
+              if (event.nativeEvent.isComposing || event.keyCode === 229) return;
+              event.preventDefault();
+              submit();
             }}
           />
           <Button

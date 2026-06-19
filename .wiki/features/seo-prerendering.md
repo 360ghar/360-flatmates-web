@@ -156,6 +156,21 @@ The listing bucket is the part that could drift. Both the sitemap generator and 
 | `SITEMAP_API_TOKEN` | Send as `Authorization: Bearer` if `/properties` ever requires auth |
 | `SITEMAP_STRICT` | Set to `1` to make a failed listing fetch fatal. Use on deploy builds so an API outage surfaces instead of shipping a listings-less sitemap. Local builds stay resilient. |
 
+### Build context gating (local + preview)
+
+Listing fetches (paginated `/properties` plus per-listing `/properties/:id` in the static-HTML step) are gated on `process.env.CONTEXT === "production"`. This is intentional: every local `npm run build` and every Netlify deploy preview or branch deploy would otherwise hammer the FastAPI backend with the same listing calls. Only the production deploy — the one deploy whose output ships to real users and crawlers — pays the fetch cost.
+
+| Build context | `CONTEXT` value | Listing fetches | `sitemap.xml` listing URLs | Per-listing `dist/` HTML |
+| --- | --- | --- | --- | --- |
+| Local (`npm run build`) | unset | skipped | none | none |
+| Netlify deploy preview (PR) | `deploy-preview` | skipped | none | none |
+| Netlify branch deploy | `branch-deploy` | skipped | none | none |
+| Netlify production (push to `main`) | `production` | enabled | all | all |
+
+The gate lives in `shouldFetchListingData()` in `scripts/lib/listings.ts`. When the helper returns `false`, `fetchDiscoverableListings()` short-circuits with `{ listings: [], ok: true }` (success-with-empty, not a network failure, so `SITEMAP_STRICT=1` does not false-alarm). `scripts/generate-static-html.ts` and `scripts/generate-sitemap.ts` log a clear "CONTEXT is not 'production'" line so the operator can see why listing URLs were dropped.
+
+The SPA fallback (`public/_redirects`: `/* /index.html 200`) handles deep listing links on non-production builds. A request for `/discover/123` on a preview deploy returns the SPA shell, React Router mounts `DiscoverListing`, and TanStack Query fetches the listing client-side. No 404, no broken UX — just one client-side API call instead of one build-time API call.
+
 Each `<url>` entry includes `loc`, `lastmod` (build timestamp, or listing `created_at` for listing pages), `changefreq`, and `priority` as light hints (Google ignores the latter two, but other crawlers and tooling read them). Listing entries and the homepage include `<image:image>` blocks with the listing photo URLs and the OG image respectively.
 
 ## JSON-LD structured data

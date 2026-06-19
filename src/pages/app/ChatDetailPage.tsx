@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -7,9 +7,9 @@ import {
   useSendMessage,
   useMyProfile,
   useCreateVisit,
-  useReportUserMutation
+  useReportUserMutation,
+  useMarkConversationRead
 } from "@/hooks/queries";
-import { nextTempMessageId } from "@/hooks/queries/useConversations";
 import { apiClient } from "@/lib/api";
 import { messageToChatBubbleProps } from "@/lib/api/adapters";
 import type { ChatMessageData } from "@/components/molecules/ChatMessageBubble";
@@ -20,6 +20,7 @@ import {
   type ChatThreadParticipant,
   type ChatReportReason
 } from "@/components/organisms/ChatThread";
+import { useSSEStatus } from "@/hooks/useSSEStatus";
 import { uiStore } from "@/lib/stores/ui-store";
 
 export function ChatDetailPage() {
@@ -29,11 +30,21 @@ export function ChatDetailPage() {
   const conversationId = Number(id);
 
   const { data: conversation, isLoading: convLoading, error: convError, refetch: refetchConversation } = useConversation(conversationId);
-  const { data: messagesData, isLoading: messagesLoading, error: messagesError, refetch: refetchMessages } = useMessages(conversationId);
+  const {
+    data: messagesData,
+    isLoading: messagesLoading,
+    error: messagesError,
+    refetch: refetchMessages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useMessages(conversationId);
   const { data: myProfile } = useMyProfile();
   const sendMessage = useSendMessage();
   const createVisit = useCreateVisit();
   const reportUser = useReportUserMutation();
+  const markRead = useMarkConversationRead();
+  const { isConnected } = useSSEStatus();
 
   // Block-create has no dedicated hook in useBlocks.ts yet (see SHARED
   // FINDINGS); co-locate the mutation here so the chat safety action works.
@@ -50,47 +61,73 @@ export function ChatDetailPage() {
     }
   });
 
-  // Temp ids (negative) of optimistic sends that failed, so they render with a
-  // retry affordance instead of looking permanently "sending".
-  const [failedIds, setFailedIds] = useState<Set<number>>(new Set());
+  // Temp-id → body for optimistic sends that failed. The hook rolls back the
+  // cache on error, so the original `MessageOut` is no longer in the page's
+  // messages list — we keep the body here so the retry affordance still works.
+  const [failedBodies, setFailedBodies] = useState<Map<number, string>>(
+    () => new Map()
+  );
+
+  // Audit F6 #4: mark conversation as read on mount and whenever the tab
+  // regains visibility. Guard against spamming while a call is in flight.
+  const markReadRef = useRef(markRead);
+  useEffect(() => {
+    markReadRef.current = markRead;
+  });
+  useEffect(() => {
+    if (!Number.isFinite(conversationId) || conversationId <= 0) return;
+    if (!markReadRef.current.isIdle) return;
+    markReadRef.current.mutate(conversationId);
+
+    function onVisibility() {
+      if (document.visibilityState === "visible" && markReadRef.current.isIdle) {
+        markReadRef.current.mutate(conversationId);
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [conversationId]);
 
   const myUserId = myProfile?.id ?? 0;
   const messages = useMemo<ChatMessageData[]>(
-    () =>
-      (messagesData?.messages ?? []).map((msg) => {
+    () => {
+      const flat = messagesData?.pages.flatMap((p) => p.messages) ?? [];
+      return flat.map((msg) => {
         const base = messageToChatBubbleProps(msg, myUserId);
-        // Negative ids are optimistic, not-yet-acknowledged messages.
         if (msg.id < 0) {
           return {
             ...base,
-            status: failedIds.has(msg.id) ? "failed" : "sending"
+            status: failedBodies.has(msg.id) ? "failed" : "sending"
           };
         }
         return base;
-      }),
-    [messagesData?.messages, myUserId, failedIds]
+      });
+    },
+    [messagesData, myUserId, failedBodies]
   );
 
   const sendBody = useCallback(
     (body: string, retryTempId?: number) => {
       if (!myUserId) return;
-      const tempId = retryTempId ?? nextTempMessageId();
-
-      // Clear any prior failure for a retried message.
-      if (retryTempId !== undefined) {
-        setFailedIds((prev) => {
-          if (!prev.has(retryTempId)) return prev;
-          const next = new Set(prev);
-          next.delete(retryTempId);
-          return next;
-        });
-      }
-
+      // Mints a fresh temp id inside the hook (per-tab counter) when no
+      // retryTempId is provided.
       sendMessage.mutate(
-        { conversationId, payload: { body }, senderId: myUserId, tempId },
+        {
+          conversationId,
+          payload: { body },
+          senderId: myUserId,
+          ...(retryTempId !== undefined ? { tempId: retryTempId } : {})
+        },
         {
           onError: () => {
-            setFailedIds((prev) => new Set(prev).add(tempId));
+            // Cache was rolled back; preserve the body for retry.
+            if (retryTempId !== undefined) {
+              setFailedBodies((prev) => {
+                const next = new Map(prev);
+                next.set(retryTempId, body);
+                return next;
+              });
+            }
           }
         }
       );
@@ -103,12 +140,19 @@ export function ChatDetailPage() {
   const handleRetryMessage = useCallback(
     (messageId: string) => {
       const tempId = Number(messageId);
-      const failed = (messagesData?.messages ?? []).find((m) => m.id === tempId);
-      if (failed?.body) {
-        sendBody(failed.body, tempId);
+      const cachedBody = failedBodies.get(tempId);
+      if (cachedBody) {
+        // Drop the failed entry; the new optimistic + success path re-adds it.
+        setFailedBodies((prev) => {
+          if (!prev.has(tempId)) return prev;
+          const next = new Map(prev);
+          next.delete(tempId);
+          return next;
+        });
+        sendBody(cachedBody, tempId);
       }
     },
-    [messagesData?.messages, sendBody]
+    [failedBodies, sendBody]
   );
 
   if (Number.isNaN(conversationId) || conversationId <= 0) {
@@ -244,6 +288,9 @@ export function ChatDetailPage() {
       onBlock={handleBlock}
       onReport={handleReport}
       onScheduleVisit={handleScheduleVisit}
+      onLoadMore={hasNextPage ? () => fetchNextPage() : undefined}
+      loadingMore={isFetchingNextPage}
+      disconnected={!isConnected}
     />
   );
 }

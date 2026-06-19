@@ -25,7 +25,7 @@ Key reference documents:
 
 ```bash
 npm run dev                 # Start Vite dev server (port 5173)
-npm run build               # TypeScript check + PWA icon generation + sitemap generation + Vite production build
+npm run build               # TypeScript check + PWA icon generation + sitemap generation + Vite production build + per-route static HTML generation
 npm run lint                # ESLint check
 npm test                    # Run Vitest unit tests
 npm run test:e2e            # Playwright end-to-end tests

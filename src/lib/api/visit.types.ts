@@ -60,10 +60,13 @@ export interface Visit {
   created_at?: string;
 }
 
+/** @deprecated Use {@link VisitCursorPage} instead. */
 export interface VisitList {
   visits: Visit[];
   total: number;
 }
+
+export type VisitCursorPage = import("./common.types").CursorPage<Visit>;
 
 export interface VisitFilters {
   status?: VisitStatus;
@@ -71,5 +74,5 @@ export interface VisitFilters {
   upcoming?: boolean;
   past?: boolean;
   limit?: number;
-  offset?: number;
+  cursor?: string;
 }

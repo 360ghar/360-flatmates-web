@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { AlertCircle, CheckCheck } from "lucide-react";
+import { AlertCircle, Check, CheckCheck } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
 import { cn, focusRing } from "../ui/component-utils";
 
@@ -57,7 +57,12 @@ export function ChatMessageBubble({
         </div>
         <div className={cn("mt-1 flex items-center gap-1 text-[11px]", mine ? "text-ink-3" : "text-ink-3")}>
           {message.timestamp ? <span>{message.timestamp}</span> : null}
-          {mine && message.status === "read" ? <CheckCheck aria-hidden="true" className="h-3.5 w-3.5" /> : null}
+          {mine && message.status === "sent" ? (
+            <Check aria-hidden="true" className="h-3.5 w-3.5" aria-label="Sent" />
+          ) : null}
+          {mine && message.status === "read" ? (
+            <CheckCheck aria-hidden="true" className="h-3.5 w-3.5" aria-label="Read" />
+          ) : null}
           {mine && message.status === "failed" ? (
             <button
               type="button"

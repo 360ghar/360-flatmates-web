@@ -113,12 +113,21 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         setReducedMotion: (reducedMotion) => set({ reducedMotion }),
         pushToast: (toast) => {
           const id = toast.id ?? createToastId();
-          set((state) => ({
-            toasts: [
-              ...state.toasts.slice(-2),
-              { ...toast, id, createdAt: Date.now() }
-            ]
-          }));
+          set((state) => {
+            // Keep all persistent toasts (e.g. blocking errors) and at most
+            // the last 2 transient ones. Without this guard, a steady stream
+            // of transient toasts would drop a persistent toast that the
+            // user hasn't acknowledged yet.
+            const persistent = state.toasts.filter((t) => t.persistent);
+            const transient = state.toasts.filter((t) => !t.persistent).slice(-2);
+            return {
+              toasts: [
+                ...persistent,
+                ...transient,
+                { ...toast, id, createdAt: Date.now() }
+              ]
+            };
+          });
           return id;
         },
         dismissToast: (id) =>

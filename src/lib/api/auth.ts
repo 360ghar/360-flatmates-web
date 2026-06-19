@@ -109,6 +109,11 @@ export function getAuthState(
   app: string = "flatmates",
   signal?: AbortSignal
 ): Promise<AuthStateResponse> {
+  // TODO (F10 #32, A-24): the request body type generic is misleading for
+  // a GET — the `app` argument is a query param, not a body. apiClient
+  // discards the body for GETs but the type still reads `{ app: string }`.
+  // A clean fix is to split `ApiRequest<TBody>` so GETs take no body slot.
+  // Out of scope for this pass; tracked in `.todo/wire-protocol-divergences.md`.
   return apiClient.request<AuthStateResponse, { app: string }>({
     method: "GET",
     path: "/users/me/auth-state",

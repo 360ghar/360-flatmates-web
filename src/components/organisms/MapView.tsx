@@ -75,10 +75,10 @@ function formatRent(rent?: number): string {
 function createPinIcon(pin: MapPin): L.DivIcon {
   const isCoHunter = pin.mode === "co_hunter";
   const labelText = isCoHunter ? "Flatmate" : formatRent(pin.monthly_rent);
-  
+
   const html = isCoHunter
     ? `
-      <div class="map-hunter-badge" role="button" tabindex="0" aria-label="Flatmate profile pin" style="
+      <div class="map-hunter-badge" data-pin-id="${pin.id}" role="button" tabindex="0" aria-label="Flatmate profile pin" style="
         display: flex;
         align-items: center;
         justify-content: center;
@@ -101,7 +101,7 @@ function createPinIcon(pin: MapPin): L.DivIcon {
       </div>
     `
     : `
-      <div class="map-rent-badge" role="button" tabindex="0" aria-label="Rent property pin: ${labelText}" style="
+      <div class="map-rent-badge" data-pin-id="${pin.id}" role="button" tabindex="0" aria-label="Rent property pin: ${labelText}" style="
         display: flex;
         align-items: center;
         justify-content: center;
@@ -161,7 +161,7 @@ function createClusterIcon(cluster: MapCluster): L.DivIcon {
       justify-content: center;
       pointer-events: auto;
     ">
-      <div role="button" tabindex="0" aria-label="Listing cluster: ${count} items" style="
+      <div role="button" tabindex="0" data-cluster-id="${cluster.id}" aria-label="Listing cluster: ${count} items" style="
         background: ${bgColor};
         border: 2.5px solid ${accentColor};
         border-radius: 50%;
@@ -185,7 +185,7 @@ function createClusterIcon(cluster: MapCluster): L.DivIcon {
 
   return L.divIcon({
     html,
-    className: "",
+    className: "map-cluster-icon",
     iconSize: [0, 0],
     iconAnchor: [0, 0]
   });
@@ -366,6 +366,38 @@ export function MapView({
     [onClusterClick]
   );
 
+  /* ----- Keyboard a11y: activate cluster/pin with Enter/Space -----
+   * Leaflet divIcons are mounted outside React's render tree, so React's
+   * synthetic onKeyDown doesn't reach them. We delegate via a single
+   * container-level keydown listener that checks for our `data-*` hooks
+   * added in the icon HTML and forwards Enter / Space as a click. */
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const active = document.activeElement as HTMLElement | null;
+      if (!active || !root.contains(active)) return;
+      const clusterId = active.getAttribute("data-cluster-id");
+      const pinId = active.getAttribute("data-pin-id");
+      if (clusterId !== null) {
+        event.preventDefault();
+        const cluster = clusters.find((c) => c.id === clusterId);
+        if (cluster) handleClusterClick(cluster);
+        return;
+      }
+      if (pinId !== null) {
+        event.preventDefault();
+        const numericId = Number(pinId);
+        const pin = pins.find((p) => p.id === numericId);
+        if (pin) handlePinClick(pin);
+      }
+    };
+    root.addEventListener("keydown", handleKeyDown);
+    return () => root.removeEventListener("keydown", handleKeyDown);
+  }, [clusters, pins, handleClusterClick, handlePinClick]);
+
   if (!isMounted) {
     return (
       <section
@@ -388,7 +420,7 @@ export function MapView({
         className
       )}
     >
-      {/* Hover styles for premium map pin badges */}
+      {/* Hover styles for premium map pin badges + theme transition */}
       <style>{`
         .leaflet-marker-icon:hover .map-rent-badge {
           transform: scale(1.08);
@@ -403,6 +435,16 @@ export function MapView({
           border-color: var(--color-teal-mid) !important;
           color: #ffffff !important;
           box-shadow: 0 4px 12px var(--color-teal-soft);
+        }
+        /* Smooth tile fade-in when the theme flips and the TileLayer remounts.
+           Without this, the dark↔light switch flashes a blank background while
+           new tiles load. */
+        .leaflet-tile-pane {
+          animation: leaflet-tile-fade-in 240ms ease-out;
+        }
+        @keyframes leaflet-tile-fade-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
       `}</style>
 
@@ -428,7 +470,7 @@ export function MapView({
       </div>
 
       {/* Map */}
-      <div className="relative flex-1">
+      <div ref={containerRef} className="relative flex-1">
         <MapContainer
           center={center}
           zoom={zoom}

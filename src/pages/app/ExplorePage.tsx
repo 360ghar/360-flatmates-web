@@ -1,7 +1,7 @@
-import React, { Suspense, useCallback, useMemo, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
-import { useMapView, useProperty } from "@/hooks/queries";
+import { useMapView, useMyProfile, useProperty } from "@/hooks/queries";
 import { searchStore } from "@/lib/stores/search-store";
 import { mapStore } from "@/lib/stores/map-store";
 import type { MapCluster, MapViewFilters, SearchFilters, MapPin as MapPinType } from "@/lib/api/types";
@@ -10,8 +10,10 @@ import {
   GENDER_PREFERENCE_VALUES,
   MOVE_IN_TIMELINE_OPTIONS,
   PROPERTY_TYPE_VALUES,
+  getCityCenter
 } from "@/lib/data";
 import { ErrorState } from "@/components/ui/StateViews";
+import { Button } from "@/components/ui/Button";
 import { FilterPanel, type FilterSection } from "@/components/molecules/FilterPanel";
 import { BottomSheet, Drawer } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -53,6 +55,22 @@ export function ExplorePage() {
   const setMapZoom = useStore(mapStore, (s) => s.setZoom);
   const setMapBounds = useStore(mapStore, (s) => s.setBounds);
 
+  // Seed the map from the user's profile city once it resolves. The store
+  // tracks whether the viewport has been seeded so we don't keep fighting the
+  // user's manual pan/zoom on every render. Only the first resolved profile
+  // triggers a seed.
+  const { data: profile } = useMyProfile();
+  const hasSeededCenter = useStore(mapStore, (s) => s.hasSeededCenter);
+  const markCenterSeeded = useStore(mapStore, (s) => s.markCenterSeeded);
+  useEffect(() => {
+    if (hasSeededCenter) return;
+    if (!profile?.city) return;
+    const center = getCityCenter(profile.city);
+    setMapCenter({ lat: center.lat, lng: center.lng });
+    setMapZoom(center.defaultZoom);
+    markCenterSeeded();
+  }, [profile?.city, hasSeededCenter, setMapCenter, setMapZoom, markCenterSeeded]);
+
   // Derive [lat, lng] tuple for MapView
   const centerTuple: [number, number] = [mapCenter.lat, mapCenter.lng];
 
@@ -62,12 +80,29 @@ export function ExplorePage() {
       lat: mapCenter.lat,
       lng: mapCenter.lng,
       zoom_level: mapZoom,
-      radius: 5,
+      radius: 10,
       price_min: filters.price_min,
       price_max: filters.price_max,
-      sharing_type: filters.sharing_type
+      sharing_type: filters.sharing_type,
+      property_type: filters.property_type,
+      gender_preference: filters.gender_preference,
+      move_in: filters.move_in,
+      city: filters.city,
+      locality: filters.locality
     }),
-    [mapCenter.lat, mapCenter.lng, mapZoom, filters.price_min, filters.price_max, filters.sharing_type]
+    [
+      mapCenter.lat,
+      mapCenter.lng,
+      mapZoom,
+      filters.price_min,
+      filters.price_max,
+      filters.sharing_type,
+      filters.property_type,
+      filters.gender_preference,
+      filters.move_in,
+      filters.city,
+      filters.locality
+    ]
   );
 
   const {
@@ -129,6 +164,21 @@ export function ExplorePage() {
       }
     );
   }, [setMapCenter, setMapZoom]);
+
+  // Reset scroll to top when the filter set changes.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [
+    filters.city,
+    filters.locality,
+    filters.sharing_type,
+    filters.move_in,
+    filters.gender_preference,
+    filters.property_type,
+    filters.price_min,
+    filters.price_max
+  ]);
 
   // Build filter sections for FilterPanel
   const filterSections: FilterSection[] = useMemo(
@@ -275,6 +325,29 @@ export function ExplorePage() {
             }}
           />
         </Suspense>
+        {/* Empty-state CTA: when the map query resolves successfully but
+            there are no pins in the visible area, prompt the user to either
+            widen the search radius, clear filters, or use their location. */}
+        {!isLoading && !error && (mapData?.pins?.length ?? 0) === 0 && (mapData?.clusters?.length ?? 0) === 0 ? (
+          <div className="pointer-events-none absolute inset-x-4 bottom-24 z-10 flex justify-center md:inset-x-auto md:left-1/2 md:bottom-12 md:-translate-x-1/2">
+            <div className="pointer-events-auto flex max-w-sm flex-col items-center gap-3 rounded-2xl border border-line bg-surface/95 p-4 shadow-lg backdrop-blur-md">
+              <p className="text-center text-body-md text-ink">
+                No listings in this area yet.
+              </p>
+              <p className="text-center text-caption text-ink-3">
+                Try a wider radius, clear filters, or use your location.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button size="compact" variant="secondary" onClick={handleLocate}>
+                  Use my location
+                </Button>
+                <Button size="compact" variant="tertiary" onClick={handleClearFilters}>
+                  Clear filters
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Mobile: selected property panel below map */}

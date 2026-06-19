@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react";
 import { Pencil } from "lucide-react";
-import { cn, getInitials, clampPercentage } from "./component-utils";
+import { cn, getInitials, clampPercentage, focusRing } from "./component-utils";
 import { RingSvg } from "./ProgressRing";
 import { optimizeImageUrl } from "@/lib/image-utils";
 
@@ -98,6 +98,8 @@ export function Avatar({
         />
       ) : null}
       <span
+        role={optimizedSrc ? undefined : "img"}
+        aria-label={optimizedSrc ? undefined : (alt ?? name)}
         className={cn(
           "relative inline-flex items-center justify-center overflow-hidden bg-gradient-to-br from-accent to-accent/70 font-semibold text-white shadow-md",
           sizeClasses[size],
@@ -121,7 +123,8 @@ export function Avatar({
           type="button"
           aria-label={`Edit ${name} avatar`}
           className={cn(
-            "absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-accent text-white shadow-md transition-transform duration-150 ease-out hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+            "absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-accent text-white shadow-md transition-transform duration-150 ease-out hover:scale-105",
+            focusRing,
             editButtonSize[size]
           )}
           onClick={onEdit}

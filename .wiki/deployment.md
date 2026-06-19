@@ -20,7 +20,7 @@ Active contributors: Saksham
 
 - **Build command.** `npx playwright install chromium && npm run build`. The Playwright Chromium install is the build-only prerequisite the prerender step needs. The e2e workflow already installs it; a build-only job must too, so it is prepended to the build command here so a fresh CI runner works without manual setup.
 - **Publish directory.** `dist`. Vite writes the production bundle here, and the prerender step writes one `dist/<route>/index.html` per public route on top.
-- **Build environment.** Two variables are baked into the build. `VITE_API_BASE_URL` is the production backend URL the bundle is compiled against (Vite inlines `VITE_*` vars at build time, so the served bundle already knows its backend). `PRERENDER_CONCURRENCY` caps simultaneous Chromium tabs during the prerender capture (default 4 in the script, overridden to 20 in production for throughput).
+- **Build environment.** One variable is baked into the build. `VITE_API_BASE_URL` is the production backend URL the bundle is compiled against (Vite inlines `VITE_*` vars at build time, so the served bundle already knows its backend). There is no explicit `PRERENDER_FETCH_DATA` env var: build-time listing fetches gate themselves on Netlify's automatic `CONTEXT` variable (see [SEO and prerendering](features/seo-prerendering.md#build-context-gating-local--preview) — only `CONTEXT=production` fetches listing data; previews and local builds skip the backend entirely).
 
 ## SPA fallback and prerender precedence
 

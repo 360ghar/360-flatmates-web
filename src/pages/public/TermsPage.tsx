@@ -70,7 +70,7 @@ export function TermsPage() {
     <>
       <SeoHelmet
         title="Terms & Conditions"
-        description="Read the 360 Flatmates terms and conditions. Understand your rights and responsibilities when using our flatmate matching, listing, and communication services."
+        description="360 Flatmates terms of service cover account responsibilities, listing rules, compatibility matching disclaimers, payments, prohibited conduct, termination, and the governing law for users in India."
         canonicalUrl={`${SITE_URL}/terms`}
       />
       <LegalPage

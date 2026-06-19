@@ -48,6 +48,13 @@
   --color-teal-mid: #5a9da8;
   --color-pink-soft: #f6dde3;
   --color-pink-mid: #c28098;
+  /* Google "Sign in with Google" brand palette (Material 3).
+     Light = white pill with subtle grey border; dark = near-black pill.
+     Used by the `google` Button variant. */
+  --color-google-bg: #ffffff;
+  --color-google-text: #3c4043;
+  --color-google-border: #dadce0;
+  --color-google-hover: #f8f9fa;
   /* Categorical "ink" tier — accessible text on the matching soft background */
   --color-blue-ink: #2a4868;
   --color-purple-ink: #4a3e70;
@@ -166,6 +173,11 @@
   --color-orange-ink: #f0c19a;
   --color-teal-ink: #a9d2cf;
   --color-pink-ink: #e8b8c6;
+  /* Google brand palette — dark mode override */
+  --color-google-bg: #131314;
+  --color-google-text: #e3e3e3;
+  --color-google-border: #8e918f;
+  --color-google-hover: #1e1f20;
   --shadow-xs: 0 1px 2px rgba(31, 26, 20, 0.02);
   --shadow-sm: 0 1px 2px rgba(31, 26, 20, 0.04);
   --shadow-md: 0 4px 12px rgba(31, 26, 20, 0.05);

@@ -21,7 +21,6 @@ export const routeInventory = [
   "/home",
   "/swipe",
   "/likes",
-  "/matches",
   "/chats",
   "/chats/c-priya",
   "/compatibility/1",

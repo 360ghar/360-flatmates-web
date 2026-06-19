@@ -8,8 +8,8 @@ export function StatsPage() {
   return (
     <>
       <SeoHelmet
-        title="City Stats: Flatmate Market Data"
-        description="Explore flatmate market statistics across Indian cities. Active seekers, verified listings, average rents, and growth trends on 360 Flatmates."
+        title="Platform Stats: 360 Flatmates Key Metrics"
+        description="Live key metrics for the 360 Flatmates platform — total matches made, verified rooms, active seekers, average compatibility score, and city-level growth across Bangalore and Gurugram."
         canonicalUrl={`${SITE_URL}/stats`}
         breadcrumb={breadcrumb}
       />

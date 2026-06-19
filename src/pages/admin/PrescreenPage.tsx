@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   CheckCircle2,
@@ -16,7 +16,7 @@ import { NetworkImage } from "@/components/ui/NetworkImage";
 import { PageLayout, PageHeader } from "@/components/ui/Layout";
 import { PriceText } from "@/components/ui/PriceText";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { AsyncView } from "@/components/ui/StateViews";
+import { AsyncView, ErrorState } from "@/components/ui/StateViews";
 import { uiStore } from "@/lib/stores/ui-store";
 import { humanizeSnakeCase, formatSharingType } from "@/lib/utils";
 import type { StatusTone } from "@/components/ui/Badge";
@@ -29,13 +29,35 @@ const PROPERTY_MOD_STATUS_BADGE: Record<string, StatusTone> = {
 export function PrescreenPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const listingId = Number(id);
+  const listingId = id !== undefined ? Number(id) : Number.NaN;
 
-  const { data, isLoading, error, refetch } = useProperty(listingId);
+  // If `:id` is missing or not a positive integer, the property query is
+  // meaningless and would spin forever. Bounce back to the listing queue
+  // immediately with a toast explaining what happened.
+  const idIsValid = Number.isInteger(listingId) && listingId > 0;
+  useEffect(() => {
+    if (idIsValid) return;
+    uiStore.getState().pushToast({
+      type: "error",
+      title: "Invalid listing",
+      description: "That listing could not be opened for pre-screening."
+    });
+    navigate("/admin/moderation/listings", { replace: true });
+  }, [idIsValid, navigate]);
+
+  const { data, isLoading, error, refetch } = useProperty(
+    idIsValid ? listingId : 0
+  );
   const moderate = useAdminModerate();
 
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+
+  if (!idIsValid) {
+    // Render a minimal placeholder while the redirect effect fires.
+    return null;
+  }
 
   function handleApprove() {
     if (moderate.isPending) return;
@@ -163,6 +185,15 @@ export function PrescreenPage() {
                 <Skeleton className="h-10 flex-1 rounded-[10px]" />
               </div>
             </div>
+          }
+          errorView={
+            <Card className="flex items-center justify-center p-6">
+              <ErrorState
+                title="Could not load listing"
+                description="The listing may have been removed or you may not have access."
+                onRetry={() => refetch()}
+              />
+            </Card>
           }
         >
           {(property) => (
@@ -321,6 +352,11 @@ export function PrescreenPage() {
                   </div>
                 </Card>
               )}
+
+              {/* TODO: Audit trail — surface the listing's moderation history
+                  (who took which action and when) once the backend exposes an
+                  audit-log endpoint. A "History" tab can be added to this
+                  detail page that lists each row chronologically. */}
             </div>
           )}
         </AsyncView>
@@ -341,14 +377,52 @@ export function PrescreenPage() {
           <Button
             size="compact"
             variant="primary"
-            loading={moderate.isPending}
             leadingIcon={<CheckCircle2 aria-hidden="true" className="h-4 w-4" />}
-            onClick={handleApprove}
+            onClick={() => setApproveModalOpen(true)}
+            disabled={moderate.isPending}
           >
             Approve
           </Button>
         </div>
       </div>
+
+      {/* Approve confirmation */}
+      <Modal
+        open={approveModalOpen}
+        title="Approve Listing"
+        description="This listing will become visible to all users."
+        onClose={() => {
+          if (moderate.isPending) return;
+          setApproveModalOpen(false);
+        }}
+        footer={
+          <>
+            <Button
+              size="compact"
+              variant="secondary"
+              onClick={() => setApproveModalOpen(false)}
+              disabled={moderate.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="compact"
+              variant="primary"
+              loading={moderate.isPending}
+              onClick={() => {
+                setApproveModalOpen(false);
+                handleApprove();
+              }}
+            >
+              Confirm Approval
+            </Button>
+          </>
+        }
+      >
+        <p className="text-body-md text-ink-2">
+          The owner will be notified that their listing is live.
+        </p>
+      </Modal>
 
       {/* Rejection Modal */}
       <Modal

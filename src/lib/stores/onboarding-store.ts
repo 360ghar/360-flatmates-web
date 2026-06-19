@@ -126,6 +126,12 @@ export function createOnboardingStore(
             return;
           }
 
+          // NOTE (F10 #19): `lastSavedAt` is derived from the draft's
+          // `updated_at` field rather than stamped here. This is correct for
+          // the restore-from-storage path because the persisted draft already
+          // carries the timestamp from its last `patchDraft` / `patchLifestyle`
+          // write. If we ever hydrate from a different source (e.g. server
+          // snapshot), stamp `lastSavedAt` at the time of hydration instead.
           set({
             draft: parsed.data,
             currentStep: parsed.data.current_step ?? 0,
@@ -135,6 +141,14 @@ export function createOnboardingStore(
       }),
       {
         name: ONBOARDING_DRAFT_STORAGE_KEY,
+        // NOTE (F10 #20): bump this version whenever the OnboardingDraft
+        // schema changes in a backward-incompatible way. Zustand's persist
+        // middleware ships a `migrate` hook; for the current 1.0 schema
+        // there is no migration logic because the Zod safeParse in
+        // `hydrateDraft` is the only consumer and it will simply reject
+        // malformed payloads. Add a `migrate` function when a real upgrade
+        // path is needed.
+        version: 1,
         storage: createSafeJsonStorage(),
         partialize: (state) => ({
           currentStep: state.currentStep,

@@ -23,19 +23,19 @@ const HELP_CATEGORIES = [
     icon: FileText,
     label: "Listings & Properties",
     description: "Posting, managing, and finding rooms",
-    href: "/help#listings",
+    href: "#listings",
   },
   {
     icon: Shield,
     label: "Safety & Verification",
     description: "Account security, reporting, and trust",
-    href: "/help#safety",
+    href: "#safety",
   },
   {
     icon: MessageSquare,
     label: "Chat & Communication",
     description: "Messaging, notifications, and preferences",
-    href: "/help#chat",
+    href: "#chat",
   },
 ];
 
@@ -64,7 +64,7 @@ export function HelpPage() {
       </Card>
 
       <Card className="divide-y divide-line p-0">
-        {HELP_CATEGORIES.map((item, i) => {
+        {HELP_CATEGORIES.map((item) => {
           const Icon = item.icon;
           return (
             <MenuItemRow
@@ -72,23 +72,84 @@ export function HelpPage() {
               icon={Icon}
               label={item.label}
               description={item.description}
-              onClick={() => navigate(item.href)}
-              isLast={i === HELP_CATEGORIES.length - 1}
+              onClick={() => {
+                if (item.href.startsWith("#")) {
+                  document
+                    .getElementById(item.href.slice(1))
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                } else {
+                  navigate(item.href);
+                }
+              }}
             />
           );
         })}
       </Card>
+
+      <section id="listings" className="flex flex-col gap-3 scroll-mt-4">
+        <h2 className="text-h2">Listings &amp; Properties</h2>
+        <Card className="p-5 flex flex-col gap-3 text-body-md text-ink-2">
+          <p>
+            Listings are rooms or properties shared by room posters. Use the{" "}
+            <Link to="/post" className="text-accent underline">Post a Room</Link>{" "}
+            flow to publish a new listing, and visit{" "}
+            <Link to="/my-listings" className="text-accent underline">My Listings</Link>{" "}
+            to edit or remove a listing you have already created.
+          </p>
+          <p>
+            Looking for a room? Open{" "}
+            <Link to="/explore" className="text-accent underline">Explore</Link>{" "}
+            to browse available listings and save filters for later.
+          </p>
+        </Card>
+      </section>
+
+      <section id="safety" className="flex flex-col gap-3 scroll-mt-4">
+        <h2 className="text-h2">Safety &amp; Verification</h2>
+        <Card className="p-5 flex flex-col gap-3 text-body-md text-ink-2">
+          <p>
+            Your safety matters. Use{" "}
+            <Link to="/settings/blocked-users" className="text-accent underline">Blocked Users</Link>{" "}
+            to manage who can contact you, and report suspicious accounts from any
+            profile or chat thread.
+          </p>
+          <p>
+            Verified users carry a trust badge on their profile. To complete
+            verification, head to the Verify page from your profile menu.
+          </p>
+        </Card>
+      </section>
+
+      <section id="chat" className="flex flex-col gap-3 scroll-mt-4">
+        <h2 className="text-h2">Chat &amp; Communication</h2>
+        <Card className="p-5 flex flex-col gap-3 text-body-md text-ink-2">
+          <p>
+            Conversations live in the{" "}
+            <Link to="/chats" className="text-accent underline">Chats</Link>{" "}
+            tab. Adjust notification delivery and quiet hours from{" "}
+            <Link to="/settings/notifications" className="text-accent underline">Notification Settings</Link>.
+          </p>
+          <p>
+            Need to reschedule or cancel a property visit? Open the{" "}
+            <Link to="/visits" className="text-accent underline">Visits</Link>{" "}
+            page to manage upcoming and past visits.
+          </p>
+        </Card>
+      </section>
 
       <Card className="p-5">
         <h2 className="text-h3 mb-2">Need more help?</h2>
         <p className="text-body-md text-ink-2 mb-4">
           Our support team typically responds within 24 hours.
         </p>
-        <Link to="/settings/report-problem">
+        {/* TODO: replace mailto with a dedicated /support route once the
+            backend exposes a support-ticket endpoint. Until then this link
+            opens the user's mail client to support@360ghar.com. */}
+        <a href="mailto:support@360ghar.com">
           <Button variant="secondary" fullWidth>
             Contact Support
           </Button>
-        </Link>
+        </a>
       </Card>
     </div>
   );

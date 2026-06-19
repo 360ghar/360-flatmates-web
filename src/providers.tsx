@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
@@ -44,33 +44,23 @@ function ProviderInternals({
     setAccessToken(token);
   }, [session?.access_token, loading]);
 
-  // Fetch the backend-computed auth gate stage when the user is authenticated
-  // and not in the middle of a multi-step auth flow. The GateGuard reads
-  // authStore.authStage to route profile-completion / onboarding screens.
-  useEffect(() => {
-    const midAuthFlow = authStore.getState().midAuthFlow;
-    if (!isAuthenticated || midAuthFlow) return;
-
-    let cancelled = false;
-    getAuthState("flatmates")
-      .then((data) => {
-        if (!cancelled) {
-          authStore.getState().setAuthStage(data.stage, data.missing_fields);
-        }
-      })
-      .catch(() => {
-        // Non-fatal: default stage is "active" so the user proceeds.
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthenticated]);
+  // Fetch the backend-computed auth gate stage when the user is authenticated.
+  // Routed through TanStack Query so retries, dedup, and refetch-on-focus are
+  // handled by the cache. `useAuthStateQuery` re-checks `midAuthFlow` after the
+  // response resolves so a multi-step auth flow that started while the request
+  // was in flight is not stomped on.
+  useAuthStateQuery(isAuthenticated);
 
   useEffect(() => {
     setRefreshTokenHandler(async () => {
       if (refreshPromise) return refreshPromise;
 
+      // NOTE (F10 #5): there is a benign race window between the consumer
+      // calling `setRefreshTokenHandler` and the first 401. In the normal
+      // cold-load path the handler is set before any user-driven call could
+      // trigger a 401. The dedupe (`refreshPromise` here + `refreshing` on
+      // HttpApiClient) is correct in steady state. Flag for follow-up if this
+      // ever becomes user-visible.
       refreshPromise = (async () => {
         try {
           const supabase = getSupabaseBrowserClient();
@@ -149,6 +139,30 @@ function ProviderInternals({
   return children;
 }
 
+/**
+ * Fetch the backend-computed auth gate stage while the user is authenticated.
+ * The `midAuthFlow` post-resolve check (F10 fix #4) prevents the gate from
+ * stomping on a multi-step auth flow that started after the request was
+ * issued.
+ */
+function useAuthStateQuery(isAuthenticated: boolean) {
+  const query = useQuery({
+    queryKey: ["auth-state", "flatmates"],
+    queryFn: ({ signal }) => getAuthState("flatmates", signal),
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false
+  });
+
+  useEffect(() => {
+    if (!query.data) return;
+    if (query.isStale && !query.isFetching) return;
+    if (authStore.getState().midAuthFlow) return;
+    authStore.getState().setAuthStage(query.data.stage, query.data.missing_fields);
+  }, [query.data, query.isStale, query.isFetching]);
+}
+
 function ToastContainer() {
   const toasts = useStore(uiStore, (s) => s.toasts);
   const dismissToast = useStore(uiStore, (s) => s.dismissToast);
@@ -172,8 +186,8 @@ function ToastContainer() {
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
-    () =>
-      new QueryClient({
+    () => {
+      const client = new QueryClient({
         defaultOptions: {
           queries: {
             refetchOnWindowFocus: false,
@@ -185,12 +199,44 @@ export function Providers({ children }: { children: ReactNode }) {
                 if (failureCount === 0) return true;
                 return false;
               }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "forbidden"
+              ) {
+                return false;
+              }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "rate_limit"
+              ) {
+                return failureCount < 1;
+              }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "validation"
+              ) {
+                return false;
+              }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "bad_request"
+              ) {
+                return false;
+              }
               return failureCount < 1;
             },
             staleTime: 60_000
           }
         }
-      })
+      });
+
+      // Catalog queries (cities, amenities, localities) are static-feeling and
+      // rarely change. Override the global `staleTime` so we don't re-fetch
+      // them on every consumer mount. 30 min matches the per-query override
+      // on `useCatalogs`.
+      client.setQueryDefaults(["catalogs"], { staleTime: 30 * 60 * 1000 });
+      return client;
+    }
   );
 
   return (

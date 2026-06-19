@@ -45,7 +45,7 @@ export const searchFiltersSchema = z
     sort_by: searchSortSchema.default("newest"),
     semantic_search: z.boolean().default(false),
     exclude_swiped: z.boolean().default(false),
-    page: z.number().int().min(1).default(1),
+    cursor: z.string().optional(),
     limit: z.number().int().min(1).max(100).default(20)
   })
   .refine(priceRefine.check, priceRefine.opts)
@@ -53,10 +53,10 @@ export const searchFiltersSchema = z
 
 export const webSearchResponseSchema = z.object({
   results: z.array(z.union([propertySchema, flatmatesPeerSchema])),
-  total: z.number().int().min(0),
-  page: z.number().int().min(1),
+  total: z.number().int().min(0).optional(),
+  next_cursor: z.string().nullable(),
+  has_more: z.boolean(),
   limit: z.number().int().min(1),
-  total_pages: z.number().int().min(0),
   search_type: searchTypeSchema,
   filters_applied: z.record(z.string(), z.unknown()).optional(),
   search_center: z

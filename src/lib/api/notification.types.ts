@@ -1,3 +1,5 @@
+import type { CursorPage } from "./common.types";
+
 export interface FlatmatesNotification {
   id: string;
   type: string;
@@ -8,6 +10,8 @@ export interface FlatmatesNotification {
   route?: string | null;
   created_at?: string;
 }
+
+export type NotificationCursorPage = CursorPage<FlatmatesNotification>;
 
 export interface MarkNotificationReadPayload {
   is_read: boolean;
@@ -21,5 +25,5 @@ export interface NotificationFilters {
   type?: string;
   is_read?: boolean;
   limit?: number;
-  offset?: number;
+  cursor?: string;
 }

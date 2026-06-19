@@ -16,12 +16,12 @@ export function TestimonialsSection() {
     <section className="bg-paper py-20 md:py-28 border-b border-line-low" aria-labelledby="testimonials-heading">
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <RevealSection className="mb-14 text-center">
-          <h2 id="testimonials-heading" className="text-display text-4xl md:text-5xl text-ink">
+          <h2 id="testimonials-heading" className="text-display text-ink">
             8,600 people stopped settling.
           </h2>
         </RevealSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
           {TESTIMONIALS.map((testimonial) => (
             <RevealSection key={testimonial.name} className="bento-card card-glow relative flex flex-col justify-between p-8 md:p-10 bg-surface border border-line-low hover:border-accent/15 transition-all duration-300">
               <div className="relative pl-6">

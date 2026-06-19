@@ -158,12 +158,25 @@ Accessed in code via `toneClasses[tone]` (`src/components/ui/component-utils.ts`
 `{ soft, text, inkText, border, icon, dot }`. **Use `inkText` for text on the
 matching soft background** (this is what gives chips/badges accessible contrast).
 
-### 3.7 Compatibility score colors
+### 3.7 Brand partner palettes
+
+These are the **fixed** brand colors for third-party identity surfaces; do not
+palette-swap them. Each gets its own four-token set (`-bg`, `-text`, `-border`,
+`-hover`) and overrides automatically in dark mode.
+
+| Brand | Light bg | Light text | Light border | Light hover | Dark bg | Dark text | Dark border | Dark hover |
+|-------|----------|------------|--------------|-------------|---------|-----------|-------------|------------|
+| **Google** (Material 3) | `#FFFFFF` | `#3C4043` | `#DADCE0` | `#F8F9FA` | `#131314` | `#E3E3E3` | `#8E918F` | `#1E1F20` |
+
+Accessed via Tailwind: `bg-google-bg`, `text-google-text`,
+`border-google-border`, `hover:bg-google-hover`.
+
+### 3.8 Compatibility score colors
 
 `≥70%` → Success green · `40-69%` → Warning amber · `<40%` → Error red. Always
 pair the color with the numeric value (never color alone).
 
-### 3.8 Palette themes
+### 3.9 Palette themes
 
 `[data-palette]` swaps the accent only (paper/ink unchanged):
 
@@ -393,8 +406,8 @@ Heights are tokenized: `--control-h-sm` 42 · `--control-h-md` 48 ·
 
 | Component | File | Purpose | Key states / notes |
 |-----------|------|---------|--------------------|
-| **Button** | `Button.tsx` | primary / secondary / tertiary / icon × compact/default/tall/icon | Full matrix; heights from `--control-h-*`; loading spinner; `shadow-cta` on primary |
-| **Card** | `Card.tsx` | default / compact / **elevated** containers | `elevated` uses `surface-elevated` + `shadow-md`; `interactive` adds hover-lift + press + focus; `selected` = accent border + soft fill |
+| **Button** | `Button.tsx` | primary / secondary / tertiary / icon / google / destructive / inverted × compact/default/tall/icon | Full matrix; heights from `--control-h-*`; loading spinner (hides `trailingIcon`); `shadow-cta` on primary; `google` uses Material 3 brand tokens (`--color-google-*`); `destructive` = `error` fill; `inverted` = white-on-accent |
+| **Card** | `Card.tsx` | default / compact / **elevated** / **flat** / **stacked** containers | `elevated` uses `surface-elevated` + `shadow-md`; `flat` = no border, no shadow; `stacked` = 2px accent top border; `interactive` adds hover-lift + press + focus; `selected` = accent border + soft fill |
 | **Chip** | `Chip.tsx` | filter / choice / info / removable | `role` radio/checkbox; selected spring `scale(1.03)`; removable splits remove button to avoid nested interactives |
 | **Badge** | `Badge.tsx` | default / mode / verified / status / count | Tone via `toneClasses`; **text uses `inkText`** for contrast on soft fill |
 | **Input / TextArea / SelectField** | `Input.tsx` | labeled fields via `FieldWrapper` | Label above (mono), helper/error below, leading/trailing icons, focus glow + `scale(1.01)`, `aria-invalid`/`aria-describedby`; min-h `--control-h-md` |

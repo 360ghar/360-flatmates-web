@@ -8,11 +8,20 @@ describe("mapStore", () => {
 
   it("should have correct initial state", () => {
     const state = mapStore.getState();
-    expect(state.center).toEqual({ lat: 28.6139, lng: 77.209 });
+    // The default map center has shifted from New Delhi to Gurgaon since
+    // Gurgaon is the platform's primary market and the Explore page now also
+    // re-seeds the viewport from the user's profile city on first load.
+    expect(state.center).toEqual({ lat: 28.4595, lng: 77.0266 });
     expect(state.zoom).toBe(12);
     expect(state.selectedPinId).toBeNull();
     expect(state.filters).toEqual({});
     expect(state.bounds).toBeNull();
+    expect(state.hasSeededCenter).toBe(false);
+  });
+
+  it("markCenterSeeded flips hasSeededCenter to true", () => {
+    mapStore.getState().markCenterSeeded();
+    expect(mapStore.getState().hasSeededCenter).toBe(true);
   });
 
   it("setCenter updates center coordinates", () => {

@@ -103,26 +103,33 @@ describe("useSwipes hooks", () => {
   });
 
   describe("useSwipeAction", () => {
-    it("invalidates ['swipes', 'deck'] on success", async () => {
+    it("optimistically removes the swiped profile from the cached deck", async () => {
+      // Pre-seed the deck with two profiles so we can verify the swiped one
+      // disappears without a network round-trip.
+      const initialDeck = [
+        { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true },
+        { id: 203, full_name: "Riya", mode: "open_to_both", onboarding_completed: true }
+      ];
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      queryClient.setQueryData(["swipes", "deck"], initialDeck);
+
       mockRequest.mockResolvedValue({
         stored: true,
         action: "like",
-        target_type: "profile",
+        target_type: "user",
         did_match: true,
         match_id: 700,
         conversation_id: 800
       });
 
-      const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } }
-      });
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <QueryClientProvider client={queryClient}>
           {children}
         </QueryClientProvider>
       );
 
-      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
       const { result } = renderHook(() => useSwipeAction(), { wrapper });
 
       result.current.mutate({
@@ -131,8 +138,120 @@ describe("useSwipes hooks", () => {
         target_user_id: 202
       });
 
+      // The optimistic update should have removed Aditi before the mutation
+      // resolves. We assert on a microtask boundary to let React flush.
+      await waitFor(() => {
+        const deck = queryClient.getQueryData<unknown[]>(["swipes", "deck"]);
+        expect(deck?.length).toBe(1);
+      });
+
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["swipes", "deck"] });
+      const deck = queryClient.getQueryData<Array<{ id: number }>>(["swipes", "deck"]);
+      expect(deck).toHaveLength(1);
+      expect(deck?.[0]?.id).toBe(203);
+    });
+
+    it("rolls the swiped profile back when the mutation fails", async () => {
+      const initialDeck = [
+        { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true }
+      ];
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      queryClient.setQueryData(["swipes", "deck"], initialDeck);
+
+      mockRequest.mockRejectedValue(new Error("network"));
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useSwipeAction(), { wrapper });
+
+      result.current.mutate({
+        action: "pass",
+        target_type: "user",
+        target_user_id: 202
+      });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+      const deck = queryClient.getQueryData<Array<{ id: number }>>(["swipes", "deck"]);
+      expect(deck).toEqual(initialDeck);
+    });
+
+    it("does not invalidate the deck on success (refill is handled by SwipeDeck's onNearEnd)", async () => {
+      const smallDeck = [
+        { id: 202, full_name: "Aditi", mode: "open_to_both", onboarding_completed: true },
+        { id: 203, full_name: "Riya", mode: "open_to_both", onboarding_completed: true }
+      ];
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      queryClient.setQueryData(["swipes", "deck"], smallDeck);
+
+      mockRequest.mockResolvedValue({
+        stored: true,
+        action: "like",
+        target_type: "user"
+      });
+
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useSwipeAction(), { wrapper });
+      result.current.mutate({
+        action: "like",
+        target_type: "user",
+        target_user_id: 202
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      // The deck refill is now handled entirely by SwipeDeck's onNearEnd
+      // callback, not by useSwipeAction. No invalidation should fire.
+      expect(invalidateSpy).not.toHaveBeenCalled();
+    });
+
+    it("does not invalidate the deck when plenty of cards remain", async () => {
+      const bigDeck = Array.from({ length: 10 }, (_, i) => ({
+        id: 200 + i,
+        full_name: `Profile ${i}`,
+        mode: "open_to_both",
+        onboarding_completed: true
+      }));
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      queryClient.setQueryData(["swipes", "deck"], bigDeck);
+
+      mockRequest.mockResolvedValue({
+        stored: true,
+        action: "pass",
+        target_type: "user"
+      });
+
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useSwipeAction(), { wrapper });
+      result.current.mutate({
+        action: "pass",
+        target_type: "user",
+        target_user_id: 200
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      // Plenty of cards remain, so no invalidation.
+      expect(invalidateSpy).not.toHaveBeenCalled();
     });
 
     it("sends POST /flatmates/swipes", async () => {

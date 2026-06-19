@@ -3,8 +3,9 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#F4F3EE" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F4F3EE" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1a1612" media="(prefers-color-scheme: dark)" />
   <!--
     Default SEO / social meta. These are the SPA-shell fallback: SeoHelmet
     overrides them per-route at runtime (and the prerender step bakes the
@@ -20,6 +21,7 @@
   <meta property="og:site_name" content="360 Flatmates" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/og-image.png" />
+  <meta property="og:image:alt" content="360 Flatmates — Find your flatmate, find your vibe" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@360ghar" />
@@ -29,11 +31,142 @@
   <link rel="apple-touch-icon" href="/favicon-192.png" />
   <link rel="mask-icon" href="/favicon.svg" color="#C96442" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" href="/fonts/Fraunces-Variable.ttf" as="font" type="font/ttf" crossorigin />
   <link rel="preload" href="/fonts/Inter-Variable.ttf" as="font" type="font/ttf" crossorigin />
-  <link rel="preload" href="/fonts/JetBrainsMono-Variable.ttf" as="font" type="font/ttf" crossorigin />
-  <link rel="preload" href="/fonts/InstrumentSerif-Italic.ttf" as="font" type="font/ttf" crossorigin />
   <link rel="stylesheet" href="/fonts/fonts.css" />
+
+  <!--
+    Critical-path CSS — prevents FOUC by inlining the minimum styles needed
+    for correct layout, colors, and typography before the full Tailwind
+    stylesheet loads. The hydration gate (#root starts visibility:hidden)
+    hides the unstyled React shell; entry.tsx adds .hydrated after mount to
+    reveal it. Noscript users see .noscript-fallback content immediately
+    via visibility:visible override on the child element.
+  -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html {
+      background: #F4F3EE;
+      color: #1F1A14;
+      scroll-behavior: smooth;
+    }
+    [data-theme="dark"] {
+      background: #1a1612;
+      color: #f4f3ee;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: inherit;
+      background: inherit;
+    }
+    /*
+      Hydration gate: #root starts visibility:hidden to prevent FOUC while
+      React mounts and the full stylesheet loads. Using visibility (not opacity)
+      so that .noscript-fallback children can override to visibility:visible
+      when JS is disabled — a child with visibility:visible renders even when
+      its parent is visibility:hidden.
+    */
+    #root {
+      visibility: hidden;
+    }
+    #root.hydrated {
+      visibility: visible;
+    }
+    /* Noscript fallback overrides parent visibility:hidden when JS is off */
+    .noscript-fallback { visibility: visible !important; }
+    .noscript-fallback {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px;
+      font-family: Inter, system-ui, sans-serif;
+      color: #1F1A14;
+    }
+    [data-theme="dark"] .noscript-fallback { color: #f4f3ee; }
+    .noscript-fallback h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: clamp(1.5rem, 3vw, 2.25rem);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin: 0 0 12px;
+    }
+    .noscript-fallback h2 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: clamp(1.15rem, 2vw, 1.5rem);
+      font-weight: 400;
+      line-height: 1.2;
+      margin: 28px 0 12px;
+    }
+    .noscript-fallback p, .noscript-fallback li {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #4a463e;
+    }
+    [data-theme="dark"] .noscript-fallback p,
+    [data-theme="dark"] .noscript-fallback li { color: #e4e1d7; }
+    .noscript-fallback a {
+      color: #C96442;
+      text-decoration: none;
+    }
+    .noscript-fallback a:hover { text-decoration: underline; }
+    .noscript-fallback ul {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0;
+    }
+    .noscript-fallback li {
+      padding: 4px 0;
+    }
+    .noscript-fallback li::before {
+      content: "→ ";
+      color: #C96442;
+    }
+    .noscript-fallback .section {
+      margin: 24px 0;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(31, 26, 20, 0.08);
+      background: #fffdf8;
+    }
+    [data-theme="dark"] .noscript-fallback .section {
+      background: #2a2520;
+      border-color: rgba(244, 243, 238, 0.16);
+    }
+    .noscript-fallback .eyebrow {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #C96442;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .noscript-fallback .cta {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 10px 24px;
+      border-radius: 10px;
+      background: #C96442;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
 
   <script>
     (() => {
@@ -67,27 +200,101 @@
     Skip to main content
   </a>
   <div id="root">
+    <!--
+      Progressive enhancement: this noscript block provides structured,
+      crawlable content for JS-disabled users and as a no-JS fallback.
+      Prerendered routes (dist/<route>/index.html) replace this entirely
+      for crawlers; the SPA shell retains it as a safety net.
+    -->
     <noscript>
-      <div style="font-family:Inter,system-ui,sans-serif;max-width:720px;margin:0 auto;padding:24px;color:#1F1A14">
-        <h1>360 Flatmates — Find compatible flatmates &amp; verified rooms across India</h1>
+      <div class="noscript-fallback" role="main">
+        <h1>360 Flatmates — Find Compatible Flatmates &amp; Verified Rooms Across India</h1>
         <p>
-          360 Flatmates is an India-first flatmate and room-rental platform that matches people on a
-          6-dimension compatibility score, society vibe tags, budget, and lifestyle — then handles
-          visit scheduling, in-app chat, and verified listings. Find your flatmate, find your vibe.
+          360 Flatmates matches you with flatmates on 6 lifestyle dimensions: sleep, cleanliness,
+          food, guests, work, and vibe. Verified listings, visit scheduling, in-app chat.
+          Live in Bangalore and Gurugram.
         </p>
-        <ul>
-          <li><a href="/discover">Browse verified rooms &amp; flats</a></li>
-          <li><a href="/cities/bangalore">Flatmates &amp; rooms in Bangalore</a></li>
-          <li><a href="/cities/gurugram">Flatmates &amp; rooms in Gurugram</a></li>
-          <li><a href="/blog">Guides: flatmate agreements, moving in, inspections &amp; more</a></li>
-          <li><a href="/search/semantic">Semantic search for rooms by vibe &amp; lifestyle</a></li>
-          <li><a href="/about">About 360 Flatmates</a></li>
-        </ul>
-        <p>Enable JavaScript for the full interactive experience.</p>
+
+        <div class="section">
+          <h2>How It Works</h2>
+          <ul>
+            <li>Tell us your vibe — budget, location, and lifestyle preferences</li>
+            <li>Get matched — our engine finds flatmates and rooms that fit how you live</li>
+            <li>Move in — book a visit, chat with context, sign up</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <span class="eyebrow">Browse</span>
+          <h2>Find Your Room or Flatmate</h2>
+          <ul>
+            <li><a href="/discover">Browse all verified listings</a></li>
+            <li><a href="/cities/bangalore">Flats &amp; flatmates in Bangalore</a></li>
+            <li><a href="/cities/gurugram">Flats &amp; flatmates in Gurugram</a></li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <span class="eyebrow">Guides</span>
+          <h2>Blog — Living Together Better</h2>
+          <ul>
+            <li><a href="/blog/how-to-find-compatible-flatmates">How to Find Compatible Flatmates</a></li>
+            <li><a href="/blog/flatmate-agreement-essentials">The Essential Flatmate Agreement Checklist</a></li>
+            <li><a href="/blog/bangalore-rental-market-guide">Bangalore Rental Market Guide 2025</a></li>
+            <li><a href="/blog/moving-in-with-strangers">Moving in with Strangers: Real Tips</a></li>
+            <li><a href="/blog/room-inspection-checklist">Room Inspection Checklist</a></li>
+            <li><a href="/blog/flatmate-conflict-resolution">Handling Flatmate Conflicts Gracefully</a></li>
+            <li><a href="/blog">All guides →</a></li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <span class="eyebrow">Compare</span>
+          <h2>Why 360 Flatmates?</h2>
+          <ul>
+            <li><a href="/compare/360-flatmates-vs-nobroker">360 Flatmates vs NoBroker</a></li>
+            <li><a href="/compare/360-flatmates-vs-facebook-groups">360 Flatmates vs Facebook Groups</a></li>
+            <li><a href="/compare/360-flatmates-vs-housing">360 Flatmates vs Housing.com</a></li>
+            <li><a href="/compare/360-flatmates-vs-magicbricks">360 Flatmates vs MagicBricks</a></li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <span class="eyebrow">Platform</span>
+          <h2>Key Features</h2>
+          <ul>
+            <li>6-dimension compatibility scoring — sleep, clean, food, guests, work, vibe</li>
+            <li>Every listing reviewed before going live — real photos, real rent</li>
+            <li>Book visits in 2 taps — no WhatsApp ping-pong</li>
+            <li>Chat that starts with context — listing, match score, and visit details pinned</li>
+            <li>Phone OTP login, profile checks, in-app reporting</li>
+          </ul>
+        </div>
+
+        <p>
+          <a href="/about">About 360 Flatmates</a> ·
+          <a href="/terms">Terms</a> ·
+          <a href="/privacy">Privacy</a> ·
+          <a href="/stats">Stats</a>
+        </p>
+
+        <p style="margin-top:24px">
+          <a class="cta" href="/discover">Browse Verified Rooms</a>
+        </p>
+
+        <p style="margin-top:16px;font-size:12px;color:#756f65">
+          Enable JavaScript for the full interactive experience with compatibility matching,
+          real-time chat, and visit scheduling.
+        </p>
       </div>
     </noscript>
   </div>
   <script type="module" src="/src/entry.tsx"></script>
+  <!-- Plausible analytics: loaded once via this script tag.
+       NOTE: src/components/analytics/Plausible.tsx also exists but is dead code
+       and MUST NOT be mounted. Mounting it would double-count every pageview.
+       If you want client-side control of Plausible, gate the import on a build
+       flag and remove this static script first. -->
   <script defer data-domain="360ghar.com" src="https://plausible.io/js/script.js"></script>
 
 </body>

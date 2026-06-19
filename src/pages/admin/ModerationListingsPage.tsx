@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { CheckCircle2, Eye, XCircle } from "lucide-react";
-import { useAdminListings, useAdminModerate } from "@/hooks/queries";
+import { useInfiniteAdminListings, useAdminModerate } from "@/hooks/queries";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
 import { TextArea } from "@/components/ui/Input";
 import { NetworkImage } from "@/components/ui/NetworkImage";
@@ -12,49 +13,96 @@ import { PageLayout, PageHeader } from "@/components/ui/Layout";
 import { PriceText } from "@/components/ui/PriceText";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { AsyncView, EmptyState } from "@/components/ui/StateViews";
+import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { uiStore } from "@/lib/stores/ui-store";
-import type { FlatmateListingAdmin } from "@/lib/api/types";
+import type { FlatmateListingAdmin, PropertyModerationStatus } from "@/lib/api/types";
+import { PROPERTY_MODERATION_STATUS_VALUES } from "@/lib/data";
+
+const STATUS_CHIP_LABELS: Record<PropertyModerationStatus, string> = {
+  pending_review: "Pending",
+  approved: "Approved",
+  rejected: "Rejected"
+};
+
+const STATUS_OPTIONS: PropertyModerationStatus[] = [
+  ...PROPERTY_MODERATION_STATUS_VALUES
+];
+
+type StatusFilter = PropertyModerationStatus | "all";
 
 export function ModerationListingsPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading, error, refetch } = useAdminListings({
-    status: "pending_review"
-  });
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending_review");
+  const filters = useMemo(
+    () =>
+      statusFilter === "all"
+        ? undefined
+        : { status: statusFilter as PropertyModerationStatus },
+    [statusFilter]
+  );
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    error,
+    refetch
+  } = useInfiniteAdminListings(filters);
   const moderate = useAdminModerate();
 
   // Track the listing id currently being actioned so only its row shows the
   // loading/disabled state (never the whole queue) and to prevent double-submit.
   const [actingId, setActingId] = useState<number | null>(null);
+  const [approveTarget, setApproveTarget] = useState<FlatmateListingAdmin | null>(null);
   const [rejectTarget, setRejectTarget] = useState<FlatmateListingAdmin | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
+  // Flatten the paginated pages into a single array for rendering + search.
+  const allListings = useMemo<FlatmateListingAdmin[]>(
+    () => (data?.pages ?? []).flatMap((page) => page.items),
+    [data]
+  );
+  const totalCount = data?.pages?.[0]?.total ?? 0;
+
+  // If the target listing scrolls out of the queue (e.g. after pagination
+  // or a status filter change) while a modal is open, treat it as closed.
+  const liveApproveTarget =
+    approveTarget && allListings.some((l) => l.id === approveTarget.id)
+      ? approveTarget
+      : null;
+  const liveRejectTarget =
+    rejectTarget && allListings.some((l) => l.id === rejectTarget.id)
+      ? rejectTarget
+      : null;
+
   const filtered = useMemo(
     () => {
-      const listings = data?.listings ?? [];
-      return search
-        ? listings.filter(
-            (l: FlatmateListingAdmin) =>
-              l.title.toLowerCase().includes(search.toLowerCase()) ||
-              l.owner_name.toLowerCase().includes(search.toLowerCase()) ||
-              l.locality.toLowerCase().includes(search.toLowerCase())
-          )
-        : listings;
+      if (!search) return allListings;
+      const needle = search.toLowerCase();
+      return allListings.filter(
+        (l) =>
+          l.title.toLowerCase().includes(needle) ||
+          l.owner_name.toLowerCase().includes(needle) ||
+          l.locality.toLowerCase().includes(needle)
+      );
     },
-    [search, data]
+    [search, allListings]
   );
 
-  function handleApprove(listing: FlatmateListingAdmin) {
-    if (actingId !== null) return;
-    setActingId(listing.id);
+  function handleConfirmApprove() {
+    if (!liveApproveTarget || actingId !== null) return;
+    const target = liveApproveTarget;
+    setActingId(target.id);
     moderate.mutate(
-      { listingId: listing.id, payload: { action: "approve" } },
+      { listingId: target.id, payload: { action: "approve" } },
       {
         onSuccess: () => {
+          setApproveTarget(null);
           uiStore.getState().pushToast({
             type: "success",
             title: "Listing approved",
-            description: `"${listing.title}" is now live.`
+            description: `"${target.title}" is now live.`
           });
         },
         onError: () => {
@@ -70,8 +118,8 @@ export function ModerationListingsPage() {
   }
 
   function handleConfirmReject() {
-    if (!rejectTarget || !rejectReason.trim() || actingId !== null) return;
-    const target = rejectTarget;
+    if (!liveRejectTarget || !rejectReason.trim() || actingId !== null) return;
+    const target = liveRejectTarget;
     setActingId(target.id);
     moderate.mutate(
       { listingId: target.id, payload: { action: "reject", reason: rejectReason.trim() } },
@@ -97,15 +145,52 @@ export function ModerationListingsPage() {
     );
   }
 
+  // Status-filter chip labels. NOTE: when A-2/A-3 are resolved (REPORT_STATUS
+  // and REPORT_ACTION divergence), audit the label set for reports and listings
+  // together.
+  const statusChips: { value: StatusFilter; label: string }[] = [
+    { value: "all", label: "All" },
+    ...STATUS_OPTIONS.map((status) => ({
+      value: status as StatusFilter,
+      label: STATUS_CHIP_LABELS[status]
+    }))
+  ];
+
+  const isFirstPageLoading = isLoading;
+  const hasSearch = search.trim().length > 0;
+  const emptyTitle = hasSearch
+    ? "No matches"
+    : statusFilter === "pending_review"
+      ? "No pending listings"
+      : "No listings";
+  const emptyDescription = hasSearch
+    ? `No listings match "${search}".`
+    : statusFilter === "pending_review"
+      ? "All listings have been reviewed. Check back later."
+      : "Try a different status filter.";
+
   return (
     <PageLayout>
       <PageHeader
         eyebrow="Moderation"
         title="Listing Review Queue"
-        description="Review and moderate pending listings before they go live."
+        description="Review and moderate listings before they go live."
       />
 
       <div className="mt-6 flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by status">
+          {statusChips.map((chip) => (
+            <Chip
+              key={chip.value}
+              variant="choice"
+              selected={statusFilter === chip.value}
+              onClick={() => setStatusFilter(chip.value)}
+            >
+              {chip.label}
+            </Chip>
+          ))}
+        </div>
+
         <SearchBar
           placeholder="Search by title, owner, or locality"
           value={search}
@@ -113,12 +198,20 @@ export function ModerationListingsPage() {
           onClear={() => setSearch("")}
         />
 
+        <div className="flex items-center justify-between text-caption text-ink-3">
+          <span>
+            {totalCount > 0
+              ? `${filtered.length} of ${totalCount} listing${totalCount === 1 ? "" : "s"}`
+              : "No listings"}
+          </span>
+        </div>
+
         <AsyncView
-          data={data}
-          isLoading={isLoading}
+          data={allListings}
+          isLoading={isFirstPageLoading}
           error={error}
           onRetry={() => refetch()}
-          isEmpty={(d) => !d.listings?.length}
+          isEmpty={(d) => d.length === 0}
           loading={
             <div className="flex flex-col gap-3">
               {Array.from({ length: 5 }, (_, i) => (
@@ -147,47 +240,103 @@ export function ModerationListingsPage() {
           }
           empty={
             <EmptyState
-              title="No pending listings"
-              description="All listings have been reviewed. Check back later."
+              title={emptyTitle}
+              description={emptyDescription}
+              actionLabel={hasSearch ? "Clear search" : undefined}
+              onAction={hasSearch ? () => setSearch("") : undefined}
             />
+          }
+          errorView={
+            <Card className="flex items-center justify-center p-6">
+              <ErrorState
+                title="Could not load listings"
+                description="Please try again."
+                onRetry={() => refetch()}
+              />
+            </Card>
           }
         >
           {() => (
-            <ul className="flex flex-col gap-3">
-              {filtered.map((listing: FlatmateListingAdmin) => (
-                <li key={listing.id}>
-                  <ListingRow
-                    listing={listing}
-                    onApprove={() => handleApprove(listing)}
-                    onReject={() => {
-                      setRejectTarget(listing);
-                      setRejectReason("");
-                    }}
-                    isActing={actingId === listing.id}
-                    actionsDisabled={actingId !== null}
-                  />
-                </li>
-              ))}
-              {filtered.length === 0 && search && (
-                <li>
-                  <EmptyState
-                    title="No matches"
-                    description={`No listings match "${search}".`}
-                  />
-                </li>
-              )}
-            </ul>
+            <>
+              <ul className="flex flex-col gap-3">
+                {filtered.map((listing: FlatmateListingAdmin) => (
+                  <li key={listing.id}>
+                    <ListingRow
+                      listing={listing}
+                      onApprove={() => setApproveTarget(listing)}
+                      onReject={() => {
+                        setRejectTarget(listing);
+                        setRejectReason("");
+                      }}
+                      isActing={actingId === listing.id}
+                      actionsDisabled={actingId !== null}
+                    />
+                  </li>
+                ))}
+              </ul>
+              {hasNextPage ? (
+                <div className="mt-4 flex justify-center">
+                  <Button
+                    variant="secondary"
+                    size="compact"
+                    onClick={() => fetchNextPage()}
+                    loading={isFetchingNextPage}
+                  >
+                    Load more
+                  </Button>
+                </div>
+              ) : null}
+            </>
           )}
         </AsyncView>
       </div>
 
+      {/* Approve confirmation (mirrors the Reject modal so admins don't approve by accident) */}
+      <Modal
+        open={liveApproveTarget !== null}
+        title="Approve Listing"
+        description={
+          liveApproveTarget
+            ? `"${liveApproveTarget.title}" will be marked as approved and become visible to all users.`
+            : ""
+        }
+        onClose={() => {
+          if (moderate.isPending) return;
+          setApproveTarget(null);
+        }}
+        footer={
+          <>
+            <Button
+              size="compact"
+              variant="secondary"
+              onClick={() => setApproveTarget(null)}
+              disabled={moderate.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="compact"
+              variant="primary"
+              loading={moderate.isPending}
+              onClick={handleConfirmApprove}
+            >
+              Confirm Approval
+            </Button>
+          </>
+        }
+      >
+        <p className="text-body-md text-ink-2">
+          The owner will be notified that their listing is live.
+        </p>
+      </Modal>
+
       {/* Reject confirmation (destructive: requires a reason) */}
       <Modal
-        open={rejectTarget !== null}
+        open={liveRejectTarget !== null}
         title="Reject Listing"
         description={
-          rejectTarget
-            ? `Provide a reason for rejecting "${rejectTarget.title}". The owner will see this.`
+          liveRejectTarget
+            ? `Provide a reason for rejecting "${liveRejectTarget.title}". The owner will see this.`
             : ""
         }
         onClose={() => {
@@ -278,12 +427,12 @@ function ListingRow({
           <div className="mt-2 flex items-center gap-3">
             <PriceText value={listing.monthly_rent} variant="inline" />
             {listing.created_at && (
-              <span className="text-caption text-ink-3">
+              <span suppressHydrationWarning className="text-caption text-ink-3">
                 {new Date(listing.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
               </span>
             )}
           </div>
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button
               size="compact"
               variant="primary"
@@ -303,14 +452,12 @@ function ListingRow({
             >
               Reject
             </Button>
-            <Link to={`/admin/moderation/prescreen/${listing.id}`} tabIndex={-1}>
-              <Button
-                size="compact"
-                variant="tertiary"
-                leadingIcon={<Eye aria-hidden="true" className="h-4 w-4" />}
-              >
-                Review
-              </Button>
+            <Link
+              to={`/admin/moderation/prescreen/${listing.id}`}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-label-md font-semibold text-accent hover:bg-accent-soft hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+            >
+              <Eye aria-hidden="true" className="h-4 w-4" />
+              <span className="truncate">Review</span>
             </Link>
           </div>
         </div>

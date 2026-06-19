@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import { Bell, BellOff, Plus, Trash2 } from "lucide-react";
 import {
   useSearchAlerts,
@@ -11,90 +12,195 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
-import { Input } from "@/components/ui/Input";
+import { Input, SelectField } from "@/components/ui/Input";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
-import type { SearchAlertCreate } from "@/lib/api/types";
+import { humanizeSnakeCase, toTitleCase } from "@/lib/utils/format";
+import {
+  ALERT_FREQUENCY_VALUES,
+  ALERT_CHANNEL_VALUES,
+  type AlertChannel,
+  type AlertFrequency,
+} from "@/lib/data";
+import type { SearchAlertCreate, SearchFilters } from "@/lib/api/types";
+
+const FREQUENCY_OPTIONS = ALERT_FREQUENCY_VALUES.map((v) => ({
+  value: v,
+  label: toTitleCase(humanizeSnakeCase(v)),
+}));
+const CHANNEL_OPTIONS = ALERT_CHANNEL_VALUES.map((v) => ({
+  value: v,
+  label: toTitleCase(humanizeSnakeCase(v)),
+}));
+
+function toggleChannel(channels: AlertChannel[], channel: AlertChannel): AlertChannel[] {
+  return channels.includes(channel)
+    ? channels.filter((c) => c !== channel)
+    : [...channels, channel];
+}
+
+interface CreateAlertFormState {
+  name: string;
+  city: string;
+  locality: string;
+  priceMin: string;
+  priceMax: string;
+  frequency: AlertFrequency;
+  channels: AlertChannel[];
+}
+
+const EMPTY_FORM: CreateAlertFormState = {
+  name: "",
+  city: "",
+  locality: "",
+  priceMin: "",
+  priceMax: "",
+  frequency: "daily",
+  channels: ["push"],
+};
+
+function buildFilters(form: CreateAlertFormState): SearchFilters {
+  const filters: SearchFilters = {};
+  const city = form.city.trim();
+  const locality = form.locality.trim();
+  if (city) filters.city = city;
+  if (locality) filters.locality = locality;
+  const min = form.priceMin.trim();
+  const max = form.priceMax.trim();
+  if (min) filters.price_min = Number(min);
+  if (max) filters.price_max = Number(max);
+  return filters;
+}
+
+function formFromFilters(name: string, filters: SearchFilters): CreateAlertFormState {
+  return {
+    name,
+    city: filters.city ?? "",
+    locality: filters.locality ?? "",
+    priceMin: filters.price_min !== undefined ? String(filters.price_min) : "",
+    priceMax: filters.price_max !== undefined ? String(filters.price_max) : "",
+    frequency: "daily",
+    channels: ["push"],
+  };
+}
 
 export function AlertsPage() {
   const { data: alerts, isLoading, error, refetch } = useSearchAlerts();
   const createAlert = useCreateSearchAlert();
   const updateAlert = useUpdateSearchAlert();
   const deleteAlert = useDeleteSearchAlert();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newAlertName, setNewAlertName] = useState("");
+  const [createForm, setCreateForm] = useState<CreateAlertFormState>(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   // Confirmation modal for delete
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const confirmTarget = alerts?.find((a) => a.id === confirmDeleteId) ?? null;
 
-  const handleCreate = useCallback(() => {
-    if (!newAlertName.trim()) return;
+  // Auto-open the create modal when a saved search hands off its filters
+  // (e.g. ?seedCity=Gurugram&seedLocality=DLF+Phase+1&seedPriceMax=20000).
+  // The flag is cleared as soon as we've consumed it so a refresh does not
+  // re-open the modal. The setState calls here are legitimate: the URL is
+  // an external system that drives the modal state, and we only run once
+  // per "seedOpen=1" appearance.
+  useEffect(() => {
+    if (searchParams.get("seedOpen") !== "1") return;
+    const seedFilters: SearchFilters = {};
+    const city = searchParams.get("seedCity");
+    const locality = searchParams.get("seedLocality");
+    const priceMin = searchParams.get("seedPriceMin");
+    const priceMax = searchParams.get("seedPriceMax");
+    if (city) seedFilters.city = city;
+    if (locality) seedFilters.locality = locality;
+    if (priceMin) seedFilters.price_min = Number(priceMin);
+    if (priceMax) seedFilters.price_max = Number(priceMax);
+    /* eslint-disable react-hooks/set-state-in-effect -- see comment above. */
+    setEditingId(null);
+    setCreateForm({ ...formFromFilters("", seedFilters) });
+    setShowCreateModal(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    const next = new URLSearchParams(searchParams);
+    next.delete("seedOpen");
+    next.delete("seedCity");
+    next.delete("seedLocality");
+    next.delete("seedPriceMin");
+    next.delete("seedPriceMax");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const openCreate = useCallback(() => {
+    setEditingId(null);
+    setCreateForm(EMPTY_FORM);
+    setShowCreateModal(true);
+  }, []);
+
+  const closeCreate = useCallback(() => {
+    setShowCreateModal(false);
+    setEditingId(null);
+  }, []);
+
+  const handleSave = useCallback(() => {
+    if (!createForm.name.trim()) return;
+    if (createForm.channels.length === 0) return;
 
     const payload: SearchAlertCreate = {
-      name: newAlertName.trim(),
-      filters: {},
-      frequency: "daily",
-      channels: ["push"]
+      name: createForm.name.trim(),
+      filters: buildFilters(createForm),
+      frequency: createForm.frequency,
+      channels: createForm.channels,
     };
 
-    createAlert.mutate(payload, {
-      onSuccess: () => {
-        setShowCreateModal(false);
-        setNewAlertName("");
-        uiStore.getState().pushToast({
-          type: "success",
-          title: "Alert created",
-        });
-      },
-      onError: () => {
-        uiStore.getState().pushToast({
-          type: "error",
-          title: "Could not create alert",
-        });
-      }
-    });
-  }, [newAlertName, createAlert]);
-
-  const handleToggle = useCallback((id: number, currentlyEnabled: boolean) => {
-    updateAlert.mutate(
-      { id, payload: { enabled: !currentlyEnabled } },
-      {
+    if (editingId !== null) {
+      updateAlert.mutate(
+        { id: editingId, payload },
+        {
+          onSuccess: () => {
+            uiStore.getState().pushToast({
+              type: "success",
+              title: "Alert updated",
+            });
+            closeCreate();
+          },
+          onError: () => {
+            uiStore.getState().pushToast({
+              type: "error",
+              title: "Could not update alert",
+            });
+          },
+        }
+      );
+    } else {
+      createAlert.mutate(payload, {
         onSuccess: () => {
           uiStore.getState().pushToast({
             type: "success",
-            title: currentlyEnabled ? "Alert disabled" : "Alert enabled",
+            title: "Alert created",
           });
+          closeCreate();
         },
         onError: () => {
           uiStore.getState().pushToast({
             type: "error",
-            title: "Could not update alert",
+            title: "Could not create alert",
           });
-        }
-      }
-    );
-  }, [updateAlert]);
+        },
+      });
+    }
+  }, [createForm, createAlert, updateAlert, editingId, closeCreate]);
 
-  const handleDelete = useCallback((id: number) => {
-    deleteAlert.mutate(id, {
-      onSuccess: () => {
-        uiStore.getState().pushToast({
-          type: "success",
-          title: "Alert deleted",
-        });
-      },
-      onError: () => {
-        uiStore.getState().pushToast({
-          type: "error",
-          title: "Could not delete alert",
-        });
-      },
-      onSettled: () => {
-        setConfirmDeleteId(null);
-      }
-    });
-  }, [deleteAlert]);
+  // TODO(edit-alert): wire an "Edit" action on each row that pre-populates
+  // the modal via handleEdit. The hook for updating already exists
+  // (useUpdateSearchAlert) but the UI affordance is not yet attached.
+
+  const isSaving = createAlert.isPending || updateAlert.isPending;
+  const canSave =
+    createForm.name.trim().length > 0 && createForm.channels.length > 0;
+
+  const frequencyLabel = useMemo(
+    () => toTitleCase(humanizeSnakeCase(createForm.frequency)),
+    [createForm.frequency]
+  );
 
   return (
     <div className="flex flex-col gap-5 page-fade">
@@ -103,7 +209,7 @@ export function AlertsPage() {
         <Button
           size="compact"
           leadingIcon={<Plus aria-hidden="true" className="h-4 w-4" />}
-          onClick={() => setShowCreateModal(true)}
+          onClick={openCreate}
         >
           Create Alert
         </Button>
@@ -141,7 +247,7 @@ export function AlertsPage() {
               description="Create an alert to get notified when new listings match your criteria."
               icon={<Bell aria-hidden="true" className="h-6 w-6" />}
               actionLabel="Create alert"
-              onAction={() => setShowCreateModal(true)}
+              onAction={openCreate}
             />
           </Card>
         }
@@ -151,7 +257,7 @@ export function AlertsPage() {
             description="Create an alert to get notified when new listings match your criteria."
             icon={<Bell aria-hidden="true" className="h-6 w-6" />}
             actionLabel="Create alert"
-            onAction={() => setShowCreateModal(true)}
+            onAction={openCreate}
           />
         }
         onRetry={() => refetch()}
@@ -170,7 +276,10 @@ export function AlertsPage() {
                     )}
                   </div>
                   <p className="text-caption text-ink-3 mt-1">
-                    {alert.frequency} ({alert.channels.join(", ")})
+                    {toTitleCase(humanizeSnakeCase(alert.frequency))} ·{" "}
+                    {alert.channels
+                      .map((c) => toTitleCase(humanizeSnakeCase(c)))
+                      .join(", ")}
                   </p>
                   {alert.results_sent_count !== undefined && alert.results_sent_count > 0 && (
                     <p className="text-caption text-ink-3">
@@ -183,7 +292,25 @@ export function AlertsPage() {
                     variant="icon"
                     size="icon"
                     aria-label={alert.enabled ? `Pause alert: ${alert.name}` : `Resume alert: ${alert.name}`}
-                    onClick={() => handleToggle(alert.id, alert.enabled)}
+                    onClick={() => {
+                      updateAlert.mutate(
+                        { id: alert.id, payload: { enabled: !alert.enabled } },
+                        {
+                          onSuccess: () => {
+                            uiStore.getState().pushToast({
+                              type: "success",
+                              title: alert.enabled ? "Alert disabled" : "Alert enabled",
+                            });
+                          },
+                          onError: () => {
+                            uiStore.getState().pushToast({
+                              type: "error",
+                              title: "Could not update alert",
+                            });
+                          },
+                        }
+                      );
+                    }}
                     loading={updateAlert.isPending}
                   >
                     {alert.enabled ? (
@@ -208,34 +335,133 @@ export function AlertsPage() {
         )}
       </AsyncView>
 
-      {/* Create alert modal */}
+      {/* Create / edit alert modal */}
       <Modal
         open={showCreateModal}
-        title="Create Search Alert"
+        title={editingId !== null ? "Edit Search Alert" : "Create Search Alert"}
         description="Get notified when new listings match your search criteria."
-        onClose={() => setShowCreateModal(false)}
+        onClose={closeCreate}
         footer={
           <>
-            <Button variant="tertiary" onClick={() => setShowCreateModal(false)}>
+            <Button variant="tertiary" onClick={closeCreate}>
               Cancel
             </Button>
             <Button
-              onClick={handleCreate}
-              loading={createAlert.isPending}
-              disabled={!newAlertName.trim()}
+              onClick={handleSave}
+              loading={isSaving}
+              disabled={!canSave}
             >
-              Create
+              {editingId !== null ? "Save changes" : "Create alert"}
             </Button>
           </>
         }
       >
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <Input
-            label="Alert Name"
+            label="Alert name"
             placeholder="e.g. 1BHK in Koramangala under 15k"
-            value={newAlertName}
-            onChange={(e) => setNewAlertName(e.target.value)}
+            value={createForm.name}
+            onChange={(e) =>
+              setCreateForm((prev) => ({ ...prev, name: e.target.value }))
+            }
           />
+
+          <div className="flex flex-col gap-2">
+            <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
+              Filters
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="City"
+                placeholder="Gurugram"
+                value={createForm.city}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, city: e.target.value }))
+                }
+              />
+              <Input
+                label="Locality"
+                placeholder="DLF Phase 1"
+                value={createForm.locality}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, locality: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Min price (₹)"
+                type="number"
+                placeholder="10000"
+                value={createForm.priceMin}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, priceMin: e.target.value }))
+                }
+              />
+              <Input
+                label="Max price (₹)"
+                type="number"
+                placeholder="20000"
+                value={createForm.priceMax}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, priceMax: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
+              Frequency
+            </p>
+            <SelectField
+              options={FREQUENCY_OPTIONS}
+              value={createForm.frequency}
+              onChange={(e) =>
+                setCreateForm((prev) => ({
+                  ...prev,
+                  frequency: e.target.value as AlertFrequency,
+                }))
+              }
+              helperText={`Currently ${frequencyLabel}`}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
+              Channels
+            </p>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Alert channels">
+              {CHANNEL_OPTIONS.map((opt) => {
+                const selected = createForm.channels.includes(opt.value as AlertChannel);
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={selected}
+                    onClick={() =>
+                      setCreateForm((prev) => ({
+                        ...prev,
+                        channels: toggleChannel(prev.channels, opt.value as AlertChannel),
+                      }))
+                    }
+                    className={
+                      "rounded-full border px-3 py-1.5 text-caption font-semibold transition-colors " +
+                      (selected
+                        ? "border-accent bg-accent-soft text-accent"
+                        : "border-line bg-surface text-ink-2 hover:border-accent/40")
+                    }
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {createForm.channels.length === 0 && (
+              <p className="text-caption text-error">Select at least one channel.</p>
+            )}
+          </div>
         </div>
       </Modal>
 
@@ -254,7 +480,25 @@ export function AlertsPage() {
               className="bg-error text-white shadow-none hover:bg-error/90"
               loading={deleteAlert.isPending}
               onClick={() => {
-                if (confirmDeleteId !== null) handleDelete(confirmDeleteId);
+                if (confirmDeleteId !== null) {
+                  deleteAlert.mutate(confirmDeleteId, {
+                    onSuccess: () => {
+                      uiStore.getState().pushToast({
+                        type: "success",
+                        title: "Alert deleted",
+                      });
+                    },
+                    onError: () => {
+                      uiStore.getState().pushToast({
+                        type: "error",
+                        title: "Could not delete alert",
+                      });
+                    },
+                    onSettled: () => {
+                      setConfirmDeleteId(null);
+                    },
+                  });
+                }
               }}
             >
               Delete

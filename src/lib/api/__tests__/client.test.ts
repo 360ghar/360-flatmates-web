@@ -209,7 +209,7 @@ describe("HttpApiClient.request", () => {
     }
   });
 
-  it("maps 403 to auth AppError", async () => {
+  it("maps 403 to forbidden AppError", async () => {
     mockFetch.mockResolvedValue(
       jsonResponse({ detail: "Forbidden" }, 403)
     );
@@ -217,7 +217,7 @@ describe("HttpApiClient.request", () => {
       await createTestClient().request({ path: "/test" });
     } catch (error) {
       const apiError = error as ApiClientError;
-      expect(apiError.appError.type).toBe("auth");
+      expect(apiError.appError.type).toBe("forbidden");
       expect(apiError.appError.message).toBe("Forbidden");
     }
   });

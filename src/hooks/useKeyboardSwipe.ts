@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 
 interface UseKeyboardSwipeOptions {
-  onPass: () => void;
-  onLike: () => void;
-  onSuperLike: () => void;
-  onExpand: () => void;
-  onDismiss: () => void;
+  /** Pass `undefined` to skip a handler entirely (no preventDefault for that key). */
+  onPass?: () => void;
+  onLike?: () => void;
+  onSuperLike?: () => void;
+  onExpand?: () => void;
+  onDismiss?: () => void;
   enabled: boolean;
 }
 
@@ -45,23 +46,40 @@ export function useKeyboardSwipe({
         return;
       }
 
-      event.preventDefault();
-
+      // Only preventDefault for keys that actually have a handler bound.
+      // This prevents the hook from becoming a global key blocker when
+      // (e.g.) the match-celebration modal is up and only Escape should
+      // be captured.
       switch (event.code) {
         case "ArrowLeft":
-          onPass();
+          if (onPass) {
+            event.preventDefault();
+            onPass();
+          }
           break;
         case "ArrowRight":
-          onLike();
+          if (onLike) {
+            event.preventDefault();
+            onLike();
+          }
           break;
         case "ArrowUp":
-          onSuperLike();
+          if (onSuperLike) {
+            event.preventDefault();
+            onSuperLike();
+          }
           break;
         case "Space":
-          onExpand();
+          if (onExpand) {
+            event.preventDefault();
+            onExpand();
+          }
           break;
         case "Escape":
-          onDismiss();
+          if (onDismiss) {
+            event.preventDefault();
+            onDismiss();
+          }
           break;
       }
     }

@@ -45,3 +45,12 @@ export interface ShareCardResponse {
   format: ShareCardFormat;
   expires_at?: string;
 }
+
+/** Generic cursor-based pagination envelope returned by all list endpoints. */
+export interface CursorPage<T> {
+  items: T[];
+  next_cursor: string | null;
+  has_more: boolean;
+  limit: number;
+  total?: number | null;
+}

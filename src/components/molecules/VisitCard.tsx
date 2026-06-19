@@ -7,7 +7,18 @@ import { NetworkImage } from "../ui/NetworkImage";
 import { cn } from "../ui/component-utils";
 import { formatDateTime } from "@/lib/utils/format";
 
-export type VisitStatus = "confirmed" | "pending" | "completed" | "cancelled";
+// The card accepts the component-level status. The `visitToVisitCardProps`
+// adapter collapses both `requested` and `reschedule_suggested` into
+// "pending" — pages that need to surface the distinction should construct
+// `VisitCardData` inline instead of going through the adapter for the
+// status field.
+export type VisitStatus =
+  | "pending"
+  | "confirmed"
+  | "reschedule_suggested"
+  | "cancelled"
+  | "completed";
+
 export type VisitType = "Property Tour" | "Flatmate Meet";
 
 export interface VisitCardData {
@@ -21,11 +32,33 @@ export interface VisitCardData {
 }
 
 const STATUS_LABEL: Record<VisitStatus, string> = {
-  confirmed: "Confirmed",
   pending: "Pending",
-  completed: "Completed",
-  cancelled: "Cancelled"
+  confirmed: "Confirmed",
+  reschedule_suggested: "Reschedule suggested",
+  cancelled: "Cancelled",
+  completed: "Completed"
 };
+
+const STATUS_TONE: Record<VisitStatus, StatusTone> = {
+  pending: "pending",
+  confirmed: "confirmed",
+  reschedule_suggested: "pending",
+  cancelled: "cancelled",
+  completed: "completed"
+};
+
+/**
+ * Map an API visit status string to the card-level status. Differs from the
+ * `visitToVisitCardProps` adapter only in that `reschedule_suggested` is
+ * preserved (the adapter collapses it to "pending"). Pages that need the
+ * distinction should use this helper when building card data inline.
+ */
+export function visitStatusToCardStatus(
+  status: "requested" | "confirmed" | "reschedule_suggested" | "cancelled" | "completed"
+): VisitStatus {
+  if (status === "requested") return "pending";
+  return status;
+}
 
 /** Format an ISO date-time into a friendly label, falling back to the raw value. */
 function formatVisitDateTime(value: string): string {
@@ -37,6 +70,11 @@ function formatVisitDateTime(value: string): string {
 
 export interface VisitCardProps extends HTMLAttributes<HTMLElement> {
   visit: VisitCardData;
+  /**
+   * When true, the inline "Confirm" button is shown for `pending` (i.e.
+   * `requested`) visits. Typically only the detail page sets this false
+   * because it has its own full-width action row.
+   */
   canConfirm?: boolean;
   /** Disables inline action buttons and shows a busy state (e.g. mutation in flight). */
   busy?: boolean;
@@ -45,13 +83,6 @@ export interface VisitCardProps extends HTMLAttributes<HTMLElement> {
   onCancel?: (visitId: string) => void;
   onRate?: (visitId: string) => void;
 }
-
-const statusMap: Record<VisitStatus, StatusTone> = {
-  confirmed: "confirmed",
-  pending: "pending",
-  completed: "completed",
-  cancelled: "cancelled"
-};
 
 export function VisitCard({
   visit,
@@ -65,9 +96,19 @@ export function VisitCard({
   ...props
 }: VisitCardProps) {
   const dateLabel = formatVisitDateTime(visit.dateTime);
+  const canRescheduleOrCancel =
+    visit.status === "pending" ||
+    visit.status === "confirmed" ||
+    visit.status === "reschedule_suggested";
 
   return (
     <Card as="article" className={cn("flex gap-3", className)} {...props}>
+      {/*
+        TODO: `propertyImageUrl` is currently always undefined because the
+        adapter doesn't have access to the property. When the visit image is
+        actually needed, wire this to `useProperty(visit.property_id)` (via
+        the page that owns this card) and pass `main_image_url` through.
+      */}
       <NetworkImage
         alt={visit.propertyTitle}
         src={visit.propertyImageUrl}
@@ -83,7 +124,7 @@ export function VisitCard({
           <time dateTime={visit.dateTime || undefined}>{dateLabel}</time>
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <Badge status={statusMap[visit.status]} variant="status">
+          <Badge status={STATUS_TONE[visit.status]} variant="status">
             {STATUS_LABEL[visit.status]}
           </Badge>
           {visit.status === "pending" && canConfirm ? (
@@ -91,7 +132,7 @@ export function VisitCard({
               Confirm
             </Button>
           ) : null}
-          {visit.status === "confirmed" || visit.status === "pending" ? (
+          {canRescheduleOrCancel ? (
             <>
               <Button size="compact" variant="tertiary" disabled={busy} onClick={() => onReschedule?.(visit.id)}>
                 Reschedule
@@ -111,4 +152,3 @@ export function VisitCard({
     </Card>
   );
 }
-

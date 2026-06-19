@@ -7,6 +7,7 @@ import {
 
 import { buttonClasses } from "@/components/ui/Button";
 import { ProgressRing } from "@/components/ui/ProgressRing";
+import { NetworkImage } from "@/components/ui/NetworkImage";
 import { HERO_MINI_CARDS } from "./landing-data";
 import { AppStoreBadges } from "./AppStoreBadges";
 
@@ -21,7 +22,7 @@ function HeroMiniCards() {
       return (
         <div className="flex flex-col w-full">
           <div className="relative h-32 w-full overflow-hidden">
-            <img
+            <NetworkImage
               src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&fm=webp&fit=crop&q=80"
               alt="Listing room mockup"
               className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"

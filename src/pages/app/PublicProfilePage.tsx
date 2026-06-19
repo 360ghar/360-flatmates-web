@@ -22,6 +22,10 @@ import { humanizeSnakeCase } from "@/lib/utils";
 
 const breadcrumb = [{ name: "Profile", item: `${SITE_URL}/profile` }];
 
+/** A return visit to the same profile within this window is treated as the
+ *  same view and does not produce a new profile-view event. */
+const VIEW_DEDUP_WINDOW_MS = 30 * 60 * 1000;
+
 /** Match-score tone, paired with the numeric value (never color alone). */
 function matchToneClasses(score: number): string {
   if (score >= 70) return "bg-success-soft text-success";
@@ -41,12 +45,17 @@ export function PublicProfilePage() {
 
   // Record one profile-view event per (profile) view, with dwell time measured
   // on unmount / navigation. A ref-guard keeps it from firing on every render.
+  // The cap is time-based: a return visit after 30 minutes counts as a new
+  // view (otherwise revisits within the same session were silently dropped).
   const recordView = recordProfileView.mutate;
-  const viewedRef = useRef<number | null>(null);
+  const viewedRef = useRef<{ profileId: number; ts: number } | null>(null);
   useEffect(() => {
     if (!Number.isFinite(profileId) || profileId <= 0) return;
-    if (viewedRef.current === profileId) return;
-    viewedRef.current = profileId;
+    const last = viewedRef.current;
+    if (last && last.profileId === profileId && Date.now() - last.ts < VIEW_DEDUP_WINDOW_MS) {
+      return;
+    }
+    viewedRef.current = { profileId, ts: Date.now() };
     const startedAt = Date.now();
     return () => {
       const durationSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));

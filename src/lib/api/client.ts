@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env";
+import { debug } from "@/lib/debug";
 import { ApiClientError, mapStatusToAppError } from "./errors";
 
 export type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -50,6 +51,10 @@ export function buildApiUrl(
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = new URL(`${baseUrl.replace(/\/$/, "")}${normalizedPath}`);
 
+  // NOTE (F10 #25): the explicit null/undefined/empty-string skip is the
+  // intended behavior — booleans (including `false`) and the number `0` are
+  // serialised as their string form. This is what the OpenAPI contract
+  // expects. Don't change it without auditing every call site.
   for (const [key, value] of Object.entries(query)) {
     if (value === undefined || value === null || value === "") {
       continue;
@@ -123,6 +128,10 @@ export class HttpApiClient implements ApiAdapter {
   private readonly getAccessToken?: ApiClientOptions["getAccessToken"];
   private readonly onAuthFailure?: ApiClientOptions["onAuthFailure"];
   private readonly defaultHeaders?: HeadersInit;
+  // NOTE (F10 #23): `refreshing` is per-client. In the singleton `apiClient`
+  // used by the app there is only one instance, so concurrent 401s dedupe to
+  // a single `onAuthFailure` call. If a consumer ever creates multiple clients
+  // (e.g. in tests), each gets its own dedupe window — this is correct.
   private refreshing: Promise<string | null> | null = null;
 
   constructor(options: ApiClientOptions = {}) {
@@ -172,11 +181,21 @@ export class HttpApiClient implements ApiAdapter {
     req: ApiRequest<TBody>
   ): Promise<TResponse> {
     const { auth = true } = req;
+    const method = req.method ?? "GET";
+    const stopTimer = debug.timer("API", `${method} ${req.path}`);
+
+    // NOTE (F10 #24): the `signal` on `req` is propagated to the underlying
+    // `fetch`, but `getAuthHeader` (and the refresh-on-401 path below) is not
+    // abortable. If a caller aborts mid-refresh, the refresh promise will
+    // continue to run in the background; the next caller will see a stale
+    // `refreshing` value until it resolves. Full abort support would require
+    // wrapping `getAccessToken` in an abortable promise. Flag for follow-up.
     const token = await this.getAuthHeader(auth);
 
     let response = await this.doFetch(req, token);
 
     if (response.status === 401 && auth && this.onAuthFailure) {
+      debug.warn("API", `${method} ${req.path} — 401, attempting token refresh`);
       if (!this.refreshing) {
         this.refreshing = this.onAuthFailure().finally(() => {
           this.refreshing = null;
@@ -184,7 +203,10 @@ export class HttpApiClient implements ApiAdapter {
       }
       const newToken = await this.refreshing;
       if (newToken) {
+        debug.log("API", `${method} ${req.path} — retrying with refreshed token`);
         response = await this.doFetch(req, newToken);
+      } else {
+        debug.error("API", `${method} ${req.path} — token refresh failed`);
       }
     }
 
@@ -199,8 +221,13 @@ export class HttpApiClient implements ApiAdapter {
         fields,
         Number.isFinite(retryAfter) ? retryAfter : undefined
       );
+      debug.error("API", `${method} ${req.path} — ${response.status}: ${message}`, { fields, appError });
+      stopTimer();
       throw new ApiClientError(appError, response.status);
     }
+
+    debug.log("API", `${method} ${req.path} — ${response.status}`);
+    stopTimer();
 
     if (response.status === 204) {
       return undefined as TResponse;

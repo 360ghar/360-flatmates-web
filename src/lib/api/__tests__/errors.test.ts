@@ -69,9 +69,14 @@ describe("mapStatusToAppError", () => {
     expect(result).toEqual({ type: "auth", message: "Unauthorized" });
   });
 
-  it("maps 403 to auth", () => {
+  it("maps 403 to forbidden", () => {
     const result = mapStatusToAppError(403, "Forbidden");
-    expect(result).toEqual({ type: "auth", message: "Forbidden" });
+    expect(result).toEqual({ type: "forbidden", message: "Forbidden" });
+  });
+
+  it("maps 408 to timeout", () => {
+    const result = mapStatusToAppError(408, "Request timeout");
+    expect(result).toEqual({ type: "timeout", message: "Request timeout" });
   });
 
   it("maps 404 to not_found", () => {
@@ -94,11 +99,10 @@ describe("mapStatusToAppError", () => {
     });
   });
 
-  it("maps 400 to validation", () => {
+  it("maps 400 to bad_request", () => {
     const result = mapStatusToAppError(400, "Bad request");
     expect(result).toEqual({
-      type: "validation",
-      fields: {},
+      type: "bad_request",
       message: "Bad request",
     });
   });

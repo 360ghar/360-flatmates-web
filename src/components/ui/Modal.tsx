@@ -29,8 +29,38 @@ function useDialogFocus(open: boolean, onClose: () => void) {
     const focusable = panel?.querySelectorAll<HTMLElement>(focusableSelector);
     focusable?.[0]?.focus();
 
+    // Body scroll lock: prevent the page from scrolling while the dialog is open.
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    // Sibling `inert`: keep keyboard / AT focus inside the dialog.
+    // We mark the *outer wrapper* of the dialog (not the panel) and then
+    // inert everything in the React root outside that wrapper. The backdrop
+    // button is a sibling of the panel inside the wrapper, so it stays
+    // clickable (and remains tabIndex={-1}, so it can't be focused anyway).
+    const wrapper = panel?.parentElement;
+    const wrapperParent: ParentNode | null = wrapper?.parentElement ?? null;
+    const inertedElements: HTMLElement[] = [];
+    const applyInertToSiblings = (root: ParentNode | null) => {
+      if (!root) return;
+      Array.from(root.children).forEach((el) => {
+        if (el instanceof HTMLElement && el !== wrapper && !wrapper?.contains(el)) {
+          el.setAttribute("inert", "");
+          el.setAttribute("aria-hidden", "true");
+          inertedElements.push(el);
+        }
+      });
+    };
+    applyInertToSiblings(wrapperParent);
+
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        event.stopPropagation();
         onClose();
         return;
       }
@@ -57,9 +87,17 @@ function useDialogFocus(open: boolean, onClose: () => void) {
       }
     }
 
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown, true);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown, true);
+      // Restore body scroll
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
+      // Remove inert from siblings
+      inertedElements.forEach((el) => {
+        el.removeAttribute("inert");
+        el.removeAttribute("aria-hidden");
+      });
       // Restore focus to whatever was focused before the dialog opened.
       previouslyFocused?.focus?.();
     };
@@ -89,12 +127,19 @@ export function Modal({
 
   return (
     <div className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-paper/88 p-0 backdrop-blur-[9px] md:items-center md:p-6">
-      <button aria-label={closeLabel} className="absolute inset-0 cursor-default" type="button" onClick={onClose} />
+      <button
+        aria-label={closeLabel}
+        tabIndex={-1}
+        className="absolute inset-0 cursor-default"
+        type="button"
+        onClick={onClose}
+      />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           "relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-surface-elevated p-6 text-ink shadow-lg animate-fade-slide-up md:rounded-lg",
           size === "default" ? "md:max-w-[480px]" : "md:max-w-[600px]",
@@ -153,12 +198,19 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-[var(--z-modal)] bg-paper/88 backdrop-blur-[9px]">
-      <button aria-label="Close drawer" className="absolute inset-0 cursor-default" type="button" onClick={onClose} />
+      <button
+        aria-label="Close drawer"
+        tabIndex={-1}
+        className="absolute inset-0 cursor-default"
+        type="button"
+        onClick={onClose}
+      />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           "absolute overflow-y-auto border-line bg-surface-elevated text-ink shadow-lg",
           side === "right"

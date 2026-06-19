@@ -1,26 +1,90 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery, keepPreviousData, type InfiniteData } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
-  AdminListingsResponse,
-  AdminReportsResponse,
+  AdminListingCursorPage,
+  AdminReportCursorPage,
   AdminStats,
   AdminListingFilters,
   AdminReportFilters,
+  FlatmateListingAdmin,
   ListingModerationPayload,
-  ReportActionPayload
+  ReportActionPayload,
+  ReportAdmin
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
+
+const ADMIN_PAGE_LIMIT = 20;
+
+function isArrayOfListings(value: unknown): value is FlatmateListingAdmin[] {
+  return Array.isArray(value) && value.every(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      "id" in item &&
+      "title" in item &&
+      "moderation_status" in item
+  );
+}
+
+function isInfiniteListingsData(
+  value: unknown
+): value is InfiniteData<AdminListingCursorPage> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "pages" in value &&
+    Array.isArray((value as { pages: unknown }).pages) &&
+    (value as { pages: unknown[] }).pages.every(
+      (page) =>
+        typeof page === "object" &&
+        page !== null &&
+        "items" in page &&
+        Array.isArray((page as { items: unknown }).items)
+    )
+  );
+}
+
+function isArrayOfReports(value: unknown): value is ReportAdmin[] {
+  return Array.isArray(value) && value.every(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      "id" in item &&
+      "reason" in item &&
+      "status" in item
+  );
+}
+
+function isInfiniteReportsData(
+  value: unknown
+): value is InfiniteData<AdminReportCursorPage> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "pages" in value &&
+    Array.isArray((value as { pages: unknown }).pages) &&
+    (value as { pages: unknown[] }).pages.every(
+      (page) =>
+        typeof page === "object" &&
+        page !== null &&
+        "items" in page &&
+        Array.isArray((page as { items: unknown }).items)
+    )
+  );
+}
 
 export function useAdminListings(filters?: AdminListingFilters) {
   return useQuery({
     queryKey: ["admin", "listings", filters],
-    queryFn: ({ signal }) =>
-      apiClient.request<AdminListingsResponse>({
+    queryFn: async ({ signal }) => {
+      const response = await apiClient.request<AdminListingCursorPage>({
         method: "GET",
         path: "/flatmates/moderation/listings",
         query: (filters ?? {}) as Record<string, QueryValue>,
         signal
-      })
+      });
+      return response.items;
+    }
   });
 }
 
@@ -44,16 +108,25 @@ export function useAdminModerate() {
     // queue does not flash the just-actioned row while the refetch is in flight.
     onMutate: async ({ listingId }) => {
       await queryClient.cancelQueries({ queryKey: ["admin", "listings"] });
-      const snapshots = queryClient.getQueriesData<AdminListingsResponse>({
+      const snapshots = queryClient.getQueriesData<unknown>({
         queryKey: ["admin", "listings"]
       });
       for (const [key, value] of snapshots) {
-        if (!value) continue;
-        queryClient.setQueryData<AdminListingsResponse>(key, {
-          ...value,
-          listings: value.listings.filter((l) => l.id !== listingId),
-          total: Math.max(0, value.total - 1)
-        });
+        if (isArrayOfListings(value)) {
+          queryClient.setQueryData<FlatmateListingAdmin[]>(
+            key,
+            value.filter((l) => l.id !== listingId)
+          );
+        } else if (isInfiniteListingsData(value)) {
+          queryClient.setQueryData<InfiniteData<AdminListingCursorPage>>(key, {
+            ...value,
+            pages: value.pages.map((page) => ({
+              ...page,
+              items: page.items.filter((l) => l.id !== listingId),
+              total: page.total != null ? Math.max(0, page.total - 1) : page.total
+            }))
+          });
+        }
       }
       return { snapshots };
     },
@@ -69,16 +142,68 @@ export function useAdminModerate() {
   });
 }
 
+export function useInfiniteAdminListings(
+  filters?: Omit<AdminListingFilters, "limit" | "cursor">
+) {
+  return useInfiniteQuery({
+    queryKey: ["admin", "listings", "infinite", filters],
+    queryFn: ({ signal, pageParam }) =>
+      apiClient.request<AdminListingCursorPage>({
+        method: "GET",
+        path: "/flatmates/moderation/listings",
+        query: {
+          ...(filters ?? {}),
+          limit: ADMIN_PAGE_LIMIT,
+          cursor: pageParam
+        } as Record<string, QueryValue>,
+        signal
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      return lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined;
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 30_000
+  });
+}
+
 export function useAdminReports(filters?: AdminReportFilters) {
   return useQuery({
     queryKey: ["admin", "reports", filters],
-    queryFn: ({ signal }) =>
-      apiClient.request<AdminReportsResponse>({
+    queryFn: async ({ signal }) => {
+      const response = await apiClient.request<AdminReportCursorPage>({
         method: "GET",
         path: "/flatmates/moderation/reports",
         query: (filters ?? {}) as Record<string, QueryValue>,
         signal
-      })
+      });
+      return response.items;
+    }
+  });
+}
+
+export function useInfiniteAdminReports(
+  filters?: Omit<AdminReportFilters, "limit" | "cursor">
+) {
+  return useInfiniteQuery({
+    queryKey: ["admin", "reports", "infinite", filters],
+    queryFn: ({ signal, pageParam }) =>
+      apiClient.request<AdminReportCursorPage>({
+        method: "GET",
+        path: "/flatmates/moderation/reports",
+        query: {
+          ...(filters ?? {}),
+          limit: ADMIN_PAGE_LIMIT,
+          cursor: pageParam
+        } as Record<string, QueryValue>,
+        signal
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      return lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined;
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 30_000
   });
 }
 
@@ -90,7 +215,11 @@ export function useAdminStats() {
         method: "GET",
         path: "/flatmates/moderation/stats",
         signal
-      })
+      }),
+    // Platform stats are expensive to compute and don't change every keystroke —
+    // cache for 60s and poll in the background so the cards stay fresh.
+    staleTime: 60_000,
+    refetchInterval: 60_000
   });
 }
 
@@ -113,16 +242,25 @@ export function useAdminReportAction() {
     // Optimistically drop the actioned report from the open queue.
     onMutate: async ({ reportId }) => {
       await queryClient.cancelQueries({ queryKey: ["admin", "reports"] });
-      const snapshots = queryClient.getQueriesData<AdminReportsResponse>({
+      const snapshots = queryClient.getQueriesData<unknown>({
         queryKey: ["admin", "reports"]
       });
       for (const [key, value] of snapshots) {
-        if (!value) continue;
-        queryClient.setQueryData<AdminReportsResponse>(key, {
-          ...value,
-          reports: value.reports.filter((r) => r.id !== reportId),
-          total: Math.max(0, value.total - 1)
-        });
+        if (isArrayOfReports(value)) {
+          queryClient.setQueryData<ReportAdmin[]>(
+            key,
+            value.filter((r) => r.id !== reportId)
+          );
+        } else if (isInfiniteReportsData(value)) {
+          queryClient.setQueryData<InfiniteData<AdminReportCursorPage>>(key, {
+            ...value,
+            pages: value.pages.map((page) => ({
+              ...page,
+              items: page.items.filter((r) => r.id !== reportId),
+              total: page.total != null ? Math.max(0, page.total - 1) : page.total
+            }))
+          });
+        }
       }
       return { snapshots };
     },

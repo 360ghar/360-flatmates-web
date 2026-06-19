@@ -205,11 +205,16 @@ export function SwipeDeck({
   const nearEndNotified = useRef(false);
 
   /* ----- Reset/preserve index across deck refetches -----
-   * The deck query is invalidated after every swipe, so `profiles` is frequently
-   * replaced. We distinguish an *append* (pagination growth where the leading ids
-   * are unchanged) from a *fresh* deck (new set of ids, e.g. after the backend
-   * re-filters out already-swiped profiles). On a fresh deck we reset the
-   * uncontrolled index to 0 so we don't skip cards; on an append we keep it. */
+   * Previously this effect reset `internalIndex` to 0 whenever the deck's
+   * profile ids changed (which fired after every swipe because `useSwipeAction`
+   * invalidated the deck query). That caused the next card to be skipped and
+   * made the deck feel jumpy. The new optimistic update flow keeps the cached
+   * ids stable across swipes (the swiped id is removed in-place), so the only
+   * time ids truly shift is when the backend returns a brand-new page - and
+   * in that case we want the user to keep seeing the next card, not jump back
+   * to the top. We therefore NO-OP when ids shift; the optimistic cache is
+   * the source of truth, and `nearEndNotified` resets so the UI can re-fire
+   * the refill callback when we run low. */
   const prevIdsRef = useRef<string[]>(profiles.map((p) => p.id));
   useEffect(() => {
     const ids = profiles.map((p) => p.id);
@@ -223,14 +228,13 @@ export function SwipeDeck({
         nearEndNotified.current = false;
       }
     } else {
-      // Fresh deck: reset to the top so the user sees the first new card.
+      // Fresh or shifted deck (e.g. after a refill). Don't reset the user's
+      // current position - just allow the near-end refill to fire again when
+      // we approach the new tail.
       nearEndNotified.current = false;
-      if (controlledIndex === undefined) {
-        setInternalIndex(0); // eslint-disable-line react-hooks/set-state-in-effect
-      }
     }
     prevIdsRef.current = ids;
-  }, [profiles, controlledIndex]);
+  }, [profiles]);
 
   useEffect(() => {
     if (
@@ -270,14 +274,26 @@ export function SwipeDeck({
     [externalAnimating, onPass, onLike, onSuperLike]
   );
 
-  /* ----- Advance index when the exit animation finishes ----- */
+  /* ----- Advance index when the exit animation finishes -----
+   * Guard: the optimistic deck update (removing the swiped card from
+   * the TanStack cache) can shrink `profiles` while the exit animation
+   * is still in flight. When that happens, incrementing the index
+   * would overshoot the shortened array and land on `undefined`,
+   * prematurely showing the empty state. We clamp the new index to
+   * `profiles.length - 1` and only clear `exitDirection` if we
+   * actually advanced. */
   const handleExitComplete = useCallback(() => {
     if (controlledIndex === undefined) {
-      setInternalIndex((i) => i + 1);
+      setInternalIndex((i) => {
+        const next = i + 1;
+        // If the deck shrank while we were animating, clamp so we don't
+        // overshoot into the empty state.
+        return next < profiles.length ? next : i;
+      });
     }
     setExitDirection(null);
     hasSwipedRef.current = false;
-  }, [controlledIndex]);
+  }, [controlledIndex, profiles.length]);
 
   /* ----- Empty state ----- */
   if (!current) {

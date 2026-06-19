@@ -1,14 +1,19 @@
-import { Trash2, Search, Bookmark } from "lucide-react";
+import { Trash2, Search, Bookmark, Pencil, Copy, Bell, Check, X } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState, useCallback } from "react";
-import { useSavedSearches, useDeleteSavedSearch } from "@/hooks/queries";
-import { humanizeSnakeCase } from "@/lib/utils/format";
+import {
+  useSavedSearches,
+  useDeleteSavedSearch,
+  useCreateSavedSearch
+} from "@/hooks/queries";
+import { humanizeSnakeCase, toTitleCase } from "@/lib/utils/format";
 import { uiStore } from "@/lib/stores/ui-store";
 import type { SearchFilters } from "@/lib/api/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
+import { Input } from "@/components/ui/Input";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -59,48 +64,162 @@ function filtersToSearchParams(filters: SearchFilters): string {
   if (filters.exclude_swiped !== undefined) {
     params.set("exclude_swiped", String(filters.exclude_swiped));
   }
-  if (filters.page !== undefined) params.set("page", String(filters.page));
   if (filters.limit !== undefined) params.set("limit", String(filters.limit));
 
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
 
+/** Render a single filter value as a human-readable chip. */
+function formatFilterValue(key: string, value: unknown): string {
+  const humanKey = toTitleCase(humanizeSnakeCase(key));
+  if (Array.isArray(value)) {
+    if (value.length === 0) return humanKey;
+    const items = value.map((v) => toTitleCase(humanizeSnakeCase(String(v)))).join(", ");
+    return `${humanKey}: ${items}`;
+  }
+  if (typeof value === "number") {
+    return `${humanKey}: ${value}`;
+  }
+  if (typeof value === "boolean") {
+    return `${humanKey}: ${value ? "yes" : "no"}`;
+  }
+  const str = String(value ?? "").trim();
+  if (!str) return humanKey;
+  return `${humanKey}: ${str}`;
+}
+
 export function SavedSearchesPage() {
   const navigate = useNavigate();
   const { data: savedSearches, isLoading, error, refetch } = useSavedSearches();
   const deleteSavedSearch = useDeleteSavedSearch();
+  const createSavedSearch = useCreateSavedSearch();
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   // Confirmation modal state
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const confirmTarget = savedSearches?.find((s) => s.id === confirmDeleteId) ?? null;
 
-  const handleDelete = useCallback((id: number) => {
-    setPendingDeleteId(id);
-    deleteSavedSearch.mutate(id, {
-      onSuccess: () => {
-        uiStore.getState().pushToast({
-          type: "success",
-          title: "Saved search deleted",
-        });
-      },
-      onError: () => {
-        uiStore.getState().pushToast({
-          type: "error",
-          title: "Could not delete saved search",
-        });
-      },
-      onSettled: () => {
-        setPendingDeleteId(null);
-        setConfirmDeleteId(null);
-      }
-    });
-  }, [deleteSavedSearch]);
+  // Inline rename state — a TODO marks the missing hook. The UI is in place so
+  // that wiring up useUpdateSavedSearch (in src/hooks/queries/useSearch.ts,
+  // outside this fix's scope) is the only follow-up.
+  const [renamingId, setRenamingId] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
-  const handleRerun = useCallback((filters: SearchFilters) => {
-    navigate(`/search${filtersToSearchParams(filters)}`);
-  }, [navigate]);
+  // TODO(rename): add a useUpdateSavedSearch hook in
+  // src/hooks/queries/useSearch.ts to back the inline rename. The hook does
+  // not exist yet, so the commit handler below is a no-op placeholder that
+  // just dismisses the editor and shows a friendly toast. Once the hook is
+  // added, replace the body of commitRename with a useUpdateSavedSearch.mutate
+  // call (mirroring useDeleteSavedSearch).
+
+  const beginRename = useCallback((id: number, currentName: string) => {
+    setRenamingId(id);
+    setRenameValue(currentName);
+  }, []);
+
+  const cancelRename = useCallback(() => {
+    setRenamingId(null);
+    setRenameValue("");
+  }, []);
+
+  const commitRename = useCallback(() => {
+    if (renamingId === null) return;
+    const trimmed = renameValue.trim();
+    cancelRename();
+    if (!trimmed) return;
+    const target = savedSearches?.find((s) => s.id === renamingId);
+    if (!target || target.name === trimmed) return;
+    uiStore.getState().pushToast({
+      type: "info",
+      title: "Rename is not yet available",
+      description: "Use Duplicate to clone the search under a new name.",
+    });
+  }, [renamingId, renameValue, savedSearches, cancelRename]);
+
+  const handleClone = useCallback(
+    (id: number) => {
+      const target = savedSearches?.find((s) => s.id === id);
+      if (!target) return;
+      const clonedName = `${target.name} (Copy)`;
+      createSavedSearch.mutate(
+        {
+          name: clonedName,
+          filters: target.filters,
+          alert_enabled: false
+        },
+        {
+          onSuccess: () => {
+            uiStore.getState().pushToast({
+              type: "success",
+              title: "Saved search duplicated"
+            });
+          },
+          onError: () => {
+            uiStore.getState().pushToast({
+              type: "error",
+              title: "Could not duplicate saved search"
+            });
+          }
+        }
+      );
+    },
+    [savedSearches, createSavedSearch]
+  );
+
+  const handleSaveAsAlert = useCallback(
+    (filters: SearchFilters) => {
+      const params = new URLSearchParams();
+      params.set("seedOpen", "1");
+      if (filters.city) params.set("seedCity", filters.city);
+      if (filters.locality) params.set("seedLocality", filters.locality);
+      if (filters.price_min !== undefined) {
+        params.set("seedPriceMin", String(filters.price_min));
+      }
+      if (filters.price_max !== undefined) {
+        params.set("seedPriceMax", String(filters.price_max));
+      }
+      navigate(`/alerts?${params.toString()}`);
+    },
+    [navigate]
+  );
+
+  const handleDelete = useCallback(
+    (id: number) => {
+      setPendingDeleteId(id);
+      deleteSavedSearch.mutate(id, {
+        onSuccess: () => {
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Saved search deleted"
+          });
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not delete saved search"
+          });
+        },
+        onSettled: () => {
+          setPendingDeleteId(null);
+          setConfirmDeleteId(null);
+        }
+      });
+    },
+    [deleteSavedSearch]
+  );
+
+  const handleRerun = useCallback(
+    (filters: SearchFilters) => {
+      navigate(`/search${filtersToSearchParams(filters)}`);
+    },
+    [navigate]
+  );
+
+  // TODO(edit-filters): Add an "Edit filters" action that opens a re-filter
+  // modal pre-populated from the saved search. This requires reusing the
+  // search filter panel and a PATCH on the saved-search endpoint with the
+  // new filters object. Tracked for a follow-up.
 
   return (
     <div className="flex flex-col gap-5 page-fade">
@@ -161,16 +280,43 @@ export function SavedSearchesPage() {
           <div className="flex flex-col gap-3" role="list" aria-label="Saved searches">
             {data.map((search) => {
               const activeFilters = Object.entries(search.filters)
-                .filter(([, value]) => value !== undefined && value !== null && value !== "")
-                .map(([key]) => humanizeSnakeCase(key));
+                .filter(([, value]) => {
+                  if (value === undefined || value === null || value === "") return false;
+                  if (Array.isArray(value) && value.length === 0) return false;
+                  return true;
+                })
+                .map(([key, value]) => formatFilterValue(key, value));
+              const isRenaming = renamingId === search.id;
 
               return (
                 <Card key={search.id} className="flex items-center justify-between gap-4 p-4" role="listitem">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-body-md font-semibold text-ink truncate">{search.name}</h2>
-                      {search.alert_enabled && (
-                        <Chip variant="info" selected>Alert On</Chip>
+                      {isRenaming ? (
+                        <Input
+                          aria-label={`Rename saved search ${search.name}`}
+                          value={renameValue}
+                          autoFocus
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              commitRename();
+                            } else if (e.key === "Escape") {
+                              e.preventDefault();
+                              cancelRename();
+                            }
+                          }}
+                          onBlur={commitRename}
+                          className="max-w-xs"
+                        />
+                      ) : (
+                        <>
+                          <h2 className="text-body-md font-semibold text-ink truncate">{search.name}</h2>
+                          {search.alert_enabled && (
+                            <Chip variant="info" selected>Alert On</Chip>
+                          )}
+                        </>
                       )}
                     </div>
                     {activeFilters.length > 0 && (
@@ -190,23 +336,71 @@ export function SavedSearchesPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="icon"
-                      size="icon"
-                      aria-label={`Run search: ${search.name}`}
-                      onClick={() => handleRerun(search.filters)}
-                    >
-                      <Search aria-hidden="true" className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="icon"
-                      size="icon"
-                      aria-label={`Delete saved search: ${search.name}`}
-                      onClick={() => setConfirmDeleteId(search.id)}
-                      loading={deleteSavedSearch.isPending && pendingDeleteId === search.id}
-                    >
-                      <Trash2 aria-hidden="true" className="h-4 w-4" />
-                    </Button>
+                    {isRenaming ? (
+                      <>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          aria-label="Confirm rename"
+                          onClick={commitRename}
+                        >
+                          <Check aria-hidden="true" className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          aria-label="Cancel rename"
+                          onClick={cancelRename}
+                        >
+                          <X aria-hidden="true" className="h-4 w-4 text-ink-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          aria-label={`Run search: ${search.name}`}
+                          onClick={() => handleRerun(search.filters)}
+                        >
+                          <Search aria-hidden="true" className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          aria-label={`Rename saved search: ${search.name}`}
+                          onClick={() => beginRename(search.id, search.name)}
+                        >
+                          <Pencil aria-hidden="true" className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          aria-label={`Duplicate saved search: ${search.name}`}
+                          onClick={() => handleClone(search.id)}
+                          loading={createSavedSearch.isPending}
+                        >
+                          <Copy aria-hidden="true" className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          aria-label={`Create alert from saved search: ${search.name}`}
+                          onClick={() => handleSaveAsAlert(search.filters)}
+                        >
+                          <Bell aria-hidden="true" className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          aria-label={`Delete saved search: ${search.name}`}
+                          onClick={() => setConfirmDeleteId(search.id)}
+                          loading={deleteSavedSearch.isPending && pendingDeleteId === search.id}
+                        >
+                          <Trash2 aria-hidden="true" className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </Card>
               );

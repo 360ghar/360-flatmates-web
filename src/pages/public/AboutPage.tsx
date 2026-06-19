@@ -37,7 +37,7 @@ export function AboutPage() {
     <>
       <SeoHelmet
         title="About Us"
-        description="Learn about 360 Flatmates, our mission to make flatmate matching smarter through compatibility scores, verified listings, and safety-first workflows across India."
+        description="360 Flatmates is an India-first flatmate and room-rental platform built around 6-dimension lifestyle compatibility, reviewed listings, and in-app visit scheduling. Meet the team and the values behind the product."
         canonicalUrl={`${SITE_URL}/about`}
         breadcrumb={[{ name: "About", item: `${SITE_URL}/about` }]}
       />

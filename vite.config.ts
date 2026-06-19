@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       injectRegister: "auto",
       includeAssets: [
         "favicon.svg",
@@ -20,11 +20,14 @@ export default defineConfig({
         "logo.png",
         "favicon.ico",
         "llms.txt",
+        "screenshots/landing-wide.png",
+        "screenshots/discover-wide.png",
       ],
       manifest: {
         name: "360 Flatmates",
         short_name: "360 Flatmates",
         description: "Find compatible flatmates and verified rooms across India.",
+        categories: ["lifestyle", "social", "productivity"],
         theme_color: "#F4F3EE",
         background_color: "#F4F3EE",
         display: "standalone",
@@ -62,6 +65,55 @@ export default defineConfig({
             purpose: "maskable",
           },
         ],
+        screenshots: [
+          {
+            src: "screenshots/landing-wide.png",
+            sizes: "1280x633",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Landing page with compatibility matching overview",
+          },
+          {
+            src: "screenshots/discover-wide.png",
+            sizes: "1280x633",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Discover verified rooms across India",
+          },
+        ],
+      },
+      workbox: {
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api/, /^\/admin/],
+        globPatterns: ["**/*.{js,css,html,svg,png,ico,webp,woff,woff2,ttf}"],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "app-shell",
+              networkTimeoutSeconds: 4,
+              expiration: {
+                maxEntries: 32,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
+              },
+            },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
+            handler: "NetworkFirst",
+            method: "GET",
+            options: {
+              cacheName: "api",
+              networkTimeoutSeconds: 4,
+              expiration: {
+                maxEntries: 64,
+                maxAgeSeconds: 60 * 5,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],
@@ -86,8 +138,7 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/") || id.includes("node_modules/react-router/")) return "vendor";
           if (id.includes("node_modules/@tanstack/")) return "query";
-          if (id.includes("node_modules/@supabase/")) return "supabase";
-          if (id.includes("node_modules/leaflet") || id.includes("node_modules/react-leaflet")) return "map";
+          if (id.includes("node_modules/framer-motion")) return "framer-motion";
         },
       },
     },

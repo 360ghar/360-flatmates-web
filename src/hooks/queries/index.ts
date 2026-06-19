@@ -28,6 +28,7 @@ export {
   useWebSearch,
   useSavedSearches,
   useCreateSavedSearch,
+  useUpdateSavedSearch,
   useDeleteSavedSearch,
   useSearchAlerts,
   useCreateSearchAlert,

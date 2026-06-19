@@ -29,7 +29,8 @@ The key detail is the Zod gate at `src/lib/env.ts`: nothing reads `import.meta.e
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/publishable key. The public client key, never the service-role key. | Required | `your-publishable-key` |
 | `VITE_VAPID_PUBLIC_KEY` | VAPID public key for web push (FCM). Used by the push subscription flow. | Optional | `replace-me` |
 | `VITE_AUTH_REDIRECT_URL` | Overrides the Google/Apple OAuth callback URL. Defaults to `window.location.origin + "/auth/callback"`. Set for Docker or reverse-proxy setups where the browser origin differs from the intended callback. | Optional | `http://localhost:5173` |
-| `PRERENDER_CONCURRENCY` | Number of routes prerendered in parallel by `scripts/prerender.ts`. Set by Netlify, not prefixed with `VITE_` because it is a build-time, not client, setting. | Optional (build only) | `20` |
+
+Build-time listing fetches (sitemap + per-listing prerender) gate themselves on Netlify's automatic `CONTEXT` variable: `production` fetches, every other context (`deploy-preview`, `branch-deploy`, or unset on local builds) skips. No `PRERENDER_*` env var is required. See [SEO and prerendering](../features/seo-prerendering.md#build-context-gating-local--preview).
 
 `VITE_AUTH_REDIRECT_URL` is not in the Zod schema in `src/lib/env.ts` because it is read inline by the auth code only when set; the four schema-validated variables are the ones that must parse or the app refuses to boot.
 
@@ -44,7 +45,7 @@ The key detail is the Zod gate at `src/lib/env.ts`: nothing reads `import.meta.e
 | `eslint.config.mjs` | ESLint flat config. TypeScript-eslint recommended plus React and React Hooks plugins. | `react-hooks/exhaustive-deps` error; `react/react-in-jsx-scope` off; `@typescript-eslint/no-explicit-any` error; `no-unused-vars` warn with `_` prefix ignore; ignores `dist`, `node_modules`, `playwright-report`, `src/lib/api/openapi-types.ts` (generated), and tooling directories. |
 | `playwright.config.ts` | Playwright E2E config. Runs against the Vite dev server. | `testDir` `./e2e`; `baseURL` `http://127.0.0.1:5173`; `webServer` runs `npm run dev` and reuses an existing server outside CI; four projects: `auth-setup` (saves storage state), `chromium`, `mobile` (Pixel 5), and `authenticated` (uses `.auth/user.json`); trace on first retry, screenshots only on failure. |
 | `postcss.config.mjs` | PostCSS config. The only plugin is Tailwind v4's PostCSS integration. | `@tailwindcss/postcss` with no options (Tailwind v4 reads its config from CSS `@theme`, not a JS file). |
-| `netlify.toml` | Netlify deploy config. Installs Playwright Chromium before building so the prerender step can run on the serverless host. | `build.command` `npx playwright install chromium && npm run build`; `build.publish` `dist`; `build.environment` sets `VITE_API_BASE_URL` and `PRERENDER_CONCURRENCY` `20`. |
+| `netlify.toml` | Netlify deploy config. Runs `npm run build` and publishes `dist/`. | `build.command` `npm run build`; `build.publish` `dist`; `build.environment` sets `VITE_API_BASE_URL`. Build-time listing fetches gate on the auto-set `CONTEXT` variable, so no `PRERENDER_*` env var is needed. |
 | `src/lib/env.ts` | The runtime env validator. The single source of truth for what env vars exist and which are required. | `envSchema` is a Zod object; `getEnv()` parses `import.meta.env` once, caches, and throws a readable error on failure; `validateEnv()` is the bootstrap-friendly wrapper. |
 | `src/lib/config.ts` | Derived runtime config. A single exported constant for the public base URL. | `BASE_URL` resolves to `window.location.origin` in the browser, or `https://360ghar.com` as a fallback (used during prerender). |
 | `.env.example` | The template for local `.env`. Documents the four `VITE_` vars plus the commented-out `VITE_AUTH_REDIRECT_URL`. | Copy to `.env` (or `.env.local`) and fill in real keys. |
@@ -59,16 +60,16 @@ The key detail is the Zod gate at `src/lib/env.ts`: nothing reads `import.meta.e
 4. `scripts/generate-favicon-ico.ts` (legacy `.ico`).
 5. `scripts/generate-sitemap.ts` (`public/sitemap.xml`).
 6. `vite build` (the production bundle into `dist`).
-7. `scripts/prerender.ts` (Playwright Chromium renders public routes to static HTML, controlled by `PRERENDER_CONCURRENCY`).
+7. `scripts/generate-static-html.ts` (pure string-template HTML for every public route + one per-listing page). Listing fetches are gated on `CONTEXT=production`; local builds and Netlify deploy previews skip them and the SPA fallback handles deep listing links at runtime.
 
-This is why Netlify installs Chromium first: step 7 needs a real browser. See [SEO and prerendering](../features/seo-prerendering.md) for the full prerender mechanism.
+See [SEO and prerendering](../features/seo-prerendering.md) for the full prerender mechanism and the CONTEXT gating table.
 
 ## Related pages
 
 - [Getting started](../overview/getting-started.md) for the install and first-run flow.
 - [Deployment](../deployment.md) for how the Netlify pipeline and prerender step run in production.
 - [PWA install](../features/pwa-install.md) for what the PWA manifest fields mean for users.
-- [SEO and prerendering](../features/seo-prerendering.md) for why Chromium is a build dependency.
+- [SEO and prerendering](../features/seo-prerendering.md) for why each route gets its own `dist/<route>/index.html`, the CONTEXT gating, and the SPA fallback.
 
 ## Key source files
 

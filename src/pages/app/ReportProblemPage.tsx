@@ -32,6 +32,12 @@ export function ReportProblemPage() {
     }
     setShowDescError(false);
 
+    // TODO(wire): the user-reports endpoint (/flatmates/reports) expects a
+    // target user (see A-8), but this is a general problem report with no
+    // target. The backend needs to define a separate problem-report wire
+    // (see B-2) before this form can be wired correctly. Until then we
+    // post to the user-reports endpoint without a target and rely on the
+    // server to surface the mismatch in tests rather than in production.
     reportMutation.mutate(
       {
         // General problem report — no target user

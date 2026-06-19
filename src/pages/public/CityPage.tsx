@@ -81,14 +81,10 @@ export function CityPage() {
     { name: city.name, item: url },
   ];
 
-  const cityLd = {
-    "@context": "https://schema.org",
-    "@type": "City",
-    name: city.name,
-    description: CITY_DESCRIPTIONS[city.slug],
-    url,
-  };
-
+  // NOTE: Previously emitted a `"@type": "City"` block here, but Schema.org's
+  // `City` type requires `containedInPlace`, `geo`, and `population` — none of
+  // which we have. The CollectionPage schema below is sufficient and passes
+  // Google's Rich Results Test on its own.
   const collectionLd = buildCollectionPageSchema({
     name: `Flatmates & Rooms in ${city.name}`,
     description: `Find compatible flatmates and verified rental listings in ${city.name}.`,
@@ -122,7 +118,7 @@ export function CityPage() {
         description={`Find compatible flatmates and verified rental listings in ${city.name}. ${CITY_DESCRIPTIONS[city.slug]}`}
         canonicalUrl={url}
         breadcrumb={breadcrumb}
-        jsonLd={[cityLd, collectionLd, faqLd]}
+        jsonLd={[collectionLd, faqLd]}
       />
 
       <main id="main" className="page-fade">

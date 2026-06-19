@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { Calendar, ChevronLeft, ChevronRight, List } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, List, Monitor } from "lucide-react";
 import { useVisits } from "@/hooks/queries";
 import { visitToVisitCardProps } from "@/lib/api/adapters";
+import { visitStatusToCardStatus } from "@/components/molecules";
 import type { Visit } from "@/lib/api/types";
 import { SegmentedControl, type SegmentedControlOption } from "@/components/ui/SegmentedControl";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView } from "@/components/ui/StateViews";
 import { VisitCard } from "@/components/molecules/VisitCard";
 import { EmptyState } from "@/components/ui/StateViews";
+import { Card } from "@/components/ui/Card";
 import { cn } from "@/components/ui/component-utils";
 
 type VisitTab = "upcoming" | "past" | "cancelled";
@@ -21,14 +23,40 @@ const TAB_OPTIONS: SegmentedControlOption[] = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
+/** Build a local-tz YYYY-MM-DD key from any date-input-ish string. */
+function dayKeyFromValue(value: string): string | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
+}
+
+/** Local-tz YYYY-MM-DD key for "today". */
+function todayKey(): string {
+  return dayKeyFromValue(new Date().toISOString())!;
+}
+
 function filterVisitsByTab(visits: Visit[], tab: VisitTab): Visit[] {
+  const today = todayKey();
   switch (tab) {
-    case "upcoming":
-      return visits.filter(
-        (v) => v.status === "requested" || v.status === "confirmed" || v.status === "reschedule_suggested"
-      );
-    case "past":
-      return visits.filter((v) => v.status === "completed");
+    case "upcoming": {
+      // Anything non-terminal whose scheduled date is today or in the future.
+      return visits.filter((v) => {
+        if (v.status === "cancelled" || v.status === "completed") return false;
+        const key = dayKeyFromValue(v.scheduled_date);
+        return key === null || key >= today;
+      });
+    }
+    case "past": {
+      // Completed visits, *and* any non-terminal visit whose scheduled date
+      // is in the past (e.g. an unconfirmed request that the date has passed).
+      return visits.filter((v) => {
+        if (v.status === "cancelled") return false;
+        if (v.status === "completed") return true;
+        const key = dayKeyFromValue(v.scheduled_date);
+        return key !== null && key < today;
+      });
+    }
     case "cancelled":
       return visits.filter((v) => v.status === "cancelled");
     default:
@@ -38,7 +66,13 @@ function filterVisitsByTab(visits: Visit[], tab: VisitTab): Visit[] {
 
 /* ---------- Calendar View ---------- */
 
-function CalendarView({ visits }: { visits: Visit[] }) {
+function CalendarView({
+  visits,
+  onDaySelect,
+}: {
+  visits: Visit[];
+  onDaySelect?: (dateKey: string) => void;
+}) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
 
   const year = currentDate.getFullYear();
@@ -49,12 +83,30 @@ function CalendarView({ visits }: { visits: Visit[] }) {
   const startDayOfWeek = firstDay.getDay(); // 0=Sun
   const daysInMonth = lastDay.getDate();
 
-  // Build a map of date -> visit count
+  // Build a map of local-tz date -> visit count. We convert each visit's
+  // `scheduled_date` through `new Date(...)` so the bucket key matches the
+  // local-tz cells built below (fixes the IST 12-hour bucket mismatch where
+  // visits in `YYYY-MM-DD` form were being grouped on the *UTC* day).
   const visitsByDay = useMemo(() => {
     const map = new Map<string, number>();
     for (const visit of visits) {
-      const dateStr = visit.scheduled_date.split("T")[0]; // "YYYY-MM-DD"
+      const dateStr = dayKeyFromValue(visit.scheduled_date);
+      if (!dateStr) continue;
       map.set(dateStr, (map.get(dateStr) ?? 0) + 1);
+    }
+    return map;
+  }, [visits]);
+
+  // Build a map of local-tz date -> visits so the cell click can show a
+  // list of visits on that day.
+  const visitsForDay = useMemo(() => {
+    const map = new Map<string, Visit[]>();
+    for (const visit of visits) {
+      const dateStr = dayKeyFromValue(visit.scheduled_date);
+      if (!dateStr) continue;
+      const bucket = map.get(dateStr) ?? [];
+      bucket.push(visit);
+      map.set(dateStr, bucket);
     }
     return map;
   }, [visits]);
@@ -67,7 +119,15 @@ function CalendarView({ visits }: { visits: Visit[] }) {
     setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   }
 
-  const monthLabel = currentDate.toLocaleString("en-IN", { month: "long", year: "numeric" });
+  // Use the user's locale; fall back to en-IN (project's primary market) if
+  // the runtime can't provide one. The locale governs the month name only —
+  // the underlying day math remains in local time.
+  const userLocale = (() => {
+    if (typeof navigator === "undefined") return "en-IN";
+    return navigator.language || "en-IN";
+  })();
+
+  const monthLabel = currentDate.toLocaleString(userLocale, { month: "long", year: "numeric" });
 
   const { cells, todayStr } = useMemo(() => {
     const today = new Date();
@@ -97,6 +157,9 @@ function CalendarView({ visits }: { visits: Visit[] }) {
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
       goToNextMonth();
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setCurrentDate(new Date());
     }
   }
 
@@ -127,6 +190,18 @@ function CalendarView({ visits }: { visits: Visit[] }) {
         {cells.map((cell, idx) => {
           const visitCount = cell.day !== null ? (visitsByDay.get(cell.dateStr) ?? 0) : 0;
           const isToday = cell.dateStr === todayStr;
+          const dayVisits = cell.day !== null ? (visitsForDay.get(cell.dateStr) ?? []) : [];
+          const handleClick = cell.day !== null
+            ? () => onDaySelect?.(cell.dateStr)
+            : undefined;
+          const handleKeyDown = cell.day !== null
+            ? (e: React.KeyboardEvent) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onDaySelect?.(cell.dateStr);
+                }
+              }
+            : undefined;
 
           return (
             <div
@@ -134,21 +209,27 @@ function CalendarView({ visits }: { visits: Visit[] }) {
               role="gridcell"
               aria-label={cell.day !== null ? `${cell.day}, ${monthLabel}${visitCount > 0 ? `, ${visitCount} visit${visitCount > 1 ? "s" : ""}` : ""}` : undefined}
               tabIndex={cell.day !== null ? 0 : undefined}
+              onClick={handleClick}
+              onKeyDown={handleKeyDown}
               className={cn(
-                "flex min-h-12 flex-col items-center justify-center rounded-lg border border-transparent py-2 text-body-md",
-                cell.day !== null ? "text-ink hover:bg-paper-2 focus-visible:bg-paper-2" : "text-ink-4",
-                isToday && "border-accent/30 bg-accent-soft",
-                cell.day !== null && "hover:bg-paper-2"
+                "flex min-h-12 cursor-pointer flex-col items-center justify-center rounded-lg border border-transparent py-2 text-body-md outline-none transition-colors",
+                cell.day !== null
+                  ? "text-ink hover:bg-paper-2 focus-visible:bg-paper-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
+                  : "text-ink-4 cursor-default",
+                isToday && "border-accent/30 bg-accent-soft"
               )}
             >
               {cell.day !== null ? (
                 <>
                   <span className={cn(isToday && "font-bold text-accent")}>{cell.day}</span>
-                  {visitCount > 0 && (
-                    <span className="mt-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
+                  {visitCount > 0 ? (
+                    <span
+                      className="mt-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white"
+                      aria-label={`${dayVisits.length} visit${dayVisits.length === 1 ? "" : "s"} on this day`}
+                    >
                       {visitCount}
                     </span>
-                  )}
+                  ) : null}
                 </>
               ) : null}
             </div>
@@ -214,8 +295,10 @@ function VisitsListView({
           {data.map((visit) => (
             <VisitCard
               key={visit.id}
-              visit={visitToVisitCardProps(visit)}
-              canConfirm={visit.status === "requested"}
+              visit={{
+                ...visitToVisitCardProps(visit),
+                status: visitStatusToCardStatus(visit.status),
+              }}
               onConfirm={onOpen}
               onReschedule={onOpen}
               onCancel={onOpen}
@@ -234,12 +317,21 @@ export function VisitsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<VisitTab>("upcoming");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const { data: visitList, isLoading, error, refetch } = useVisits();
+  const allVisits = useMemo(() => visitList ?? [], [visitList]);
+
   const filteredVisits = useMemo(
-    () => filterVisitsByTab(visitList?.visits ?? [], activeTab),
-    [visitList?.visits, activeTab]
+    () => filterVisitsByTab(allVisits, activeTab),
+    [allVisits, activeTab]
   );
+
+  const dayScopedVisits = useMemo(() => {
+    if (!selectedDay) return filteredVisits;
+    return filteredVisits.filter((v) => dayKeyFromValue(v.scheduled_date) === selectedDay);
+  }, [filteredVisits, selectedDay]);
+
   const openVisit = useCallback((visitId: string) => navigate(`/visits/${visitId}`), [navigate]);
 
   return (
@@ -251,7 +343,10 @@ export function VisitsPage() {
         <SegmentedControl
           options={TAB_OPTIONS}
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as VisitTab)}
+          onValueChange={(v) => {
+            setActiveTab(v as VisitTab);
+            setSelectedDay(null);
+          }}
           ariaLabel="Visit status filter"
         />
         <div className="flex gap-1 rounded-full bg-paper-2 p-1">
@@ -281,6 +376,41 @@ export function VisitsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Mobile fallback banner: the calendar is a desktop-only view. */}
+      {viewMode === "calendar" ? (
+        <Card className="flex items-start gap-3 p-4 md:hidden">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+            <Monitor aria-hidden="true" className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-body-md font-semibold text-ink">Calendar view is best on a larger screen</p>
+            <p className="mt-1 text-caption text-ink-2">
+              Switch to the list view below to see your visits on this device.
+            </p>
+            <Button
+              size="compact"
+              variant="secondary"
+              className="mt-3"
+              onClick={() => setViewMode("list")}
+            >
+              Switch to list view
+            </Button>
+          </div>
+        </Card>
+      ) : null}
+
+      {/* Selected-day chip (set by clicking a calendar cell). */}
+      {selectedDay ? (
+        <div className="flex items-center gap-2 text-caption text-ink-2">
+          <span>
+            Showing visits on <span className="font-semibold text-ink">{selectedDay}</span>
+          </span>
+          <Button size="compact" variant="tertiary" onClick={() => setSelectedDay(null)}>
+            Clear
+          </Button>
+        </div>
+      ) : null}
 
       {/* Calendar view: only visible at md+ breakpoint */}
       {viewMode === "calendar" ? (
@@ -314,7 +444,7 @@ export function VisitsPage() {
             }
             onRetry={() => refetch()}
           >
-            {(data) => <CalendarView visits={data} />}
+            {(data) => <CalendarView visits={data} onDaySelect={setSelectedDay} />}
           </AsyncView>
         </div>
       ) : null}
@@ -322,7 +452,7 @@ export function VisitsPage() {
       {/* List view: shown when list mode is selected, or as mobile fallback for calendar mode */}
       {viewMode === "list" ? (
         <VisitsListView
-          visits={filteredVisits}
+          visits={dayScopedVisits}
           isLoading={isLoading}
           error={error}
           activeTab={activeTab}
@@ -333,7 +463,7 @@ export function VisitsPage() {
         /* Mobile fallback: show list view on small screens when calendar is selected */
         <div className="md:hidden">
           <VisitsListView
-            visits={filteredVisits}
+            visits={dayScopedVisits}
             isLoading={isLoading}
             error={error}
             activeTab={activeTab}

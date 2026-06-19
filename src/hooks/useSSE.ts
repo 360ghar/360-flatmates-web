@@ -22,6 +22,8 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const SSE_URL = `${getEnv().VITE_API_BASE_URL}/flatmates/sse`;
 
+const NOOP_RELAY = (): void => {};
+
 interface UseSSEReturn {
   connectionState: SSEConnectionState;
   isPrimaryTab: boolean;
@@ -135,6 +137,13 @@ export function useSSE(
     [],
   );
 
+  // NOTE (F6 #18): `getSSEManager` is a module-level singleton; if
+  // `sseManagerOptions` changes identity, the next call below constructs a
+  // *new* `SSEConnectionManager` and the old one is replaced. The provider
+  // refactor (owned by F10) is expected to stabilise the identity of these
+  // options — until then, a callback identity change mid-session will reset
+  // the underlying EventSource. Documenting here because the race is
+  // otherwise invisible from this file.
   const sseManagerOptions = useMemo(
     () => ({
       url: SSE_URL,
@@ -147,9 +156,17 @@ export function useSSE(
   );
 
   useEffect(() => {
+    // Audit F6 #19: register the relay handler and reset it to a no-op on
+    // unmount so the module-level `relayEventHandler` doesn't leak across
+    // mounts. (A more thorough dedupe is owned by F10's cross-cutting SSE
+    // refactor — `offRelayedEvent` is available in `broadcast.ts` for that
+    // work.)
     onRelayedEvent((event: SSEEvent) => {
       invalidateForEvent(event);
     });
+    return () => {
+      onRelayedEvent(NOOP_RELAY);
+    };
   }, [invalidateForEvent]);
 
   useEffect(() => {

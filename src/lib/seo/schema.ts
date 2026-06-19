@@ -1,4 +1,4 @@
-import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL } from "./config";
+import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL, SUPPORTED_CITIES } from "./config";
 
 /**
  * Absolute URL to the organization logo. Schema.org requires a PNG/JPG (not SVG),
@@ -285,6 +285,14 @@ export function buildCollectionPageSchema(params: {
 /**
  * Residence schema for a rental room/listing. Uses Residence (not Product) vocab
  * with an Offer carrying the rent. No aggregateRating unless backed by real reviews.
+ *
+ * `city` is only emitted as `addressRegion` when it matches one of
+ * `SUPPORTED_CITIES` — an unrecognised city would emit an invalid region and
+ * fail Google's Rich Results Test, so the address block is dropped entirely
+ * when we cannot confirm the city.
+ *
+ * Rent is wrapped in a `UnitPriceSpecification` (per-month) so search engines
+ * know the billing cadence; a bare `Offer.price` is treated as a one-time cost.
  */
 export function buildResidenceSchema(params: {
   name: string;
@@ -297,6 +305,10 @@ export function buildResidenceSchema(params: {
   bedrooms?: number;
   areaSqft?: number;
 }) {
+  const cityRecognized = params.city
+    ? SUPPORTED_CITIES.some((c) => c.name === params.city)
+    : false;
+
   const residence: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Residence",
@@ -305,19 +317,31 @@ export function buildResidenceSchema(params: {
     url: params.url,
     offers: {
       "@type": "Offer",
-      price: params.monthlyRent,
-      priceCurrency: "INR",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: params.monthlyRent,
+        priceCurrency: "INR",
+        unitText: "month",
+      },
       availability: "https://schema.org/InStock",
     },
   };
 
   if (params.image) residence.image = params.image;
 
-  if (params.locality || params.city) {
+  if (cityRecognized && params.city) {
     residence.address = {
       "@type": "PostalAddress",
       ...(params.locality ? { addressLocality: params.locality } : {}),
-      ...(params.city ? { addressRegion: params.city } : {}),
+      addressRegion: params.city,
+      addressCountry: "IN",
+    };
+  } else if (params.locality) {
+    // City was not in SUPPORTED_CITIES — emit the locality only so we still
+    // surface a location signal without publishing an unverified region.
+    residence.address = {
+      "@type": "PostalAddress",
+      addressLocality: params.locality,
       addressCountry: "IN",
     };
   }

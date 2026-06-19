@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { SelectableCardGrid } from "@/components/molecules/SelectableCardGrid";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ApiClientError } from "@/lib/api/errors";
 
 const MODE_ICONS: Record<UserMode, React.ReactNode> = {
   room_poster: <Home aria-hidden="true" className="h-6 w-6" />,
@@ -48,12 +49,36 @@ export function ChooseRolePage() {
     try {
       await updateProfile.mutateAsync({ mode: selected });
       navigate("/home");
-    } catch {
-      uiStore.getState().pushToast({
-        type: "error",
-        title: "Could not save preference",
-        description: "Please try again.",
-      });
+    } catch (err: unknown) {
+      // Drive the toast copy off the structured AppError so the user gets a
+      // useful message for network failures / 401s / 5xx instead of a
+      // catch-all "try again". Falls back to a generic message for
+      // non-ApiClientError throws.
+      let title = "Could not save preference";
+      let description = "Please try again.";
+
+      if (err instanceof ApiClientError) {
+        const { type, message } = err.appError;
+        if (type === "network") {
+          title = "You're offline";
+          description = "Check your connection and try again.";
+        } else if (type === "auth") {
+          title = "Session expired";
+          description = "Please sign in again to continue.";
+        } else if (type === "validation") {
+          title = "We couldn't save that choice";
+          description = message;
+        } else if (type === "server") {
+          title = "Server hiccup";
+          description = "Our servers are having a moment. Please try again in a bit.";
+        } else {
+          description = message;
+        }
+      } else if (err instanceof Error) {
+        description = err.message;
+      }
+
+      uiStore.getState().pushToast({ type: "error", title, description });
     } finally {
       setSubmitting(false);
     }

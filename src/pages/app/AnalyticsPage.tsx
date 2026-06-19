@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { useListingAnalytics, type AnalyticsPeriod } from "@/hooks/queries";
 import { Card } from "@/components/ui/Card";
@@ -68,7 +69,8 @@ function DailyStatsTable({ dailyStats }: { dailyStats: DailyStat[] }) {
 
 export function AnalyticsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const propertyId = Number(searchParams.get("propertyId") ?? "0");
+  const propertyIdRaw = searchParams.get("propertyId") ?? "0";
+  const propertyId = Number(propertyIdRaw);
   const periodParam = searchParams.get("period");
   const period: AnalyticsPeriod = isAnalyticsPeriod(periodParam) ? periodParam : "30d";
 
@@ -84,7 +86,26 @@ export function AnalyticsPage() {
     );
   };
 
-  if (!propertyId || Number.isNaN(propertyId) || propertyId <= 0) {
+  /* Persist the default `period=30d` into the URL when the user landed here
+     without one, so the URL is shareable and the segmented control stays in
+     sync on re-mount. */
+  useEffect(() => {
+    if (!periodParam) {
+      setSearchParams(
+        (params) => {
+          params.set("period", "30d");
+          return params;
+        },
+        { replace: true }
+      );
+    }
+    // We only want to write the default when the URL has no `period` at all;
+    // changes to `periodParam` (via the segmented control) are handled by
+    // `handlePeriodChange`. Intentionally depend on `periodParam` only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periodParam]);
+
+  if (!Number.isFinite(propertyId) || propertyId <= 0) {
     return (
       <div className="p-4 md:p-6">
         <PageHeader title="Listing Analytics" description="View performance metrics for your listings." />

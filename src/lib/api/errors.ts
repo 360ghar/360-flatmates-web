@@ -1,6 +1,9 @@
 export type AppError =
   | { type: "network"; message: string }
+  | { type: "timeout"; message: string }
   | { type: "auth"; message: string }
+  | { type: "forbidden"; message: string }
+  | { type: "bad_request"; message: string }
   | { type: "server"; status: number; message: string }
   | { type: "not_found"; message: string }
   | { type: "validation"; fields: Record<string, string[]>; message: string }
@@ -57,19 +60,31 @@ export function mapStatusToAppError(
   fields: Record<string, string[]> = {},
   retryAfter?: number
 ): AppError {
-  if (status === 401 || status === 403) {
+  if (status === 401) {
     return { type: "auth", message };
+  }
+
+  if (status === 403) {
+    return { type: "forbidden", message };
   }
 
   if (status === 404) {
     return { type: "not_found", message };
   }
 
+  if (status === 408) {
+    return { type: "timeout", message };
+  }
+
   if (status === 409) {
     return { type: "conflict", message };
   }
 
-  if (status === 422 || status === 400) {
+  if (status === 400) {
+    return { type: "bad_request", message };
+  }
+
+  if (status === 422) {
     return { type: "validation", fields, message };
   }
 

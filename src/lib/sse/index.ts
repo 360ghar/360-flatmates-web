@@ -31,6 +31,7 @@ export {
   becomePrimaryTab,
   relayEvent,
   onRelayedEvent,
+  offRelayedEvent,
   relinquishPrimary,
   setupVisibilityNegotiation,
   close as closeBroadcastChannel,

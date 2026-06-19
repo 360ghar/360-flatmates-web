@@ -47,6 +47,25 @@ const REQUEST_TIMEOUT_MS = 10_000;
 const LISTING_PAGE_SIZE = 100;
 
 /**
+ * Decide whether the build is allowed to call the listing API at all.
+ *
+ * Returns true ONLY when Netlify reports `CONTEXT=production` (i.e. a push to
+ * the production branch). Every other context — local builds (CONTEXT unset),
+ * Netlify deploy previews (`deploy-preview`), and Netlify branch deploys
+ * (`branch-deploy`) — skips the fetch so a single contributor running
+ * `npm run build` repeatedly, or every PR opening a preview, does not hammer
+ * the FastAPI backend / Supabase.
+ *
+ * No manual override env var by design: the auto-detection matches the only
+ * context that needs listing data, and skipping everywhere else is the
+ * default. Consumers (sitemap, static HTML) tolerate the empty result; the
+ * SPA fallback handles deep listing links client-side at runtime.
+ */
+export function shouldFetchListingData(): boolean {
+  return process.env.CONTEXT === "production";
+}
+
+/**
  * Fetch every discoverable listing from the public `/properties` endpoint.
  *
  * The endpoint is unauthenticated (`security: []` in the OpenAPI spec) and
@@ -58,6 +77,14 @@ const LISTING_PAGE_SIZE = 100;
  * is fatal (sitemap strict mode).
  */
 export async function fetchDiscoverableListings(): Promise<FetchListingsResult> {
+  if (!shouldFetchListingData()) {
+    console.log(
+      `[listings] Skipped — CONTEXT is "${process.env.CONTEXT ?? "<unset>"}" ` +
+        "(not \"production\"). Returning an empty listing set for this build.",
+    );
+    return { listings: [], ok: true };
+  }
+
   const apiToken = process.env.SITEMAP_API_TOKEN;
 
   const listings: DiscoverableListing[] = [];

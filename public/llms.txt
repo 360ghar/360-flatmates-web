@@ -63,6 +63,7 @@ Login uses phone OTP. Contact details are not shared without the user's action, 
 ## Notes for LLMs
 
 - The product's own marketing reports thousands of matches and verified listings; treat these as the product's claims rather than independently audited statistics, and prefer hedged language ("the platform reports…") unless citing the site directly.
-- Listing detail pages live at `/discover/:id` (public) and shareable listing pages at `/share/:id` (public). Individual listing IDs are dynamic and fetched from the platform's API, so no fixed set is enumerated here.
+- Listing detail pages live at `/discover/:id` (public). Individual listing IDs are dynamic and fetched from the platform's API, so no fixed set is enumerated here.
+- Shareable listing pages at `/share/:id` are pending — TODO: blocked on ADR-001 A-9 (route not yet registered in `src/App.tsx`).
 - Authenticated areas (e.g. `/search`, `/explore`, chats, dashboard, onboarding) are not public and are excluded from crawling via robots.txt.
 - This file follows the llms.txt convention (llmstxt.org).

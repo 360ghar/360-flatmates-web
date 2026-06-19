@@ -6,6 +6,7 @@ import { PriceText } from "@/components/ui/PriceText";
 import { Avatar } from "@/components/ui/Avatar";
 import { Chip } from "@/components/ui/Chip";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { cn, focusRing } from "@/components/ui/component-utils";
 import { formatCurrencyINR } from "@/lib/utils/format";
 
 export interface PropertyDetailPanelProps {
@@ -30,7 +31,7 @@ export function PropertyDetailPanel({
         <button
           type="button"
           aria-label="Close"
-          className="rounded-[9px] p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink transition-colors"
+          className={cn("rounded-[9px] p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink transition-colors", focusRing)}
           onClick={onClose}
         >
           <X aria-hidden="true" className="h-4 w-4" />

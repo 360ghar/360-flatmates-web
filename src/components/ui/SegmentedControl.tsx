@@ -1,6 +1,8 @@
 import { useCallback, useRef, type HTMLAttributes } from "react";
 import { motion } from "framer-motion";
+import { useStore } from "zustand";
 import { cn, focusRing, interactiveMotion } from "./component-utils";
+import { uiStore } from "@/lib/stores/ui-store";
 
 export interface SegmentedControlOption {
   value: string;
@@ -24,6 +26,7 @@ export function SegmentedControl({
   ...props
 }: SegmentedControlProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useStore(uiStore, (s) => s.reducedMotion);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -42,12 +45,25 @@ export function SegmentedControl({
       } else if (e.key === "End") {
         e.preventDefault();
         nextIndex = options.length - 1;
+      } else if (e.key === "Enter" || e.key === " ") {
+        const target = e.target as HTMLElement;
+        const idx = Number(target.dataset.index);
+        if (Number.isInteger(idx) && idx >= 0 && idx < options.length) {
+          e.preventDefault();
+          const nextOption = options[idx];
+          if (!nextOption.disabled) {
+            onValueChange?.(nextOption.value);
+          }
+        }
+        return;
       }
 
       if (nextIndex >= 0 && nextIndex < options.length) {
         const nextOption = options[nextIndex];
         if (!nextOption.disabled) {
           onValueChange?.(nextOption.value);
+          const buttons = containerRef.current?.querySelectorAll<HTMLButtonElement>("button[data-index]");
+          buttons?.[nextIndex]?.focus();
         }
       }
     },
@@ -63,7 +79,7 @@ export function SegmentedControl({
       onKeyDown={handleKeyDown}
       {...props}
     >
-      {options.map((option) => {
+      {options.map((option, index) => {
         const selected = option.value === value;
 
         return (
@@ -73,6 +89,7 @@ export function SegmentedControl({
             tabIndex={selected ? 0 : -1}
             aria-selected={selected}
             disabled={option.disabled}
+            data-index={index}
             className={cn(
               "relative z-10 min-h-9 rounded-full px-4 text-body-md font-semibold disabled:cursor-not-allowed disabled:text-ink-4",
               interactiveMotion,
@@ -86,7 +103,7 @@ export function SegmentedControl({
               <motion.span
                 layoutId="segmented-indicator"
                 className="absolute inset-0 -z-10 rounded-full bg-surface shadow-xs"
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 35 }}
               />
             ) : null}
             <span className="relative z-10">{option.label}</span>

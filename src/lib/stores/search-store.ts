@@ -15,7 +15,6 @@ export const DEFAULT_SEARCH_FILTERS = {
   sort_by: "newest",
   semantic_search: false,
   exclude_swiped: false,
-  page: 1,
   limit: 20
 } as const satisfies SearchFilters;
 
@@ -47,6 +46,41 @@ function isDefaultFilter(
   return DEFAULT_SEARCH_FILTERS[key as keyof typeof DEFAULT_SEARCH_FILTERS] === value;
 }
 
+/**
+ * Shallow array equality: same length and same elements in the same order.
+ * Used to prevent re-renders when a new array identity arrives with the same
+ * contents (e.g. from URL param parsing).
+ */
+function arraysEqual(a: readonly unknown[] | undefined, b: readonly unknown[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+/**
+ * Deep-ish equality for SearchFilters that treats new array identities with
+ * the same contents as equal. Prevents spurious re-renders when the URL is
+ * the source of truth (nuqs serialises arrays fresh on every render).
+ */
+function filtersEqual(a: SearchFilters, b: SearchFilters): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of keys) {
+    const av = a[key as keyof SearchFilters];
+    const bv = b[key as keyof SearchFilters];
+    if (Array.isArray(av) || Array.isArray(bv)) {
+      if (!arraysEqual(av as readonly unknown[] | undefined, bv as readonly unknown[] | undefined)) {
+        return false;
+      }
+      continue;
+    }
+    if (av !== bv) return false;
+  }
+  return true;
+}
+
 export function countActiveSearchFilters(filters: SearchFilters): number {
   return Object.entries(filters).filter(([key, value]) => {
     if (value === undefined || value === null || value === "") {
@@ -71,16 +105,25 @@ export function createSearchStore(initialState: SearchStoreInitialState = {}) {
         ...initialState,
         setFilter: (key, value) =>
           set((state) => {
-            if (state.filters[key] === value) return state;
-            return { filters: { ...state.filters, [key]: value, page: 1 } };
+            const current = state.filters[key];
+            if (Array.isArray(current) || Array.isArray(value)) {
+              if (arraysEqual(current as readonly unknown[] | undefined, value as readonly unknown[] | undefined)) {
+                return state;
+              }
+            } else if (current === value) {
+              return state;
+            }
+            return { filters: { ...state.filters, [key]: value } };
           }),
         setFilters: (filters) =>
-          set((state) => ({
-            filters: { ...state.filters, ...filters, page: filters.page ?? 1 }
-          })),
+          set((state) => {
+            const merged = { ...state.filters, ...filters };
+            if (filtersEqual(state.filters, merged)) return state;
+            return { filters: { ...merged } };
+          }),
         setSearchType: (search_type) =>
           set((state) => ({
-            filters: { ...state.filters, search_type, page: 1 }
+            filters: { ...state.filters, search_type }
           })),
         resetFilters: () => set({ filters: { ...DEFAULT_SEARCH_FILTERS } }),
         addRecentSearch: (query) => {

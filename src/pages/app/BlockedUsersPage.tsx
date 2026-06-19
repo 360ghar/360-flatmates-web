@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Compass } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { useBlockedUsers, useUnblockUser } from "@/hooks/queries";
@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import { AsyncView } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { formatDate } from "@/lib/utils/format";
 
 export function BlockedUsersPage() {
   const navigate = useNavigate();
@@ -48,9 +49,19 @@ export function BlockedUsersPage() {
           </div>
         }
         empty={
-          <p className="py-8 text-center text-body-md text-ink-3">
-            No blocked users. You can block someone from their profile or conversation.
-          </p>
+          <Card className="flex flex-col items-center gap-3 p-6 text-center">
+            <p className="text-body-md text-ink-3">
+              No blocked users. You can block someone from their profile or conversation.
+            </p>
+            <Button
+              variant="secondary"
+              size="compact"
+              onClick={() => navigate("/explore")}
+              leadingIcon={<Compass aria-hidden="true" className="h-4 w-4" />}
+            >
+              Find flatmates
+            </Button>
+          </Card>
         }
         onRetry={() => refetch()}
       >
@@ -69,11 +80,12 @@ export function BlockedUsersPage() {
                     <p className="text-body-md font-semibold text-ink truncate">
                       {block.blocked_user.full_name}
                     </p>
-                    {block.blocked_user.locality && (
-                      <p className="text-caption text-ink-3 truncate">
-                        {block.blocked_user.locality}
-                      </p>
-                    )}
+                    <p className="text-caption text-ink-3 truncate">
+                      {block.blocked_user.locality
+                        ? `${block.blocked_user.locality} · `
+                        : ""}
+                      Blocked on {formatDate(block.created_at)}
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -111,7 +123,10 @@ export function BlockedUsersPage() {
             </Button>
             <Button
               variant="primary"
-              loading={unblockUser.isPending}
+              loading={
+                unblockUser.isPending &&
+                pendingId === (confirmTarget?.id ?? null)
+              }
               onClick={() => {
                 if (!confirmTarget) return;
                 const targetId = confirmTarget.id;

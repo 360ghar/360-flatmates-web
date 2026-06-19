@@ -43,16 +43,16 @@ export interface SearchFilters {
   sort_by?: SearchSort;
   semantic_search?: boolean;
   exclude_swiped?: boolean;
-  page?: number;
+  cursor?: string;
   limit?: number;
 }
 
 export interface WebSearchResponse {
   results: Array<Property | FlatmatesPeer>;
   total: number;
-  page: number;
+  next_cursor: string | null;
+  has_more: boolean;
   limit: number;
-  total_pages: number;
   search_type: SearchType;
   filters_applied?: JsonObject;
   search_center?: {
@@ -167,7 +167,7 @@ export interface MapViewResponse {
 
 export interface SwipeDeckParams {
   limit?: number;
-  offset?: number;
+  cursor?: string;
   city?: string;
   budget_min?: number;
   budget_max?: number;
@@ -177,7 +177,7 @@ export interface SwipeHistoryParams {
   action?: SwipeAction;
   target_type?: SwipeTargetType;
   limit?: number;
-  offset?: number;
+  cursor?: string;
 }
 
 export interface SwipeHistoryItem {
@@ -190,6 +190,7 @@ export interface SwipeHistoryItem {
   created_at: string;
 }
 
+/** @deprecated Backend swipe history now returns a CursorPage; update callers. */
 export interface SwipeHistoryResponse {
   history: SwipeHistoryItem[];
   total: number;

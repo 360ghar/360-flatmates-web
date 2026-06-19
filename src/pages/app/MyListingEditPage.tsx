@@ -4,7 +4,6 @@ import { ArrowLeft, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
 import {
   useBatchDeleteMedia,
   useProperty,

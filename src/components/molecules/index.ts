@@ -15,3 +15,4 @@ export * from "./SelectableCardGrid";
 export * from "./StatCard";
 export * from "./SwipeActionBar";
 export * from "./VisitCard";
+export { visitStatusToCardStatus } from "./VisitCard";

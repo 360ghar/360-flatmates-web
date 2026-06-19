@@ -27,10 +27,10 @@ export function useBatchRemoveSwipes() {
       // Optimistically drop the swiped-out properties from any deck cache.
       queryClient.setQueriesData<unknown>(
         { queryKey: ["swipes", "deck"] },
-        (old) => {
+        (old: unknown) => {
           if (!Array.isArray(old)) return old;
           const removed = new Set(variables.property_ids);
-          return old.filter((entry) => {
+          return (old as Array<{ id?: number }>).filter((entry) => {
             if (entry && typeof entry === "object" && "id" in entry) {
               return !removed.has((entry as { id: number }).id);
             }

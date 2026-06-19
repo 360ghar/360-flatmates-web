@@ -9,6 +9,7 @@ export interface SocietyTagVoteRowProps extends HTMLAttributes<HTMLDivElement> {
   voteCount: number;
   myVote?: SocietyVote;
   disputed?: boolean;
+  isPending?: boolean;
   onUpvote?: () => void;
   onDownvote?: () => void;
 }
@@ -18,20 +19,34 @@ export function SocietyTagVoteRow({
   voteCount,
   myVote = null,
   disputed = false,
+  isPending = false,
   onUpvote,
   onDownvote,
   className,
   ...props
 }: SocietyTagVoteRowProps) {
   return (
-    <div className={cn("flex min-h-11 items-center gap-2 border-b border-line py-2", className)} {...props}>
+    <div
+      className={cn("flex min-h-11 items-center gap-2 border-b border-line py-2", className)}
+      aria-busy={isPending}
+      {...props}
+    >
       <span className="min-w-0 flex-1 truncate text-body-md text-ink">{label}</span>
-      {disputed ? <span aria-label="Disputed" className="h-2 w-2 rounded-full bg-warning" /> : null}
+      {disputed ? (
+        <span
+          aria-label="Disputed"
+          title="Conflicting votes from other users"
+          className="h-2 w-2 rounded-full bg-warning"
+        />
+      ) : null}
       <button
         type="button"
         aria-label={`Upvote ${label}`}
+        aria-busy={isPending}
+        disabled={isPending}
         className={cn(
           "flex h-8 w-8 items-center justify-center rounded-full text-ink-3 hover:bg-accent-soft",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent",
           myVote === "up" && "text-accent",
           interactiveMotion,
           focusRing
@@ -44,8 +59,11 @@ export function SocietyTagVoteRow({
       <button
         type="button"
         aria-label={`Downvote ${label}`}
+        aria-busy={isPending}
+        disabled={isPending}
         className={cn(
           "flex h-8 w-8 items-center justify-center rounded-full text-ink-3 hover:bg-error-soft",
+          "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent",
           myVote === "down" && "text-error",
           interactiveMotion,
           focusRing
@@ -57,4 +75,3 @@ export function SocietyTagVoteRow({
     </div>
   );
 }
-

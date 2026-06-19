@@ -1,7 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { MapPin, Crosshair, Loader2 } from "lucide-react";
-import { useMyProfile, useUpdateProfile, useReverseGeocode } from "@/hooks/queries";
+import {
+  useMyProfile,
+  useUpdateProfile,
+  useReverseGeocode,
+  useCities
+} from "@/hooks/queries";
 import { searchStore } from "@/lib/stores/search-store";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -14,10 +19,14 @@ export function LocationPage() {
   const navigate = useNavigate();
   const { data: profile, isLoading } = useMyProfile();
   const updateProfile = useUpdateProfile();
+  const { data: catalogCities } = useCities();
   const [city, setCity] = useState(profile?.city ?? "");
   const [submitting, setSubmitting] = useState(false);
+  const [typeaheadOpen, setTypeaheadOpen] = useState(false);
   const { geocode, geoLoading } = useReverseGeocode();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const inputWrapperRef = useRef<HTMLDivElement>(null);
+  const listboxId = useId();
 
   // Seed the field from the saved profile once it loads. The useState
   // initializer ran before `profile` resolved, so it would otherwise stay
@@ -30,11 +39,39 @@ export function LocationPage() {
     }
   }, [profile?.city]);
 
+  // Focus the heading only on first render so subsequent re-renders (e.g.
+  // isLoading flips, typeahead opens) don't steal focus from the input.
+  const hasFocusedHeading = useRef(false);
   useEffect(() => {
-    if (!isLoading) {
-      headingRef.current?.focus();
-    }
+    if (isLoading || hasFocusedHeading.current) return;
+    hasFocusedHeading.current = true;
+    headingRef.current?.focus();
   }, [isLoading]);
+
+  // Dismiss the typeahead when clicking outside the input.
+  useEffect(() => {
+    if (!typeaheadOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (!inputWrapperRef.current?.contains(e.target as Node)) {
+        setTypeaheadOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [typeaheadOpen]);
+
+  const suggestions = useMemo(() => {
+    const query = city.trim().toLowerCase();
+    const source: string[] = catalogCities && catalogCities.length > 0
+      ? catalogCities
+          .filter((c) => c.is_active)
+          .map((c) => c.name)
+      : [...POPULAR_CITIES];
+    if (!query) return source.slice(0, 5);
+    return source
+      .filter((name) => name.toLowerCase().includes(query))
+      .slice(0, 5);
+  }, [city, catalogCities]);
 
   function handleUseMyLocation() {
     if (!navigator.geolocation) {
@@ -139,14 +176,52 @@ export function LocationPage() {
         </p>
       </div>
 
-      <Input
-        label="City"
-        placeholder="Type your city..."
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        leadingIcon={<MapPin aria-hidden="true" className="h-4 w-4 text-ink-3" />}
-        autoFocus
-      />
+      <div ref={inputWrapperRef} className="relative">
+        <Input
+          label="City"
+          placeholder="Type your city..."
+          value={city}
+          onChange={(e) => {
+            setCity(e.target.value);
+            setTypeaheadOpen(true);
+          }}
+          onFocus={() => setTypeaheadOpen(true)}
+          leadingIcon={<MapPin aria-hidden="true" className="h-4 w-4 text-ink-3" />}
+          role="combobox"
+          aria-expanded={typeaheadOpen && suggestions.length > 0}
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          autoComplete="off"
+          autoFocus
+        />
+        {typeaheadOpen && suggestions.length > 0 && (
+          <ul
+            id={listboxId}
+            role="listbox"
+            className="absolute left-0 right-0 top-full z-20 mt-1 flex flex-col overflow-hidden rounded-[9px] border border-line bg-surface shadow-md"
+          >
+            {suggestions.map((name) => (
+              <li
+                key={name}
+                role="option"
+                aria-selected={city === name}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCity(name);
+                    setTypeaheadOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-body-md text-ink hover:bg-accent-soft"
+                >
+                  <MapPin aria-hidden="true" className="h-4 w-4 text-ink-3" />
+                  {name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div>
         <p className="text-label-md text-ink-3 mb-2">Popular cities</p>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import { Star } from "lucide-react";
 import { useVisit, useCancelVisit, useUpdateVisit } from "@/hooks/queries";
 import { visitToVisitCardProps } from "@/lib/api/adapters";
+import { visitStatusToCardStatus } from "@/components/molecules";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -15,8 +16,9 @@ import { VisitCard } from "@/components/molecules/VisitCard";
 import { cn } from "@/components/ui/component-utils";
 import type { StatusTone } from "@/components/ui/Badge";
 import type { Tone } from "@/components/ui/component-utils";
+import type { Visit } from "@/lib/api/types";
 
-const VISIT_STATUS_BADGE: Record<string, StatusTone> = {
+const VISIT_STATUS_BADGE: Record<Visit["status"], StatusTone> = {
   requested: "pending",
   confirmed: "confirmed",
   reschedule_suggested: "pending",
@@ -24,7 +26,7 @@ const VISIT_STATUS_BADGE: Record<string, StatusTone> = {
   completed: "completed",
 };
 
-const VISIT_STATUS_LABEL: Record<string, string> = {
+const VISIT_STATUS_LABEL: Record<Visit["status"], string> = {
   requested: "Pending",
   confirmed: "Confirmed",
   reschedule_suggested: "Reschedule suggested",
@@ -43,11 +45,27 @@ const VISIT_CONTEXT_CONFIG: Record<string, { tone: Tone; label: string }> = {
   flatmate_meet: { tone: "purple", label: "Flatmate Meet" },
 };
 
+/**
+ * TODO: The VisitUpdate schema has no `rating` field, so a 1-5 star input
+ * collapses to a 3-bucket `interest_level` here. This is data loss — a 4 and
+ * a 5 both become "high". The fix is a backend contract change (add a
+ * `rating?: 1|2|3|4|5` field to VisitUpdate). Until that lands, this
+ * conversion is the best we can do without throwing away the rating.
+ */
 function ratingToInterestLevel(rating: number): "high" | "medium" | "low" {
   if (rating >= 4) return "high";
   if (rating >= 3) return "medium";
   return "low";
 }
+
+/**
+ * NOTE: A-25 (per `.todo/wire-protocol-divergences.md`) flags that the
+ * `min` attribute on `<input type="date">` is a *string* compare, so a
+ * local-today string and the value compare correctly for ISO-formatted
+ * dates (YYYY-MM-DD), but this is fragile. The audit recommends
+ * comparing Date objects at submit time. Decision is pending per-item
+ * review; keeping the current behaviour for now.
+ */
 
 /* ---------- Star Rating ---------- */
 
@@ -108,12 +126,15 @@ export function VisitDetailPage() {
   // Cancel-confirmation state
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-  // Feedback state
+  // Feedback state — the "submitted" flag is *derived* from the server data
+  // (visitor_feedback / interest_level) so a page refresh doesn't re-show
+  // the form. The local hook state only holds the in-progress input.
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackComment, setFeedbackComment] = useState("");
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const isMutating = cancelVisit.isPending || updateVisit.isPending;
+  const feedbackSubmitted =
+    Boolean(visit?.visitor_feedback) || Boolean(visit?.interest_level);
 
   if (isLoading) {
     return (
@@ -152,11 +173,11 @@ export function VisitDetailPage() {
         });
         navigate("/visits");
       },
-      onError: () => {
+      onError: (error) => {
         uiStore.getState().pushToast({
           type: "error",
           title: "Couldn't cancel visit",
-          description: "Something went wrong. Please try again.",
+          description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         });
       },
     });
@@ -172,11 +193,11 @@ export function VisitDetailPage() {
             type: "success",
             title: "Visit confirmed",
           }),
-        onError: () =>
+        onError: (error) =>
           uiStore.getState().pushToast({
             type: "error",
             title: "Couldn't confirm visit",
-            description: "Something went wrong. Please try again.",
+            description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
           }),
       }
     );
@@ -195,11 +216,11 @@ export function VisitDetailPage() {
             title: "Visit rescheduled",
           });
         },
-        onError: () =>
+        onError: (error) =>
           uiStore.getState().pushToast({
             type: "error",
             title: "Couldn't reschedule visit",
-            description: "Something went wrong. Please try again.",
+            description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
           }),
       }
     );
@@ -214,13 +235,17 @@ export function VisitDetailPage() {
       },
       {
         onSuccess: () => {
-          setFeedbackSubmitted(true);
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Feedback submitted",
+            description: "Thanks for sharing your experience.",
+          });
         },
-        onError: () =>
+        onError: (error) =>
           uiStore.getState().pushToast({
             type: "error",
             title: "Couldn't submit feedback",
-            description: "Something went wrong. Please try again.",
+            description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
           }),
       }
     );
@@ -251,13 +276,19 @@ export function VisitDetailPage() {
         </>
       ) : (
         <>
+      {/*
+        The detail page owns the full-width action buttons below, so the
+        embedded card is rendered *display-only* — pass undefined for the
+        action handlers to suppress the duplicate inline buttons. Status is
+        threaded through directly (not via the adapter) so the card can
+        distinguish "requested" from "reschedule_suggested".
+      */}
       <VisitCard
-        visit={visitToVisitCardProps(visit)}
-        canConfirm={visit.status === "requested"}
+        visit={{
+          ...visitToVisitCardProps(visit),
+          status: visitStatusToCardStatus(visit.status),
+        }}
         busy={isMutating}
-        onConfirm={() => handleConfirm()}
-        onReschedule={() => setShowReschedule(true)}
-        onCancel={() => setShowCancelConfirm(true)}
       />
 
       <Card className="p-4 flex flex-col gap-3">

@@ -4,59 +4,112 @@ import {
   Ban,
   CheckCircle2
 } from "lucide-react";
-import { useAdminReports, useAdminReportAction } from "@/hooks/queries";
+import { useInfiniteAdminReports, useAdminReportAction } from "@/hooks/queries";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
-import { TextArea } from "@/components/ui/Input";
+import { TextArea, Input } from "@/components/ui/Input";
 import { PageLayout, PageHeader } from "@/components/ui/Layout";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { AsyncView, EmptyState } from "@/components/ui/StateViews";
+import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { uiStore } from "@/lib/stores/ui-store";
-import type { ReportAdmin } from "@/lib/api/types";
-import type { ReportAction } from "@/lib/data";
+import type { ReportAdmin, ReportStatus } from "@/lib/api/types";
+import { REPORT_STATUS_VALUES, type ReportAction } from "@/lib/data";
+
+const STATUS_CHIP_LABELS: Record<ReportStatus, string> = {
+  open: "Open",
+  under_review: "Under Review",
+  resolved: "Resolved",
+  dismissed: "Dismissed"
+};
+
+const STATUS_OPTIONS: ReportStatus[] = [...REPORT_STATUS_VALUES];
+
+type StatusFilter = ReportStatus | "all";
 
 export function ModerationReportsPage() {
   const [search, setSearch] = useState("");
-  const { data, isLoading, error, refetch } = useAdminReports({
-    status: "open"
-  });
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("open");
+  const filters = useMemo(
+    () =>
+      statusFilter === "all"
+        ? undefined
+        : { status: statusFilter as ReportStatus },
+    [statusFilter]
+  );
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    error,
+    refetch
+  } = useInfiniteAdminReports(filters);
   const reportAction = useAdminReportAction();
 
   const [actionModalOpen, setActionModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReportAdmin | null>(null);
   const [pendingAction, setPendingAction] = useState<ReportAction | null>(null);
   const [actionNotes, setActionNotes] = useState("");
+  // Confirmation token — for destructive actions (suspend) the admin must type
+  // the reported user's name OR the literal word SUSPEND before the Confirm
+  // button enables. This prevents accidental account suspensions.
+  const [suspendConfirmation, setSuspendConfirmation] = useState("");
   // Id of the report currently mutating, so only its row buttons are disabled.
   const [actingId, setActingId] = useState<number | null>(null);
 
+  // Flatten the paginated pages into a single array.
+  const allReports = useMemo<ReportAdmin[]>(
+    () => (data?.pages ?? []).flatMap((page) => page.items),
+    [data]
+  );
+  const totalCount = data?.pages?.[0]?.total ?? 0;
+
+  // If the target report scrolls out of the queue while a modal is open, treat
+  // it as closed. (Avoids the need for a useEffect to reset the state.)
+  const liveSelectedReport =
+    selectedReport && allReports.some((r) => r.id === selectedReport.id)
+      ? selectedReport
+      : null;
+
   const filtered = useMemo(
     () => {
-      const reports = data?.reports ?? [];
-      return search
-        ? reports.filter(
-            (r: ReportAdmin) =>
-              r.reporter_name.toLowerCase().includes(search.toLowerCase()) ||
-              r.reported_name.toLowerCase().includes(search.toLowerCase()) ||
-              r.reason.toLowerCase().includes(search.toLowerCase())
-          )
-        : reports;
+      if (!search) return allReports;
+      const needle = search.toLowerCase();
+      return allReports.filter(
+        (r) =>
+          r.reporter_name.toLowerCase().includes(needle) ||
+          r.reported_name.toLowerCase().includes(needle) ||
+          r.reason.toLowerCase().includes(needle)
+      );
     },
-    [search, data]
+    [search, allReports]
   );
 
   function openActionModal(report: ReportAdmin, action: ReportAction) {
     setSelectedReport(report);
     setPendingAction(action);
     setActionNotes("");
+    setSuspendConfirmation("");
     setActionModalOpen(true);
   }
 
   function handleConfirmAction() {
-    if (!selectedReport || !pendingAction || reportAction.isPending) return;
-    const report = selectedReport;
+    if (!liveSelectedReport || !pendingAction || reportAction.isPending) return;
+    if (pendingAction === "suspend") {
+      // Defence-in-depth: the button is also disabled in the UI, but block
+      // here too in case the disabled state is bypassed (e.g. dev tools).
+      const token = suspendConfirmation.trim();
+      const expected = liveSelectedReport.reported_name.trim();
+      if (!actionNotes.trim() || (token !== "SUSPEND" && token !== expected)) {
+        return;
+      }
+    }
+    const report = liveSelectedReport;
     const action = pendingAction;
     setActingId(report.id);
     reportAction.mutate(
@@ -73,6 +126,7 @@ export function ModerationReportsPage() {
           setSelectedReport(null);
           setPendingAction(null);
           setActionNotes("");
+          setSuspendConfirmation("");
           uiStore.getState().pushToast({
             type: "success",
             title: `Report ${actionPastTense[action]}`,
@@ -116,6 +170,41 @@ export function ModerationReportsPage() {
     dismissed: "rejected"
   };
 
+  // Status-filter chip labels. NOTE: when A-2/A-3 are resolved
+  // (REPORT_STATUS and REPORT_ACTION divergence), the labels here will need
+  // to be re-evaluated against the new values from the backend.
+  const statusChips: { value: StatusFilter; label: string }[] = [
+    { value: "all", label: "All" },
+    ...STATUS_OPTIONS.map((status) => ({
+      value: status as StatusFilter,
+      label: STATUS_CHIP_LABELS[status]
+    }))
+  ];
+
+  const isSuspend = pendingAction === "suspend";
+  const suspendTokenMatches =
+    liveSelectedReport &&
+    (suspendConfirmation.trim() === "SUSPEND" ||
+      suspendConfirmation.trim() === liveSelectedReport.reported_name.trim());
+  const canConfirm =
+    !!pendingAction &&
+    !reportAction.isPending &&
+    (isSuspend
+      ? suspendTokenMatches && !!actionNotes.trim()
+      : true);
+
+  const hasSearch = search.trim().length > 0;
+  const emptyTitle = hasSearch
+    ? "No matches"
+    : statusFilter === "open"
+      ? "No open reports"
+      : "No reports";
+  const emptyDescription = hasSearch
+    ? `No reports match "${search}".`
+    : statusFilter === "open"
+      ? "All reports have been reviewed. Check back later."
+      : "Try a different status filter.";
+
   return (
     <PageLayout>
       <PageHeader
@@ -125,6 +214,19 @@ export function ModerationReportsPage() {
       />
 
       <div className="mt-6 flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by status">
+          {statusChips.map((chip) => (
+            <Chip
+              key={chip.value}
+              variant="choice"
+              selected={statusFilter === chip.value}
+              onClick={() => setStatusFilter(chip.value)}
+            >
+              {chip.label}
+            </Chip>
+          ))}
+        </div>
+
         <SearchBar
           placeholder="Search by reporter, reported user, or reason"
           value={search}
@@ -132,12 +234,20 @@ export function ModerationReportsPage() {
           onClear={() => setSearch("")}
         />
 
+        <div className="flex items-center justify-between text-caption text-ink-3">
+          <span>
+            {totalCount > 0
+              ? `${filtered.length} of ${totalCount} report${totalCount === 1 ? "" : "s"}`
+              : "No reports"}
+          </span>
+        </div>
+
         <AsyncView
-          data={data}
+          data={allReports}
           isLoading={isLoading}
           error={error}
           onRetry={() => refetch()}
-          isEmpty={(d) => !d.reports?.length}
+          isEmpty={(d) => d.length === 0}
           loading={
             <div className="flex flex-col gap-3">
               {Array.from({ length: 5 }, (_, i) => (
@@ -163,33 +273,50 @@ export function ModerationReportsPage() {
           }
           empty={
             <EmptyState
-              title="No open reports"
-              description="All reports have been reviewed. Check back later."
+              title={emptyTitle}
+              description={emptyDescription}
+              actionLabel={hasSearch ? "Clear search" : undefined}
+              onAction={hasSearch ? () => setSearch("") : undefined}
             />
+          }
+          errorView={
+            <Card className="flex items-center justify-center p-6">
+              <ErrorState
+                title="Could not load reports"
+                description="Please try again."
+                onRetry={() => refetch()}
+              />
+            </Card>
           }
         >
           {() => (
-            <ul className="flex flex-col gap-3">
-              {filtered.map((report: ReportAdmin) => (
-                <li key={report.id}>
-                  <ReportRow
-                    report={report}
-                    statusBadgeMap={statusBadgeMap}
-                    onAction={(action) => openActionModal(report, action)}
-                    isActing={actingId === report.id}
-                    actionsDisabled={actingId !== null}
-                  />
-                </li>
-              ))}
-              {filtered.length === 0 && search && (
-                <li>
-                  <EmptyState
-                    title="No matches"
-                    description={`No reports match "${search}".`}
-                  />
-                </li>
-              )}
-            </ul>
+            <>
+              <ul className="flex flex-col gap-3">
+                {filtered.map((report: ReportAdmin) => (
+                  <li key={report.id}>
+                    <ReportRow
+                      report={report}
+                      statusBadgeMap={statusBadgeMap}
+                      onAction={(action) => openActionModal(report, action)}
+                      isActing={actingId === report.id}
+                      actionsDisabled={actingId !== null}
+                    />
+                  </li>
+                ))}
+              </ul>
+              {hasNextPage ? (
+                <div className="mt-4 flex justify-center">
+                  <Button
+                    variant="secondary"
+                    size="compact"
+                    onClick={() => fetchNextPage()}
+                    loading={isFetchingNextPage}
+                  >
+                    Load more
+                  </Button>
+                </div>
+              ) : null}
+            </>
           )}
         </AsyncView>
       </div>
@@ -207,6 +334,7 @@ export function ModerationReportsPage() {
           if (reportAction.isPending) return;
           setActionModalOpen(false);
         }}
+        size="wide"
         footer={
           <>
             <Button
@@ -222,19 +350,48 @@ export function ModerationReportsPage() {
               variant={pendingAction ? actionVariantMap[pendingAction] : "tertiary"}
               loading={reportAction.isPending}
               onClick={handleConfirmAction}
+              disabled={!canConfirm}
             >
               Confirm
             </Button>
           </>
         }
       >
-        <TextArea
-          label="Notes (optional)"
-          placeholder="Add any internal notes about this action..."
-          value={actionNotes}
-          onChange={(e) => setActionNotes(e.target.value)}
-          rows={3}
-        />
+        <div className="flex flex-col gap-4">
+          {isSuspend && selectedReport ? (
+            <div className="rounded-xl border border-error/30 bg-error-soft p-3 text-caption text-error">
+              <p className="font-semibold">
+                Suspending will hide {selectedReport.reported_name}'s account from
+                discovery and prevent them from signing in.
+              </p>
+              <p className="mt-1 text-ink-2">
+                To confirm, type{" "}
+                <span className="font-mono font-semibold text-ink">
+                  {selectedReport.reported_name}
+                </span>{" "}
+                or{" "}
+                <span className="font-mono font-semibold text-ink">SUSPEND</span>{" "}
+                below.
+              </p>
+            </div>
+          ) : null}
+          {isSuspend ? (
+            <Input
+              label="Confirm suspension"
+              placeholder={`Type "${selectedReport?.reported_name ?? "SUSPEND"}" or SUSPEND`}
+              value={suspendConfirmation}
+              onChange={(e) => setSuspendConfirmation(e.target.value)}
+              autoComplete="off"
+            />
+          ) : null}
+          <TextArea
+            label={isSuspend ? "Notes (required)" : "Notes (optional)"}
+            placeholder="Add any internal notes about this action..."
+            value={actionNotes}
+            onChange={(e) => setActionNotes(e.target.value)}
+            rows={3}
+          />
+        </div>
       </Modal>
     </PageLayout>
   );
@@ -282,7 +439,7 @@ function ReportRow({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             size="compact"
             variant="tertiary"

@@ -195,7 +195,7 @@ const expectedScopes: Record<string, string[]> = {
   useVisits: ["visits"],
   useNotifications: ["notifications"],
   useDashboard: ["dashboard"],
-  useMatches: ["matches", "incoming-likes"],
+  useMatches: ["matches", "incoming-likes", "outgoing-likes"],
   useMapView: ["map"],
   useShareCard: ["share-card"],
 };

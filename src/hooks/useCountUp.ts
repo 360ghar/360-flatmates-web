@@ -13,7 +13,20 @@ export function useCountUp(
   useEffect(() => {
     if (!enabled || hasAnimated.current || !inView) return;
 
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     hasAnimated.current = true;
+
+    // Snap to the final value with no animation when the user has
+    // expressed a preference for reduced motion.
+    if (prefersReduced) {
+      lastValue.current = target;
+      setValue(target);
+      return;
+    }
+
     setValue(0);
     lastValue.current = 0;
 

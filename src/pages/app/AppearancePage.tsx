@@ -1,6 +1,7 @@
 import { useStore } from "zustand";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Sun, Moon, Monitor, Palette } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Monitor, Palette, Bell, Star } from "lucide-react";
 import {
   uiStore,
   type ThemePreference,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Chip } from "@/components/ui/Chip";
 import { SelectableCardGrid } from "@/components/molecules/SelectableCardGrid";
 
 const THEME_ICONS: Record<ThemePreference, React.ReactNode> = {
@@ -16,10 +18,13 @@ const THEME_ICONS: Record<ThemePreference, React.ReactNode> = {
   dark: <Moon aria-hidden="true" className="h-6 w-6" />,
   system: <Monitor aria-hidden="true" className="h-6 w-6" />,
 };
+// The default app theme is light (see uiStore initial state). System tracks
+// the OS but the static default — and the colour palette tokens used
+// everywhere — is the light variant.
 const THEME_DESCRIPTIONS: Record<ThemePreference, string> = {
-  light: "Warm off-white paper background with dark text",
+  light: "Warm off-white paper background with dark text. The app default.",
   dark: "Warm charcoal background with light text",
-  system: "Follows your device appearance setting",
+  system: "Light or dark based on your device setting. Defaults to light.",
 };
 
 const PALETTE_OPTIONS: Array<{ value: PalettePreference; label: string; description: string }> = [
@@ -28,37 +33,69 @@ const PALETTE_OPTIONS: Array<{ value: PalettePreference; label: string; descript
   { value: "monsoon_teal", label: "Monsoon Teal", description: "Cool, refreshing teal accent" },
 ];
 
+// All palette swatches use the live --color-accent CSS variable so the swatch
+// updates as soon as the user picks a new palette.
 const PALETTE_ICONS: Record<PalettePreference, React.ReactNode> = {
   terracotta: (
     <div className="flex h-6 w-6 items-center justify-center">
-      <span className="h-5 w-5 rounded-full bg-[#C96442]" aria-hidden="true" />
+      <span
+        className="h-5 w-5 rounded-full"
+        style={{ background: "var(--color-accent)" }}
+        aria-hidden="true"
+      />
     </div>
   ),
   ember: (
     <div className="flex h-6 w-6 items-center justify-center">
-      <span className="h-5 w-5 rounded-full bg-[#D17847]" aria-hidden="true" />
+      <span
+        className="h-5 w-5 rounded-full"
+        style={{ background: "var(--color-accent)" }}
+        aria-hidden="true"
+      />
     </div>
   ),
   monsoon_teal: (
     <div className="flex h-6 w-6 items-center justify-center">
-      <span className="h-5 w-5 rounded-full bg-[#5A9DA8]" aria-hidden="true" />
+      <span
+        className="h-5 w-5 rounded-full"
+        style={{ background: "var(--color-accent)" }}
+        aria-hidden="true"
+      />
     </div>
   ),
 };
 
-const LIGHT_SWATCHES = [
+const PREVIEW_SWATCHES = [
   { token: "Paper", className: "bg-paper" },
   { token: "Surface", className: "bg-surface" },
   { token: "Accent", className: "bg-accent" },
   { token: "Ink", className: "bg-ink" },
 ];
 
-const DARK_SWATCHES = [
-  { token: "Paper", className: "bg-paper" },
-  { token: "Surface", className: "bg-surface" },
-  { token: "Accent", className: "bg-accent" },
-  { token: "Ink", className: "bg-ink" },
-];
+const DEFAULT_THEME: ThemePreference = "light";
+
+/** Resolve "system" to the current effective theme so the preview matches
+ *  what the user actually sees on screen. */
+function useResolvedTheme(theme: ThemePreference): "light" | "dark" {
+  const [systemTheme, setSystemTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (e: MediaQueryListEvent) => {
+      setSystemTheme(e.matches ? "dark" : "light");
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return theme === "system" ? systemTheme : theme;
+}
 
 export function AppearancePage() {
   const navigate = useNavigate();
@@ -66,6 +103,7 @@ export function AppearancePage() {
   const setTheme = useStore(uiStore, (s) => s.setTheme);
   const palette = useStore(uiStore, (s) => s.palette);
   const setPalette = useStore(uiStore, (s) => s.setPalette);
+  const resolvedTheme = useResolvedTheme(theme);
 
   return (
     <div className="flex flex-col gap-5 page-fade">
@@ -80,7 +118,7 @@ export function AppearancePage() {
       <SelectableCardGrid<ThemePreference>
         options={THEME_OPTIONS.map((o) => ({
           value: o.value,
-          label: o.label,
+          label: o.label + (o.value === DEFAULT_THEME ? " (default)" : ""),
           description: THEME_DESCRIPTIONS[o.value],
         }))}
         iconMap={THEME_ICONS}
@@ -97,35 +135,41 @@ export function AppearancePage() {
       />
 
       <h2 className="text-label-md text-ink-3 mt-2 px-1">Theme Preview</h2>
-      <Card className="p-4">
-        <p className="text-label-md text-ink-3 mb-3">Light mode tokens</p>
-        <div className="flex flex-wrap gap-3">
-          {LIGHT_SWATCHES.map((swatch) => (
-            <div key={swatch.token} className="flex flex-col items-center gap-1.5">
-              <div
-                className={`h-12 w-12 rounded-xl border border-line ${swatch.className}`}
-              />
-              <span className="text-caption text-ink-3">{swatch.token}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <div data-theme="dark">
-        <Card className="p-4">
-          <p className="text-label-md mb-3" style={{ color: "var(--color-ink-3)" }}>
-            Dark mode tokens
+      <div data-theme={resolvedTheme} className="flex flex-col gap-3">
+        <Card className="flex flex-col gap-3 p-4">
+          <p className="text-label-md text-ink-3">
+            {resolvedTheme === "dark" ? "Dark" : "Light"} mode preview
+            {theme === "system" ? " · following system" : ""}
           </p>
           <div className="flex flex-wrap gap-3">
-            {DARK_SWATCHES.map((swatch) => (
+            {PREVIEW_SWATCHES.map((swatch) => (
               <div key={swatch.token} className="flex flex-col items-center gap-1.5">
-                <div
-                  className={`h-12 w-12 rounded-xl ${swatch.className}`}
-                  style={{ border: "1px solid var(--color-line)" }}
-                />
-                <span className="text-caption" style={{ color: "var(--color-ink-3)" }}>{swatch.token}</span>
+                <div className="h-12 w-12 rounded-xl border border-line" style={{ background: `var(--color-${swatch.token.toLowerCase()})` }} />
+                <span className="text-caption text-ink-3">{swatch.token}</span>
               </div>
             ))}
+          </div>
+          <div className="mt-2 flex flex-col gap-3 border-t border-line/60 pt-4">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <Bell aria-hidden="true" className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-body-md font-semibold text-ink truncate">Sample notification</p>
+                  <p className="text-caption text-ink-3 truncate">Preview of a list row</p>
+                </div>
+              </div>
+              <Button size="compact" variant="primary" leadingIcon={<Star aria-hidden="true" className="h-4 w-4" />}>
+                Action
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Chip variant="info" selected>Active</Chip>
+              <Chip variant="info">Info</Chip>
+              <Chip variant="info" className="bg-warning-soft text-warning">Warning</Chip>
+              <Chip variant="info" className="bg-success-soft text-success">Success</Chip>
+            </div>
           </div>
         </Card>
       </div>

@@ -19,10 +19,21 @@ import { ListingCard } from "@/components/molecules/ListingCard";
 const PROPERTY_STATUS_LABEL: Record<string, string> = {
   approved: "Published",
   pending_review: "Under Review",
+  rejected: "Rejected",
+  // TODO: F5 — A-20 will broaden the API enum to include these lifecycle
+  // states. Pre-declaring the labels now means the UI will render them the
+  // moment the backend returns them, without a follow-up patch.
+  draft: "Draft",
+  paused: "Paused",
+  expired: "Expired"
 };
 
-function toIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+/** Format a Date as a YYYY-MM-DD string in the user's local timezone (for
+ *  date-input values and the renew payload). Using `toISOString` here would
+ *  shift the date in non-UTC timezones — e.g. IST at 23:30 would become the
+ *  next day. */
+function localISODate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 export function MyListingDetailPage() {
@@ -36,10 +47,15 @@ export function MyListingDetailPage() {
   const renewListing = useRenewListing();
   const deleteProperty = useDeleteProperty(propertyId);
 
+  // TODO: F5 — no Pause/Resume action. A-4 unifies lifecycle × moderation;
+  // until that's unblocked we surface only the actions the API supports today.
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmBoost, setConfirmBoost] = useState(false);
+  const [confirmRenew, setConfirmRenew] = useState(false);
 
   function handleBoost() {
     if (boostListing.isPending) return;
+    setConfirmBoost(false);
     boostListing.mutate(
       { propertyId, payload: { duration: "7d" } },
       {
@@ -61,11 +77,12 @@ export function MyListingDetailPage() {
 
   function handleRenew() {
     if (renewListing.isPending) return;
+    setConfirmRenew(false);
     const now = new Date();
     const expires = new Date(now);
     expires.setDate(expires.getDate() + 30);
     renewListing.mutate(
-      { propertyId, payload: { available_from: toIsoDate(now), expires_at: toIsoDate(expires) } },
+      { propertyId, payload: { available_from: localISODate(now), expires_at: localISODate(expires) } },
       {
         onSuccess: () =>
           uiStore.getState().pushToast({
@@ -184,16 +201,14 @@ export function MyListingDetailPage() {
               <Button
                 variant="secondary"
                 leadingIcon={<Rocket aria-hidden="true" className="h-4 w-4" />}
-                loading={boostListing.isPending}
-                onClick={handleBoost}
+                onClick={() => setConfirmBoost(true)}
               >
                 Boost
               </Button>
               <Button
                 variant="secondary"
                 leadingIcon={<RefreshCw aria-hidden="true" className="h-4 w-4" />}
-                loading={renewListing.isPending}
-                onClick={handleRenew}
+                onClick={() => setConfirmRenew(true)}
               >
                 Renew
               </Button>
@@ -227,6 +242,52 @@ export function MyListingDetailPage() {
               onClick={handleDelete}
             >
               Delete listing
+            </Button>
+          </>
+        }
+      />
+
+      {/* Boost confirmation (limited/paid slots — confirm before spending) */}
+      <Modal
+        open={confirmBoost}
+        onClose={() => setConfirmBoost(false)}
+        title="Boost this listing?"
+        description="Your listing will be promoted for 7 days. Boost slots are limited — only use this when you want maximum visibility."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setConfirmBoost(false)} className="w-full md:w-auto">
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={boostListing.isPending}
+              onClick={handleBoost}
+              className="w-full md:w-auto"
+            >
+              Boost for 7 days
+            </Button>
+          </>
+        }
+      />
+
+      {/* Renew confirmation */}
+      <Modal
+        open={confirmRenew}
+        onClose={() => setConfirmRenew(false)}
+        title="Renew this listing?"
+        description="Your listing will become active again for 30 days, starting today."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setConfirmRenew(false)} className="w-full md:w-auto">
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={renewListing.isPending}
+              onClick={handleRenew}
+              className="w-full md:w-auto"
+            >
+              Renew for 30 days
             </Button>
           </>
         }

@@ -65,7 +65,8 @@ it("shows nav items filtered by mode — open_to_both", () => {
   );
   const nav = sidebarNav();
   expect(nav.getByText("Explore")).toBeInTheDocument();
-  expect(nav.queryByText("Post & Manage")).not.toBeInTheDocument();
+  expect(nav.getByText("Post & Manage")).toBeInTheDocument();
+  expect(nav.getByText("Dashboard")).toBeInTheDocument();
 });
 
 it("highlights active nav item", () => {

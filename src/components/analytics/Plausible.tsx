@@ -1,3 +1,8 @@
+// Component is dead. Plausible is loaded via index.html (the static
+// <script defer data-domain="360ghar.com" src="https://plausible.io/js/script.js" />
+// tag). Mounting this React component would double-count every pageview.
+// If you want client-side control of Plausible, gate the import on a build
+// flag and remove the static script tag from index.html first.
 import { useEffect } from "react";
 import { useLocation } from "react-router";
 

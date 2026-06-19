@@ -1,6 +1,7 @@
 import type { CompatibilityColor, LifestyleDimensionKey, UserMatchStatus } from "@/lib/data";
 import type { FlatmatesPeer } from "./user.types";
 import type { ConversationPropertyContext } from "./conversation.types";
+import type { CursorPage } from "./common.types";
 
 export interface IncomingLikeSummary {
   id: number;
@@ -17,10 +18,14 @@ export interface MatchSummary {
   created_at?: string;
 }
 
+/** @deprecated Use {@link MatchCursorPage} instead. */
 export interface MatchesResponse {
   matches: MatchSummary[];
   total: number;
 }
+
+export type MatchCursorPage = CursorPage<MatchSummary>;
+export type IncomingLikeCursorPage = CursorPage<IncomingLikeSummary>;
 
 export interface CompatibilityDimension {
   name: LifestyleDimensionKey;

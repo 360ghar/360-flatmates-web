@@ -3,16 +3,19 @@ import { useNavigate } from "react-router";
 import { ImagePlus, X } from "lucide-react";
 import { useCreateProperty, useUploadPropertyImage } from "@/hooks/queries";
 import { useImageUpload } from "@/hooks/useImageUpload";
+import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
 import type { PropertyCreate } from "@/lib/api/types";
 import {
   LISTING_SHARING_TYPE_OPTIONS
 } from "@/lib/data";
 import { uiStore } from "@/lib/stores/ui-store";
 import { humanizeSnakeCase, formatRent } from "@/lib/utils";
+import { LISTING_DRAFT_STORAGE_KEY } from "@/lib/schemas/listing-builder";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ListingBuilder, type ListingBuilderStep } from "@/components/organisms/ListingBuilder";
@@ -47,7 +50,10 @@ interface PendingImage {
   uploading: boolean;
 }
 
-const DRAFT_STORAGE_KEY = "flatmates:post-draft";
+interface DraftState {
+  form: Partial<PropertyCreate>;
+  currentStep: number;
+}
 
 const DEFAULT_FORM: Partial<PropertyCreate> = {
   property_type: "flatmate",
@@ -59,25 +65,64 @@ const DEFAULT_FORM: Partial<PropertyCreate> = {
   image_urls: []
 };
 
-function loadDraft(): Partial<PropertyCreate> {
-  if (typeof window === "undefined") return DEFAULT_FORM;
+const DEFAULT_DRAFT: DraftState = { form: DEFAULT_FORM, currentStep: 0 };
+
+function loadDraft(): DraftState {
+  if (typeof window === "undefined") return DEFAULT_DRAFT;
   try {
-    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) return DEFAULT_FORM;
-    const parsed = JSON.parse(raw) as Partial<PropertyCreate>;
-    return { ...DEFAULT_FORM, ...parsed };
+    const raw = window.localStorage.getItem(LISTING_DRAFT_STORAGE_KEY);
+    if (!raw) return DEFAULT_DRAFT;
+    const parsed = JSON.parse(raw) as Partial<DraftState>;
+    return {
+      form: { ...DEFAULT_FORM, ...(parsed.form ?? {}) },
+      currentStep:
+        typeof parsed.currentStep === "number" && parsed.currentStep >= 0
+          ? Math.min(parsed.currentStep, STEPS.length - 1)
+          : 0
+    };
   } catch {
-    return DEFAULT_FORM;
+    return DEFAULT_DRAFT;
   }
 }
 
-/** Returns true when the given step has all required fields filled in. */
+/** Coerce a numeric input to a number, mapping empty/NaN to undefined so a
+ *  cleared field doesn't trip `Number.isFinite` validation. */
+function optionalNumberValue(raw: string): number | undefined {
+  if (raw.trim() === "") return undefined;
+  const n = Number(raw);
+  return Number.isNaN(n) ? undefined : n;
+}
+
+/** Returns true when the given step has all required fields filled in.
+ *  Constraints mirror the Zod schema in `lib/schemas/listing-builder.ts`
+ *  (propertyCreateSchema): title ≥ 5 chars, monthly_rent ≥ 500, city &
+ *  locality non-empty. All other fields are optional. */
 function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
   switch (step) {
     case 0:
-      return Boolean(form.title?.trim()) && typeof form.monthly_rent === "number" && form.monthly_rent > 0;
+      return (
+        Boolean(form.title?.trim()) &&
+        (form.title?.trim().length ?? 0) >= 5 &&
+        Number.isFinite(form.monthly_rent) &&
+        (form.monthly_rent ?? 0) >= 500
+      );
     case 1:
       return Boolean(form.city?.trim()) && Boolean(form.locality?.trim());
+    case 2:
+      /* All fields optional per the schema; only require numbers when set. */
+      return (
+        (form.bedrooms === undefined || Number.isFinite(form.bedrooms)) &&
+        (form.bathrooms === undefined || Number.isFinite(form.bathrooms)) &&
+        (form.area_sqft === undefined || Number.isFinite(form.area_sqft)) &&
+        (form.security_deposit === undefined || Number.isFinite(form.security_deposit))
+      );
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+      return true;
+    case 7:
+      return isStepValid(0, form) && isStepValid(1, form);
     default:
       return true;
   }
@@ -85,25 +130,50 @@ function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
 
 export function PostPage() {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [form, setForm] = useState<Partial<PropertyCreate>>(loadDraft);
+  const [currentStep, setCurrentStep] = useState(() => loadDraft().currentStep);
+  const [form, setForm] = useState<Partial<PropertyCreate>>(() => loadDraft().form);
   const [showStepError, setShowStepError] = useState(false);
+  // TODO: persisting File objects across refreshes is a known limitation. The
+  // base64 data URLs survive in `form.image_urls` so the visible data isn't
+  // lost, but on a refresh the user must re-select files to re-upload them.
+  // A full fix would re-upload the data URLs as files on rehydration.
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+  const [hasPublished, setHasPublished] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* Persist the form as a draft so a refresh mid-wizard does not lose progress. */
+  /* Persist the form + current step as a draft so a refresh mid-wizard does
+     not lose progress. Image File objects are not serialised; the base64
+     data URLs stay in `form.image_urls` and are re-uploaded on publish. */
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+      const draft: DraftState = { form, currentStep };
+      window.localStorage.setItem(LISTING_DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch {
       /* storage may be unavailable (private mode); fail silently */
     }
-  }, [form]);
+  }, [form, currentStep]);
 
   const createProperty = useCreateProperty();
   const uploadImage = useUploadPropertyImage();
   const { upload: uploadImageFile } = useImageUpload();
+
+  /* Treat the wizard as "dirty" any time the user has entered something
+     beyond the defaults. The guard stays armed until the property is
+     successfully created (then `hasPublished` flips and the guard relaxes). */
+  const isDirty =
+    !hasPublished &&
+    (currentStep > 0 ||
+      Boolean(form.title?.trim()) ||
+      Boolean(form.city?.trim()) ||
+      Boolean(form.locality?.trim()) ||
+      typeof form.monthly_rent === "number" ||
+      (form.image_urls?.length ?? 0) > 0);
+
+  const blocker = useDirtyFormGuard(
+    isDirty && !createProperty.isPending,
+    "You have unsaved listing changes. Leaving will discard them."
+  );
 
   function patchForm(patch: Partial<PropertyCreate>) {
     setShowStepError(false);
@@ -136,10 +206,12 @@ export function PostPage() {
         onSuccess: (property) => {
           /* Clear the saved draft now that the listing is published */
           try {
-            window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+            window.localStorage.removeItem(LISTING_DRAFT_STORAGE_KEY);
           } catch {
             /* ignore */
           }
+          /* Disable the dirty-form guard so the post-publish nav isn't blocked. */
+          setHasPublished(true);
           /* Upload pending images after the property is created (skip ones that failed to process) */
           const unuploaded = pendingImages.filter(
             (img) => !img.uploaded && !img.uploading && img.preview
@@ -279,6 +351,7 @@ export function PostPage() {
   const stepValid = isStepValid(currentStep, form);
 
   return (
+    <div className="flex flex-col">
     <ListingBuilder
       steps={STEPS}
       currentStep={currentStep}
@@ -298,11 +371,16 @@ export function PostPage() {
               <Input
                 placeholder="e.g. Spacious 1BHK in DLF Phase 1"
                 value={form.title ?? ""}
-                aria-invalid={showStepError && !form.title?.trim() ? true : undefined}
+                aria-invalid={
+                  showStepError &&
+                  (!form.title?.trim() || (form.title?.trim().length ?? 0) < 5)
+                    ? true
+                    : undefined
+                }
                 onChange={(e) => patchForm({ title: e.target.value })}
               />
-              {showStepError && !form.title?.trim() && (
-                <span className="text-caption text-error">Title is required.</span>
+              {showStepError && (!form.title?.trim() || (form.title?.trim().length ?? 0) < 5) && (
+                <span className="text-caption text-error">Title must be at least 5 characters.</span>
               )}
             </label>
             <label className="flex flex-col gap-1.5">
@@ -311,12 +389,20 @@ export function PostPage() {
                 type="number"
                 placeholder="15000"
                 value={form.monthly_rent ? String(form.monthly_rent) : ""}
-                aria-invalid={showStepError && !(form.monthly_rent && form.monthly_rent > 0) ? true : undefined}
-                onChange={(e) => patchForm({ monthly_rent: Number(e.target.value) })}
+                aria-invalid={
+                  showStepError &&
+                  (!Number.isFinite(form.monthly_rent) || (form.monthly_rent ?? 0) < 500)
+                    ? true
+                    : undefined
+                }
+                onChange={(e) => patchForm({ monthly_rent: optionalNumberValue(e.target.value) })}
               />
-              {showStepError && !(form.monthly_rent && form.monthly_rent > 0) && (
-                <span className="text-caption text-error">Enter a monthly rent greater than zero.</span>
-              )}
+              {showStepError &&
+                (!Number.isFinite(form.monthly_rent) || (form.monthly_rent ?? 0) < 500) && (
+                  <span className="text-caption text-error">
+                    Enter a monthly rent of at least ₹500.
+                  </span>
+                )}
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="text-label-md text-ink-2">Security Deposit</span>
@@ -324,7 +410,7 @@ export function PostPage() {
                 type="number"
                 placeholder="30000"
                 value={form.security_deposit ? String(form.security_deposit) : ""}
-                onChange={(e) => patchForm({ security_deposit: Number(e.target.value) })}
+                onChange={(e) => patchForm({ security_deposit: optionalNumberValue(e.target.value) })}
               />
             </label>
           </div>
@@ -393,7 +479,7 @@ export function PostPage() {
                   type="number"
                   placeholder="1"
                   value={form.bedrooms ? String(form.bedrooms) : ""}
-                  onChange={(e) => patchForm({ bedrooms: Number(e.target.value) })}
+                  onChange={(e) => patchForm({ bedrooms: optionalNumberValue(e.target.value) })}
                 />
               </label>
               <label className="flex flex-col gap-1.5">
@@ -402,7 +488,7 @@ export function PostPage() {
                   type="number"
                   placeholder="1"
                   value={form.bathrooms ? String(form.bathrooms) : ""}
-                  onChange={(e) => patchForm({ bathrooms: Number(e.target.value) })}
+                  onChange={(e) => patchForm({ bathrooms: optionalNumberValue(e.target.value) })}
                 />
               </label>
             </div>
@@ -413,7 +499,7 @@ export function PostPage() {
                   type="number"
                   placeholder="800"
                   value={form.area_sqft ? String(form.area_sqft) : ""}
-                  onChange={(e) => patchForm({ area_sqft: Number(e.target.value) })}
+                  onChange={(e) => patchForm({ area_sqft: optionalNumberValue(e.target.value) })}
                 />
               </label>
               <label className="flex flex-col gap-1.5">
@@ -662,5 +748,26 @@ export function PostPage() {
         </Card>
       )}
     </ListingBuilder>
+    <Modal
+      open={blocker.state === "blocked"}
+      onClose={() => blocker.reset?.()}
+      title="Discard unsaved listing?"
+      description="Your listing draft is saved locally, but leaving this page will leave the wizard. You can return any time before publishing."
+      footer={
+        <>
+          <Button variant="secondary" onClick={() => blocker.reset?.()} className="w-full md:w-auto">
+            Keep editing
+          </Button>
+          <Button
+            variant="primary"
+            className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+            onClick={() => blocker.proceed?.()}
+          >
+            Leave page
+          </Button>
+        </>
+      }
+    />
+    </div>
   );
 }

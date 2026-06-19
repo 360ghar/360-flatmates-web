@@ -1,12 +1,15 @@
-import { type FormEvent, type HTMLAttributes, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, type HTMLAttributes, type KeyboardEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 import { PrefetchLink } from "../ui/PrefetchLink";
 import {
   BarChart3,
   Bell,
+  Bookmark,
+  Calendar,
   Heart,
   Home,
+  LayoutGrid,
   Map,
   MessageCircle,
   PanelLeftClose,
@@ -14,7 +17,8 @@ import {
   Plus,
   Search,
   Shuffle,
-  User
+  Sparkles,
+  User,
 } from "lucide-react";
 import {
   SIDEBAR_WIDTH_COLLAPSED,
@@ -30,6 +34,7 @@ import { SearchBar } from "../ui/SearchBar";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { cn, focusRing } from "../ui/component-utils";
 import { useNotifications } from "@/hooks/queries";
+import { BottomSheet } from "../ui/Modal";
 
 export interface ShellUser {
   name: string;
@@ -64,17 +69,30 @@ export interface AppShellProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const defaultNavItems: NavItemConfig[] = [
-  /* ── Mobile bottom-nav items (first 5 per mode) ── */
+  /* ── Discovery ── */
   { label: "Home", href: "/home", icon: Home, showFor: ["room_poster", "co_hunter", "open_to_both"] },
-  { label: "Post & Manage", href: "/manage", icon: Plus, showFor: ["room_poster"] },
   { label: "Explore", href: "/explore", icon: Map, showFor: ["co_hunter", "open_to_both"] },
   { label: "Swipe", href: "/swipe", icon: Shuffle, showFor: ["room_poster", "co_hunter", "open_to_both"] },
-  { label: "Likes & Chat", href: "/likes", icon: Heart, showFor: ["room_poster", "co_hunter", "open_to_both"] },
-  { label: "Profile", href: "/profile", icon: User, showFor: ["room_poster", "co_hunter", "open_to_both"] },
-  /* ── Sidebar-only items (never in mobile bottom nav) ── */
+  { label: "Saved Searches", href: "/saved-searches", icon: Bookmark, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
+  /* ── Social ── */
+  { label: "Likes & Matches", href: "/likes", icon: Heart, showFor: ["room_poster", "co_hunter", "open_to_both"] },
   { label: "Chats", href: "/chats", icon: MessageCircle, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
-  { label: "Dashboard", href: "/dashboard", icon: BarChart3, showFor: ["room_poster"], sidebarOnly: true },
+  /* ── Management ── */
+  { label: "Post & Manage", href: "/manage", icon: Plus, showFor: ["room_poster", "open_to_both"] },
+  { label: "Dashboard", href: "/dashboard", icon: BarChart3, showFor: ["room_poster", "open_to_both"], sidebarOnly: true },
+  { label: "Visits", href: "/visits", icon: Calendar, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
+  /* ── Alerts & Profile ── */
+  { label: "Alerts", href: "/alerts", icon: Sparkles, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
+  { label: "Profile", href: "/profile", icon: User, showFor: ["room_poster", "co_hunter", "open_to_both"] },
 ];
+
+const MORE_NAV_ITEM: NavItemConfig = {
+  label: "More",
+  href: "#more",
+  icon: LayoutGrid,
+  showFor: ["room_poster", "co_hunter", "open_to_both"],
+  sidebarOnly: false,
+};
 
 export function AppShell({
   children,
@@ -103,15 +121,32 @@ export function AppShell({
     () => navItems.filter((item) => item.showFor.includes(mode)),
     [navItems, mode]
   );
-  const mobileItems = useMemo(
-    () => visibleItems.filter((item) => !item.sidebarOnly).slice(0, 5),
+  const sidebarOnlyItems = useMemo(
+    () => visibleItems.filter((item) => item.sidebarOnly),
     [visibleItems]
   );
+  const [moreOpen, setMoreOpen] = useState(false);
+  const mobileItems = useMemo(() => {
+    const primary = visibleItems.filter((item) => !item.sidebarOnly);
+    if (primary.length <= 5 && sidebarOnlyItems.length === 0) {
+      return primary;
+    }
+    // Surface a "More" affordance so sidebar-only destinations (Chats,
+    // Dashboard, Visits, Alerts, SavedSearches, Matches) and any overflow
+    // primary items are reachable on mobile.
+    return [...primary.slice(0, 4), MORE_NAV_ITEM];
+  }, [visibleItems, sidebarOnlyItems]);
   const [isDragging, setIsDragging] = useState(false);
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startWidth: number; pointerId: number } | null>(null);
   const asideRef = useRef<HTMLElement | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  // Close the "More" sheet on route change so the next page isn't covered.
+  useEffect(() => {
+    if (moreOpen) setMoreOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHref ?? ""]);
 
   const handleSearchSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
@@ -136,8 +171,9 @@ export function AppShell({
     (e: React.PointerEvent) => {
       if (collapsed) return;
       e.preventDefault();
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-      dragRef.current = { startX: e.clientX, startWidth: sidebarWidth };
+      const target = e.currentTarget as HTMLElement;
+      target.setPointerCapture(e.pointerId);
+      dragRef.current = { startX: e.clientX, startWidth: sidebarWidth, pointerId: e.pointerId };
       setIsDragging(true);
     },
     [collapsed, sidebarWidth]
@@ -153,10 +189,50 @@ export function AppShell({
     [onSidebarWidthChange]
   );
 
-  const handlePointerUp = useCallback(() => {
-    dragRef.current = null;
-    setIsDragging(false);
-  }, []);
+  const handlePointerUp = useCallback(
+    (e?: React.PointerEvent) => {
+      const drag = dragRef.current;
+      if (drag && e && (e.currentTarget as HTMLElement).hasPointerCapture?.(drag.pointerId)) {
+        try {
+          (e.currentTarget as HTMLElement).releasePointerCapture(drag.pointerId);
+        } catch {
+          // capture may already be released on cancel; ignore
+        }
+      }
+      dragRef.current = null;
+      setIsDragging(false);
+    },
+    []
+  );
+
+  const handlePointerCancel = useCallback(
+    (e: React.PointerEvent) => handlePointerUp(e),
+    [handlePointerUp]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      if (collapsed) return;
+      const step = e.shiftKey ? 32 : 8;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        onSidebarWidthChange?.(Math.min(SIDEBAR_WIDTH_MAX, sidebarWidth + step));
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        onSidebarWidthChange?.(Math.max(SIDEBAR_WIDTH_MIN, sidebarWidth - step));
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        onSidebarWidthChange?.(SIDEBAR_WIDTH_MIN);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        onSidebarWidthChange?.(SIDEBAR_WIDTH_MAX);
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onSidebarWidthChange?.(SIDEBAR_WIDTH_DEFAULT);
+      }
+    },
+    [collapsed, onSidebarWidthChange, sidebarWidth]
+  );
 
   const handleDoubleClick = useCallback(() => {
     if (collapsed) return;
@@ -167,9 +243,22 @@ export function AppShell({
     if (!isDragging) return;
     document.body.style.userSelect = "none";
     document.body.style.cursor = "col-resize";
+
+    const cancelDrag = () => {
+      dragRef.current = null;
+      setIsDragging(false);
+    };
+    const handleVisibilityChange = () => {
+      if (document.hidden) cancelDrag();
+    };
+    window.addEventListener("blur", cancelDrag);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
+      window.removeEventListener("blur", cancelDrag);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isDragging]);
 
@@ -185,7 +274,7 @@ export function AppShell({
   );
 
   return (
-    <div className={cn("min-h-screen bg-paper text-ink", className)} {...props}>
+    <div className={cn("min-h-dvh bg-paper text-ink", className)} {...props}>
       <aside
         ref={asideRef}
         className={cn(
@@ -243,20 +332,26 @@ export function AppShell({
             aria-valuenow={sidebarWidth}
             aria-valuemin={SIDEBAR_WIDTH_MIN}
             aria-valuemax={SIDEBAR_WIDTH_MAX}
-            className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-accent/20 active:bg-accent/30"
+            tabIndex={0}
+            className="absolute right-0 top-0 h-full w-1 cursor-col-resize touch-pan-y hover:bg-accent/20 active:bg-accent/30 focus:bg-accent/25 focus:outline-none"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            onKeyDown={handleKeyDown}
             onDoubleClick={handleDoubleClick}
           />
         ) : null}
       </aside>
       <div
-        className={cn("min-h-screen pb-[calc(96px+env(safe-area-inset-bottom))] md:pb-0 md:pl-[var(--sidebar-w)]", !isDragging && "transition-[padding-left] duration-200 ease-out")}
+        className={cn("min-h-dvh pb-[calc(76px+env(safe-area-inset-bottom))] md:pb-0 md:pl-[var(--sidebar-w)]", !isDragging && "transition-[padding-left] duration-200 ease-out")}
         style={{ '--sidebar-w': `${currentWidth}px` } as React.CSSProperties}
       >
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-paper px-5 md:px-6">
-          {/* Mobile: greeting with avatar */}
+        <header className="sticky top-0 z-20 flex min-h-16 items-center gap-3 border-b border-line bg-paper px-5 pt-[env(safe-area-inset-top)] md:px-6">
+          {/* Mobile: greeting with avatar. The desktop sidebar already shows
+              the greeting on the left, so the topbar only renders the mobile
+              variant. Previously a duplicate desktop greeting lived here too,
+              which produced "Hi, Saksham! Gurgaon" twice on tablet/desktop. */}
           {user ? (
             <PrefetchLink to="/profile" className={cn("flex items-center gap-3 md:hidden", focusRing)}>
               <Avatar name={user.name} size="sm" src={user.avatarUrl} />
@@ -270,16 +365,6 @@ export function AppShell({
               <Logo compact />
             </div>
           )}
-          {/* Desktop: greeting on the left */}
-          {user ? (
-            <PrefetchLink to="/profile" className={cn("hidden min-w-0 items-center gap-3 md:flex", focusRing)}>
-              <Avatar name={user.name} size="sm" src={user.avatarUrl} />
-              <div className="min-w-0">
-                <p className="truncate text-h3 font-semibold text-ink">Hi, {user.name.split(" ")[0]}!</p>
-                {user.city ? <p className="truncate text-caption text-ink-2">{user.city}</p> : null}
-              </div>
-            </PrefetchLink>
-          ) : null}
           {title ? <h1 className="hidden min-w-0 truncate text-h3 font-semibold text-ink md:block">{title}</h1> : null}
           <form
             onSubmit={handleSearchSubmit}
@@ -317,16 +402,61 @@ export function AppShell({
             </span>
           </PrefetchLink>
         </header>
-        <main id="main" className="min-h-[calc(100vh-64px)] px-5 py-6 md:px-6">{children}</main>
+        <main id="main" className="min-h-[calc(100dvh-64px)] px-5 py-6 md:px-6">{children}</main>
       </div>
       <nav
         aria-label="Mobile primary"
         className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(76px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-line bg-paper/88 px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] backdrop-blur-[9px] md:hidden"
       >
-        {mobileItems.map((item) => (
-          <ShellNavLink collapsed={false} mobile item={item} active={isActive(item.href)} key={item.href} />
-        ))}
+        {mobileItems.map((item) => {
+          if (item.href === "#more") {
+            return (
+              <button
+                key="more"
+                type="button"
+                onClick={() => setMoreOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={moreOpen}
+                className={cn(
+                  "flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-[9px] px-1 py-1 text-ink-3 hover:bg-paper-3 hover:text-ink",
+                  focusRing,
+                  moreOpen && "bg-accent-soft text-accent"
+                )}
+              >
+                <item.icon aria-hidden="true" className="h-5 w-5" />
+                <span className="truncate text-[12px]">{item.label}</span>
+              </button>
+            );
+          }
+          return (
+            <ShellNavLink collapsed={false} mobile item={item} active={isActive(item.href)} key={item.href} />
+          );
+        })}
       </nav>
+      <BottomSheet
+        open={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        title="More"
+        width="wide"
+      >
+        <div className="flex flex-col gap-1">
+          {[...visibleItems.filter((i) => !i.sidebarOnly && i.href !== "#more").slice(4), ...sidebarOnlyItems].map((item) => (
+            <PrefetchLink
+              key={item.href}
+              to={item.href}
+              onClick={() => setMoreOpen(false)}
+              className={cn(
+                "flex min-h-[44px] items-center gap-3 rounded-[9px] px-3 py-2.5 text-body-md text-ink-2 hover:bg-paper-2 hover:text-ink",
+                focusRing,
+                isActive(item.href) && "bg-accent-soft text-accent"
+              )}
+            >
+              <item.icon aria-hidden="true" className="h-5 w-5" />
+              <span className="truncate">{item.label}</span>
+            </PrefetchLink>
+          ))}
+        </div>
+      </BottomSheet>
     </div>
   );
 }
@@ -353,7 +483,11 @@ function ShellNavLink({
         "relative flex items-center gap-3 rounded-[9px] text-ink-3 hover:bg-paper-3 hover:text-ink",
         focusRing,
         active && "bg-accent-soft text-accent",
-        collapsed ? "h-10 justify-center px-0" : mobile ? "flex-col justify-center gap-1 px-1 py-1 text-[11px]" : "h-10 px-3 text-body-md font-semibold"
+        collapsed
+          ? "h-10 justify-center px-0"
+          : mobile
+            ? "min-h-[44px] flex-col justify-center gap-1 px-1 py-1 text-[12px]"
+            : "h-10 px-3 text-body-md font-semibold"
       )}
     >
       <Icon aria-hidden="true" className={cn(mobile ? "h-5 w-5" : "h-5 w-5")} />

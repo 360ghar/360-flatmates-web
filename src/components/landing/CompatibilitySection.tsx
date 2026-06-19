@@ -23,7 +23,7 @@ export function CompatibilitySection() {
           <RevealSection className="lg:col-span-6">
             <h2
               id="compatibility-heading"
-              className="text-display text-ink text-4xl md:text-5xl lg:text-[3.5rem] leading-[1.05] tracking-tight"
+              className="text-display text-ink lg:text-[3.5rem] leading-[1.05] tracking-tight"
             >
               Budget and pin code don't make a home.
             </h2>

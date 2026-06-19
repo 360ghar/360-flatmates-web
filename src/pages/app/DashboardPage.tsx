@@ -19,11 +19,13 @@ function formatCount(value: number): string {
 }
 
 function mapDashboardMetrics(stats: RoomPosterDashboard): DashboardMetric[] {
+  // TODO: F5 — the trend arrow was removed because the previous logic just
+  // reported "up" for any non-zero count (no real delta). A meaningful trend
+  // needs the API to return a previous-period value; until then, no arrow.
   return [
     {
       label: "Active Listings",
       value: formatCount(stats.active_listings),
-      trend: stats.active_listings > 0 ? "up" : "flat",
       helper:
         stats.pending_review > 0
           ? `${formatCount(stats.pending_review)} pending review`
@@ -31,18 +33,15 @@ function mapDashboardMetrics(stats: RoomPosterDashboard): DashboardMetric[] {
     },
     {
       label: "Views (30d)",
-      value: formatCount(stats.total_views_30d),
-      trend: stats.total_views_30d > 0 ? "up" : "flat"
+      value: formatCount(stats.total_views_30d)
     },
     {
       label: "Likes (30d)",
-      value: formatCount(stats.total_likes_30d),
-      trend: stats.total_likes_30d > 0 ? "up" : "flat"
+      value: formatCount(stats.total_likes_30d)
     },
     {
       label: "Visits (30d)",
-      value: formatCount(stats.total_visits_30d),
-      trend: stats.total_visits_30d > 0 ? "up" : "flat"
+      value: formatCount(stats.total_visits_30d)
     }
   ];
 }

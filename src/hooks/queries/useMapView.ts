@@ -1,6 +1,6 @@
 import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { MapViewResponse, MapViewFilters, MapPin, Property, PaginatedPropertyResponse } from "@/lib/api/types";
+import type { MapViewResponse, MapViewFilters, MapPin, Property, PropertyCursorPage } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
 function propertyToPin(p: Property): MapPin {
@@ -23,7 +23,7 @@ export function mapViewOptions(filters: MapViewFilters) {
     // Pass the per-query AbortSignal so stale viewport fetches (rapid pan/zoom)
     // are cancelled instead of racing to resolve over the freshest request.
     queryFn: async ({ signal }) => {
-      const response = await apiClient.request<PaginatedPropertyResponse>({
+      const response = await apiClient.request<PropertyCursorPage>({
         method: "GET",
         path: "/properties",
         auth: false,
@@ -39,14 +39,14 @@ export function mapViewOptions(filters: MapViewFilters) {
         } as Record<string, QueryValue>,
       });
 
-      const pins: MapPin[] = (response.properties ?? [])
+      const pins: MapPin[] = (response.items ?? [])
         .filter((p) => p.latitude != null && p.longitude != null)
         .map(propertyToPin);
 
       return {
         clusters: [],
         pins,
-        total_listings: response.total,
+        total_listings: response.total ?? 0,
       } satisfies MapViewResponse;
     },
     // Viewport results stay fresh briefly so micro-pans don't trigger a refetch storm.

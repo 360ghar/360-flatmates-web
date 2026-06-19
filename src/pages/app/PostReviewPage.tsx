@@ -13,6 +13,10 @@ const reviewSteps: Array<{ label: string; icon: LucideIcon }> = [
 export function PostReviewPage() {
   const location = useLocation();
   const listingId = (location.state as { listingId?: number } | null)?.listingId;
+  // TODO: F5 — read the listingId from the URL (`/post/review/:listingId`)
+  // instead of the `location.state` blob so a refresh on this page doesn't
+  // lose the link. F1 owns the route table (App.tsx), so this is a route-table
+  // change that needs to land alongside that work.
   const editPath = listingId ? `/my-listings/${listingId}/edit` : "/post";
 
   return (

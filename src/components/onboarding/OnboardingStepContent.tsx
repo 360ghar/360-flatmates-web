@@ -32,6 +32,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const patchDraft = useStore(onboardingStore, (s) => s.patchDraft);
   const nextStep = useStore(onboardingStore, (s) => s.nextStep);
   const previousStep = useStore(onboardingStore, (s) => s.previousStep);
+  const setStep = useStore(onboardingStore, (s) => s.setStep);
 
   const { upload: uploadImage } = useImageUpload();
   const { geocode, geoLoading } = useReverseGeocode();
@@ -113,6 +114,19 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
 
   function goNext() {
     if (currentStep >= ONBOARDING_STEPS.length - 1) {
+      // Client-side budget sanity check: backend will reject this, but failing
+      // here saves a round-trip and gives the user immediate feedback.
+      const min = draft.budget_timeline?.budget_min;
+      const max = draft.budget_timeline?.budget_max;
+      if (typeof min === "number" && typeof max === "number" && min > max) {
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Budget range is invalid",
+          description: "Minimum budget can't be greater than maximum.",
+        });
+        return;
+      }
+
       const payload = {
         mode: draft.mode,
         full_name: draft.basic_info?.full_name,
@@ -145,10 +159,19 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
         navigate("/home");
       };
 
+      const onProfileError = (err: unknown) => {
+        const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Couldn't save your profile",
+          description: message,
+        });
+      };
+
       if (profile) {
-        updateProfile.mutate(payload, { onSuccess: onProfileSaved });
+        updateProfile.mutate(payload, { onSuccess: onProfileSaved, onError: onProfileError });
       } else {
-        createProfile.mutate(payload, { onSuccess: onProfileSaved });
+        createProfile.mutate(payload, { onSuccess: onProfileSaved, onError: onProfileError });
       }
     } else {
       nextStep();
@@ -161,8 +184,22 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
     }
   }
 
+  function goStartOver() {
+    // Wipe the persisted draft + step counter. The user is bounced back to the
+    // splash step so they re-walk the wizard from scratch. Mirrors the
+    // `clearDraft` action used at the end of a successful onboarding.
+    onboardingStore.getState().clearDraft();
+    setStep(0);
+  }
+
   const submitting = updateProfile.isPending || createProfile.isPending;
-  const isLastStep = currentStep >= ONBOARDING_STEPS.length - 1;
+  // `isLastStep` is gated on the *step we're actually rendering*, not the
+  // raw `currentStep` index. A deep-link to /onboarding/splash that mutated
+  // `currentStep` to 9 (clamped by the store) would otherwise render the
+  // "Complete Setup" label on the splash step. By deriving from `stepKey`
+  // we always show the right affordance for what the user sees.
+  const isLastStep = stepKey === ONBOARDING_STEPS[ONBOARDING_STEPS.length - 1];
+  const isSplashStep = stepKey === "splash";
 
   return (
     <div className="flex flex-col gap-5">
@@ -248,11 +285,23 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
               type="number"
               placeholder="Age"
               value={draft.basic_info?.age ? String(draft.basic_info.age) : ""}
-              onChange={(e) =>
+              onChange={(e) => {
+                // Guard against `Number("") === 0` and `Number("abc") === NaN`.
+                // An empty input means "no value yet" — keep the field
+                // undefined so the optional-age validation stays honest.
+                const raw = e.target.value;
+                if (raw === "") {
+                  patchDraft({
+                    basic_info: { ...draft.basic_info, age: undefined }
+                  });
+                  return;
+                }
+                const parsed = Number(raw);
+                if (!Number.isFinite(parsed)) return;
                 patchDraft({
-                  basic_info: { ...draft.basic_info, age: Number(e.target.value) }
-                })
-              }
+                  basic_info: { ...draft.basic_info, age: parsed }
+                });
+              }}
             />
             <Input
               placeholder="Profession"
@@ -510,10 +559,31 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             Back
           </Button>
         )}
-        <Button fullWidth loading={submitting} onClick={goNext}>
-          {isLastStep ? "Complete Setup" : "Next"}
+        <Button
+          fullWidth
+          loading={submitting}
+          onClick={goNext}
+          aria-label={isSplashStep ? "Get started" : undefined}
+        >
+          {isLastStep ? "Complete Setup" : isSplashStep ? "Get started" : "Next"}
         </Button>
       </div>
+
+      {/* "Start over" affordance: visible from step 1+ (the splash is the
+          starting point, so re-starting from it is a no-op). Wired to the
+          store-level `clearDraft` so a partial draft doesn't linger in
+          localStorage after the user bails. */}
+      {currentStep > 0 && (
+        <div className="mt-2 text-center">
+          <button
+            type="button"
+            onClick={goStartOver}
+            className="text-caption text-ink-3 hover:text-accent transition-colors"
+          >
+            Start over
+          </button>
+        </div>
+      )}
     </div>
   );
 }

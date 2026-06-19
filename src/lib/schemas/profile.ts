@@ -27,33 +27,33 @@ export const lifestyleSchema = z.object({
 export const partialLifestyleSchema = lifestyleSchema.partial();
 
 export const flatmatesProfileSchema = z.object({
-  id: z.number().int().positive(),
-  full_name: z.string().min(1).max(120),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
+  id: z.number().int().positive().catch(0),
+  full_name: z.string().min(1).max(120).catch(""),
+  email: z.string().email().optional().catch(undefined),
+  phone: z.string().optional().catch(undefined),
   profile_image_url: optionalUrlSchema,
-  mode: flatmatesModeSchema,
-  profile_status: profileStatusSchema.optional(),
-  onboarding_completed: z.boolean(),
-  onboarding_current_step: z.number().int().min(0).max(7).optional(),
-  bio: z.string().max(500).optional(),
-  age: z.number().int().min(18).max(100).optional(),
-  profession: z.string().max(120).optional(),
-  budget_min: z.number().min(0).optional(),
-  budget_max: z.number().min(0).optional(),
-  move_in_timeline: moveInTimelineSchema.optional(),
-  city: z.string().min(1).optional(),
-  locality: z.string().min(1).optional(),
-  sleep_schedule: sleepScheduleSchema.optional(),
-  cleanliness: cleanlinessSchema.optional(),
-  food_habits: foodHabitsSchema.optional(),
-  smoking_drinking: smokingDrinkingSchema.optional(),
-  guests_policy: guestsPolicySchema.optional(),
-  work_style: workStyleSchema.optional(),
-  gender: z.string().optional(),
-  gender_preference: genderPreferenceSchema.optional(),
-  preferences: jsonObjectSchema.optional(),
-  last_active_at: z.string().optional()
+  mode: flatmatesModeSchema.catch("seeker"),
+  profile_status: profileStatusSchema.optional().catch(undefined),
+  onboarding_completed: z.boolean().catch(false),
+  onboarding_current_step: z.number().int().min(0).max(7).optional().catch(undefined),
+  bio: z.string().max(500).optional().catch(undefined),
+  age: z.number().int().min(18).max(100).optional().catch(undefined),
+  profession: z.string().max(120).optional().catch(undefined),
+  budget_min: z.number().min(0).optional().catch(undefined),
+  budget_max: z.number().min(0).optional().catch(undefined),
+  move_in_timeline: moveInTimelineSchema.optional().catch(undefined),
+  city: z.string().min(1).optional().catch(undefined),
+  locality: z.string().min(1).optional().catch(undefined),
+  sleep_schedule: sleepScheduleSchema.optional().catch(undefined),
+  cleanliness: cleanlinessSchema.optional().catch(undefined),
+  food_habits: foodHabitsSchema.optional().catch(undefined),
+  smoking_drinking: smokingDrinkingSchema.optional().catch(undefined),
+  guests_policy: guestsPolicySchema.optional().catch(undefined),
+  work_style: workStyleSchema.optional().catch(undefined),
+  gender: z.string().optional().catch(undefined),
+  gender_preference: genderPreferenceSchema.optional().catch(undefined),
+  preferences: jsonObjectSchema.optional().catch(undefined),
+  last_active_at: z.string().optional().catch(undefined)
 });
 
 const budgetRefine = minMaxRefine("budget_min", "budget_max", "Minimum budget cannot exceed maximum budget");
@@ -105,4 +105,18 @@ export type FlatmatesProfileUpdateInput = z.infer<
   typeof flatmatesProfileUpdateSchema
 >;
 export type FlatmatesPeerInput = z.infer<typeof flatmatesPeerSchema>;
+
+export const flatmatesBootstrapSchema = z.object({
+  profile: flatmatesProfileSchema,
+  catalogs: z.array(z.object({
+    key: z.string(),
+    version: z.number(),
+    payload: jsonObjectSchema
+  })),
+  active_listing_count: z.number().int().min(0).catch(0),
+  conversation_count: z.number().int().min(0).catch(0),
+  unread_message_count: z.number().int().min(0).catch(0)
+});
+
+export type FlatmatesBootstrapInput = z.infer<typeof flatmatesBootstrapSchema>;
 

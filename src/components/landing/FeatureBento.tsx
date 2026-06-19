@@ -81,7 +81,7 @@ export function FeatureBento() {
     >
       <div className="mx-auto max-w-7xl px-5 py-20 md:px-12 md:py-28">
         <RevealSection className="mb-14 max-w-2xl">
-          <h2 id="features-heading" className="text-display text-ink text-4xl md:text-5xl leading-tight">
+          <h2 id="features-heading" className="text-display text-ink leading-tight">
             Everything you need to move in with confidence.
           </h2>
           <p className="mt-5 max-w-xl text-body-lg text-ink-2">
