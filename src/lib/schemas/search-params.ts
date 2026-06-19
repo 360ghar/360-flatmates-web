@@ -16,7 +16,13 @@ import {
 } from "nuqs";
 
 // ── Search page params ─────────────────────────────────────────
-// URL: /search?q=Delhi&city=1&bedrooms=2&amenities=WiFi,Parking&priceMin=3000&priceMax=15000&page=1
+// URL: /search?q=Delhi&city=1&bedrooms=2&amenities=WiFi,Parking&priceMin=3000&priceMax=15000&cursor=<opaque>
+//
+// Note: the `page` URL param is intentionally NOT included. Backend list
+// endpoints now accept an opaque `cursor` only; passing `page=` no longer
+// matches the wire protocol. For backwards-compat, callers that still receive
+// a deep link with `page=` should treat it as a hint to reset to the first
+// page (handled in SearchPage / DiscoverPage useEffects).
 
 export const searchPageParams = {
   q: parseAsString.withDefault(""),
@@ -25,14 +31,14 @@ export const searchPageParams = {
   amenities: parseAsArrayOf(parseAsString, ",").withDefault([]),
   priceMin: parseAsInteger,
   priceMax: parseAsInteger,
-  page: parseAsInteger.withDefault(1),
+  cursor: parseAsString.withDefault(""),
 };
 
 // ── Discover page params ───────────────────────────────────────
-// URL: /discover?city=2&filter=Nearby&page=1
+// URL: /discover?city=2&filter=Nearby&cursor=<opaque>
 
 export const discoverPageParams = {
   city: parseAsInteger.withDefault(0),
   filter: parseAsString.withDefault("Nearby"),
-  page: parseAsInteger.withDefault(1),
+  cursor: parseAsString.withDefault(""),
 };

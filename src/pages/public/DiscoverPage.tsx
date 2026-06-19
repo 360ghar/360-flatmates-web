@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
@@ -54,6 +54,18 @@ export function DiscoverPage() {
     shallow: true,
   });
 
+  // One-time migration from the legacy `?page=N` URL shape to the cursor
+  // form. Drop the param silently so old links still land on a sensible view.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const legacyPage = url.searchParams.get("page");
+    if (legacyPage !== null) {
+      url.searchParams.delete("page");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
+
   const { data: cities, isLoading: citiesLoading } = useCities();
 
   const filters: SearchFilters = useMemo(
@@ -61,7 +73,6 @@ export function DiscoverPage() {
       const base: SearchFilters = {
         city: cities?.find((c) => c.id === params.city)?.name,
         limit: 20,
-        page: params.page,
       };
       const quickFilter = params.filter ? QUICK_FILTER_MAP[params.filter] : undefined;
       if (quickFilter) {
@@ -69,7 +80,7 @@ export function DiscoverPage() {
       }
       return base;
     },
-    [cities, params.city, params.page, params.filter]
+    [cities, params.city, params.cursor, params.filter]
   );
 
   const {
@@ -120,7 +131,7 @@ export function DiscoverPage() {
                 <SelectField
                   options={cityOptions}
                   value={params.city ? String(params.city) : ""}
-                  onChange={(e) => setParams({ city: Number(e.target.value), page: 1 })}
+                  onChange={(e) => setParams({ city: Number(e.target.value), cursor: "" })}
                   placeholder="Select city"
                   fullWidth={false}
                   className="shadow-xs border-line-low hover:border-accent/40"
@@ -141,7 +152,7 @@ export function DiscoverPage() {
               variant="choice"
               selected={params.filter === item}
               onClick={() =>
-                setParams({ filter: params.filter === item ? "" : item, page: 1 })
+                setParams({ filter: params.filter === item ? "" : item, cursor: "" })
               }
               aria-label={`Filter by ${item}`}
               className="snap-start"

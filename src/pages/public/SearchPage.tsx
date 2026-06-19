@@ -32,18 +32,31 @@ export function SearchPage() {
 
   const PAGE_SIZE = 20;
 
-  const { data: cities } = useCities();
-  const { data: amenities } = useAmenities();
+  const { data: cities, isLoading: citiesLoading } = useCities();
+  const { data: amenities, isLoading: amenitiesLoading } = useAmenities();
 
-  const [prevQ, setPrevQ] = useState(params.q);
   const [localSearch, setLocalSearch] = useState(params.q || "");
 
-  if (params.q !== prevQ) {
-    setPrevQ(params.q);
+  // Sync URL → local input when deep-linking a query.
+  useEffect(() => {
     setLocalSearch(params.q || "");
-  }
+  }, [params.q]);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // One-time migration from the legacy `?page=N` URL shape to the new cursor-
+  // based `?cursor=<opaque>` shape. Old shared links still land on a sensible
+  // first page; after this effect runs once, the URL is replaced with the
+  // canonical form.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const legacyPage = url.searchParams.get("page");
+    if (legacyPage !== null) {
+      url.searchParams.delete("page");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, []);
 
   const filters: Omit<SearchFilters, "page"> = useMemo(
     () => ({
@@ -68,16 +81,19 @@ export function SearchPage() {
     hasNextPage,
     fetchNextPage,
     refetch,
-  } = useInfiniteWebSearch(filters);
+  } = useInfiniteWebSearch(filters, {
+    // Block the first fetch until catalogs are loaded so the city/amenity
+    // resolution doesn't flash an "all cities" result on deep links.
+    enabled: !citiesLoading && !amenitiesLoading
+  });
 
   const recentSearches = useStore(searchStore, (s) => s.recentSearches);
   const addRecentSearch = useStore(searchStore, (s) => s.addRecentSearch);
   const clearRecentSearches = useStore(searchStore, (s) => s.clearRecentSearches);
 
-  useEffect(() => {
-    // Pass the full filters including a dummy page just for store compatibility if needed
-    searchStore.getState().setFilters({ ...filters, page: params.page });
-  }, [filters, params.page]);
+  // NOTE: We deliberately do NOT mirror URL params into the persisted
+  // `searchStore` here. Doing so poisons the map filter on next reload
+  // because the store is shared across surfaces (search ↔ map).
 
   // Record a successful, non-empty text query into recent searches.
   useEffect(() => {
@@ -85,6 +101,12 @@ export function SearchPage() {
       addRecentSearch(params.q);
     }
   }, [params.q, searchResults, addRecentSearch]);
+
+  // Reset scroll to top when the filter set changes (UX parity with ExplorePage).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [params.q, params.city, params.bedrooms, params.amenities, params.priceMin, params.priceMax, params.cursor]);
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.pages) return [];
@@ -152,17 +174,17 @@ export function SearchPage() {
   const handleFilterToggle = useCallback(
     (sectionId: string, value: string) => {
       if (sectionId === "city") {
-        setParams({ city: Number(value), page: 1 });
+        setParams({ city: Number(value), cursor: "" });
       } else if (sectionId === "bedrooms") {
         setParams({
           bedrooms: params.bedrooms === value ? "" : value,
-          page: 1,
+          cursor: "",
         });
       } else if (sectionId === "amenities") {
         const next = params.amenities.includes(value)
           ? params.amenities.filter((a) => a !== value)
           : [...params.amenities, value];
-        setParams({ amenities: next, page: 1 });
+        setParams({ amenities: next, cursor: "" });
       }
     },
     [params.bedrooms, params.amenities, setParams]
@@ -175,7 +197,7 @@ export function SearchPage() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setParams({ q: localSearch, page: 1 });
+    setParams({ q: localSearch, cursor: "" });
   };
 
   // Intersection Observer for Infinite Scroll
@@ -242,7 +264,7 @@ export function SearchPage() {
             <SelectField
               aria-label="Filter by city"
               value={String(params.city ?? 0)}
-              onChange={(e) => setParams({ city: Number(e.target.value), page: 1 })}
+              onChange={(e) => setParams({ city: Number(e.target.value), cursor: "" })}
               fullWidth={false}
               options={[
                 { value: "0", label: "All Cities" },
@@ -254,7 +276,7 @@ export function SearchPage() {
             <SelectField
               aria-label="Filter by bedrooms"
               value={params.bedrooms ?? ""}
-              onChange={(e) => setParams({ bedrooms: e.target.value, page: 1 })}
+              onChange={(e) => setParams({ bedrooms: e.target.value, cursor: "" })}
               fullWidth={false}
               options={[
                 { value: "", label: "All BHKs" },
@@ -300,7 +322,7 @@ export function SearchPage() {
                 type="button"
                 onClick={() => {
                   setLocalSearch(term);
-                  setParams({ q: term, page: 1 });
+                  setParams({ q: term, cursor: "" });
                 }}
                 className="rounded-full border border-line bg-surface px-3 py-1 text-body-sm text-ink-2 transition-colors hover:border-accent/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
@@ -423,7 +445,7 @@ export function SearchPage() {
             onFilterToggle={handleFilterToggle}
             onClear={handleClearFilters}
             onApply={() => {
-              setParams({ page: 1 });
+              setParams({ cursor: "" });
               refetch();
               setMobileFiltersOpen(false);
             }}
