@@ -41,7 +41,7 @@ export function AppStoreBadges({ variant = "light" }: AppStoreBadgesProps) {
       " dark:bg-white dark:text-[#1f1a14] dark:border-black/10 dark:hover:bg-white/90 dark:focus-visible:outline-white",
     dark:
       base +
-      " bg-white/15 text-white border border-white/20 hover:bg-white/25 backdrop-blur-sm focus-visible:outline-white",
+      " bg-white/15 text-[#1f1a14] border border-white/20 hover:bg-white/25 backdrop-blur-sm focus-visible:outline-white",
   };
 
   return (
