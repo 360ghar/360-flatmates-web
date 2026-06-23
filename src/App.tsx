@@ -15,7 +15,6 @@ const LandingPage = lazy(() => import("./pages/public/LandingPage").then((m) => 
 const AboutPage = lazy(() => import("./pages/public/AboutPage").then((m) => ({ default: m.AboutPage })));
 const TermsPage = lazy(() => import("./pages/public/TermsPage").then((m) => ({ default: m.TermsPage })));
 const PrivacyPage = lazy(() => import("./pages/public/PrivacyPage").then((m) => ({ default: m.PrivacyPage })));
-const StatsPage = lazy(() => import("./pages/public/StatsPage").then((m) => ({ default: m.StatsPage })));
 const MaintenancePage = lazy(() => import("./pages/public/MaintenancePage").then((m) => ({ default: m.MaintenancePage })));
 const ErrorPage = lazy(() => import("./pages/public/ErrorPage").then((m) => ({ default: m.ErrorPage })));
 const DiscoverPage = lazy(() => import("./pages/public/DiscoverPage").then((m) => ({ default: m.DiscoverPage })));
@@ -66,7 +65,6 @@ const ChooseRolePage = lazy(() => import("./pages/app/ChooseRolePage").then((m) 
 const LocationPage = lazy(() => import("./pages/app/LocationPage").then((m) => ({ default: m.LocationPage })));
 const OnboardingPage = lazy(() => import("./pages/app/OnboardingPage").then((m) => ({ default: m.OnboardingPage })));
 const OnboardingStepPage = lazy(() => import("./pages/app/OnboardingStepPage").then((m) => ({ default: m.OnboardingStepPage })));
-const VerifyPage = lazy(() => import("./pages/app/VerifyPage").then((m) => ({ default: m.VerifyPage })));
 const HelpPage = lazy(() => import("./pages/app/HelpPage").then((m) => ({ default: m.HelpPage })));
 const AlertsPage = lazy(() => import("./pages/app/AlertsPage").then((m) => ({ default: m.AlertsPage })));
 const SavedSearchesPage = lazy(() => import("./pages/app/SavedSearchesPage").then((m) => ({ default: m.SavedSearchesPage })));
@@ -103,7 +101,6 @@ export function App() {
               <Route path="about" element={<RouteBoundary><AboutPage /></RouteBoundary>} />
               <Route path="terms" element={<RouteBoundary><TermsPage /></RouteBoundary>} />
               <Route path="privacy" element={<RouteBoundary><PrivacyPage /></RouteBoundary>} />
-              <Route path="stats" element={<RouteBoundary><StatsPage /></RouteBoundary>} />
               <Route path="maintenance" element={<RouteBoundary><MaintenancePage /></RouteBoundary>} />
               <Route path="error" element={<RouteBoundary><ErrorPage /></RouteBoundary>} />
             </Route>
@@ -164,7 +161,6 @@ export function App() {
                 <Route path="location" element={<RouteBoundary><LocationPage /></RouteBoundary>} />
                 <Route path="onboarding" element={<RouteBoundary><OnboardingPage /></RouteBoundary>} />
                 <Route path="onboarding/:step" element={<RouteBoundary><OnboardingStepPage /></RouteBoundary>} />
-                <Route path="verify" element={<RouteBoundary><VerifyPage /></RouteBoundary>} />
                 <Route path="help" element={<RouteBoundary><HelpPage /></RouteBoundary>} />
                 <Route path="alerts" element={<RouteBoundary><AlertsPage /></RouteBoundary>} />
                 <Route path="saved-searches" element={<RouteBoundary><SavedSearchesPage /></RouteBoundary>} />

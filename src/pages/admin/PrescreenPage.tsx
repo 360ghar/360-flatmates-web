@@ -5,7 +5,7 @@ import {
   Flag,
   XCircle
 } from "lucide-react";
-import { useProperty, useAdminModerate } from "@/hooks/queries";
+import { useAdminProperty, useAdminModerate } from "@/hooks/queries";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -45,7 +45,7 @@ export function PrescreenPage() {
     navigate("/admin/moderation/listings", { replace: true });
   }, [idIsValid, navigate]);
 
-  const { data, isLoading, error, refetch } = useProperty(
+  const { data, isLoading, error, refetch } = useAdminProperty(
     idIsValid ? listingId : 0
   );
   const moderate = useAdminModerate();

@@ -157,9 +157,6 @@ export function ManagePage() {
                 onOpen={(id) => {
                   navigate(`/my-listings/${id}`);
                 }}
-                onSave={(id) => {
-                  navigate(`/my-listings/${id}`);
-                }}
               />
             ))}
           </div>

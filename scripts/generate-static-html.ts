@@ -21,8 +21,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildStaticRoutes, type RouteContent } from "./lib/route-content";
 import { fetchDiscoverableListings, shouldFetchListingData } from "./lib/listings";
-import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORTED_CITIES } from "../src/lib/seo/config";
-import { CITY_NEIGHBORHOODS } from "../src/lib/seo/neighborhoods";
+import { SITE_URL, SITE_NAME } from "../src/lib/seo/config";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = resolve(__dirname, "..", "dist");
@@ -304,7 +303,7 @@ async function main(): Promise<void> {
   //    builds (local + Netlify deploy-preview / branch-deploy) skip every
   //    listing call entirely and the SPA fallback handles deep listing links
   //    client-side at runtime.
-  let listingRoutes: { route: string; html: string }[] = [];
+  const listingRoutes: { route: string; html: string }[] = [];
   if (!GENERATE_LISTINGS) {
     console.log("[static-html] Listing generation disabled via PRERENDER_LISTINGS=0.");
   } else if (!shouldFetchListingData()) {

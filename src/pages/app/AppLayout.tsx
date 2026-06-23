@@ -38,7 +38,6 @@ const ROUTE_TITLES: Record<string, string> = {
   "/choose-role": "Choose your role",
   "/location": "Location",
   "/onboarding": "Welcome",
-  "/verify": "Verify phone",
   "/help": "Help",
   "/alerts": "Alerts",
   "/saved-searches": "Saved searches",

@@ -44,12 +44,12 @@ export function usePWA() {
       document.referrer.includes("android-app://")
     );
   });
-  const [isIOS, setIsIOS] = useState(() => {
+  const [isIOS] = useState(() => {
     if (typeof window === "undefined") return false;
     const userAgent = window.navigator.userAgent.toLowerCase();
     return isIPadOS(userAgent) && !("MSStream" in window);
   });
-  const [isIPad, setIsIPad] = useState(() => {
+  const [isIPad] = useState(() => {
     if (typeof window === "undefined") return false;
     const userAgent = window.navigator.userAgent.toLowerCase();
     // Specifically iPadOS (not iPhone) — used to render the install instructions
@@ -57,7 +57,7 @@ export function usePWA() {
     return /ipad/.test(userAgent) ||
       (/macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
   });
-  const [isInApp, setIsInApp] = useState(() => {
+  const [isInApp] = useState(() => {
     if (typeof window === "undefined") return false;
     return isInAppBrowser(window.navigator.userAgent);
   });

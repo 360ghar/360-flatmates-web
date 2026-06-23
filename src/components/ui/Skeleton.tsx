@@ -94,8 +94,6 @@ function ListingCardSkeleton() {
         {/* Image area */}
         <div className="relative">
           <div className={cn("aspect-[5/6] w-full rounded-2xl lg:aspect-[0.82]", shimmer)} />
-          {/* Heart overlay */}
-          <div className="absolute right-3 top-3 h-10 w-10 rounded-full bg-surface/70" />
         </div>
         {/* Content */}
         <div className="flex flex-col gap-2">

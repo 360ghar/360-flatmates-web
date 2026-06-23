@@ -30,6 +30,10 @@ export interface PeopleGridPageProps<T> {
   ctaLabel: string;
   getPeerId: (item: T) => string;
   getProfileProps: (item: T) => React.ComponentProps<typeof ProfileGridCard>["profile"];
+  /** Primary CTA (e.g. "Match" / "Chat"). Receives the source item. */
+  onCta?: (item: T) => void;
+  /** Optional secondary action (e.g. "Unmatch"). Receives the source item. */
+  onUnmatch?: (item: T) => void;
 }
 
 type InfiniteQuery<T> = {
@@ -55,6 +59,8 @@ export function PeopleGridPage<T>({
   ctaLabel,
   getPeerId,
   getProfileProps,
+  onCta,
+  onUnmatch,
 }: PeopleGridPageProps<T>) {
   const navigate = useNavigate();
 
@@ -130,7 +136,17 @@ export function PeopleGridPage<T>({
                       profile={profile}
                       ctaLabel={ctaLabel}
                       onOpen={(id) => navigate(`/profile/${id}`)}
+                      onMatch={onCta ? () => onCta(item) : undefined}
                     />
+                    {onUnmatch ? (
+                      <button
+                        type="button"
+                        onClick={() => onUnmatch(item)}
+                        className="mt-2 w-full text-caption text-ink-3 hover:text-accent transition-colors"
+                      >
+                        Unmatch
+                      </button>
+                    ) : null}
                   </div>
                 );
               })}

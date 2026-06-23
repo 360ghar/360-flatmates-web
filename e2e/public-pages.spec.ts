@@ -121,26 +121,6 @@ test.describe("Privacy page — /privacy", () => {
   });
 });
 
-test.describe("Stats page — /stats", () => {
-  test("loads and renders the stats heading", async ({ page }) => {
-    await page.goto("/stats");
-    await expect(page.getByRole("heading", { name: /bangalore flatmate market/i })).toBeVisible();
-  });
-
-  test("renders hardcoded stat values", async ({ page }) => {
-    await page.goto("/stats");
-    await expect(page.getByText("2,400+")).toBeVisible();
-    await expect(page.getByText("1,800+")).toBeVisible();
-    await expect(page.getByText("5,200+")).toBeVisible();
-    await expect(page.getByText("8,600+")).toBeVisible();
-  });
-
-  test("renders the growth chart section", async ({ page }) => {
-    await page.goto("/stats");
-    await expect(page.getByRole("heading", { name: /seeker growth/i })).toBeVisible();
-  });
-});
-
 test.describe("Discover page — /discover", () => {
   test("loads and renders the Browse Listings heading", async ({ page }) => {
     await page.goto("/discover");
@@ -211,12 +191,6 @@ test.describe("Public layout — navigation links", () => {
     await page.goto("/");
     await page.getByRole("link", { name: /privacy policy/i }).click();
     await expect(page).toHaveURL(/\/privacy/);
-  });
-
-  test("footer City Stats link navigates to /stats", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("link", { name: /city stats/i }).click();
-    await expect(page).toHaveURL(/\/stats/);
   });
 
   test("footer Browse Listings link navigates to /discover", async ({ page }) => {

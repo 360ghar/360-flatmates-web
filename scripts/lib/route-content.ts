@@ -13,7 +13,7 @@
  * no React, no Tailwind, no JS. This is what crawlers and no-JS users see.
  */
 
-import { SITE_URL, SITE_NAME, SITE_TAGLINE, DEFAULT_DESCRIPTION, SUPPORTED_CITIES } from "../../src/lib/seo/config";
+import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORTED_CITIES } from "../../src/lib/seo/config";
 import { CITY_NEIGHBORHOODS } from "../../src/lib/seo/neighborhoods";
 import { BLOG_POSTS, BLOG_POST_SLUGS } from "./blog-content";
 import type { BlogPost } from "./blog-content";
@@ -22,10 +22,6 @@ import type { BlogPost } from "./blog-content";
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-function jsonLdBlock(schema: object): string {
-  return `<script type="application/ld+json">${JSON.stringify(schema).replace(/</g, "\\u003c").replace(/>/g, "\\u003e")}</script>`;
 }
 
 function orgSchema() {
@@ -488,7 +484,6 @@ export function buildStaticRoutes(): RouteContent[] {
 
   // ── Comparison pages ───────────────────────────────────────────────────
   for (const comp of COMPARISONS) {
-    const url = `${SITE_URL}/compare/${comp.slug}`;
     routes.push({
       path: `/compare/${comp.slug}`,
       title: comp.title,

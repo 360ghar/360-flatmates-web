@@ -143,10 +143,13 @@ export function AppShell({
   const navigate = useNavigate();
 
   // Close the "More" sheet on route change so the next page isn't covered.
-  useEffect(() => {
+  // Adjusting state during render (vs. setState-in-effect) is React's
+  // recommended pattern for resetting state in response to a changed value.
+  const [moreSheetRoute, setMoreSheetRoute] = useState(activeHref ?? "");
+  if ((activeHref ?? "") !== moreSheetRoute) {
+    setMoreSheetRoute(activeHref ?? "");
     if (moreOpen) setMoreOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeHref ?? ""]);
+  }
 
   const handleSearchSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {

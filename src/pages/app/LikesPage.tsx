@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { useIncomingLikesInfinite, useMatches } from "@/hooks/queries/useMatches";
+import { useNavigate } from "react-router";
+import { useIncomingLikesInfinite, useMatches, useUnmatchMutation } from "@/hooks/queries/useMatches";
+import { useSwipeAction } from "@/hooks/queries/useSwipes";
 import { profileToProfileGridCardProps } from "@/lib/api/adapters";
 import { PeopleGridPage } from "@/components/organisms/PeopleGridPage";
 import { cn } from "@/components/ui/component-utils";
@@ -10,6 +12,9 @@ export function LikesPage() {
   const [tab, setTab] = useState<Tab>("likes");
   const likesQuery = useIncomingLikesInfinite();
   const matchesQuery = useMatches();
+  const navigate = useNavigate();
+  const swipeAction = useSwipeAction();
+  const unmatch = useUnmatchMutation();
 
   return (
     <div className="flex flex-col gap-5 page-fade">
@@ -48,6 +53,13 @@ export function LikesPage() {
           ctaLabel="Match"
           getPeerId={(like) => String(like.peer.id)}
           getProfileProps={(like) => profileToProfileGridCardProps(like.peer)}
+          onCta={(like) =>
+            swipeAction.mutate({
+              target_type: "user",
+              target_user_id: like.peer.id,
+              action: "like"
+            })
+          }
         />
       ) : (
         <PeopleGridPage
@@ -59,6 +71,8 @@ export function LikesPage() {
           ctaLabel="Chat"
           getPeerId={(match) => String(match.peer.id)}
           getProfileProps={(match) => profileToProfileGridCardProps(match.peer)}
+          onCta={() => navigate("/chats")}
+          onUnmatch={(match) => unmatch.mutate(match.id)}
         />
       )}
     </div>

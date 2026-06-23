@@ -32,15 +32,15 @@ function mapDashboardMetrics(stats: RoomPosterDashboard): DashboardMetric[] {
           : undefined
     },
     {
-      label: "Views (30d)",
+      label: "Views",
       value: formatCount(stats.total_views_30d)
     },
     {
-      label: "Likes (30d)",
+      label: "Likes",
       value: formatCount(stats.total_likes_30d)
     },
     {
-      label: "Visits (30d)",
+      label: "Visits",
       value: formatCount(stats.total_visits_30d)
     }
   ];

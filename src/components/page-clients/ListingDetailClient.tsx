@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router";
-import { MapPin, ShieldCheck } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useProperty } from "@/hooks/queries/useProperties";
@@ -271,38 +271,29 @@ export default function ListingDetailClient() {
                   >
                     <div className="relative">
                       <Avatar name={data.owner?.name ?? "Host"} size="lg" src={data.owner?.avatarUrl} />
-                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-success border-2 border-surface animate-pulse" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="text-eyebrow text-[9px] leading-none">Verified Landlord</span>
-                      <h3 className="text-h3 font-semibold text-ink leading-tight flex items-center gap-1 mt-0.5">
+                      <h3 className="text-h3 font-semibold text-ink leading-tight mt-0.5">
                         {data.owner?.name ?? "Landlord"}
-                        <ShieldCheck className="h-4.5 w-4.5 text-accent shrink-0" />
                       </h3>
-                      <p className="text-caption text-ink-3 mt-0.5">Active today</p>
                     </div>
                     <span className="text-ink-3 text-sm">→</span>
                   </button>
 
-                  {/* Quick features list */}
-                  <div className="space-y-3 mb-5">
-                    <div className="flex items-center gap-2 text-body-md text-ink-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                      <span>{data.interestCount ?? 3} flatmates interested</span>
+                  {/* Engagement signal — only when real data exists */}
+                  {data.interestCount !== undefined ? (
+                    <div className="space-y-3 mb-5">
+                      <div className="flex items-center gap-2 text-body-md text-ink-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        <span>{data.interestCount} flatmates interested</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-body-md text-ink-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                      <span>Immediate Move-In</span>
-                    </div>
-                  </div>
+                  ) : null}
 
                   {/* Actions inside the host card */}
                   <div className="flex flex-col gap-3">
                     <Button fullWidth className="py-2.5 font-semibold" onClick={handleContactOwner}>
                       Contact Owner
-                    </Button>
-                    <Button variant="secondary" fullWidth className="py-2.5 border-line font-medium">
-                      Save to Favorites
                     </Button>
                   </div>
                 </Card>

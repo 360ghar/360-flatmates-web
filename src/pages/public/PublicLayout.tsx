@@ -24,10 +24,13 @@ export function PublicLayout() {
   const { pathname } = useLocation();
 
   // Close drawer on route change so navigation isn't blocked.
-  useEffect(() => {
+  // Adjusting state during render (vs. setState-in-effect) is React's
+  // recommended pattern for resetting state in response to a changed value.
+  const [drawerRoute, setDrawerRoute] = useState(pathname);
+  if (pathname !== drawerRoute) {
+    setDrawerRoute(pathname);
     if (drawerOpen) setDrawerOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }
 
   // Online/offline detection — surface a banner when the connection drops.
   useEffect(() => {

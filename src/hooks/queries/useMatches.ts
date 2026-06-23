@@ -7,7 +7,7 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { IncomingLikeCursorPage, MatchCursorPage, MatchSummary } from "@/lib/api/types";
+import type { IncomingLikeCursorPage, MatchCursorPage } from "@/lib/api/types";
 
 export const MATCHES_STALE_TIME = 60_000;
 

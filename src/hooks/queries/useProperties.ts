@@ -75,6 +75,23 @@ export function useProperty(id: number) {
   return useQuery(propertyOptions(id));
 }
 
+export function adminPropertyOptions(id: number) {
+  return queryOptions({
+    queryKey: ["properties", id, "admin"],
+    queryFn: ({ signal }) =>
+      apiClient.request<Property>({
+        method: "GET",
+        path: `/properties/${id}`,
+        signal
+      }),
+    enabled: id > 0
+  });
+}
+
+export function useAdminProperty(id: number) {
+  return useQuery(adminPropertyOptions(id));
+}
+
 export function useMyProperties() {
   return useQuery(myPropertiesOptions);
 }

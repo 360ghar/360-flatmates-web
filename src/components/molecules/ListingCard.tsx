@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { Bath, BedDouble, Heart, MapPin, Maximize2, Users } from "lucide-react";
+import { Bath, BedDouble, MapPin, Maximize2, Users } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
@@ -33,9 +33,7 @@ export interface ListingCardData {
 
 export interface ListingCardProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
   listing: ListingCardData;
-  saved?: boolean;
   ctaLabel?: string;
-  onSave?: (listingId: string) => void;
   onContact?: (listingId: string) => void;
   onOpen?: (listingId: string) => void;
   layout?: "vertical" | "horizontal";
@@ -43,9 +41,7 @@ export interface ListingCardProps extends Omit<HTMLAttributes<HTMLElement>, "tit
 
 export function ListingCard({
   listing,
-  saved = false,
   ctaLabel = "Contact",
-  onSave,
   onContact,
   onOpen,
   layout = "vertical",
@@ -87,22 +83,6 @@ export function ListingCard({
         />
         {/* Subtle bottom gradient for depth */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/20 to-transparent" />
-
-        {/* Save / Heart button */}
-        <button
-          type="button"
-          aria-label={saved ? "Remove saved listing" : "Save listing"}
-          className={cn(
-            "absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-surface/90 text-ink shadow-xs backdrop-blur-sm transition-all duration-300 hover:scale-110 active:scale-95 hover:bg-surface hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-            saved && "text-accent"
-          )}
-          onClick={(event) => {
-            event.stopPropagation();
-            onSave?.(listing.id);
-          }}
-        >
-          <Heart aria-hidden="true" className={cn("h-4.5 w-4.5 transition-transform duration-300", saved && "fill-current")} />
-        </button>
 
         {/* Compatibility ring */}
         {listing.compatibilityScore !== undefined ? (

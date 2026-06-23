@@ -14,6 +14,7 @@ export {
 
 export {
   useProperty,
+  useAdminProperty,
   useMyProperties,
   useInfiniteMyProperties,
   useCreateProperty,

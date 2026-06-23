@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 import { useWebSearch } from "@/hooks/queries/useSearch";
@@ -9,26 +9,37 @@ import { type FilterSection } from "@/components/molecules/FilterPanel";
 import { type ListingCardData } from "@/components/molecules/ListingCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/Layout";
+import { Card } from "@/components/ui/Card";
+import { ErrorState } from "@/components/ui/StateViews";
 
 export default function SemanticSearchClient() {
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+
+  // Debounce the query so we don't fire a semantic search on every keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const filters: SearchFilters = useMemo(
     () => ({
-      q: searchQuery || undefined,
+      q: debouncedQuery || undefined,
       semantic_search: true,
       amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
       limit: 20,
     }),
-    [searchQuery, selectedAmenities]
+    [debouncedQuery, selectedAmenities]
   );
 
   const {
     data: searchResults,
     isLoading,
+    isError,
+    error,
     refetch,
   } = useWebSearch(filters);
 
@@ -104,20 +115,30 @@ export default function SemanticSearchClient() {
         title="Describe your ideal home"
         description="Type naturally: &quot;quiet room near Koramangala under 15k with vegetarian flatmates&quot; and we will find matches."
       />
-      <div className="mt-6">
-        <SearchResults
-          listings={listings}
-          filters={filterSections}
-          resultCount={searchResults?.total ?? listings.length}
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
-          onFilterToggle={handleFilterToggle}
-          onClearFilters={handleClearFilters}
-          onApplyFilters={() => refetch()}
-          onListingOpen={(id) => navigate(`/listing/${id}`)}
-          onSaveSearch={() => navigate("/saved-searches")}
-        />
-      </div>
+      {isError && !searchResults ? (
+        <Card className="mt-6 flex items-center justify-center p-8">
+          <ErrorState
+            title="Could not load listings"
+            description={error instanceof Error ? error.message : "Check your connection and try again."}
+            onRetry={() => refetch()}
+          />
+        </Card>
+      ) : (
+        <div className="mt-6">
+          <SearchResults
+            listings={listings}
+            filters={filterSections}
+            resultCount={searchResults?.total ?? listings.length}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            onFilterToggle={handleFilterToggle}
+            onClearFilters={handleClearFilters}
+            onApplyFilters={() => refetch()}
+            onListingOpen={(id) => navigate(`/listing/${id}`)}
+            onSaveSearch={() => navigate("/saved-searches")}
+          />
+        </div>
+      )}
     </main>
   );
 }

@@ -19,36 +19,39 @@ export function useCountUp(
 
     hasAnimated.current = true;
 
-    // Snap to the final value with no animation when the user has
-    // expressed a preference for reduced motion.
-    if (prefersReduced) {
-      lastValue.current = target;
-      setValue(target);
-      return;
-    }
-
-    setValue(0);
-    lastValue.current = 0;
-
-    const start = performance.now();
     const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
 
-    const animate = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeOutQuart(progress);
-      const nextValue = Math.round(easedProgress * target);
-      if (nextValue !== lastValue.current) {
-        lastValue.current = nextValue;
-        setValue(nextValue);
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+    const runAnimation = (start: number) => {
+      const step = (now: number) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutQuart(progress);
+        const nextValue = Math.round(easedProgress * target);
+        if (nextValue !== lastValue.current) {
+          lastValue.current = nextValue;
+          setValue(nextValue);
+        }
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      };
+      requestAnimationFrame(step);
     };
 
-    requestAnimationFrame(animate);
+    // Defer the initial value reset into the first animation frame so the
+    // effect body performs no synchronous setState (react-hooks/set-state-in-effect).
+    requestAnimationFrame(() => {
+      // Snap to the final value with no animation when the user has
+      // expressed a preference for reduced motion.
+      if (prefersReduced) {
+        lastValue.current = target;
+        setValue(target);
+        return;
+      }
+      lastValue.current = 0;
+      setValue(0);
+      runAnimation(performance.now());
+    });
   }, [target, duration, enabled, inView]);
 
   return { ref, value };

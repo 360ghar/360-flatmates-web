@@ -37,10 +37,13 @@ export function SearchPage() {
 
   const [localSearch, setLocalSearch] = useState(params.q || "");
 
-  // Sync URL → local input when deep-linking a query.
-  useEffect(() => {
+  // Sync URL → local input when deep-linking a query. Adjusting state during
+  // render (vs. setState-in-effect) is React's recommended pattern here.
+  const [syncedQ, setSyncedQ] = useState(params.q);
+  if (params.q !== syncedQ) {
+    setSyncedQ(params.q);
     setLocalSearch(params.q || "");
-  }, [params.q]);
+  }
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 

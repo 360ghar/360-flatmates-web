@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import {
   CheckCircle,
-  Heart,
   MapPin,
 } from "lucide-react";
 
@@ -32,12 +31,6 @@ function HeroMiniCards() {
               width={500}
               height={320}
             />
-            <button
-              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-xs text-accent transition-all duration-200 hover:bg-accent hover:text-white shadow-xs"
-              aria-label="Save to favorites"
-            >
-              <Heart className="h-4 w-4" />
-            </button>
             <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-success/90 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
               <span>92% Vibe Match</span>
             </div>

@@ -31,7 +31,6 @@ interface DailyStat {
   date: string;
   views: number;
   likes: number;
-  shares: number;
 }
 
 function DailyStatsTable({ dailyStats }: { dailyStats: DailyStat[] }) {
@@ -42,13 +41,12 @@ function DailyStatsTable({ dailyStats }: { dailyStats: DailyStat[] }) {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-body-md">
-          <caption className="sr-only">Daily views, likes, and shares for the selected period</caption>
+          <caption className="sr-only">Daily views and likes for the selected period</caption>
           <thead>
             <tr className="border-b border-line bg-paper-2">
               <th className="px-4 py-2 text-left text-label-md text-ink-3" scope="col">Date</th>
               <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Views</th>
               <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Likes</th>
-              <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Shares</th>
             </tr>
           </thead>
           <tbody>
@@ -57,7 +55,6 @@ function DailyStatsTable({ dailyStats }: { dailyStats: DailyStat[] }) {
                 <th className="px-4 py-2 text-left font-normal text-ink-2" scope="row">{formatDate(row.date)}</th>
                 <td className="px-4 py-2 text-right tabular-nums text-ink">{formatCount(row.views)}</td>
                 <td className="px-4 py-2 text-right tabular-nums text-ink">{formatCount(row.likes)}</td>
-                <td className="px-4 py-2 text-right tabular-nums text-ink">{formatCount(row.shares)}</td>
               </tr>
             ))}
           </tbody>
@@ -181,10 +178,6 @@ export function AnalyticsPage() {
             <StatCard
               label="Likes"
               value={formatCount(analytics.likes)}
-            />
-            <StatCard
-              label="Shares"
-              value={formatCount(analytics.shares)}
             />
             <StatCard
               label="Conversations Started"
