@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/queries";
 import { notificationToNotificationCardProps } from "@/lib/api/adapters";
 import { formatRelativeTime } from "@/lib/utils";
+import { resolveRedirect } from "@/lib/redirect";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -80,7 +81,10 @@ export function NotificationsPage() {
                       });
                     }
                     if (notification.route) {
-                      navigate(notification.route);
+                      // Guard the server-supplied route against off-site or
+                      // protocol-relative values before navigating (same
+                      // policy used for auth redirects via resolveRedirect).
+                      navigate(resolveRedirect(notification.route));
                     }
                   }}
                 />
