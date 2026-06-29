@@ -42,16 +42,134 @@ npm run dev             # http://localhost:5173
 ## Project Structure
 
 ```
-src/
-  components/   # Shared UI (ui/, molecules/, organisms/, landing/, onboarding/)
-  hooks/        # Custom hooks + TanStack Query hooks (queries/)
-  lib/          # Utilities, API client, stores, schemas, SSE, Supabase
-  pages/        # Route pages (app/, auth/, admin/, public/)
-docs/           # OpenAPI spec
-plans/          # PRD and UI/UX specs
-e2e/            # Playwright E2E specs
-tests/          # Integration tests
-DESIGN.md       # Design system — tokens, components, dark mode
+360-flatmates-web/
+├─ AGENTS.md
+├─ AUDIT_REPORT.md
+├─ CLAUDE.md
+├─ DESIGN.md
+├─ README.md
+├─ index.html
+├─ netlify.toml
+├─ package.json
+├─ playwright.config.ts
+├─ postcss.config.mjs
+├─ tsconfig.json
+├─ vite.config.ts
+├─ vitest.config.ts
+├─ vitest.setup.ts
+├─ WEB_CLIENT_INVENTORY.md
+├─ docs/
+│  └─ flatmates-openapi.yaml
+├─ e2e/
+│  ├─ app-navigation.spec.ts
+│  ├─ auth-flow.spec.ts
+│  ├─ auth-setup.ts
+│  ├─ chat-flow.spec.ts
+│  ├─ compatibility-flow.spec.ts
+│  ├─ critical-flows.spec.ts
+│  ├─ explore-flow.spec.ts
+│  ├─ profile-interaction-flow.spec.ts
+│  ├─ public-pages.spec.ts
+│  ├─ search-flow.spec.ts
+│  └─ visit-flow.spec.ts
+├─ plans/
+│  ├─ prd.md
+│  └─ ui_ux.md
+├─ public/
+│  ├─ _redirects
+│  ├─ llms.txt
+│  ├─ robots.txt
+│  ├─ sitemap.xml
+│  ├─ fonts/
+│  │  ├─ fonts.css
+│  │  └─ screenshots/
+│  └─ screenshots/
+├─ scripts/
+│  ├─ generate-favicon-ico.ts
+│  ├─ generate-og-image.ts
+│  ├─ generate-pwa-icons.ts
+│  ├─ generate-sitemap.ts
+│  ├─ generate-static-html.ts
+│  ├─ prerender.ts
+│  └─ lib/
+│     ├─ blog-content.ts
+│     ├─ listings.ts
+│     └─ route-content.ts
+├─ src/
+│  ├─ App.tsx
+│  ├─ entry.tsx
+│  ├─ providers.tsx
+│  ├─ test-utils.tsx
+│  ├─ vite-env.d.ts
+│  ├─ __mocks__/
+│  │  └─ framer-motion.tsx
+│  ├─ components/
+│  │  ├─ ErrorBoundary.tsx
+│  │  ├─ index.ts
+│  │  ├─ analytics/
+│  │  │  └─ Plausible.tsx
+│  │  ├─ landing/
+│  │  │  ├─ AppStoreBadges.tsx
+│  │  │  ├─ BottomCTA.tsx
+│  │  │  └─ ...
+│  │  ├─ molecules/
+│  │  ├─ onboarding/
+│  │  ├─ organisms/
+│  │  ├─ page-clients/
+│  │  └─ ui/
+│  ├─ hooks/
+│  │  ├─ useAuth.ts
+│  │  ├─ useCountUp.ts
+│  │  ├─ useDirtyFormGuard.ts
+│  │  ├─ useImageUpload.ts
+│  │  ├─ useInView.ts
+│  │  ├─ useKeyboardSwipe.ts
+│  │  ├─ usePWA.ts
+│  │  ├─ useResendTimer.ts
+│  │  ├─ useScrollProgress.ts
+│  │  ├─ useSSE.ts
+│  │  ├─ useSSEStatus.ts
+│  │  ├─ useWebOtp.ts
+│  │  └─ __tests__/
+│  │     └─ queries/
+│  ├─ lib/
+│  │  ├─ config.ts
+│  │  ├─ debug.ts
+│  │  ├─ env.ts
+│  │  ├─ image-utils.ts
+│  │  ├─ lastAuthMethod.ts
+│  │  ├─ prefetch.ts
+│  │  ├─ redirect.ts
+│  │  ├─ route-inventory.ts
+│  │  ├─ __tests__/
+│  │  ├─ api/
+│  │  ├─ auth/
+│  │  ├─ compatibility/
+│  │  ├─ data/
+│  │  ├─ push/
+│  │  ├─ schemas/
+│  │  ├─ seo/
+│  │  ├─ sse/
+│  │  ├─ storage/
+│  │  ├─ stores/
+│  │  ├─ supabase/
+│  │  └─ utils/
+│  ├─ pages/
+│  │  ├─ ErrorFallback.tsx
+│  │  ├─ guards.tsx
+│  │  ├─ __tests__/
+│  │  ├─ admin/
+│  │  ├─ app/
+│  │  ├─ auth/
+│  │  └─ public/
+│  └─ styles/
+│     └─ globals.css
+├─ tests/
+│  └─ integration/
+│     ├─ compatibility-engine.test.ts
+│     ├─ query-keys.test.ts
+│     └─ route-contracts.test.ts
+└─ skills-lock.json
 ```
 
 ## Key Documents
