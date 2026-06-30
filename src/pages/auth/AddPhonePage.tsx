@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ import { PhoneInput, formatFullPhone } from "@/components/ui/PhoneInput";
 import { ResendOtp } from "@/components/ui/ResendOtp";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { focusRing } from "@/components/ui/component-utils";
+import { resolveRedirect } from "@/lib/redirect";
 
 /**
  * Post-Google add-phone interstitial (skippable).
@@ -29,7 +30,9 @@ const STEP_LABELS = ["Add phone", "Verify"];
 
 export function AddPhonePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, addPhone, verifyPhoneChange } = useAuth();
+  const nextPath = resolveRedirect(searchParams.get("next"));
 
   const [step, setStep] = useState<AddPhoneStep>("phone");
   const [phone, setPhone] = useState("");
@@ -46,9 +49,9 @@ export function AddPhonePage() {
   // Already has a phone → nothing to do here.
   useEffect(() => {
     if (typeof user?.phone === "string" && user.phone.length > 0) {
-      navigate("/home", { replace: true });
+      navigate(nextPath, { replace: true });
     }
-  }, [user?.phone, navigate]);
+  }, [nextPath, user?.phone, navigate]);
 
   const handleSendOtp = useCallback(async () => {
     setError(null);
@@ -82,17 +85,17 @@ export function AddPhonePage() {
     setSubmitting(true);
     try {
       await verifyPhoneChange(formatFullPhone(phone), otp);
-      navigate("/home", { replace: true });
+      navigate(nextPath, { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to verify. Please try again.");
     } finally {
       setSubmitting(false);
     }
-  }, [verifyPhoneChange, phone, otp, navigate]);
+  }, [verifyPhoneChange, phone, otp, navigate, nextPath]);
 
   const handleSkip = useCallback(() => {
-    navigate("/home", { replace: true });
-  }, [navigate]);
+    navigate(nextPath, { replace: true });
+  }, [navigate, nextPath]);
 
   return (
     <>

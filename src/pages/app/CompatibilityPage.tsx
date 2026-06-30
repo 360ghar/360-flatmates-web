@@ -260,7 +260,12 @@ export function CompatibilityPage() {
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
       <div className="flex items-center gap-3">
-        <Button variant="icon" size="icon" onClick={() => navigate(-1)}>
+        <Button
+          variant="icon"
+          size="icon"
+          aria-label="Go back"
+          onClick={() => navigate(-1)}
+        >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
         <h1 className="text-h1">Compatibility</h1>
@@ -323,6 +328,23 @@ export function CompatibilityPage() {
               </p>
             </Card>
 
+            <Card className="flex flex-col gap-3 p-5">
+              <h2 className="text-h3">Summary</h2>
+              <ul className="flex flex-col gap-2">
+                {(breakdown.summary.length > 0
+                  ? breakdown.summary
+                  : [
+                      `${breakdown.overall_percentage}% compatibility based on the lifestyle details both profiles have shared.`,
+                    ]
+                ).map((line) => (
+                  <li key={line} className="flex items-start gap-2 text-body-md text-ink-2">
+                    <Sparkles aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
             {/* Top opportunity */}
             {opportunity ? (
               <Card className="flex flex-col gap-2 p-5">
@@ -380,7 +402,7 @@ export function CompatibilityPage() {
                   ))}
                 </ul>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <Button size="compact" variant="secondary" onClick={() => navigate("/settings/profile")}>
+                  <Button size="compact" variant="secondary" onClick={() => navigate("/profile/edit")}>
                     <Lightbulb aria-hidden="true" className="h-4 w-4" />
                     Update my profile
                   </Button>

@@ -22,9 +22,9 @@
  * ──────────────────────────────────────────────────────────────────────────
  * What is deliberately NOT included
  * ──────────────────────────────────────────────────────────────────────────
- *  - `/search` and `/search/semantic` — AUTHENTICATED app routes (under
- *    `<AuthGuard>` in App.tsx), Disallowed in robots.txt. The legacy generator
- *    incorrectly emitted them; that is fixed.
+ *  - `/search/semantic` — public but intentionally marked noindex in the
+ *    route metadata, so it is allowed in robots but not advertised here.
+ *  - Protected app routes under `<AuthGuard>` in App.tsx.
  *
  * ──────────────────────────────────────────────────────────────────────────
  * Design notes
@@ -47,7 +47,7 @@ import { fetchDiscoverableListings, shouldFetchListingData } from "./lib/listing
 
 // ──────────────────────────────────────────────────────────────────────────
 // Static PUBLIC routes (verified against src/App.tsx → PublicLayout).
-// Kept free of any authenticated route (no /search, no /search/semantic).
+// Kept free of authenticated routes and noindex public routes.
 // ──────────────────────────────────────────────────────────────────────────
 interface StaticRoute {
   path: string;
@@ -66,7 +66,7 @@ const OG_IMAGE = `${SITE_URL}/og-image.webp`;
 const STATIC_ROUTES: StaticRoute[] = [
   { path: "/", changefreq: "daily", priority: "1.0", image: OG_IMAGE, imageTitle: "360 Flatmates" },
   { path: "/discover", changefreq: "hourly", priority: "0.9" },
-  { path: "/stats", changefreq: "weekly", priority: "0.6" },
+  { path: "/search", changefreq: "hourly", priority: "0.8" },
   { path: "/about", changefreq: "monthly", priority: "0.5" },
   { path: "/terms", changefreq: "monthly", priority: "0.3" },
   { path: "/privacy", changefreq: "monthly", priority: "0.3" },

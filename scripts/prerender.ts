@@ -93,7 +93,6 @@ const STATIC_ROUTES: readonly string[] = [
   "/about",
   "/terms",
   "/privacy",
-  "/stats",
 ];
 
 /** City landing routes — one per supported city (keeps sitemap ↔ prerender in sync). */

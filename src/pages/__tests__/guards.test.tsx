@@ -30,15 +30,30 @@ function renderLoginUnderGuard() {
 describe("AuthRedirectGuard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    authStore.getState().setMidAuthFlow(false);
+    authStore.setState({
+      midAuthFlow: false,
+      authStage: "unknown",
+      authStageError: null,
+      missingProfileFields: [],
+    });
   });
 
   it("redirects a signed-in user off /login to /home", () => {
     mockUseAuth.mockReturnValue({ user: signedInUser, loading: false });
+    authStore.getState().setAuthStage("active");
 
     renderLoginUnderGuard();
 
     expect(screen.getByText("home page")).toBeInTheDocument();
+  });
+
+  it("waits on /login while a signed-in user's auth stage is unknown", () => {
+    mockUseAuth.mockReturnValue({ user: signedInUser, loading: false });
+
+    const { container } = renderLoginUnderGuard();
+
+    expect(container.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(screen.queryByText("home page")).not.toBeInTheDocument();
   });
 
   it("holds a signed-in user on /login while midAuthFlow is set (mandatory set-password)", () => {

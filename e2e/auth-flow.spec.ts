@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures/test";
 
 /**
  * E2E tests for authentication flows.
@@ -121,7 +121,7 @@ test.describe("Auth middleware — route protection", () => {
   test("unauthenticated user visiting /home is redirected to /login", async ({ page }) => {
     await page.goto("/home");
     await expect(page).toHaveURL(/\/login/);
-    await expect(page).toHaveURL(/redirect=\/home/);
+    expect(new URL(page.url()).searchParams.get("redirect")).toBe("/home");
   });
 
   test("unauthenticated user visiting /swipe is redirected to /login", async ({ page }) => {
@@ -144,8 +144,8 @@ test.describe("Auth middleware — route protection", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("unauthenticated user visiting /app/discover is redirected to /login", async ({ page }) => {
-    await page.goto("/app/discover");
+  test("unauthenticated user visiting /explore is redirected to /login", async ({ page }) => {
+    await page.goto("/explore");
     await expect(page).toHaveURL(/\/login/);
   });
 

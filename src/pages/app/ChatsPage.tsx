@@ -45,13 +45,16 @@ export function ChatsPage() {
       <div className="flex flex-col md:hidden">
         <MatchesBar matches={matches} matchesLoading={matchesLoading} onStartChat={handleStartConversation} />
         <div className="border-t border-line my-4" />
-        <ConversationsPanel
-          conversations={conversations}
-          isLoading={isLoading}
-          error={error}
-          refetch={refetch}
-          onNavigate={(id) => navigate(`/chats/${id}`)}
-        />
+        <section aria-labelledby="mobile-conversations-heading">
+          <h2 id="mobile-conversations-heading" className="text-h3 mb-3">Conversations</h2>
+          <ConversationsPanel
+            conversations={conversations}
+            isLoading={isLoading}
+            error={error}
+            refetch={refetch}
+            onNavigate={(id) => navigate(`/chats/${id}`)}
+          />
+        </section>
       </div>
 
       {/* ── Tablet / Desktop: side-by-side split layout ── */}

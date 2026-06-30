@@ -1,59 +1,17 @@
 import { test as setup, expect } from "@playwright/test";
 import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 
 /**
- * Auth setup — authenticates a test user and saves storage state to
- * `.auth/user.json` for use in authenticated test projects.
- *
- * Since we do not have a real test backend, this setup performs a
- * best-effort mock authentication by:
- * 1. Navigating to the login page
- * 2. Filling the phone field
- * 3. Attempting the OTP flow
- * 4. Saving whatever cookie/storage state exists after the attempt
- *
- * Regardless of whether the real Supabase auth succeeds, we write a
- * minimal storage state with a Supabase auth cookie so that the
- * middleware can parse it. The JWT is fake (signed with "test-signature")
- * so `supabase.auth.getUser()` will return null — but the cookie
- * presence allows the middleware to at least attempt validation rather
- * than immediately redirecting.
- *
- * The cookie name follows the @supabase/ssr convention:
- *   sb-{projectRef}-auth-token
- *
- * The projectRef is derived from NEXT_PUBLIC_SUPABASE_URL in .env.
- * Current value: https://example.supabase.co → projectRef = "example"
+ * Opt-in real-auth setup. The default Playwright suite does not depend on this
+ * file; local authenticated coverage uses the DEV-only localStorage marker from
+ * e2e/fixtures/test.ts plus deterministic API mocks.
  */
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const AUTH_FILE = ".auth/user.json";
 
-/** Derive the Supabase cookie name from the project URL. */
-function getSupabaseCookieName(): string {
-  const envPath = path.resolve(__dirname, "..", ".env");
-  let projectRef = "example"; // fallback
-
-  try {
-    const envContent = fs.readFileSync(envPath, "utf-8");
-    const match = envContent.match(
-      /NEXT_PUBLIC_SUPABASE_URL\s*=\s*https:\/\/([a-zA-Z0-9-]+)\.supabase\.co/
-    );
-    if (match) {
-      projectRef = match[1];
-    }
-  } catch {
-    // .env not readable — use fallback
-  }
-
-  return `sb-${projectRef}-auth-token`;
-}
-
 setup("authenticate test user", async ({ page }) => {
+  setup.skip(!process.env.E2E_REAL_AUTH, "Real auth storage state is opt-in.");
+
   // Navigate to the login page
   await page.goto("/login");
 
@@ -107,35 +65,14 @@ setup("authenticate test user", async ({ page }) => {
     // Send OTP button not visible or not enabled — skip auth attempt
   }
 
-  // Save storage state from the browser session
-  await page.evaluate(() => {
-    window.localStorage.setItem("flatmates-playwright-auth", "true");
-  });
+  // Save only real browser state produced by the auth attempt.
   await page.context().storageState({ path: AUTH_FILE });
-
-  // Ensure the storage state contains a Supabase auth cookie.
-  // If the real auth flow didn't succeed (no backend), inject a fake one
-  // so authenticated test projects can at least bypass the cookie-existence
-  // check in the middleware.
   const state = JSON.parse(fs.readFileSync(AUTH_FILE, "utf-8"));
-  const cookieName = getSupabaseCookieName();
-  const hasAuthCookie = state.cookies?.some(
-    (c: { name: string }) => c.name === cookieName
+  const hasSupabaseCookie = state.cookies?.some((cookie: { name: string }) =>
+    /^sb-.+-auth-token$/.test(cookie.name)
   );
 
-  if (!hasAuthCookie) {
-    state.cookies = state.cookies || [];
-    state.cookies.push({
-      name: cookieName,
-      value:
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxOTk5OTk5OTk5LCJzdWIiOiJ0ZXN0LXVzZXItaWQifQ.test-signature",
-      domain: "127.0.0.1",
-      path: "/",
-      expires: -1,
-      httpOnly: true,
-      secure: false,
-      sameSite: "Lax"
-    });
-    fs.writeFileSync(AUTH_FILE, JSON.stringify(state, null, 2));
+  if (!hasSupabaseCookie) {
+    throw new Error("Real auth setup did not produce a Supabase auth cookie.");
   }
 });

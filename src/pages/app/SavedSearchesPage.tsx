@@ -4,7 +4,8 @@ import { useState, useCallback } from "react";
 import {
   useSavedSearches,
   useDeleteSavedSearch,
-  useCreateSavedSearch
+  useCreateSavedSearch,
+  useUpdateSavedSearch
 } from "@/hooks/queries";
 import { humanizeSnakeCase, toTitleCase } from "@/lib/utils/format";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -14,7 +15,7 @@ import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
-import { AsyncView, EmptyState } from "@/components/ui/StateViews";
+import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 /** Serialize all SearchFilters fields into URL search params. */
@@ -94,24 +95,16 @@ export function SavedSearchesPage() {
   const { data: savedSearches, isLoading, error, refetch } = useSavedSearches();
   const deleteSavedSearch = useDeleteSavedSearch();
   const createSavedSearch = useCreateSavedSearch();
+  const updateSavedSearch = useUpdateSavedSearch();
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [pendingCloneId, setPendingCloneId] = useState<number | null>(null);
 
   // Confirmation modal state
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const confirmTarget = savedSearches?.find((s) => s.id === confirmDeleteId) ?? null;
 
-  // Inline rename state — a TODO marks the missing hook. The UI is in place so
-  // that wiring up useUpdateSavedSearch (in src/hooks/queries/useSearch.ts,
-  // outside this fix's scope) is the only follow-up.
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState("");
-
-  // TODO(rename): add a useUpdateSavedSearch hook in
-  // src/hooks/queries/useSearch.ts to back the inline rename. The hook does
-  // not exist yet, so the commit handler below is a no-op placeholder that
-  // just dismisses the editor and shows a friendly toast. Once the hook is
-  // added, replace the body of commitRename with a useUpdateSavedSearch.mutate
-  // call (mirroring useDeleteSavedSearch).
 
   const beginRename = useCallback((id: number, currentName: string) => {
     setRenamingId(id);
@@ -124,24 +117,42 @@ export function SavedSearchesPage() {
   }, []);
 
   const commitRename = useCallback(() => {
-    if (renamingId === null) return;
+    if (renamingId === null || updateSavedSearch.isPending) return;
     const trimmed = renameValue.trim();
-    cancelRename();
-    if (!trimmed) return;
     const target = savedSearches?.find((s) => s.id === renamingId);
-    if (!target || target.name === trimmed) return;
-    uiStore.getState().pushToast({
-      type: "info",
-      title: "Rename is not yet available",
-      description: "Use Duplicate to clone the search under a new name.",
-    });
-  }, [renamingId, renameValue, savedSearches, cancelRename]);
+    if (!trimmed || !target || target.name === trimmed) {
+      cancelRename();
+      return;
+    }
+    updateSavedSearch.mutate(
+      {
+        id: renamingId,
+        payload: { name: trimmed }
+      },
+      {
+        onSuccess: () => {
+          uiStore.getState().pushToast({
+            type: "success",
+            title: "Saved search renamed"
+          });
+          cancelRename();
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not rename saved search"
+          });
+        }
+      }
+    );
+  }, [renamingId, renameValue, savedSearches, updateSavedSearch, cancelRename]);
 
   const handleClone = useCallback(
     (id: number) => {
       const target = savedSearches?.find((s) => s.id === id);
       if (!target) return;
       const clonedName = `${target.name} (Copy)`;
+      setPendingCloneId(id);
       createSavedSearch.mutate(
         {
           name: clonedName,
@@ -160,6 +171,9 @@ export function SavedSearchesPage() {
               type: "error",
               title: "Could not duplicate saved search"
             });
+          },
+          onSettled: () => {
+            setPendingCloneId(null);
           }
         }
       );
@@ -256,12 +270,11 @@ export function SavedSearchesPage() {
         }
         errorView={
           <Card className="flex items-center justify-center p-8">
-            <EmptyState
-              title="No saved searches yet"
-              description="Save a search from the search results page to revisit it later."
-              icon={<Bookmark aria-hidden="true" className="h-6 w-6" />}
-              actionLabel="Start searching"
-              onAction={() => navigate("/search")}
+            <ErrorState
+              title="Could not load saved searches"
+              description="Your saved searches are still here. Retry to load them again."
+              actionLabel="Retry"
+              onRetry={() => refetch()}
             />
           </Card>
         }
@@ -289,7 +302,11 @@ export function SavedSearchesPage() {
               const isRenaming = renamingId === search.id;
 
               return (
-                <Card key={search.id} className="flex items-center justify-between gap-4 p-4" role="listitem">
+                <Card
+                  key={search.id}
+                  className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  role="listitem"
+                >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       {isRenaming ? (
@@ -307,7 +324,6 @@ export function SavedSearchesPage() {
                               cancelRename();
                             }
                           }}
-                          onBlur={commitRename}
                           className="max-w-xs"
                         />
                       ) : (
@@ -335,13 +351,19 @@ export function SavedSearchesPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div
+                    className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto"
+                    role="group"
+                    aria-label={`Actions for ${search.name}`}
+                  >
                     {isRenaming ? (
                       <>
                         <Button
                           variant="icon"
                           size="icon"
                           aria-label="Confirm rename"
+                          disabled={!renameValue.trim() || updateSavedSearch.isPending}
+                          loading={updateSavedSearch.isPending}
                           onClick={commitRename}
                         >
                           <Check aria-hidden="true" className="h-4 w-4" />
@@ -350,6 +372,7 @@ export function SavedSearchesPage() {
                           variant="icon"
                           size="icon"
                           aria-label="Cancel rename"
+                          disabled={updateSavedSearch.isPending}
                           onClick={cancelRename}
                         >
                           <X aria-hidden="true" className="h-4 w-4 text-ink-3" />
@@ -378,7 +401,8 @@ export function SavedSearchesPage() {
                           size="icon"
                           aria-label={`Duplicate saved search: ${search.name}`}
                           onClick={() => handleClone(search.id)}
-                          loading={createSavedSearch.isPending}
+                          disabled={createSavedSearch.isPending}
+                          loading={createSavedSearch.isPending && pendingCloneId === search.id}
                         >
                           <Copy aria-hidden="true" className="h-4 w-4" />
                         </Button>
@@ -414,14 +438,20 @@ export function SavedSearchesPage() {
         open={confirmDeleteId !== null}
         title="Delete saved search?"
         description={confirmTarget ? `"${confirmTarget.name}" will be permanently removed. This cannot be undone.` : "This saved search will be permanently removed."}
-        onClose={() => setConfirmDeleteId(null)}
+        onClose={() => {
+          if (!deleteSavedSearch.isPending) setConfirmDeleteId(null);
+        }}
         footer={
           <>
-            <Button variant="tertiary" onClick={() => setConfirmDeleteId(null)}>
+            <Button
+              variant="tertiary"
+              disabled={deleteSavedSearch.isPending}
+              onClick={() => setConfirmDeleteId(null)}
+            >
               Keep it
             </Button>
             <Button
-              className="bg-error text-white shadow-none hover:bg-error/90"
+              variant="destructive"
               loading={deleteSavedSearch.isPending}
               onClick={() => {
                 if (confirmDeleteId !== null) handleDelete(confirmDeleteId);

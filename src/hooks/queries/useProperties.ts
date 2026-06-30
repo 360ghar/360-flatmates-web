@@ -75,6 +75,23 @@ export function useProperty(id: number) {
   return useQuery(propertyOptions(id));
 }
 
+export function myPropertyOptions(id: number) {
+  return queryOptions({
+    queryKey: ["properties", id, "mine"],
+    queryFn: ({ signal }) =>
+      apiClient.request<Property>({
+        method: "GET",
+        path: `/properties/${id}`,
+        signal
+      }),
+    enabled: id > 0
+  });
+}
+
+export function useMyProperty(id: number) {
+  return useQuery(myPropertyOptions(id));
+}
+
 export function adminPropertyOptions(id: number) {
   return queryOptions({
     queryKey: ["properties", id, "admin"],
@@ -164,6 +181,7 @@ export function useUpdateProperty(id: number) {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", id] });
+      queryClient.invalidateQueries({ queryKey: ["properties", id, "mine"] });
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
@@ -209,6 +227,7 @@ export function useDeleteProperty(id: number) {
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.removeQueries({ queryKey: ["properties", id] });
+      queryClient.removeQueries({ queryKey: ["properties", id, "mine"] });
     }
   });
 }
@@ -232,6 +251,9 @@ export function useUploadPropertyImage() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["properties", variables.propertyId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["properties", variables.propertyId, "mine"]
       });
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -259,6 +281,9 @@ export function useBoostListing() {
       queryClient.invalidateQueries({
         queryKey: ["properties", variables.propertyId]
       });
+      queryClient.invalidateQueries({
+        queryKey: ["properties", variables.propertyId, "mine"]
+      });
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
@@ -284,6 +309,9 @@ export function useRenewListing() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["properties", variables.propertyId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["properties", variables.propertyId, "mine"]
       });
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });

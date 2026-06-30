@@ -212,9 +212,12 @@ describe("useSwipes hooks", () => {
       });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      // The deck refill is now handled entirely by SwipeDeck's onNearEnd
-      // callback, not by useSwipeAction. No invalidation should fire.
-      expect(invalidateSpy).not.toHaveBeenCalled();
+      // The deck refill is handled entirely by SwipeDeck's onNearEnd callback,
+      // not by useSwipeAction. Other affected scopes, such as incoming likes,
+      // may be invalidated after a like.
+      expect(invalidateSpy).not.toHaveBeenCalledWith({
+        queryKey: ["swipes", "deck"],
+      });
     });
 
     it("does not invalidate the deck when plenty of cards remain", async () => {

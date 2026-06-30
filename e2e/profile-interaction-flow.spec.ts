@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures/test";
 
 /**
  * E2E tests for profile interaction flows.
@@ -9,33 +9,33 @@ import { expect, test } from "@playwright/test";
  */
 
 test.describe("Profile interaction — unauthenticated access", () => {
-  test("redirects to /login when visiting /app/profile/1 without auth", async ({
+  test("redirects to /login when visiting /profile/1 without auth", async ({
     page,
   }) => {
-    await page.goto("/app/profile/1");
+    await page.goto("/profile/1");
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("preserves /app/profile/1 in the redirect query param", async ({
+  test("preserves /profile/1 in the redirect query param", async ({
     page,
   }) => {
-    await page.goto("/app/profile/1");
+    await page.goto("/profile/1");
     await expect(page).toHaveURL(/redirect=/);
   });
 });
 
 test.describe("Settings sub-pages — unauthenticated access", () => {
-  test("redirects to /login when visiting /app/settings/report-problem without auth", async ({
+  test("redirects to /login when visiting /settings/report-problem without auth", async ({
     page,
   }) => {
-    await page.goto("/app/settings/report-problem");
+    await page.goto("/settings/report-problem");
     await expect(page).toHaveURL(/\/login/);
   });
 
   test("preserves path in the redirect query param for report-problem", async ({
     page,
   }) => {
-    await page.goto("/app/settings/report-problem");
+    await page.goto("/settings/report-problem");
     await expect(page).toHaveURL(/redirect=/);
   });
 });

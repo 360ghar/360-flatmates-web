@@ -1,17 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { delayApiResponse, expect, seedDevAuth, test } from "./fixtures/test";
 
 /**
  * E2E tests for app navigation and page structure.
  *
- * The /app/* and legacy protected routes require authentication.
+ * Protected app routes require authentication.
  * Unauthenticated users are redirected to /login. These tests
  * verify:
  * - Auth redirect behavior for all protected routes
  * - Page structure when accessible (loading/empty states)
  * - Navigation between app pages (requires auth)
  *
- * Authenticated tests use the "authenticated" Playwright project which
- * loads storageState from .auth/user.json.
+ * Authenticated tests seed the DEV-only Playwright auth marker and use
+ * deterministic API mocks from the shared fixture.
  */
 
 test.describe("Protected routes — auth wall", () => {
@@ -33,8 +33,6 @@ test.describe("Protected routes — auth wall", () => {
     { path: "/saved-searches", name: "Saved Searches" },
     { path: "/alerts", name: "Alerts" },
     { path: "/admin", name: "Admin" },
-    { path: "/app/discover", name: "App Discover" },
-    { path: "/app/home", name: "App Home" },
   ];
 
   for (const route of protectedRoutes) {
@@ -48,196 +46,151 @@ test.describe("Protected routes — auth wall", () => {
 
   test("redirect includes the original path in the redirect query param", async ({ page }) => {
     await page.goto("/settings");
-    const url = page.url();
-    const urlObj = new URL(url);
+    await expect(page).toHaveURL(/\/login/);
+    const urlObj = new URL(page.url());
     const redirectParam = urlObj.searchParams.get("redirect");
-    expect(redirectParam).toContain("/settings");
+    expect(redirectParam).toBe("/settings");
   });
 });
 
 test.describe("App pages — authenticated page structure", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
   test("Home page renders greeting and feed sections", async ({ page }) => {
     await page.goto("/home");
-    // With a fake auth token, the middleware may still redirect (JWT invalid).
-    // If we reach the page, verify the greeting; otherwise verify redirect.
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await expect(page.getByRole("heading", { name: /hi/i })).toBeVisible();
-      await expect(page.getByText("Nearby")).toBeVisible();
-    }
+    await expect(page.getByRole("heading", { name: /hi/i })).toBeVisible();
+    await expect(page.getByRole("checkbox", { name: "Nearby" })).toBeVisible();
   });
 
   test("Home page shows notification bell", async ({ page }) => {
     await page.goto("/home");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await expect(page.getByRole("link", { name: /notifications/i })).toBeVisible();
-    }
+    await expect(page.getByRole("link", { name: /notifications/i })).toBeVisible();
   });
 
   test("Home page renders filter chips", async ({ page }) => {
     await page.goto("/home");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await expect(page.getByText("Nearby")).toBeVisible();
-      await expect(page.getByText("1BHK")).toBeVisible();
-      await expect(page.getByText("Furnished")).toBeVisible();
-      await expect(page.getByText("Budget+")).toBeVisible();
-      await expect(page.getByText("Vegetarian")).toBeVisible();
-    }
+    await expect(page.getByRole("checkbox", { name: "Nearby" })).toBeVisible();
+    await expect(page.getByText("1BHK")).toBeVisible();
+    await expect(page.getByText("Furnished")).toBeVisible();
+    await expect(page.getByText("Budget+")).toBeVisible();
+    await expect(page.getByText("Vegetarian")).toBeVisible();
   });
 
   test("Swipe page renders SwipeDeck", async ({ page }) => {
     await page.goto("/swipe");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // SwipeDeck should be visible (or loading/error state)
-      await expect(page.locator("[class*='swipe'], [class*='deck']").first()).toBeVisible();
-    }
+    await expect(page.getByRole("region", { name: /profile cards/i })).toBeVisible();
   });
 
   test("Profile page renders Likes and Matches menu rows", async ({ page }) => {
     await page.goto("/profile");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await expect(page.getByText("Likes")).toBeVisible();
-      await expect(page.getByText("Matches")).toBeVisible();
-    }
+    await expect(page.getByRole("link", { name: /likes & matches/i })).toBeVisible();
   });
 
   test("Chats page renders Chats heading", async ({ page }) => {
     await page.goto("/chats");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await expect(page.getByRole("heading", { name: /chats/i })).toBeVisible();
-    }
+    await expect(page.getByRole("heading", { name: /chats/i })).toBeVisible();
   });
 
   test("Visits page renders My Visits heading", async ({ page }) => {
     await page.goto("/visits");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await expect(page.getByRole("heading", { name: /my visits/i })).toBeVisible();
-    }
+    await expect(page.getByRole("heading", { name: /my visits/i })).toBeVisible();
   });
 
-  test("Settings page renders settings menu items", async ({ page }) => {
+  test("Settings entry point redirects to profile menu items", async ({ page }) => {
     await page.goto("/settings");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await expect(page.getByRole("heading", { name: /settings/i })).toBeVisible();
-      await expect(page.getByText("Notifications")).toBeVisible();
-      await expect(page.getByText("Appearance")).toBeVisible();
-      await expect(page.getByText("Blocked Users")).toBeVisible();
-      await expect(page.getByText("Sign Out")).toBeVisible();
-      await expect(page.getByText("Delete Account")).toBeVisible();
-    }
+    await expect(page).toHaveURL(/\/profile/);
+    await expect(page.getByText("Notifications")).toBeVisible();
+    await expect(page.getByText("Blocked Users")).toBeVisible();
+    await expect(page.getByText("Report a Problem")).toBeVisible();
+    await expect(page.getByText("Sign Out")).toBeVisible();
+    await expect(page.getByText("Delete Account")).toBeVisible();
   });
 
   test("Settings — Notifications link navigates to /settings/notifications", async ({
     page,
   }) => {
     await page.goto("/settings");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await page.getByText("Notifications").click();
-      await expect(page).toHaveURL(/\/settings\/notifications/);
-    }
+    await page.getByText("Notifications").click();
+    await expect(page).toHaveURL(/\/settings\/notifications/);
   });
 
   test("Settings — Blocked Users link navigates to /settings/blocked-users", async ({
     page,
   }) => {
     await page.goto("/settings");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      await page.getByText("Blocked Users").click();
-      await expect(page).toHaveURL(/\/settings\/blocked-users/);
-    }
+    await page.getByText("Blocked Users").click();
+    await expect(page).toHaveURL(/\/settings\/blocked-users/);
   });
 });
 
 test.describe("App navigation — sidebar and bottom nav", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
-  test("AppShell renders navigation items on desktop", async ({ page }) => {
+  test("AppShell renders sidebar navigation on desktop", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Desktop sidebar is hidden on mobile.");
     await page.goto("/home");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // The AppShell provides sidebar navigation with links
-      // to Home, Swipe, Likes, Chats, Visits, etc.
-      const nav = page.locator("nav, [aria-label*='navigation' i]").first();
-      await expect(nav).toBeVisible();
-    }
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    await expect(nav).toBeVisible();
   });
 
   test("Desktop sidebar links navigate to correct pages", async ({ page }) => {
     await page.goto("/home");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // Navigate to swipe
-      const swipeLink = page.getByRole("link", { name: /swipe/i }).first();
-      if (await swipeLink.isVisible()) {
-        await swipeLink.click();
-        await expect(page).toHaveURL(/\/swipe/);
-      }
-    }
+    const swipeLink = page.getByRole("link", { name: /swipe/i }).first();
+    await swipeLink.click();
+    await expect(page).toHaveURL(/\/swipe/);
   });
 
   test("Mobile bottom nav is visible on mobile viewport", async ({ page, isMobile }) => {
     test.skip(!isMobile, "Only applies to mobile viewport");
     await page.goto("/home");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // Bottom nav should be visible on mobile
-      const bottomNav = page.locator("nav[aria-label*='navigation' i]").last();
-      await expect(bottomNav).toBeVisible();
-    }
+    const bottomNav = page.getByRole("navigation", { name: "Mobile primary" });
+    await expect(bottomNav).toBeVisible();
   });
 });
 
 test.describe("App page — loading and error states", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
   test("Home page shows loading skeletons before data loads", async ({ page }) => {
+    await delayApiResponse(page, "/flatmates/bootstrap");
     await page.goto("/home");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // The page uses useBootstrap, useMyProfile, useMyProperties
-      // Before data arrives, loading skeletons appear
-      const skeletons = page.locator("[class*='animate-pulse'], [class*='skeleton']");
-      await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
-    }
+    const skeletons = page.locator(
+      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
+    );
+    await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Swipe page shows loading skeleton before profiles load", async ({ page }) => {
+    await delayApiResponse(page, "/flatmates/profiles");
     await page.goto("/swipe");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // The page shows Skeleton variant="card" during loading
-      const skeletons = page.locator("[class*='animate-pulse'], [class*='skeleton']");
-      await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
-    }
+    const skeletons = page.locator(
+      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
+    );
+    await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Chats page shows loading skeletons before conversations load", async ({ page }) => {
+    await delayApiResponse(page, "/flatmates/conversations");
     await page.goto("/chats");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      const skeletons = page.locator("[class*='animate-pulse'], [class*='skeleton']");
-      await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
-    }
+    const skeletons = page.locator(
+      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
+    );
+    await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Visits page shows loading skeletons before visits load", async ({ page }) => {
+    await delayApiResponse(page, "/visits");
     await page.goto("/visits");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      const skeletons = page.locator("[class*='animate-pulse'], [class*='skeleton']");
-      await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
-    }
+    const skeletons = page.locator(
+      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
+    );
+    await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 });
 
@@ -270,23 +223,6 @@ test.describe("Admin pages — auth wall", () => {
     page,
   }) => {
     await page.goto("/admin/moderation/reports");
-    await expect(page).toHaveURL(/\/login/);
-  });
-});
-
-test.describe("Deep links — /app/* routes", () => {
-  test("unauthenticated /app/discover redirects to login", async ({ page }) => {
-    await page.goto("/app/discover");
-    await expect(page).toHaveURL(/\/login/);
-  });
-
-  test("unauthenticated /app/home redirects to login", async ({ page }) => {
-    await page.goto("/app/home");
-    await expect(page).toHaveURL(/\/login/);
-  });
-
-  test("unauthenticated /app/chats redirects to login", async ({ page }) => {
-    await page.goto("/app/chats");
     await expect(page).toHaveURL(/\/login/);
   });
 });

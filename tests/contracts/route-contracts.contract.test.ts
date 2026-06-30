@@ -8,11 +8,12 @@ const expectedRoutes = [
   "/discover/koramangala-studio",
   "/search",
   "/search/semantic",
-  "/stats",
   "/login",
   "/signup",
   "/forgot-password",
+  "/add-phone",
   "/auth/callback",
+  "/complete-profile",
   "/onboarding",
   "/onboarding/mode",
   "/home",
@@ -25,6 +26,7 @@ const expectedRoutes = [
   "/explore",
   "/post",
   "/post/review",
+  "/post/review/123",
   "/manage",
   "/dashboard",
   "/dashboard/analytics",
@@ -41,12 +43,13 @@ const expectedRoutes = [
   "/notifications",
   "/saved-searches",
   "/alerts",
+  "/payments",
+  "/payments/new",
   "/my-listings/koramangala-studio/edit",
   "/my-listings/koramangala-studio",
   "/choose-role",
   "/location",
   "/help",
-  "/verify",
   "/terms",
   "/privacy",
   "/about",
@@ -57,6 +60,7 @@ const expectedRoutes = [
   "/admin/moderation/listings",
   "/admin/moderation/reports",
   "/admin/moderation/prescreen/koramangala-studio",
+  "/admin/blog",
 ] as const;
 
 const staleDesignAliases = ["/chat", "/bookings", "/admin/moderation", "/app/compatibility/1", "/app/explore"] as const;
@@ -71,25 +75,7 @@ describe("route contracts", () => {
 
   it("covers all expected route samples in the inventory", () => {
     for (const route of expectedRoutes) {
-      const pattern = route.replace(/\/[^/]+$/, "/:id");
-      const matches = routeInventory.some(
-        (inv) => inv === route || patternMatchesRoute(pattern, inv)
-      );
-      expect(matches, `Missing route: ${route}`).toBe(true);
+      expect(routeInventory, `Missing route: ${route}`).toContain(route);
     }
   });
 });
-
-function patternMatchesRoute(pattern: string, route: string) {
-  const regexSource = pattern
-    .split("/")
-    .map((segment) => {
-      if (segment.startsWith(":")) {
-        return "[^/]+";
-      }
-      return segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    })
-    .join("/");
-
-  return new RegExp(`^${regexSource}$`).test(route);
-}

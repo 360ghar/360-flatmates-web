@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures/test";
 
 /**
  * E2E tests for search and discovery flows.
@@ -56,26 +56,30 @@ test.describe("Search page — /search", () => {
     await page.goto("/search");
   });
 
-  test("renders the Search Flatmates & Rooms heading", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: /search flatmates & rooms/i })).toBeVisible();
+  test("renders the Search Listings heading", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: /search listings/i })).toBeVisible();
   });
 
-  test("shows the 'Advanced search' eyebrow", async ({ page }) => {
-    await expect(page.getByText(/advanced search/i)).toBeVisible();
+  test("shows the public search input", async ({ page }) => {
+    await expect(page.getByRole("search")).toBeVisible();
+    await expect(page.getByLabel(/search listings by city/i)).toBeVisible();
   });
 
-  test("filter panel sections are rendered", async ({ page }) => {
-    // The SearchResults organism renders filter sections.
-    // City, Bedrooms, and Amenities sections should appear when data is available.
-    // Without backend data, the page should still render without crashing.
-    await expect(page.getByRole("heading", { name: /search flatmates & rooms/i })).toBeVisible();
+  test("filter controls are rendered", async ({ page }) => {
+    await expect(page.getByLabel(/filter by city/i)).toBeVisible();
+    await expect(page.getByLabel(/filter by bedrooms/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /filters/i })).toBeVisible();
   });
 
   test("result count is displayed (even if zero)", async ({ page }) => {
-    // The SearchResults component shows a result count
-    // Without backend data it may show 0 or loading
-    const heading = page.getByRole("heading", { name: /search flatmates & rooms/i });
-    await expect(heading).toBeVisible();
+    await expect(page.locator('[aria-live="polite"]').filter({ hasText: /results found|search unavailable/i })).toBeVisible();
+  });
+
+  test("listing detail actions stay on the public detail route", async ({ page }) => {
+    const detailsButton = page.getByRole("button", { name: "View Details" }).first();
+    await expect(detailsButton).toBeVisible();
+    await detailsButton.click();
+    await expect(page).toHaveURL(/\/discover\/101$/);
   });
 });
 
@@ -85,18 +89,15 @@ test.describe("Search page — filter interactions", () => {
   });
 
   test("bedroom filter options are rendered", async ({ page }) => {
-    // Bedrooms filter has hardcoded options: 1 BHK, 2 BHK, 3 BHK, 4+ BHK
-    await expect(page.getByText("1 BHK")).toBeVisible();
-    await expect(page.getByText("2 BHK")).toBeVisible();
+    const bedrooms = page.getByLabel(/filter by bedrooms/i);
+    await expect(bedrooms).toContainText("1 BHK");
+    await expect(bedrooms).toContainText("2 BHK");
   });
 
   test("clicking a bedroom filter selects it", async ({ page }) => {
-    const bhk1 = page.getByText("1 BHK", { exact: true });
-    if (await bhk1.isVisible()) {
-      await bhk1.click();
-      // Click again should deselect
-      await bhk1.click();
-    }
+    const bedrooms = page.getByLabel(/filter by bedrooms/i);
+    await bedrooms.selectOption("1");
+    await expect(bedrooms).toHaveValue("1");
   });
 });
 
@@ -123,48 +124,50 @@ test.describe("Landing page — / (public)", () => {
 
   test("renders the hero heading", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: /find your flatmate.*find your vibe/i })
+      page.getByRole("heading", { name: /find your flatmate.*not a nightmare/i })
     ).toBeVisible();
   });
 
-  test("renders the 'Pan-India flatmate matching' eyebrow", async ({ page }) => {
-    await expect(page.getByText(/pan-india flatmate matching/i)).toBeVisible();
+  test("renders the 'Flatmate search, fixed' eyebrow", async ({ page }) => {
+    await expect(page.getByText(/flatmate search, fixed/i)).toBeVisible();
   });
 
-  test("'Get Started' link navigates to /discover", async ({ page }) => {
-    const getStarted = page.getByRole("link", { name: /get started/i });
-    await expect(getStarted).toBeVisible();
-    await getStarted.click();
+  test("'Start matching' link navigates to /discover", async ({ page }) => {
+    const startMatching = page.locator("#main").getByRole("link", { name: /start matching/i }).first();
+    await expect(startMatching).toBeVisible();
+    await startMatching.click();
     await expect(page).toHaveURL(/\/discover/);
   });
 
-  test("'Browse Listings' link navigates to /search", async ({ page }) => {
-    // There are multiple "Browse Listings" links — click the first
-    const browseLink = page.getByRole("link", { name: /browse listings/i }).first();
-    await expect(browseLink).toBeVisible();
+  test("footer Search Flatmates link navigates to /search", async ({ page }) => {
+    const searchLink = page.getByRole("contentinfo").getByRole("link", { name: /search flatmates/i });
+    await expect(searchLink).toBeVisible();
+    await searchLink.click();
+    await expect(page).toHaveURL(/\/search/);
   });
 
   test("feature cards are rendered with TrustBadges", async ({ page }) => {
     // At least one feature card should be visible
-    await expect(page.getByText("6-Dimension Matching")).toBeVisible();
-    await expect(page.getByText("Verified Listings")).toBeVisible();
-    await expect(page.getByText("Schedule Visits")).toBeVisible();
+    await expect(page.getByText("Vibe check before you move")).toBeVisible();
+    await expect(page.getByText("No fake listings, period")).toBeVisible();
+    await expect(page.getByText("Book visits in 2 taps")).toBeVisible();
   });
 
   test("stats section is rendered", async ({ page }) => {
-    await expect(page.getByText("10K+")).toBeVisible();
-    await expect(page.getByText("Flatmates matched")).toBeVisible();
+    const trustSignals = page.locator('section[aria-label="Platform trust signals"]');
+    await expect(trustSignals.getByText("Matches made", { exact: true })).toBeVisible();
+    await expect(trustSignals.getByText("Verified rooms", { exact: true })).toBeVisible();
   });
 
   test("bottom CTA section is rendered", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: /ready to find your perfect flatmate/i })
+      page.getByRole("heading", { name: /ready to find your vibe match/i })
     ).toBeVisible();
   });
 
   test("JSON-LD structured data is present", async ({ page }) => {
     const ldJson = page.locator('script[type="application/ld+json"]');
-    await expect(ldJson).toBeAttached();
+    await expect(ldJson.first()).toBeAttached();
+    expect(await ldJson.count()).toBeGreaterThan(0);
   });
 });
-

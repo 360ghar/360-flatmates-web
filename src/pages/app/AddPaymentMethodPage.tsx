@@ -8,7 +8,7 @@ import { useAddPaymentMethod } from "@/hooks/queries";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import { Input, SelectField } from "@/components/ui/Input";
 
 /**
  * Form schema for adding a new payment method. Only the minimum surface is
@@ -18,32 +18,17 @@ import { Input } from "@/components/ui/Input";
 const addPaymentMethodSchema = z
   .object({
     brand: z.string().min(1, "Brand is required"),
+    razorpay_reference: z.string().trim().min(1, "Razorpay token or payment ID is required"),
     last4: z
       .string()
       .max(4, "Use the last 4 digits only")
       .regex(/^\d{0,4}$/, "Digits only")
       .optional()
       .or(z.literal("")),
-    exp_month: z.string().optional().or(z.literal("")),
-    exp_year: z.string().optional().or(z.literal("")),
-    cardholder_name: z.string().max(120).optional().or(z.literal("")),
-    vpa: z
-      .string()
-      .max(120)
-      .regex(/^[a-zA-Z0-9._-]+@[a-zA-Z]{2,}$/, "Use a valid UPI handle")
-      .optional()
-      .or(z.literal("")),
     nickname: z.string().max(60).optional().or(z.literal("")),
     is_default: z.boolean().optional()
   })
   .superRefine((data, ctx) => {
-    if (data.brand.toLowerCase() === "upi" && !data.vpa) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["vpa"],
-        message: "UPI handle is required for UPI methods"
-      });
-    }
     if (data.brand.toLowerCase() !== "upi") {
       if (!data.last4 || data.last4.length !== 4) {
         ctx.addIssue({
@@ -51,22 +36,6 @@ const addPaymentMethodSchema = z
           path: ["last4"],
           message: "Last 4 digits are required for cards"
         });
-      }
-      if (!data.exp_month || !data.exp_year) {
-        if (!data.exp_month) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["exp_month"],
-            message: "Expiry month is required"
-          });
-        }
-        if (!data.exp_year) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["exp_year"],
-            message: "Expiry year is required"
-          });
-        }
       }
     }
   });
@@ -95,11 +64,8 @@ export function AddPaymentMethodPage() {
     resolver: zodResolver(addPaymentMethodSchema),
     defaultValues: {
       brand: "Visa",
+      razorpay_reference: "",
       last4: "",
-      exp_month: undefined,
-      exp_year: undefined,
-      cardholder_name: "",
-      vpa: "",
       nickname: "",
       is_default: false
     }
@@ -110,13 +76,18 @@ export function AddPaymentMethodPage() {
 
   const onSubmit = (values: AddPaymentMethodForm) => {
     setServerError(null);
+    const reference = values.razorpay_reference.trim();
+    const referenceField = reference.startsWith("token_")
+      ? { razorpay_token: reference }
+      : { razorpay_payment_id: reference };
     addMethod.mutate(
       {
         method_type: isUpi ? "upi" : "card",
         brand: values.brand || undefined,
         last4: values.last4 || undefined,
         nickname: values.nickname || undefined,
-        is_default: values.is_default
+        is_default: values.is_default,
+        ...referenceField
       },
       {
         onSuccess: () => {
@@ -140,16 +111,21 @@ export function AddPaymentMethodPage() {
   return (
     <div className="flex flex-col gap-5 page-fade max-w-2xl">
       <div className="flex items-center gap-3">
-        <Button variant="icon" size="icon" onClick={() => navigate("/payments")}>
+        <Button
+          variant="icon"
+          size="icon"
+          aria-label="Back to payment methods"
+          onClick={() => navigate("/payments")}
+        >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
         <h1 className="text-h1">Add payment method</h1>
       </div>
 
       <p className="text-body-md text-ink-2">
-        Provide a tokenised reference to your payment method. Sensitive data
-        (full card number, UPI PIN) must be collected through the Razorpay
-        checkout widget — never store those fields directly.
+        Add a saved-method reference after Razorpay has tokenised the payment
+        instrument. This page stores the token or payment ID plus display
+        details only; never enter a full card number or UPI PIN here.
       </p>
 
       <Card className="p-6">
@@ -159,117 +135,47 @@ export function AddPaymentMethodPage() {
             <span className="text-body-md text-ink font-semibold">Method details</span>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-1">
-              <span className="text-eyebrow uppercase tracking-widest text-ink-3">
-                Brand
-              </span>
-              <select
-                {...register("brand")}
-                className="rounded-xl border border-line bg-surface px-3 py-2 text-body-md text-ink"
-              >
-                {BRAND_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              {errors.brand ? (
-                <span className="text-body-sm text-red-600">{errors.brand.message}</span>
-              ) : null}
-            </label>
-
-            <label className="flex flex-col gap-1">
-              <span className="text-eyebrow uppercase tracking-widest text-ink-3">
-                Nickname
-              </span>
-              <Input
-                placeholder="e.g. Personal Visa"
-                {...register("nickname")}
-              />
-            </label>
+          <div className="rounded-xl border border-warning/30 bg-warning-soft p-3 text-body-sm text-ink-2">
+            Use the Razorpay checkout flow first, then paste the returned
+            token ID or payment ID below. Card number, CVV, expiry, and UPI PIN
+            belong in Razorpay, not in 360 Flatmates.
           </div>
 
-          {isUpi ? (
-            <label className="flex flex-col gap-1">
-              <span className="text-eyebrow uppercase tracking-widest text-ink-3">
-                UPI handle
-              </span>
-              <Input placeholder="name@bank" {...register("vpa")} />
-              {errors.vpa ? (
-                <span className="text-body-sm text-red-600">{errors.vpa.message}</span>
-              ) : null}
-            </label>
-          ) : (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-eyebrow uppercase tracking-widest text-ink-3">
-                    Last 4 digits
-                  </span>
-                  <Input
-                    inputMode="numeric"
-                    maxLength={4}
-                    placeholder="1234"
-                    {...register("last4")}
-                  />
-                  {errors.last4 ? (
-                    <span className="text-body-sm text-red-600">
-                      {errors.last4.message}
-                    </span>
-                  ) : null}
-                </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField
+              label="Brand"
+              options={BRAND_OPTIONS}
+              error={errors.brand?.message}
+              {...register("brand")}
+            />
 
-                <label className="flex flex-col gap-1">
-                  <span className="text-eyebrow uppercase tracking-widest text-ink-3">
-                    Cardholder name
-                  </span>
-                  <Input
-                    placeholder="As on card"
-                    {...register("cardholder_name")}
-                  />
-                </label>
-              </div>
+            <Input
+              label="Nickname"
+              placeholder="e.g. Personal Visa"
+              error={errors.nickname?.message}
+              {...register("nickname")}
+            />
+          </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-eyebrow uppercase tracking-widest text-ink-3">
-                    Expiry month
-                  </span>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={12}
-                    placeholder="MM"
-                    {...register("exp_month")}
-                  />
-                  {errors.exp_month ? (
-                    <span className="text-body-sm text-red-600">
-                      {errors.exp_month.message}
-                    </span>
-                  ) : null}
-                </label>
+          <Input
+            label={isUpi ? "Razorpay UPI reference" : "Razorpay card reference"}
+            helperText="Accepted values are a Razorpay token ID, or the payment ID returned by a completed checkout."
+            placeholder="token_... or pay_..."
+            error={errors.razorpay_reference?.message}
+            autoComplete="off"
+            {...register("razorpay_reference")}
+          />
 
-                <label className="flex flex-col gap-1">
-                  <span className="text-eyebrow uppercase tracking-widest text-ink-3">
-                    Expiry year
-                  </span>
-                  <Input
-                    type="number"
-                    min={2024}
-                    max={2099}
-                    placeholder="YYYY"
-                    {...register("exp_year")}
-                  />
-                  {errors.exp_year ? (
-                    <span className="text-body-sm text-red-600">
-                      {errors.exp_year.message}
-                    </span>
-                  ) : null}
-                </label>
-              </div>
-            </>
-          )}
+          {!isUpi ? (
+            <Input
+              label="Last 4 digits"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="1234"
+              error={errors.last4?.message}
+              {...register("last4")}
+            />
+          ) : null}
 
           <label className="flex items-center gap-2 text-body-md text-ink-2">
             <input
@@ -294,8 +200,12 @@ export function AddPaymentMethodPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || addMethod.isPending}>
-              {addMethod.isPending ? "Saving…" : "Save method"}
+            <Button
+              type="submit"
+              loading={isSubmitting || addMethod.isPending}
+              disabled={isSubmitting || addMethod.isPending}
+            >
+              Save method
             </Button>
           </div>
         </form>

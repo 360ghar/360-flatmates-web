@@ -18,28 +18,33 @@ interface PaymentMethodRowProps {
   method: PaymentMethod;
   onDelete: (method: PaymentMethod) => void;
   onMakeDefault: (method: PaymentMethod) => void;
+  actionsDisabled?: boolean;
+  makeDefaultPending?: boolean;
 }
 
 function PaymentMethodRow({
   method,
   onDelete,
-  onMakeDefault
+  onMakeDefault,
+  actionsDisabled = false,
+  makeDefaultPending = false
 }: PaymentMethodRowProps) {
+  const methodLabel = formatPaymentMethodLabel(method);
+
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
           <CreditCard aria-hidden="true" className="h-4 w-4" />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="truncate text-body-md text-ink font-semibold">
-            {method.brand ?? method.method_type}
-            {method.last4 ? ` · •••• ${method.last4}` : null}
+            {methodLabel}
             {method.nickname ? ` (${method.nickname})` : null}
           </span>
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
         {method.is_default ? (
           <span className="rounded-full bg-accent-soft px-3 py-1 text-label-md text-accent font-semibold">
             Default
@@ -50,6 +55,8 @@ function PaymentMethodRow({
             size="compact"
             className="rounded-full"
             onClick={() => onMakeDefault(method)}
+            loading={makeDefaultPending}
+            disabled={actionsDisabled}
           >
             Make default
           </Button>
@@ -57,8 +64,9 @@ function PaymentMethodRow({
         <Button
           variant="icon"
           size="icon"
-          aria-label={`Delete ${method.brand} payment method`}
+          aria-label={`Delete ${methodLabel} payment method`}
           onClick={() => onDelete(method)}
+          disabled={actionsDisabled}
         >
           <Trash2 aria-hidden="true" className="h-4 w-4" />
         </Button>
@@ -96,7 +104,12 @@ export function PaymentsPage() {
   return (
     <div className="flex flex-col gap-5 page-fade">
       <div className="flex items-center gap-3">
-        <Button variant="icon" size="icon" onClick={() => navigate("/profile")}>
+        <Button
+          variant="icon"
+          size="icon"
+          aria-label="Back to profile"
+          onClick={() => navigate("/profile")}
+        >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
         <h1 className="text-h1">Payment methods</h1>
@@ -158,6 +171,8 @@ export function PaymentsPage() {
                 method={method}
                 onDelete={setPendingDelete}
                 onMakeDefault={handleMakeDefault}
+                actionsDisabled={updateMethod.isPending || deleteMethod.isPending}
+                makeDefaultPending={updateMethod.isPending}
               />
             ))}
           </div>
@@ -184,7 +199,9 @@ export function PaymentsPage() {
                 Cancel
               </Button>
               <Button
-                variant="primary"
+                variant="destructive"
+                loading={deleteMethod.isPending}
+                disabled={deleteMethod.isPending}
                 onClick={() => {
                   if (!pendingDelete) return;
                   const id = pendingDelete.id;
@@ -213,4 +230,9 @@ export function PaymentsPage() {
       </Modal>
     </div>
   );
+}
+
+function formatPaymentMethodLabel(method: PaymentMethod) {
+  const brand = method.brand ?? method.method_type;
+  return method.last4 ? `${brand} · •••• ${method.last4}` : brand;
 }

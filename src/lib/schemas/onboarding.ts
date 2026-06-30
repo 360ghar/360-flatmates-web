@@ -14,7 +14,10 @@ export const onboardingStepSchema = z.number().int().min(0).max(9);
 
 export const onboardingLocationSchema = z.object({
   city: z.string().min(1),
-  locality: z.string().min(1).optional(),
+  locality: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().min(1).optional()
+  ),
   lat: z.number().optional(),
   lng: z.number().optional()
 });

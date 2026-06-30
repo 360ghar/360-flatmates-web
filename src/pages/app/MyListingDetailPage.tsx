@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, Pencil, Rocket, RefreshCw, Trash2 } from "lucide-react";
 import {
-  useProperty,
+  useMyProperty,
   useBoostListing,
   useRenewListing,
   useDeleteProperty
@@ -42,7 +42,7 @@ export function MyListingDetailPage() {
   const listingId = params.id as string;
   const propertyId = Number(listingId);
 
-  const { data: property, isLoading, error, refetch } = useProperty(propertyId);
+  const { data: property, isLoading, error, refetch } = useMyProperty(propertyId);
   const boostListing = useBoostListing();
   const renewListing = useRenewListing();
   const deleteProperty = useDeleteProperty(propertyId);

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, seedDevAuth, test } from "./fixtures/test";
 
 /**
  * E2E tests for visit scheduling flows.
@@ -9,8 +9,8 @@ import { expect, test } from "@playwright/test";
  * - Auth redirect behavior for unauthenticated users
  * - Page structure (loading/empty/error states) when accessed
  *
- * Authenticated tests use the "authenticated" Playwright project which
- * loads storageState from .auth/user.json.
+ * Authenticated tests seed the DEV-only Playwright auth marker and use
+ * deterministic API mocks from the shared fixture.
  */
 
 test.describe("Visits page — unauthenticated access", () => {
@@ -31,7 +31,9 @@ test.describe("Visits page — unauthenticated access", () => {
 });
 
 test.describe("Visits page — authenticated access", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
   test("renders the My Visits heading", async ({ page }) => {
     await page.goto("/visits");
@@ -41,22 +43,17 @@ test.describe("Visits page — authenticated access", () => {
     }
   });
 
-  test("shows loading skeletons while fetching visits", async ({ page }) => {
+  test("renders fixture visit cards after loading", async ({ page }) => {
     await page.goto("/visits");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      const skeletons = page.locator("[class*='animate-pulse'], [class*='skeleton']");
-      await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
-    }
+    const card = page.locator("article:visible").filter({ hasText: "Sunny room in Koramangala" }).first();
+    await expect(card).toBeVisible();
+    await expect(card.getByText("Property Tour")).toBeVisible();
   });
 
-  test("shows empty state when no visits are scheduled", async ({ page }) => {
+  test("shows empty state for tabs without matching visits", async ({ page }) => {
     await page.goto("/visits");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      const emptyText = page.getByText(/no visits scheduled yet/i);
-      await expect(emptyText).toBeVisible({ timeout: 10_000 });
-    }
+    await page.getByRole("tab", { name: "Past" }).click();
+    await expect(page.getByText(/no past visits/i)).toBeVisible();
   });
 
   test("visit cards display visit details when data is available", async ({ page }) => {
@@ -78,19 +75,16 @@ test.describe("Visit detail page — /visits/[id] (unauthenticated)", () => {
 });
 
 test.describe("Visit detail page — /visits/[id] (authenticated)", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
   test("renders visit detail view when authenticated", async ({ page }) => {
-    await page.goto("/visits/visit-123");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // Verify the page rendered without crashing
-      const hasContent = await page.locator("main, [class*='visit']").count().then((c) => c > 0);
-      const hasSkeleton = await page
-        .locator("[class*='animate-pulse'], [class*='skeleton']")
-        .count()
-        .then((c) => c > 0);
-      expect(hasContent || hasSkeleton).toBeTruthy();
-    }
+    await page.goto("/visits/301");
+    await expect(page.getByRole("heading", { name: /visit details/i })).toBeVisible();
+    const card = page.locator("article:visible").filter({ hasText: "Sunny room in Koramangala" }).first();
+    await expect(card).toBeVisible();
+    await expect(card.getByText("Property Tour")).toBeVisible();
+    await expect(page.getByRole("button", { name: /confirm visit/i })).toBeVisible();
   });
 });

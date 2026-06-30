@@ -8,6 +8,14 @@ import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib
 import { authStore } from "@/lib/stores/auth-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { uiStore } from "@/lib/stores/ui-store";
+import {
+  completedOnboardingSchema,
+  onboardingBasicInfoSchema,
+  onboardingBudgetTimelineSchema,
+  onboardingLocationSchema,
+  type OnboardingDraft,
+} from "@/lib/schemas/onboarding";
+import { lifestyleSchema } from "@/lib/schemas/profile";
 import { FLATMATE_MODE_OPTIONS, type FlatmatesMode } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
@@ -19,6 +27,72 @@ import { humanizeSnakeCase } from "@/lib/utils";
 
 interface OnboardingStepContentProps {
   stepKey: OnboardingStepKey;
+}
+
+function buildFinalDraft(draft: OnboardingDraft): OnboardingDraft {
+  return {
+    ...draft,
+    mode: draft.mode ?? "open_to_both",
+    preferences: {
+      gender_preference: draft.preferences?.gender_preference ?? "any",
+      non_negotiables: draft.preferences?.non_negotiables ?? [],
+    },
+  };
+}
+
+function validateVisibleStep(stepKey: OnboardingStepKey, draft: OnboardingDraft) {
+  const finalDraft = buildFinalDraft(draft);
+
+  switch (stepKey) {
+    case "splash":
+    case "mode":
+    case "profile_photo":
+    case "preferences":
+      return { success: true as const };
+    case "location":
+      return onboardingLocationSchema.safeParse(finalDraft.location);
+    case "basic_info":
+      return onboardingBasicInfoSchema.safeParse(finalDraft.basic_info);
+    case "lifestyle":
+      return lifestyleSchema
+        .pick({ sleep_schedule: true, cleanliness: true, food_habits: true })
+        .safeParse(finalDraft.lifestyle);
+    case "smoking_guests":
+      return lifestyleSchema
+        .pick({ smoking_drinking: true, guests_policy: true })
+        .safeParse(finalDraft.lifestyle);
+    case "work_style":
+      return lifestyleSchema.pick({ work_style: true }).safeParse(finalDraft.lifestyle);
+    case "budget_timeline":
+      return onboardingBudgetTimelineSchema.safeParse(finalDraft.budget_timeline);
+    default:
+      return { success: true as const };
+  }
+}
+
+function validationMessageForStep(stepKey: OnboardingStepKey): string {
+  switch (stepKey) {
+    case "location":
+      return "Add your city before continuing.";
+    case "basic_info":
+      return "Add your name, age, and profession before continuing.";
+    case "lifestyle":
+      return "Choose your sleep schedule, cleanliness, and food habits.";
+    case "smoking_guests":
+      return "Choose your smoking/drinking and guests preferences.";
+    case "work_style":
+      return "Choose your work style before continuing.";
+    case "budget_timeline":
+      return "Add a valid budget range and move-in timeline.";
+    default:
+      return "Complete this step before continuing.";
+  }
+}
+
+function numberOrUndefined(raw: string): number | undefined {
+  if (raw.trim() === "") return undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
@@ -113,35 +187,44 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   }, []);
 
   function goNext() {
+    const stepValidation = validateVisibleStep(stepKey, draft);
+    if (!stepValidation.success) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Step incomplete",
+        description: validationMessageForStep(stepKey),
+      });
+      return;
+    }
+
     if (currentStep >= ONBOARDING_STEPS.length - 1) {
-      // Client-side budget sanity check: backend will reject this, but failing
-      // here saves a round-trip and gives the user immediate feedback.
-      const min = draft.budget_timeline?.budget_min;
-      const max = draft.budget_timeline?.budget_max;
-      if (typeof min === "number" && typeof max === "number" && min > max) {
+      const finalDraft = buildFinalDraft(draft);
+      const completed = completedOnboardingSchema.safeParse(finalDraft);
+      if (!completed.success) {
         uiStore.getState().pushToast({
           type: "error",
-          title: "Budget range is invalid",
-          description: "Minimum budget can't be greater than maximum.",
+          title: "Profile incomplete",
+          description: "Review the previous steps and complete the missing details.",
         });
         return;
       }
 
       const payload = {
-        mode: draft.mode,
-        full_name: draft.basic_info?.full_name,
-        age: draft.basic_info?.age,
-        profession: draft.basic_info?.profession,
-        city: draft.location?.city,
-        locality: draft.location?.locality,
-        lat: draft.location?.lat,
-        lng: draft.location?.lng,
-        profile_image_url: draft.profile_image_url,
-        ...draft.lifestyle,
-        budget_min: draft.budget_timeline?.budget_min,
-        budget_max: draft.budget_timeline?.budget_max,
-        move_in_timeline: draft.budget_timeline?.move_in_timeline,
-        gender_preference: draft.preferences?.gender_preference,
+        mode: completed.data.mode,
+        full_name: completed.data.basic_info.full_name,
+        age: completed.data.basic_info.age,
+        profession: completed.data.basic_info.profession,
+        city: completed.data.location.city,
+        locality: completed.data.location.locality,
+        profile_image_url: completed.data.profile_image_url,
+        ...completed.data.lifestyle,
+        budget_min: completed.data.budget_timeline.budget_min,
+        budget_max: completed.data.budget_timeline.budget_max,
+        move_in_timeline: completed.data.budget_timeline.move_in_timeline,
+        gender_preference: completed.data.preferences.gender_preference,
+        preferences: {
+          non_negotiables: completed.data.preferences.non_negotiables,
+        },
         onboarding_completed: true
       };
 
@@ -200,6 +283,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   // we always show the right affordance for what the user sees.
   const isLastStep = stepKey === ONBOARDING_STEPS[ONBOARDING_STEPS.length - 1];
   const isSplashStep = stepKey === "splash";
+  const canContinue = validateVisibleStep(stepKey, draft).success;
 
   return (
     <div className="flex flex-col gap-5">
@@ -233,6 +317,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             <div className="flex items-end gap-2">
               <div className="flex-1">
                 <Input
+                  label="City"
                   placeholder="City (e.g. Gurugram)"
                   value={draft.location?.city ?? ""}
                   onChange={(e) =>
@@ -258,6 +343,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
               </button>
             </div>
             <Input
+              label="Locality"
               placeholder="Locality (e.g. DLF Phase 1)"
               value={draft.location?.locality ?? ""}
               onChange={(e) =>
@@ -273,6 +359,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           <h2 className="text-h2">Tell us about yourself</h2>
           <div className="flex flex-col gap-3">
             <Input
+              label="Full name"
               placeholder="Full name"
               value={draft.basic_info?.full_name ?? ""}
               onChange={(e) =>
@@ -282,6 +369,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
               }
             />
             <Input
+              label="Age"
               type="number"
               placeholder="Age"
               value={draft.basic_info?.age ? String(draft.basic_info.age) : ""}
@@ -304,6 +392,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
               }}
             />
             <Input
+              label="Profession"
               placeholder="Profession"
               value={draft.basic_info?.profession ?? ""}
               onChange={(e) =>
@@ -352,9 +441,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             <div className="flex flex-col gap-4">
             <div>
               <p className="text-label-md text-ink-2 mb-2">Sleep Schedule</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Sleep schedule">
                 {(["early_bird", "flexible", "night_owl"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.lifestyle?.sleep_schedule === val}
                     onClick={() =>
@@ -368,9 +458,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             </div>
             <div>
               <p className="text-label-md text-ink-2 mb-2">Cleanliness</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Cleanliness">
                 {(["minimal", "tidy", "spotless"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.lifestyle?.cleanliness === val}
                     onClick={() =>
@@ -384,9 +475,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             </div>
             <div>
               <p className="text-label-md text-ink-2 mb-2">Food Habits</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Food habits">
                 {(["vegetarian", "vegan", "non_vegetarian", "eggetarian", "no_preference"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.lifestyle?.food_habits === val}
                     onClick={() =>
@@ -408,9 +500,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           <div className="flex flex-col gap-4">
             <div>
               <p className="text-label-md text-ink-2 mb-2">Smoking / Drinking</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Smoking and drinking">
                 {(["neither", "smoke_outside", "drink_occasionally", "both_fine"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.lifestyle?.smoking_drinking === val}
                     onClick={() =>
@@ -424,9 +517,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             </div>
             <div>
               <p className="text-label-md text-ink-2 mb-2">Guests Policy</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Guests policy">
                 {(["no_overnight_guests", "occasional_ok", "open_house"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.lifestyle?.guests_policy === val}
                     onClick={() =>
@@ -448,9 +542,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           <div className="flex flex-col gap-4">
             <div>
               <p className="text-label-md text-ink-2 mb-2">Where do you work from?</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Work style">
                 {(["wfh", "office", "hybrid"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.lifestyle?.work_style === val}
                     onClick={() =>
@@ -472,6 +567,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           <div className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
               <Input
+                label="Minimum budget"
                 type="number"
                 placeholder="Min budget"
                 value={draft.budget_timeline?.budget_min ? String(draft.budget_timeline.budget_min) : ""}
@@ -479,12 +575,13 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
                   patchDraft({
                     budget_timeline: {
                       ...draft.budget_timeline,
-                      budget_min: Number(e.target.value)
+                      budget_min: numberOrUndefined(e.target.value)
                     }
                   })
                 }
               />
               <Input
+                label="Maximum budget"
                 type="number"
                 placeholder="Max budget"
                 value={draft.budget_timeline?.budget_max ? String(draft.budget_timeline.budget_max) : ""}
@@ -492,7 +589,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
                   patchDraft({
                     budget_timeline: {
                       ...draft.budget_timeline,
-                      budget_max: Number(e.target.value)
+                      budget_max: numberOrUndefined(e.target.value)
                     }
                   })
                 }
@@ -500,9 +597,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             </div>
             <div>
               <p className="text-label-md text-ink-2 mb-2">Move-in Timeline</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Move-in timeline">
                 {(["immediate", "this_month", "next_month", "flexible"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.budget_timeline?.move_in_timeline === val}
                     onClick={() =>
@@ -529,9 +627,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           <div className="flex flex-col gap-4">
             <div>
               <p className="text-label-md text-ink-2 mb-2">Gender Preference</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Gender preference">
                 {(["male", "female", "any"] as const).map((val) => (
                   <Chip
+                    variant="choice"
                     key={val}
                     selected={draft.preferences?.gender_preference === val}
                     onClick={() =>
@@ -563,6 +662,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           fullWidth
           loading={submitting}
           onClick={goNext}
+          disabled={submitting || !canContinue}
           aria-label={isSplashStep ? "Get started" : undefined}
         >
           {isLastStep ? "Complete Setup" : isSplashStep ? "Get started" : "Next"}

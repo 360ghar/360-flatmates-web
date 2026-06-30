@@ -463,6 +463,7 @@ export function MapView({
           }
           size="compact"
           variant="secondary"
+          aria-label="Filters"
           onClick={onFilterClick}
         >
           <span className="hidden sm:inline">Filters</span>

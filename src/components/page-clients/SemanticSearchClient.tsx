@@ -134,7 +134,7 @@ export default function SemanticSearchClient() {
             onFilterToggle={handleFilterToggle}
             onClearFilters={handleClearFilters}
             onApplyFilters={() => refetch()}
-            onListingOpen={(id) => navigate(`/listing/${id}`)}
+            onListingOpen={(id) => navigate(`/discover/${id}`)}
             onSaveSearch={() => navigate("/saved-searches")}
           />
         </div>

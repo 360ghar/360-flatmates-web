@@ -63,10 +63,14 @@ export function LoginPage() {
     updateUser,
     signInWithGoogle,
     signInWithApple,
+    signOut,
     recordAuthSuccess,
   } = useAuth();
 
-  const [step, setStep] = useState<LoginStep>("identifier");
+  const passwordSetupFlow = searchParams.get("flow") === "set-password";
+  const [step, setStep] = useState<LoginStep>(() =>
+    passwordSetupFlow ? "set-password" : "identifier"
+  );
   // Seed the identifier from the URL on first render so a hard refresh during
   // the OTP step doesn't leave the user staring at an empty input. The
   // `?identifier=...` query param is set on `setStep("otp")` and cleared on
@@ -82,7 +86,7 @@ export function LoginPage() {
    * True when the account has no password (`has_password === false`). After OTP
    * verification this forces a mandatory, non-skippable set-password step.
    */
-  const [mustSetPassword, setMustSetPassword] = useState(false);
+  const [mustSetPassword, setMustSetPassword] = useState(passwordSetupFlow);
   /**
    * Whether the OTP send was allowed to create an account (only for an unknown
    * identifier). Tracked so resend reuses the same create-vs-login decision.
@@ -177,23 +181,23 @@ export function LoginPage() {
     try {
       // The masked hint + last-method bookkeeping happens after the redirect
       // completes (AuthCallbackPage); here we only kick off the OAuth redirect.
-      await signInWithGoogle();
+      await signInWithGoogle(redirectTo);
     } catch (err: unknown) {
       setGoogleLoading(false);
       setError(err instanceof Error ? err.message : "Google sign-in failed. Please try again.");
     }
-  }, [signInWithGoogle]);
+  }, [redirectTo, signInWithGoogle]);
 
   const handleAppleLogin = useCallback(async () => {
     setError(null);
     setAppleLoading(true);
     try {
-      await signInWithApple();
+      await signInWithApple(redirectTo);
     } catch (err: unknown) {
       setAppleLoading(false);
       setError(err instanceof Error ? err.message : "Apple sign-in failed. Please try again.");
     }
-  }, [signInWithApple]);
+  }, [redirectTo, signInWithApple]);
 
   const handleContinue = useCallback(async () => {
     setError(null);
@@ -443,6 +447,29 @@ export function LoginPage() {
     }
   }, [searchParams, setSearchParams]);
 
+  const handleUseDifferentIdentifier = useCallback(async () => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      await signOut();
+    } catch {
+      authStore.getState().resetAuthFlow();
+      authStore.getState().setSession(null);
+    } finally {
+      setSubmitting(false);
+      setIdentifier("");
+      setPassword("");
+      setConfirmPassword("");
+      setOtp("");
+      setMustSetPassword(false);
+      setStep("identifier");
+      const next = new URLSearchParams(searchParams);
+      next.delete("flow");
+      next.delete("identifier");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, signOut]);
+
   // Editing the identifier after branching returns to the identifier step so a
   // stale password/OTP form is never submitted against a different identifier.
   const handleIdentifierChange = useCallback(
@@ -631,18 +658,9 @@ export function LoginPage() {
         );
       })()}
 
-      {/* Step 2c — mandatory set-password.
-          The PASSWORD itself is non-skippable: the session already exists
-          (OTP verified), so login completes only once a valid password is set.
-          The IDENTIFIER, however, must remain switchable: if the user signed
-          in with the wrong email/phone by mistake, they need a way to bail
-          back to the identifier step without being trapped mid-flow.
-          TODO(F2+auth-store): a proper "use a different identifier" requires
-          a coordinated Supabase `signOut()` + `authStore.reset()` so the
-          freshly-created session from the OTP verify is torn down and the
-          identifier-status re-check is re-runnable. For now the link below
-          is intentionally inert (a comment-only marker) until that work is
-          scoped; tracking ticket lives in the F2 fix report. */}
+      {/* Step 2c — mandatory set-password. The session already exists
+          (OTP verified or backend-gated), so login completes only once a
+          valid password is set. */}
       {step === "set-password" && (
         <form
           onSubmit={(e) => {
@@ -683,13 +701,12 @@ export function LoginPage() {
           >
             Set password &amp; continue
           </Button>
-          {/* TODO(F2+auth-store): wire to `authStore.reset()` + `signOut()` once
-              the session-reset path is added. See comment above. */}
           <button
             type="button"
-            disabled
-            className="mt-3 block w-full text-center text-caption text-ink-3 hover:text-accent disabled:cursor-not-allowed disabled:opacity-60"
-            aria-label="Use a different identifier (not yet supported)"
+            onClick={handleUseDifferentIdentifier}
+            className="mt-3 block w-full rounded-[9px] py-2 text-center text-caption text-ink-3 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={submitting}
+            aria-label="Use a different identifier"
           >
             Use a different identifier
           </button>

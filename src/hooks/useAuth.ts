@@ -8,6 +8,7 @@ import {
   type IdentifierStatus,
 } from "@/lib/api/auth";
 import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
+import { resolveRedirect } from "@/lib/redirect";
 import type { Session, User } from "@supabase/supabase-js";
 
 interface UseAuthReturn {
@@ -34,8 +35,8 @@ interface UseAuthReturn {
   verifyEmailOtp: (email: string, token: string) => Promise<void>;
   signInWithPassword: (phone: string, password: string) => Promise<void>;
   signInWithEmailPassword: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signInWithApple: () => Promise<void>;
+  signInWithGoogle: (next?: string) => Promise<void>;
+  signInWithApple: (next?: string) => Promise<void>;
   updateUser: (password: string) => Promise<void>;
   /** Add + send OTP to a new phone for the signed-in user (Google add-phone). */
   addPhone: (phone: string) => Promise<void>;
@@ -75,7 +76,8 @@ export function _resetAuthForTests() {
     pendingRedirect: null,
     authError: null,
     midAuthFlow: false,
-    authStage: "active",
+    authStage: "unknown",
+    authStageError: null,
     missingProfileFields: [],
   });
 }
@@ -99,7 +101,13 @@ function initAuthSubscription() {
 
       if (currentSession && isTokenExpired(currentSession)) {
         const refreshResult = await supabase.auth.refreshSession();
-        currentSession = refreshResult.data.session ?? currentSession;
+        if (refreshResult.error || !refreshResult.data.session) {
+          currentSession = null;
+          clearPlaywrightSession();
+          authStore.getState().resetAuthFlow();
+        } else {
+          currentSession = refreshResult.data.session;
+        }
       }
 
       const testSession =
@@ -210,10 +218,8 @@ export function useAuth(): UseAuthReturn {
     [supabase]
   );
 
-  const signInWithGoogle = useCallback(async () => {
-    const redirectTo =
-      import.meta.env.VITE_AUTH_REDIRECT_URL ??
-      `${window.location.origin}/auth/callback`;
+  const signInWithGoogle = useCallback(async (next?: string) => {
+    const redirectTo = buildOAuthRedirectUrl(next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
@@ -221,10 +227,8 @@ export function useAuth(): UseAuthReturn {
     if (error) throw error;
   }, [supabase]);
 
-  const signInWithApple = useCallback(async () => {
-    const redirectTo =
-      import.meta.env.VITE_AUTH_REDIRECT_URL ??
-      `${window.location.origin}/auth/callback`;
+  const signInWithApple = useCallback(async (next?: string) => {
+    const redirectTo = buildOAuthRedirectUrl(next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: { redirectTo },
@@ -263,6 +267,9 @@ export function useAuth(): UseAuthReturn {
 
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
+    clearPlaywrightSession();
+    authStore.getState().resetAuthFlow();
+    authStore.getState().setSession(null);
     if (error) throw error;
   }, [supabase]);
 
@@ -295,10 +302,25 @@ export function useAuth(): UseAuthReturn {
   };
 }
 
+function buildOAuthRedirectUrl(next?: string): string {
+  const base =
+    import.meta.env.VITE_AUTH_REDIRECT_URL ??
+    `${window.location.origin}/auth/callback`;
+  const url = new URL(base, window.location.origin);
+  if (next) {
+    url.searchParams.set("next", resolveRedirect(next));
+  }
+  return url.toString();
+}
+
 function getPlaywrightSession(): Session | null {
   if (import.meta.env.MODE === "production") return null;
   if (typeof window === "undefined") return null;
   if (window.localStorage.getItem("flatmates-playwright-auth") !== "true") return null;
+  const role =
+    window.localStorage.getItem("flatmates-playwright-admin") === "true"
+      ? "admin"
+      : "user";
 
   return {
     access_token: "playwright-test-token",
@@ -308,10 +330,17 @@ function getPlaywrightSession(): Session | null {
     token_type: "bearer",
     user: {
       id: "test-user-id",
-      app_metadata: { role: "user" },
+      app_metadata: { role },
       user_metadata: {},
       aud: "authenticated",
       created_at: new Date(0).toISOString()
     } as User
   } as Session;
+}
+
+function clearPlaywrightSession() {
+  if (import.meta.env.MODE === "production") return;
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem("flatmates-playwright-auth");
+  window.localStorage.removeItem("flatmates-playwright-admin");
 }

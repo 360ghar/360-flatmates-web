@@ -120,7 +120,14 @@ export function useSwipeAction() {
       }
     },
 
-    // No `onSuccess` invalidation. The deck refill is handled by
-    // SwipeDeck's `onNearEnd` callback when the card count drops low.
+    onSuccess: (result, payload) => {
+      if (payload.action === "like" || payload.action === "super_like") {
+        queryClient.invalidateQueries({ queryKey: ["incoming-likes"] });
+        if (result.did_match) {
+          queryClient.invalidateQueries({ queryKey: ["matches"] });
+          queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        }
+      }
+    }
   });
 }

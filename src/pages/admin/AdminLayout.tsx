@@ -109,6 +109,7 @@ export function AdminLayout() {
               <Link
                 key={item.href}
                 to={item.href}
+                aria-label={item.label}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-2 rounded-[9px] px-3 py-2 text-label-md text-ink-3 hover:bg-paper-3 hover:text-ink",

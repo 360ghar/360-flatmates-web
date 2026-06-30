@@ -234,7 +234,10 @@ export function useUpdateSavedSearch() {
         filters: payload.filters as unknown as Record<string, unknown>,
         alert_enabled: payload.alert_enabled
       });
-      return toSavedSearchShape(updated ?? { id, user_id: 0, name: "", filters: {}, alert_enabled: false });
+      if (!updated) {
+        throw new Error("Saved search not found");
+      }
+      return toSavedSearchShape(updated);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["search", "saved"] });
@@ -296,11 +299,15 @@ export function useUpdateSearchAlert() {
     mutationFn: async ({ id, payload }: { id: number; payload: SearchAlertUpdate }): Promise<SearchAlert> => {
       const updated = updateSearchAlertLocal(id, {
         name: payload.name,
+        filters: payload.filters as unknown as Record<string, unknown> | undefined,
         frequency: payload.frequency,
         channels: payload.channels,
         enabled: payload.enabled
       });
-      return toSearchAlertShape(updated ?? { id, user_id: 0, name: "", filters: {}, frequency: "daily", channels: [], enabled: false });
+      if (!updated) {
+        throw new Error("Search alert not found");
+      }
+      return toSearchAlertShape(updated);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["search", "alerts"] });

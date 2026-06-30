@@ -21,18 +21,17 @@ User-agent: *
 Allow: /
 Allow: /discover
 Allow: /discover/
+Allow: /search
+Allow: /search/
 Allow: /cities/
 Allow: /blog
 Allow: /blog/
 Allow: /compare/
-Allow: /stats
 Allow: /about
 Allow: /terms
 Allow: /privacy
 
 # Authenticated / private / dynamic-UGC — never index.
-Disallow: /search
-Disallow: /search/
 Disallow: /explore
 Disallow: /listing/
 Disallow: /profile/
@@ -66,6 +65,8 @@ Disallow: /auth/
 Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
+Disallow: /blog/preview/
+Disallow: /search/semantic
 
 # System / error routes — not for indexing.
 Disallow: /maintenance
@@ -112,17 +113,16 @@ User-agent: MistralAI-User
 Allow: /
 Allow: /discover
 Allow: /discover/
+Allow: /search
+Allow: /search/
 Allow: /cities/
 Allow: /blog
 Allow: /blog/
 Allow: /compare/
-Allow: /stats
 Allow: /about
 Allow: /terms
 Allow: /privacy
 
-Disallow: /search
-Disallow: /search/
 Disallow: /explore
 Disallow: /listing/
 Disallow: /profile/
@@ -154,6 +154,8 @@ Disallow: /auth/
 Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
+Disallow: /blog/preview/
+Disallow: /search/semantic
 Disallow: /maintenance
 Disallow: /error
 

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   useBatchDeleteMedia,
-  useProperty,
+  useMyProperty,
   useUpdateProperty,
   useUploadPropertyImage
 } from "@/hooks/queries";
@@ -72,7 +72,7 @@ export function MyListingEditPage() {
   const propertyId = Number(id);
   const navigate = useNavigate();
 
-  const { data: property, isLoading, error, refetch } = useProperty(propertyId);
+  const { data: property, isLoading, error, refetch } = useMyProperty(propertyId);
   const updateProperty = useUpdateProperty(propertyId);
   const uploadImage = useUploadPropertyImage();
   const { upload: uploadImageFile } = useImageUpload();
@@ -327,7 +327,7 @@ export function MyListingEditPage() {
         <Button
           variant="icon"
           size="icon"
-          onClick={() => navigate("/manage")}
+          onClick={() => blocker.confirmNavigation(() => navigate("/manage"))}
           aria-label="Back to listings"
         >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
@@ -649,7 +649,7 @@ export function MyListingEditPage() {
             type="button"
             variant="secondary"
             fullWidth
-            onClick={() => navigate("/manage")}
+            onClick={() => blocker.confirmNavigation(() => navigate("/manage"))}
           >
             Cancel
           </Button>

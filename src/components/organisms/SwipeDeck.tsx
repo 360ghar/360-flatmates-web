@@ -185,6 +185,7 @@ export function SwipeDeck({
   const [exitDirection, setExitDirection] = useState<SwipeDirection>(null);
   const [isExpanded, setIsExpanded] = useState(() => window.innerWidth >= 768);
   const hasSwipedRef = useRef(false);
+  const swipedProfileIdRef = useRef<string | null>(null);
 
   /* ----- Notify parent of index changes ----- */
   useEffect(() => {
@@ -266,6 +267,7 @@ export function SwipeDeck({
         action === "pass" ? "left" : action === "like" ? "right" : "up";
       setExitDirection(direction);
       hasSwipedRef.current = true;
+      swipedProfileIdRef.current = profileId;
 
       if (action === "pass") onPass?.(profileId);
       else if (action === "like") onLike?.(profileId);
@@ -285,15 +287,20 @@ export function SwipeDeck({
   const handleExitComplete = useCallback(() => {
     if (controlledIndex === undefined) {
       setInternalIndex((i) => {
+        const swipedProfileId = swipedProfileIdRef.current;
+        const activeCardWasRemoved =
+          swipedProfileId !== null && profiles[i]?.id !== swipedProfileId;
+        if (activeCardWasRemoved) {
+          return Math.min(i, Math.max(0, profiles.length - 1));
+        }
         const next = i + 1;
-        // If the deck shrank while we were animating, clamp so we don't
-        // overshoot into the empty state.
         return next < profiles.length ? next : i;
       });
     }
     setExitDirection(null);
     hasSwipedRef.current = false;
-  }, [controlledIndex, profiles.length]);
+    swipedProfileIdRef.current = null;
+  }, [controlledIndex, profiles]);
 
   /* ----- Empty state ----- */
   if (!current) {

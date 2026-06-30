@@ -90,7 +90,7 @@ function loadDraft(): DraftState {
 function optionalNumberValue(raw: string): number | undefined {
   if (raw.trim() === "") return undefined;
   const n = Number(raw);
-  return Number.isNaN(n) ? undefined : n;
+  return Number.isFinite(n) ? n : undefined;
 }
 
 /** Returns true when the given step has all required fields filled in.
@@ -251,7 +251,7 @@ export function PostPage() {
               title: "Listing published"
             });
           }
-          navigate("/post/review", { state: { listingId: property.id } });
+          navigate(`/post/review/${property.id}`, { state: { listingId: property.id } });
         },
         onError: (err) => {
           uiStore.getState().pushToast({
@@ -344,11 +344,9 @@ export function PostPage() {
     if (currentStep > 0) {
       setCurrentStep((s) => s - 1);
     } else {
-      navigate("/manage");
+      blocker.confirmNavigation(() => navigate("/manage"));
     }
   }
-
-  const stepValid = isStepValid(currentStep, form);
 
   return (
     <div className="flex flex-col">
@@ -359,7 +357,6 @@ export function PostPage() {
       onBack={handleBack}
       nextLabel={currentStep >= STEPS.length - 1 ? "Publish Listing" : "Next"}
       submitting={createProperty.isPending}
-      nextDisabled={!stepValid}
     >
       {/* Step 1: Basic Info */}
       {currentStep === 0 && (
@@ -388,7 +385,7 @@ export function PostPage() {
               <Input
                 type="number"
                 placeholder="15000"
-                value={form.monthly_rent ? String(form.monthly_rent) : ""}
+                value={form.monthly_rent !== undefined ? String(form.monthly_rent) : ""}
                 aria-invalid={
                   showStepError &&
                   (!Number.isFinite(form.monthly_rent) || (form.monthly_rent ?? 0) < 500)
@@ -409,7 +406,7 @@ export function PostPage() {
               <Input
                 type="number"
                 placeholder="30000"
-                value={form.security_deposit ? String(form.security_deposit) : ""}
+                value={form.security_deposit !== undefined ? String(form.security_deposit) : ""}
                 onChange={(e) => patchForm({ security_deposit: optionalNumberValue(e.target.value) })}
               />
             </label>
@@ -478,7 +475,7 @@ export function PostPage() {
                 <Input
                   type="number"
                   placeholder="1"
-                  value={form.bedrooms ? String(form.bedrooms) : ""}
+                  value={form.bedrooms !== undefined ? String(form.bedrooms) : ""}
                   onChange={(e) => patchForm({ bedrooms: optionalNumberValue(e.target.value) })}
                 />
               </label>
@@ -487,7 +484,7 @@ export function PostPage() {
                 <Input
                   type="number"
                   placeholder="1"
-                  value={form.bathrooms ? String(form.bathrooms) : ""}
+                  value={form.bathrooms !== undefined ? String(form.bathrooms) : ""}
                   onChange={(e) => patchForm({ bathrooms: optionalNumberValue(e.target.value) })}
                 />
               </label>
@@ -498,7 +495,7 @@ export function PostPage() {
                 <Input
                   type="number"
                   placeholder="800"
-                  value={form.area_sqft ? String(form.area_sqft) : ""}
+                  value={form.area_sqft !== undefined ? String(form.area_sqft) : ""}
                   onChange={(e) => patchForm({ area_sqft: optionalNumberValue(e.target.value) })}
                 />
               </label>
@@ -520,12 +517,13 @@ export function PostPage() {
         <Card className="flex flex-col gap-4 p-5">
           <h2 className="text-h3">Room Details</h2>
           <div className="flex flex-col gap-4">
-            <div>
-              <p className="text-label-md text-ink-2 mb-2">Sharing Type</p>
+            <div role="radiogroup" aria-labelledby="sharing-type-label">
+              <p id="sharing-type-label" className="text-label-md text-ink-2 mb-2">Sharing Type</p>
               <div className="flex flex-wrap gap-2">
                 {SHARING_TYPE_OPTIONS.map((opt) => (
                   <Chip
                     key={opt.value}
+                    variant="choice"
                     selected={form.sharing_type === opt.value}
                     onClick={() => patchForm({ sharing_type: opt.value as PropertyCreate["sharing_type"] })}
                   >
@@ -534,8 +532,8 @@ export function PostPage() {
                 ))}
               </div>
             </div>
-            <div>
-              <p className="text-label-md text-ink-2 mb-2">Furnishing Tags</p>
+            <div role="group" aria-labelledby="furnishing-tags-label">
+              <p id="furnishing-tags-label" className="text-label-md text-ink-2 mb-2">Furnishing Tags</p>
               <div className="flex flex-wrap gap-2">
                 {["furnished", "semi_furnished", "unfurnished", "bed", "wardrobe", "wifi", "ac", "washing_machine", "tv", "fridge"].map((tag) => (
                   <Chip
@@ -557,8 +555,8 @@ export function PostPage() {
         <Card className="flex flex-col gap-4 p-5">
           <h2 className="text-h3">Amenities</h2>
           <div className="flex flex-col gap-4">
-            <div>
-              <p className="text-label-md text-ink-2 mb-2">Society Amenities</p>
+            <div role="group" aria-labelledby="society-amenities-label">
+              <p id="society-amenities-label" className="text-label-md text-ink-2 mb-2">Society Amenities</p>
               <div className="flex flex-wrap gap-2">
                 {["gym", "pool", "parking", "security", "power_backup", "lift", "garden", "clubhouse", "intercom", "cctv"].map((amenity) => (
                   <Chip
@@ -571,8 +569,8 @@ export function PostPage() {
                 ))}
               </div>
             </div>
-            <div>
-              <p className="text-label-md text-ink-2 mb-2">Vibe Tags</p>
+            <div role="group" aria-labelledby="vibe-tags-label">
+              <p id="vibe-tags-label" className="text-label-md text-ink-2 mb-2">Vibe Tags</p>
               <div className="flex flex-wrap gap-2">
                 {["quiet", "social", "family_friendly", "pet_friendly", "young_crowd", "luxury", "budget_friendly"].map((tag) => (
                   <Chip
@@ -599,6 +597,7 @@ export function PostPage() {
 
           {/* Upload zone */}
           <Button
+            aria-label="Choose listing photos"
             variant="secondary"
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -612,8 +611,13 @@ export function PostPage() {
             type="file"
             accept="image/*"
             multiple
+            aria-label="Listing photos"
             className="sr-only"
-            onChange={(e) => handleFiles(e.target.files)}
+            onChange={(e) => {
+              const { files } = e.currentTarget;
+              void handleFiles(files);
+              e.currentTarget.value = "";
+            }}
           />
 
           {/* Previews */}
@@ -646,7 +650,7 @@ export function PostPage() {
                     <button
                       type="button"
                       onClick={() => retryImage(img.id)}
-                      className="absolute bottom-1 right-1 rounded bg-surface px-1.5 py-0.5 text-caption font-semibold text-accent shadow-sm hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className="absolute bottom-2 right-2 min-h-9 rounded-[9px] bg-surface px-3 py-1.5 text-caption font-semibold text-accent shadow-sm hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     >
                       Retry
                     </button>
@@ -655,10 +659,10 @@ export function PostPage() {
                   <button
                     type="button"
                     onClick={() => removeImage(img.id)}
-                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/60 text-paper opacity-0 transition-opacity group-hover:opacity-100"
-                    aria-label="Remove photo"
+                    className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full bg-ink/70 text-paper opacity-100 transition-opacity hover:bg-ink/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                    aria-label={`Remove photo ${index + 1}`}
                   >
-                    <X aria-hidden="true" className="h-3 w-3" />
+                    <X aria-hidden="true" className="h-4 w-4" />
                   </button>
                   {/* Main badge */}
                   {index === 0 && (
@@ -684,12 +688,13 @@ export function PostPage() {
         <Card className="flex flex-col gap-4 p-5">
           <h2 className="text-h3">Preferences</h2>
           <div className="flex flex-col gap-4">
-            <div>
-              <p className="text-label-md text-ink-2 mb-2">Gender Preference</p>
+            <div role="radiogroup" aria-labelledby="gender-preference-label">
+              <p id="gender-preference-label" className="text-label-md text-ink-2 mb-2">Gender Preference</p>
               <div className="flex flex-wrap gap-2">
                 {GENDER_OPTIONS.map((opt) => (
                   <Chip
                     key={opt.value}
+                    variant="choice"
                     selected={form.gender_preference === opt.value}
                     onClick={() => patchForm({ gender_preference: opt.value as PropertyCreate["gender_preference"] })}
                   >
@@ -698,8 +703,8 @@ export function PostPage() {
                 ))}
               </div>
             </div>
-            <div>
-              <p className="text-label-md text-ink-2 mb-2">Additional Tags</p>
+            <div role="group" aria-labelledby="additional-tags-label">
+              <p id="additional-tags-label" className="text-label-md text-ink-2 mb-2">Additional Tags</p>
               <div className="flex flex-wrap gap-2">
                 {["veg_only", "no_smoking", "no_drinking", "no_pets", "early_riser", "night_owl"].map((tag) => (
                   <Chip
@@ -738,9 +743,13 @@ export function PostPage() {
           </div>
           {pendingImages.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-1">
-              {pendingImages.map((img) => (
+              {pendingImages.map((img, index) => (
                 <div key={img.id} className="h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-line">
-                  <NetworkImage alt="Preview" src={img.preview} wrapperClassName="h-full w-full rounded-lg" />
+                  <NetworkImage
+                    alt={`Selected listing photo ${index + 1}`}
+                    src={img.preview}
+                    wrapperClassName="h-full w-full rounded-lg"
+                  />
                 </div>
               ))}
             </div>

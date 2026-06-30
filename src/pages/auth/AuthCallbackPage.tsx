@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { setLastAuthMethod } from "@/lib/lastAuthMethod";
 import { reportLastMethod } from "@/lib/api/auth";
+import { resolveRedirect } from "@/lib/redirect";
 import type { AuthMethod } from "@/lib/lastAuthMethod";
 
 const EXCHANGE_TIMEOUT_MS = 10_000;
@@ -17,7 +18,7 @@ export function AuthCallbackPage() {
 
   const handleCallback = useCallback(async () => {
     const code = searchParams.get("code");
-    const next = searchParams.get("next") ?? "/home";
+    const next = resolveRedirect(searchParams.get("next"));
 
     if (!code) {
       navigate("/login?error=auth", { replace: true });
@@ -65,9 +66,9 @@ export function AuthCallbackPage() {
       // New OAuth users have no phone → route to the skippable add-phone
       // interstitial; otherwise honor the validated `next` target.
       const hasPhone = typeof user?.phone === "string" && user.phone.length > 0;
-      const safeNext =
-        next.startsWith("/") && !next.startsWith("//") ? next : "/home";
-      const destination = hasPhone ? safeNext : "/add-phone";
+      const destination = hasPhone
+        ? next
+        : `/add-phone?next=${encodeURIComponent(next)}`;
       navigate(destination, { replace: true });
     } catch {
       if (timeoutId) clearTimeout(timeoutId);

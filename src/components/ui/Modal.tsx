@@ -119,6 +119,7 @@ export function Modal({
   ...props
 }: ModalProps) {
   const titleId = useId();
+  const descriptionId = useId();
   const panelRef = useDialogFocus(open, onClose);
 
   if (!open) {
@@ -139,6 +140,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
+        aria-describedby={description ? descriptionId : undefined}
         onClick={(e) => e.stopPropagation()}
         className={cn(
           "relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-surface-elevated p-6 text-ink shadow-lg animate-fade-slide-up md:rounded-lg",
@@ -161,7 +163,11 @@ export function Modal({
             <h2 className="text-h3 font-semibold text-ink" id={titleId}>
               {title}
             </h2>
-            {description ? <p className="mt-2 text-body-md text-ink-2">{description}</p> : null}
+            {description ? (
+              <p className="mt-2 text-body-md text-ink-2" id={descriptionId}>
+                {description}
+              </p>
+            ) : null}
           </div>
         ) : null}
         <div className={cn(title ? "mt-5" : "mt-0")}>{children}</div>

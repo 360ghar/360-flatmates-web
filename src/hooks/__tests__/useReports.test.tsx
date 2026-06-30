@@ -8,7 +8,10 @@ vi.mock("@/lib/api", () => ({
   apiClient: { request: (...args: unknown[]) => mockRequest(...args) }
 }));
 
-import { useReportUserMutation } from "@/hooks/queries/useReports";
+import {
+  useReportUserMutation,
+  useSubmitBugReportMutation
+} from "@/hooks/queries/useReports";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -54,6 +57,40 @@ describe("useReports hooks", () => {
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("POST");
       expect(call.path).toBe("/flatmates/reports");
+      expect(call.body).toEqual(payload);
+    });
+  });
+
+  describe("useSubmitBugReportMutation", () => {
+    it("sends POST /bugs with payload", async () => {
+      mockRequest.mockResolvedValue({
+        id: 1,
+        source: "web",
+        bug_type: "ui_bug",
+        severity: "medium",
+        status: "open",
+        title: "Layout issue",
+        description: "Buttons overlap on mobile"
+      });
+
+      const payload = {
+        source: "web" as const,
+        bug_type: "ui_bug" as const,
+        severity: "medium" as const,
+        title: "Layout issue",
+        description: "Buttons overlap on mobile",
+        tags: ["report_problem"]
+      };
+      const { result } = renderHook(() => useSubmitBugReportMutation(), {
+        wrapper: createWrapper()
+      });
+
+      result.current.mutate(payload);
+
+      await waitFor(() => expect(mockRequest).toHaveBeenCalled());
+      const call = mockRequest.mock.calls[0][0];
+      expect(call.method).toBe("POST");
+      expect(call.path).toBe("/bugs");
       expect(call.body).toEqual(payload);
     });
   });

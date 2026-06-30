@@ -2,6 +2,8 @@ import { createStore } from "zustand/vanilla";
 import type { Session, User } from "@supabase/supabase-js";
 import type { AuthStage } from "@/lib/api/auth";
 
+export type ClientAuthStage = AuthStage | "unknown";
+
 export interface AuthStoreState {
   /** Supabase user object (null when signed out or still loading) */
   user: User | null;
@@ -21,11 +23,10 @@ export interface AuthStoreState {
    * AuthRedirectGuard would bounce the user to /home before the flow ends.
    */
   midAuthFlow: boolean;
-  /**
-   * The backend-computed auth gate stage. Defaults to "active" so the
-   * GateGuard does not fire until the first auth-state fetch completes.
-   */
-  authStage: AuthStage;
+  /** Backend-computed auth gate stage, or unknown while it is being resolved. */
+  authStage: ClientAuthStage;
+  /** Error from the auth-stage fetch. Protected app routes fail closed on this. */
+  authStageError: string | null;
   /** Profile fields still missing (when authStage === "profile_completion"). */
   missingProfileFields: string[];
 
@@ -34,6 +35,9 @@ export interface AuthStoreState {
   setLoading: (loading: boolean) => void;
   setMidAuthFlow: (midAuthFlow: boolean) => void;
   setAuthStage: (stage: AuthStage, missingFields?: string[]) => void;
+  setAuthStageUnknown: () => void;
+  setAuthStageError: (error: string | null) => void;
+  resetAuthFlow: () => void;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   setPendingRedirect: (path: string) => void;
@@ -51,13 +55,35 @@ export const authStore = createStore<AuthStoreState>()((set) => ({
   pendingRedirect: null,
   authError: null,
   midAuthFlow: false,
-  authStage: "active",
+  authStage: "unknown",
+  authStageError: null,
   missingProfileFields: [],
 
   setSession: (session) =>
-    set({
-      session,
-      user: session?.user ?? null,
+    set((state) => {
+      if (!session) {
+        return {
+          session: null,
+          user: null,
+          midAuthFlow: false,
+          authStage: "unknown",
+          authStageError: null,
+          missingProfileFields: [],
+        };
+      }
+
+      const wasSignedOut = !state.user;
+      return {
+        session,
+        user: session.user,
+        ...(wasSignedOut
+          ? {
+              authStage: "unknown" as const,
+              authStageError: null,
+              missingProfileFields: [],
+            }
+          : {}),
+      };
     }),
 
   setLoading: (loading) => set((s) => (s.loading === loading ? s : { loading })),
@@ -68,7 +94,32 @@ export const authStore = createStore<AuthStoreState>()((set) => ({
   setAuthStage: (stage, missingFields) =>
     set({
       authStage: stage,
+      authStageError: null,
       missingProfileFields: missingFields ?? [],
+    }),
+
+  setAuthStageUnknown: () =>
+    set({
+      authStage: "unknown",
+      authStageError: null,
+      missingProfileFields: [],
+    }),
+
+  setAuthStageError: (error) =>
+    set({
+      authStageError: error,
+      authStage: "unknown",
+    }),
+
+  resetAuthFlow: () =>
+    set({
+      midAuthFlow: false,
+      authStage: "unknown",
+      authStageError: null,
+      missingProfileFields: [],
+      authError: null,
+      pendingRedirect: null,
+      isLoginModalOpen: false,
     }),
 
   openLoginModal: () => set({ isLoginModalOpen: true }),

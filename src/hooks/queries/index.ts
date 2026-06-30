@@ -14,6 +14,7 @@ export {
 
 export {
   useProperty,
+  useMyProperty,
   useAdminProperty,
   useMyProperties,
   useInfiniteMyProperties,
@@ -111,7 +112,8 @@ export {
 } from "./useMatches";
 
 export {
-  useReportUserMutation
+  useReportUserMutation,
+  useSubmitBugReportMutation
 } from "./useReports";
 
 export {

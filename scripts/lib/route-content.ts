@@ -379,6 +379,34 @@ export function buildStaticRoutes(): RouteContent[] {
     ],
   });
 
+  // ── Search ─────────────────────────────────────────────────────────────
+  routes.push({
+    path: "/search",
+    title: "Search Verified Rooms & Compatible Flatmates",
+    description: "Search verified rooms, flatmates, budgets, amenities, move-in timelines, and lifestyle preferences across 360 Flatmates.",
+    h1: "Search Verified Rooms & Compatible Flatmates",
+    bodyHtml: `
+      <p>Use advanced search to narrow verified listings and compatible flatmates by city, locality, budget, room type, furnishing, amenities, gender preference, move-in timeline, and society vibe.</p>
+      <h2>Popular Search Filters</h2>
+      <ul>
+        <li>City and neighborhood</li>
+        <li>Monthly rent range and deposit</li>
+        <li>Private room, shared room, and flat configuration</li>
+        <li>Furnishing, amenities, and society type</li>
+        <li>Move-in timeline and lifestyle compatibility</li>
+      </ul>
+      <p><a href="/search">Open advanced search</a> · <a href="/discover">Browse verified listings</a></p>
+    `,
+    jsonLd: [
+      collectionPageSchema({
+        name: "Search Verified Rooms & Compatible Flatmates",
+        description: "Search verified rooms and compatible flatmates across 360 Flatmates.",
+        url: `${SITE_URL}/search`,
+      }),
+      breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Search" }]),
+    ],
+  });
+
   // ── About ──────────────────────────────────────────────────────────────
   routes.push({
     path: "/about",
@@ -402,25 +430,6 @@ export function buildStaticRoutes(): RouteContent[] {
       orgSchema(),
       breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "About" }]),
     ],
-  });
-
-  // ── Stats ──────────────────────────────────────────────────────────────
-  routes.push({
-    path: "/stats",
-    title: "360 Flatmates — Platform Stats",
-    description: "Real numbers from the 360 Flatmates platform: matches made, verified rooms, average match scores, and cities served.",
-    h1: "Platform Stats",
-    bodyHtml: `
-      <p>Real numbers from the 360 Flatmates platform.</p>
-      <ul>
-        <li><strong>8,600+</strong> matches made</li>
-        <li><strong>1,800+</strong> verified rooms</li>
-        <li><strong>86%</strong> average match score</li>
-        <li><strong>2</strong> cities live (Bangalore &amp; Gurugram)</li>
-      </ul>
-      <p><a href="/discover">Browse verified listings</a></p>
-    `,
-    jsonLd: [breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Stats" }])],
   });
 
   // ── Terms ──────────────────────────────────────────────────────────────

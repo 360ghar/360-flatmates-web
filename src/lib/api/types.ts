@@ -10,3 +10,4 @@ export * from "./admin.types";
 export * from "./payment.types";
 export * from "./blog.types";
 export * from "./batch.types";
+export * from "./core.types";

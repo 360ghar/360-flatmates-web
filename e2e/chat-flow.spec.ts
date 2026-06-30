@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, seedDevAuth, test } from "./fixtures/test";
 
 /**
  * E2E tests for chat and messaging flows.
@@ -9,8 +9,8 @@ import { expect, test } from "@playwright/test";
  * - Auth redirect behavior for unauthenticated users
  * - Page structure when accessed (loading/empty/error states)
  *
- * Authenticated tests use the "authenticated" Playwright project which
- * loads storageState from .auth/user.json.
+ * Authenticated tests seed the DEV-only Playwright auth marker and use
+ * deterministic API mocks from the shared fixture.
  */
 
 test.describe("Chats page — unauthenticated access", () => {
@@ -31,7 +31,9 @@ test.describe("Chats page — unauthenticated access", () => {
 });
 
 test.describe("Chats page — authenticated access", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
   test("renders the Chats heading", async ({ page }) => {
     await page.goto("/chats");
@@ -41,24 +43,16 @@ test.describe("Chats page — authenticated access", () => {
     }
   });
 
-  test("shows loading skeletons while fetching conversations", async ({ page }) => {
+  test("renders fixture conversations after loading", async ({ page }) => {
     await page.goto("/chats");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // Without backend data, loading skeletons should appear
-      const skeletons = page.locator("[class*='animate-pulse'], [class*='skeleton']");
-      await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
-    }
+    await expect(page.getByRole("heading", { name: /conversations/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /aarav mehta/i }).first()).toBeVisible();
   });
 
-  test("shows empty state when no conversations exist", async ({ page }) => {
+  test("renders matched peers for starting chats", async ({ page }) => {
     await page.goto("/chats");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // After loading, if no conversations, empty state appears
-      const emptyText = page.getByText(/no conversations yet/i);
-      await expect(emptyText).toBeVisible({ timeout: 10_000 });
-    }
+    await expect(page.getByRole("heading", { name: /your matches/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /start chat with aarav mehta/i })).toBeVisible();
   });
 
   test("clicking a conversation navigates to /chats/[id]", async ({ page }) => {
@@ -80,34 +74,21 @@ test.describe("Chat detail page — /chats/[id] (unauthenticated)", () => {
 });
 
 test.describe("Chat detail page — /chats/[id] (authenticated)", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
   test("renders chat detail view when authenticated", async ({ page }) => {
-    await page.goto("/chats/conversation-123");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // Verify the page rendered without crashing
-      // The chat detail view should have some content
-      const hasContent = await page.locator("main, [class*='chat']").count().then((c) => c > 0);
-      const hasSkeleton = await page
-        .locator("[class*='animate-pulse'], [class*='skeleton']")
-        .count()
-        .then((c) => c > 0);
-      expect(hasContent || hasSkeleton).toBeTruthy();
-    }
+    await page.goto("/chats/201");
+    await expect(page.getByRole("heading", { name: /aarav mehta/i })).toBeVisible();
+    await expect(page.getByRole("log", { name: /messages with aarav mehta/i })).toBeVisible();
+    await expect(page.getByText("Can I visit this weekend?")).toBeVisible();
   });
 
   test("message input is present in chat detail", async ({ page }) => {
-    await page.goto("/chats/conversation-123");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // Verify the page rendered — message input may not exist without backend
-      const hasContent = await page.locator("main, [class*='chat']").count().then((c) => c > 0);
-      const hasSkeleton = await page
-        .locator("[class*='animate-pulse'], [class*='skeleton']")
-        .count()
-        .then((c) => c > 0);
-      expect(hasContent || hasSkeleton).toBeTruthy();
-    }
+    await page.goto("/chats/201");
+    await expect(page.getByLabel(/type a message/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /schedule a visit/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /send message/i })).toBeVisible();
   });
 });

@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router";
-import { Bell, BellOff, Plus, Trash2 } from "lucide-react";
+import { Bell, BellOff, Pencil, Plus, Trash2 } from "lucide-react";
 import {
   useSearchAlerts,
   useCreateSearchAlert,
@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
 import { Input, SelectField } from "@/components/ui/Input";
-import { AsyncView, EmptyState } from "@/components/ui/StateViews";
+import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { humanizeSnakeCase, toTitleCase } from "@/lib/utils/format";
 import {
@@ -84,6 +84,19 @@ function formFromFilters(name: string, filters: SearchFilters): CreateAlertFormS
   };
 }
 
+function formFromAlert(alert: {
+  name: string;
+  filters: SearchFilters;
+  frequency: AlertFrequency;
+  channels: AlertChannel[];
+}): CreateAlertFormState {
+  return {
+    ...formFromFilters(alert.name, alert.filters),
+    frequency: alert.frequency,
+    channels: alert.channels.length > 0 ? alert.channels : ["push"],
+  };
+}
+
 export function AlertsPage() {
   const { data: alerts, isLoading, error, refetch } = useSearchAlerts();
   const createAlert = useCreateSearchAlert();
@@ -140,6 +153,12 @@ export function AlertsPage() {
     setEditingId(null);
   }, []);
 
+  const handleEdit = useCallback((alert: NonNullable<typeof alerts>[number]) => {
+    setEditingId(alert.id);
+    setCreateForm(formFromAlert(alert));
+    setShowCreateModal(true);
+  }, []);
+
   const handleSave = useCallback(() => {
     if (!createForm.name.trim()) return;
     if (createForm.channels.length === 0) return;
@@ -188,10 +207,6 @@ export function AlertsPage() {
       });
     }
   }, [createForm, createAlert, updateAlert, editingId, closeCreate]);
-
-  // TODO(edit-alert): wire an "Edit" action on each row that pre-populates
-  // the modal via handleEdit. The hook for updating already exists
-  // (useUpdateSearchAlert) but the UI affordance is not yet attached.
 
   const isSaving = createAlert.isPending || updateAlert.isPending;
   const canSave =
@@ -242,12 +257,11 @@ export function AlertsPage() {
         }
         errorView={
           <Card className="flex items-center justify-center p-8">
-            <EmptyState
-              title="No alerts yet"
-              description="Create an alert to get notified when new listings match your criteria."
-              icon={<Bell aria-hidden="true" className="h-6 w-6" />}
-              actionLabel="Create alert"
-              onAction={openCreate}
+            <ErrorState
+              title="Could not load alerts"
+              description="Please retry. Your alert settings were not changed."
+              actionLabel="Retry"
+              onRetry={() => refetch()}
             />
           </Card>
         }
@@ -288,6 +302,14 @@ export function AlertsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="icon"
+                    size="icon"
+                    aria-label={`Edit alert: ${alert.name}`}
+                    onClick={() => handleEdit(alert)}
+                  >
+                    <Pencil aria-hidden="true" className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="icon"
                     size="icon"

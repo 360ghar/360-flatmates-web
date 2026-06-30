@@ -33,6 +33,7 @@ function ProviderInternals({
       queryClient.clear();
       searchStore.getState().resetFilters();
       onboardingStore.getState().clearDraft();
+      authStore.getState().resetAuthFlow();
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);
@@ -136,10 +137,26 @@ function useAuthStateQuery(isAuthenticated: boolean) {
   });
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+    if (query.isPending || (query.isFetching && !query.data)) {
+      authStore.getState().setAuthStageUnknown();
+    }
+  }, [isAuthenticated, query.data, query.isFetching, query.isPending]);
+
+  useEffect(() => {
     if (!query.data) return;
     if (authStore.getState().midAuthFlow) return;
     authStore.getState().setAuthStage(query.data.stage, query.data.missing_fields);
   }, [query.data]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !query.error) return;
+    const message =
+      query.error instanceof Error
+        ? query.error.message
+        : "Could not verify your account status.";
+    authStore.getState().setAuthStageError(message);
+  }, [isAuthenticated, query.error]);
 }
 
 function ToastContainer() {

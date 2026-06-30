@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useBlocker, type BlockerFunction } from "react-router";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,7 @@ import { Input, TextArea, SelectField } from "@/components/ui/Input";
 import { ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Modal } from "@/components/ui/Modal";
+import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
 
 /* ── Zod schema ──────────────────────────────────────────── */
 
@@ -79,7 +80,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 function optionalNumberValue(raw: string): number | undefined {
   if (raw.trim() === "") return undefined;
   const n = Number(raw);
-  return Number.isNaN(n) ? undefined : n;
+  return Number.isFinite(n) ? n : undefined;
 }
 
 /* ── Select option helpers ───────────────────────────────── */
@@ -223,24 +224,10 @@ export function ProfileEditPage() {
   /* Unsaved-changes guard: block in-app navigation while the form is dirty and
      not in the middle of saving; surface a confirmation modal. */
   const hasUnsavedChanges = isDirty && !updateProfile.isPending;
-  const blocker = useBlocker(
-    useCallback<BlockerFunction>(
-      ({ currentLocation, nextLocation }) =>
-        hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname,
-      [hasUnsavedChanges]
-    )
+  const blocker = useDirtyFormGuard(
+    hasUnsavedChanges,
+    "You have edits that haven't been saved. Leaving now will discard them."
   );
-
-  /* Warn on browser tab close / reload when there are unsaved edits. */
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [hasUnsavedChanges]);
 
   if (isLoading) {
     return (
@@ -282,7 +269,7 @@ export function ProfileEditPage() {
         <Button
           variant="icon"
           size="icon"
-          onClick={() => navigate("/profile")}
+          onClick={() => blocker.confirmNavigation(() => navigate("/profile"))}
           aria-label="Back to profile"
         >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
@@ -303,7 +290,7 @@ export function ProfileEditPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
         {/* Server error */}
         {serverError && (
-          <Card className="bg-error-soft text-error p-4 text-body-md">
+          <Card className="bg-error-soft text-error p-4 text-body-md" role="alert">
             {serverError}
           </Card>
         )}
@@ -317,7 +304,8 @@ export function ProfileEditPage() {
             readOnly={hasEmail}
             disabled={hasEmail}
             error={errors.email?.message}
-            placeholder={hasEmail ? undefined : "Email address not available"}
+            helperText={hasEmail ? "Email is verified and cannot be changed here." : undefined}
+            placeholder={hasEmail ? undefined : "you@example.com"}
             {...register("email")}
           />
           <Input
@@ -326,7 +314,8 @@ export function ProfileEditPage() {
             readOnly={hasPhone}
             disabled={hasPhone}
             error={errors.phone?.message}
-            placeholder={hasPhone ? undefined : "Phone number not available"}
+            helperText={hasPhone ? "Phone is verified and cannot be changed here." : "Enter a 10-digit mobile number."}
+            placeholder={hasPhone ? undefined : "9876543210"}
             {...register("phone")}
           />
         </Card>
@@ -353,7 +342,7 @@ export function ProfileEditPage() {
             placeholder="Software Engineer"
             {...register("profession")}
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input
               label="Age"
               type="number"
@@ -386,7 +375,7 @@ export function ProfileEditPage() {
             placeholder="DLF Phase 1"
             {...register("locality")}
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input
               label="Budget Min"
               type="number"
@@ -484,7 +473,7 @@ export function ProfileEditPage() {
             type="button"
             variant="secondary"
             fullWidth
-            onClick={() => navigate("/profile")}
+            onClick={() => blocker.confirmNavigation(() => navigate("/profile"))}
           >
             Cancel
           </Button>

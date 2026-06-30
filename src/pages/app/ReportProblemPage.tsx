@@ -1,48 +1,53 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { useReportUserMutation } from "@/hooks/queries/useReports";
+import { useSubmitBugReportMutation } from "@/hooks/queries/useReports";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { TextArea, SelectField } from "@/components/ui/Input";
-import type { UserReportReason } from "@/lib/data";
+import { Input, TextArea, SelectField } from "@/components/ui/Input";
+import type { BugType } from "@/lib/api/types";
 
-const REPORT_REASONS: Array<{ value: UserReportReason; label: string }> = [
-  { value: "spam", label: "Spam" },
-  { value: "fake_profile", label: "Fake Profile" },
-  { value: "abuse", label: "Abuse" },
-  { value: "inappropriate", label: "Inappropriate Content" },
+const PROBLEM_TYPES: Array<{ value: BugType; label: string }> = [
+  { value: "functionality_bug", label: "Something is broken" },
+  { value: "ui_bug", label: "UI or layout problem" },
+  { value: "performance_issue", label: "Slow or laggy experience" },
+  { value: "feature_request", label: "Feature request" },
   { value: "other", label: "Other" }
 ];
 
 export function ReportProblemPage() {
   const navigate = useNavigate();
-  const reportMutation = useReportUserMutation();
-  const [reason, setReason] = useState<UserReportReason>("other");
+  const reportMutation = useSubmitBugReportMutation();
+  const [problemType, setProblemType] = useState<BugType>("other");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [showTitleError, setShowTitleError] = useState(false);
   const [showDescError, setShowDescError] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!description.trim()) {
-      setShowDescError(true);
-      return;
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    if (!trimmedTitle) {
+      setShowTitleError(true);
     }
+    if (!trimmedDescription) {
+      setShowDescError(true);
+    }
+    if (!trimmedTitle || !trimmedDescription) return;
+    setShowTitleError(false);
     setShowDescError(false);
 
-    // TODO(wire): the user-reports endpoint (/flatmates/reports) expects a
-    // target user (see A-8), but this is a general problem report with no
-    // target. The backend needs to define a separate problem-report wire
-    // (see B-2) before this form can be wired correctly. Until then we
-    // post to the user-reports endpoint without a target and rely on the
-    // server to surface the mismatch in tests rather than in production.
     reportMutation.mutate(
       {
-        // General problem report — no target user
-        reason,
-        notes: description.trim()
+        source: "web",
+        bug_type: problemType,
+        severity: "medium",
+        title: trimmedTitle,
+        description: trimmedDescription,
+        tags: ["report_problem"]
       },
       {
         onSuccess: () => {
@@ -70,7 +75,12 @@ export function ReportProblemPage() {
     return (
       <div className="flex flex-col gap-5 page-fade">
         <div className="flex items-center gap-3">
-          <Button variant="icon" size="icon" onClick={() => navigate("/profile")}>
+          <Button
+            aria-label="Back to profile"
+            variant="icon"
+            size="icon"
+            onClick={() => navigate("/profile")}
+          >
             <ArrowLeft aria-hidden="true" className="h-5 w-5" />
           </Button>
           <h1 className="text-h1">Report a Problem</h1>
@@ -94,7 +104,12 @@ export function ReportProblemPage() {
   return (
     <div className="flex flex-col gap-5 page-fade">
       <div className="flex items-center gap-3">
-        <Button variant="icon" size="icon" onClick={() => navigate("/profile")}>
+        <Button
+          aria-label="Back to profile"
+          variant="icon"
+          size="icon"
+          onClick={() => navigate("/profile")}
+        >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
         <h1 className="text-h1">Report a Problem</h1>
@@ -102,11 +117,22 @@ export function ReportProblemPage() {
 
       <Card className="p-5">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Input
+            label="Title"
+            placeholder="Short summary of the problem"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (showTitleError && e.target.value.trim()) setShowTitleError(false);
+            }}
+            error={showTitleError ? "Please add a title" : undefined}
+          />
+
           <SelectField
-            label="Reason"
-            options={REPORT_REASONS}
-            value={reason}
-            onChange={(e) => setReason(e.target.value as UserReportReason)}
+            label="Problem type"
+            options={PROBLEM_TYPES}
+            value={problemType}
+            onChange={(e) => setProblemType(e.target.value as BugType)}
           />
 
           <TextArea

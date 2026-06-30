@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import { CheckCircle2, CircleCheck, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -11,12 +11,11 @@ const reviewSteps: Array<{ label: string; icon: LucideIcon }> = [
 ];
 
 export function PostReviewPage() {
+  const { listingId: listingIdParam } = useParams();
   const location = useLocation();
-  const listingId = (location.state as { listingId?: number } | null)?.listingId;
-  // TODO: F5 — read the listingId from the URL (`/post/review/:listingId`)
-  // instead of the `location.state` blob so a refresh on this page doesn't
-  // lose the link. F1 owns the route table (App.tsx), so this is a route-table
-  // change that needs to land alongside that work.
+  const listingId =
+    Number.parseInt(listingIdParam ?? "", 10) ||
+    (location.state as { listingId?: number } | null)?.listingId;
   const editPath = listingId ? `/my-listings/${listingId}/edit` : "/post";
 
   return (
@@ -45,12 +44,12 @@ export function PostReviewPage() {
           <p>2. Moderation reviews the listing context.</p>
           <p>3. Approved listings receive a 24 hour launch boost.</p>
         </div>
-        <div className="mt-6 flex justify-center gap-3">
-          <Link to={editPath}>
-            <Button>Edit Listing</Button>
+        <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link to={editPath} className="w-full sm:w-auto">
+            <Button fullWidth>Edit Listing</Button>
           </Link>
-          <Link to="/manage">
-            <Button variant="tertiary">Back to Dashboard</Button>
+          <Link to="/manage" className="w-full sm:w-auto">
+            <Button variant="tertiary" fullWidth>Back to Manage</Button>
           </Link>
         </div>
       </Card>

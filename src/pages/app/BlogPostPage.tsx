@@ -105,6 +105,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         canonicalUrl={post.canonical_url ?? `${SITE_URL}/blog/${post.slug}`}
         ogImage={post.og_image_url ?? post.cover_image_url}
         jsonLd={articleLd}
+        noindex={previewMode}
       />
 
       <main id="main" className="page-fade mx-auto max-w-3xl px-5 py-12">

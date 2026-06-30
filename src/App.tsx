@@ -92,6 +92,8 @@ export function App() {
               <Route index element={<RouteBoundary><LandingPage /></RouteBoundary>} />
               <Route path="discover" element={<RouteBoundary><DiscoverPage /></RouteBoundary>} />
               <Route path="discover/:id" element={<RouteBoundary><ListingDetailPage /></RouteBoundary>} />
+              <Route path="search" element={<RouteBoundary><SearchPage /></RouteBoundary>} />
+              <Route path="search/semantic" element={<RouteBoundary><SemanticSearchPage /></RouteBoundary>} />
               <Route path="cities/:slug" element={<RouteBoundary><CityPage /></RouteBoundary>} />
               <Route path="cities/:slug/:neighborhood" element={<RouteBoundary><NeighborhoodPage /></RouteBoundary>} />
               <Route path="blog" element={<RouteBoundary><BlogPage /></RouteBoundary>} />
@@ -129,8 +131,6 @@ export function App() {
               <Route element={<GateGuard />}>
                 <Route element={<AppLayout />}>
                 <Route path="home" element={<RouteBoundary><HomePage /></RouteBoundary>} />
-                <Route path="search" element={<RouteBoundary><SearchPage /></RouteBoundary>} />
-                <Route path="search/semantic" element={<RouteBoundary><SemanticSearchPage /></RouteBoundary>} />
                 <Route path="swipe" element={<RouteBoundary><SwipePage /></RouteBoundary>} />
                 <Route path="likes" element={<RouteBoundary><LikesPage /></RouteBoundary>} />
                 <Route path="matches" element={<RouteBoundary><MatchesPage /></RouteBoundary>} />
@@ -141,6 +141,7 @@ export function App() {
                 <Route path="notifications" element={<RouteBoundary><NotificationsPage /></RouteBoundary>} />
                 <Route path="profile" element={<RouteBoundary><ProfilePage /></RouteBoundary>} />
                 <Route path="profile/edit" element={<RouteBoundary><ProfileEditPage /></RouteBoundary>} />
+                <Route path="complete-profile" element={<RouteBoundary><Navigate to="/profile/edit" replace /></RouteBoundary>} />
                 <Route path="profile/:id" element={<RouteBoundary><PublicProfilePage /></RouteBoundary>} />
                 <Route path="settings" element={<RouteBoundary><SettingsPage /></RouteBoundary>} />
                 <Route path="settings/appearance" element={<RouteBoundary><AppearancePage /></RouteBoundary>} />
@@ -149,6 +150,7 @@ export function App() {
                 <Route path="settings/report-problem" element={<RouteBoundary><ReportProblemPage /></RouteBoundary>} />
                 <Route path="post" element={<RouteBoundary><PostPage /></RouteBoundary>} />
                 <Route path="post/review" element={<RouteBoundary><PostReviewPage /></RouteBoundary>} />
+                <Route path="post/review/:listingId" element={<RouteBoundary><PostReviewPage /></RouteBoundary>} />
                 <Route path="manage" element={<RouteBoundary><ManagePage /></RouteBoundary>} />
                 <Route path="dashboard" element={<RouteBoundary><DashboardPage /></RouteBoundary>} />
                 <Route path="dashboard/analytics" element={<RouteBoundary><AnalyticsPage /></RouteBoundary>} />

@@ -303,6 +303,8 @@ describe("TanStack Query key contracts", () => {
       useProperties: ["properties", "dashboard"],
       // useSendMessage also invalidates conversations list — same scope
       useConversations: ["conversations"],
+      // Accepting a like through the swipe endpoint can create a match/chat.
+      useSwipes: ["swipes", "incoming-likes", "matches", "conversations"],
     };
 
     for (const { mod, name } of modules) {

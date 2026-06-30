@@ -461,7 +461,7 @@ function ReportRow({
           </Button>
           <Button
             size="compact"
-            variant="primary"
+            variant="destructive"
             disabled={actionsDisabled}
             leadingIcon={<Ban aria-hidden="true" className="h-4 w-4" />}
             onClick={() => onAction("suspend")}

@@ -45,7 +45,12 @@ export function HelpPage() {
   return (
     <div className="flex flex-col gap-5 page-fade">
       <div className="flex items-center gap-3">
-        <Button variant="icon" size="icon" onClick={() => navigate("/profile")}>
+        <Button
+          aria-label="Back to profile"
+          variant="icon"
+          size="icon"
+          onClick={() => navigate("/profile")}
+        >
           <ArrowLeft aria-hidden="true" className="h-5 w-5" />
         </Button>
         <h1 className="text-h1">Help & Support</h1>
@@ -93,8 +98,8 @@ export function HelpPage() {
             Listings are rooms or properties shared by room posters. Use the{" "}
             <Link to="/post" className="text-accent underline">Post a Room</Link>{" "}
             flow to publish a new listing, and visit{" "}
-            <Link to="/my-listings" className="text-accent underline">My Listings</Link>{" "}
-            to edit or remove a listing you have already created.
+            <Link to="/manage" className="text-accent underline">Manage Listings</Link>{" "}
+            to edit, pause, or remove a listing you have already created.
           </p>
           <p>
             Looking for a room? Open{" "}
@@ -110,12 +115,14 @@ export function HelpPage() {
           <p>
             Your safety matters. Use{" "}
             <Link to="/settings/blocked-users" className="text-accent underline">Blocked Users</Link>{" "}
-            to manage who can contact you, and report suspicious accounts from any
-            profile or chat thread.
+            to manage who can contact you, report suspicious accounts from any
+            profile or chat thread, or send product issues through{" "}
+            <Link to="/settings/report-problem" className="text-accent underline">Report a Problem</Link>.
           </p>
           <p>
-            Verified users carry a trust badge on their profile. To complete
-            verification, head to the Verify page from your profile menu.
+            Trust badges and profile completeness indicators are shown directly
+            on profiles. Keep your profile details and photos current so other
+            users can assess your fit accurately.
           </p>
         </Card>
       </section>
@@ -145,11 +152,9 @@ export function HelpPage() {
         {/* TODO: replace mailto with a dedicated /support route once the
             backend exposes a support-ticket endpoint. Until then this link
             opens the user's mail client to support@360ghar.com. */}
-        <a href="mailto:support@360ghar.com">
-          <Button variant="secondary" fullWidth>
-            Contact Support
-          </Button>
-        </a>
+        <Button as="a" href="mailto:support@360ghar.com" variant="secondary" fullWidth>
+          Contact Support
+        </Button>
       </Card>
     </div>
   );

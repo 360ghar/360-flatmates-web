@@ -1,34 +1,36 @@
-import { expect, test } from "@playwright/test";
+import { expect, seedDevAuth, test } from "./fixtures/test";
 
 /**
- * E2E tests for the compatibility page at /app/compatibility/[id].
+ * E2E tests for the compatibility page at /compatibility/[id].
  *
  * The compatibility page requires authentication. Unauthenticated users
  * are redirected to /login. These tests verify:
  * - Auth redirect behavior for unauthenticated users
  * - Page structure when accessible (headings, progress rings, dimensions)
  *
- * Authenticated tests use the "authenticated" Playwright project which
- * loads storageState from .auth/user.json.
+ * Authenticated tests seed the DEV-only Playwright auth marker and use
+ * deterministic API mocks from the shared fixture.
  */
 
 test.describe("Compatibility page — unauthenticated access", () => {
   test("redirects to /login when not authenticated", async ({ page }) => {
-    await page.goto("/app/compatibility/1");
+    await page.goto("/compatibility/1");
     await expect(page).toHaveURL(/\/login/);
   });
 
   test("preserves path in the redirect query param", async ({ page }) => {
-    await page.goto("/app/compatibility/1");
+    await page.goto("/compatibility/1");
     await expect(page).toHaveURL(/redirect=/);
   });
 });
 
 test.describe("Compatibility page — authenticated access", () => {
-  test.use({ storageState: ".auth/user.json" });
+  test.beforeEach(async ({ page }) => {
+    await seedDevAuth(page);
+  });
 
   test("page loads with compatibility heading", async ({ page }) => {
-    await page.goto("/app/compatibility/1");
+    await page.goto("/compatibility/1");
     // The page should render the Compatibility heading
     await expect(
       page.getByRole("heading", { name: /compatibility/i })
@@ -36,7 +38,7 @@ test.describe("Compatibility page — authenticated access", () => {
   });
 
   test("progress rings render", async ({ page }) => {
-    await page.goto("/app/compatibility/1");
+    await page.goto("/compatibility/1");
     await expect(
       page.getByRole("heading", { name: /compatibility/i })
     ).toBeVisible();
@@ -52,42 +54,20 @@ test.describe("Compatibility page — authenticated access", () => {
   });
 
   test("dimension rows display", async ({ page }) => {
-    await page.goto("/app/compatibility/1");
+    await page.goto("/compatibility/1");
     await expect(
       page.getByRole("heading", { name: /compatibility/i })
     ).toBeVisible();
-    // The Breakdown card contains dimension rows with progress bars
-    // When data is available, dimension rows show; otherwise loading skeletons
-    const hasBreakdown = await page
-      .getByRole("heading", { name: /breakdown/i })
-      .isVisible()
-      .catch(() => false);
-    const hasSkeleton = await page
-      .locator("[class*='animate-pulse'], [class*='skeleton']")
-      .count()
-      .then((c) => c > 0);
-    expect(hasBreakdown || hasSkeleton).toBeTruthy();
+    // The Breakdown card should be present once compatibility data resolves.
+    await expect(page.getByRole("heading", { name: /breakdown/i })).toBeVisible();
   });
 
   test("summary section shows", async ({ page }) => {
-    await page.goto("/app/compatibility/1");
+    await page.goto("/compatibility/1");
     await expect(
       page.getByRole("heading", { name: /compatibility/i })
     ).toBeVisible();
-    // The Summary card appears when compatibility data includes summary lines
-    // When data loads, the Summary heading is visible; otherwise loading/empty state
-    const hasSummary = await page
-      .getByRole("heading", { name: /summary/i })
-      .isVisible()
-      .catch(() => false);
-    const hasSkeleton = await page
-      .locator("[class*='animate-pulse'], [class*='skeleton']")
-      .count()
-      .then((c) => c > 0);
-    const hasError = await page
-      .getByText(/no compatibility data/i)
-      .isVisible()
-      .catch(() => false);
-    expect(hasSummary || hasSkeleton || hasError).toBeTruthy();
+    // The Summary card should be present once compatibility data resolves.
+    await expect(page.getByRole("heading", { name: /summary/i })).toBeVisible();
   });
 });

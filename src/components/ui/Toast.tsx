@@ -77,7 +77,7 @@ export function ToastViewport({ children, className, ...props }: ToastViewportPr
   return (
     <div
       className={cn(
-        "fixed inset-x-5 bottom-5 z-[var(--z-toast)] flex flex-col-reverse items-center gap-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:inset-x-auto md:right-6 md:items-end",
+        "fixed inset-x-5 bottom-5 z-[var(--z-toast)] flex flex-col-reverse items-center gap-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-auto md:right-6 md:top-6 md:items-end md:pb-0",
         className
       )}
       {...props}
@@ -86,4 +86,3 @@ export function ToastViewport({ children, className, ...props }: ToastViewportPr
     </div>
   );
 }
-

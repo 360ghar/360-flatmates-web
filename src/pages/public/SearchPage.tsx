@@ -412,7 +412,8 @@ export function SearchPage() {
                     <ListingCard
                       listing={listing}
                       ctaLabel="View Details"
-                      onOpen={(id) => navigate(`/listing/${id}`)}
+                      onOpen={(id) => navigate(`/discover/${id}`)}
+                      onContact={(id) => navigate(`/discover/${id}`)}
                     />
                   </div>
                 ))}

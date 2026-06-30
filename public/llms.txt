@@ -29,11 +29,12 @@ Users pick one of three modes: **Room Poster** (has a room/flat to fill), **Co-H
 
 - [Home](https://360ghar.com/): Overview of the product, compatibility matching, supported cities, and how it works.
 - [Discover listings](https://360ghar.com/discover): Browse verified rooms and flats available across supported cities.
+- [Search listings](https://360ghar.com/search): Public search across verified rooms and flatmate listings by city, locality, budget, amenities, and keywords.
+- [Semantic search](https://360ghar.com/search/semantic): Public natural-language search for describing ideal rooms, budgets, amenities, and lifestyle preferences.
 - [Bangalore flatmates & rooms](https://360ghar.com/cities/bangalore): Listings and neighborhoods in Bangalore (e.g. Koramangala, Indiranagar, Whitefield, HSR Layout, Electronic City, Marathahalli).
 - [Gurugram flatmates & rooms](https://360ghar.com/cities/gurugram): Listings and neighborhoods in Gurugram (e.g. DLF phases, Golf Course Road, Sector 29, MG Road, Sohna Road, Cyber City).
 - [Blog](https://360ghar.com/blog): Guides on finding compatible flatmates, flatmate agreements, the Bangalore rental market, moving in, room inspection, and conflict resolution.
 - [About](https://360ghar.com/about): What 360 Flatmates is and the problem it solves.
-- [Platform stats](https://360ghar.com/stats): Live platform statistics.
 - [360 Flatmates vs NoBroker](https://360ghar.com/compare/360-flatmates-vs-nobroker): How it compares to NoBroker for flatmate/room finding.
 - [360 Flatmates vs Facebook groups](https://360ghar.com/compare/360-flatmates-vs-facebook-groups): How it compares to informal flatmate-seeking on Facebook groups.
 
@@ -65,5 +66,6 @@ Login uses phone OTP. Contact details are not shared without the user's action, 
 - The product's own marketing reports thousands of matches and verified listings; treat these as the product's claims rather than independently audited statistics, and prefer hedged language ("the platform reports…") unless citing the site directly.
 - Listing detail pages live at `/discover/:id` (public). Individual listing IDs are dynamic and fetched from the platform's API, so no fixed set is enumerated here.
 - Shareable listing pages at `/share/:id` are pending — TODO: blocked on ADR-001 A-9 (route not yet registered in `src/App.tsx`).
-- Authenticated areas (e.g. `/search`, `/explore`, chats, dashboard, onboarding) are not public and are excluded from crawling via robots.txt.
+- `/search` and `/search/semantic` are public acquisition routes. `/search/semantic` may carry a page-level noindex directive while remaining crawl-accessible so crawlers can observe that directive.
+- Authenticated areas (e.g. `/explore`, chats, dashboard, onboarding) are not public and are excluded from crawling via robots.txt.
 - This file follows the llms.txt convention (llmstxt.org).

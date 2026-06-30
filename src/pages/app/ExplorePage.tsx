@@ -306,7 +306,7 @@ export function ExplorePage() {
   return (
     <div className="-mx-5 -mt-6 -mb-11 md:-mb-6 flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] flex-col gap-0 md:-mx-6 md:flex-row page-fade">
       {/* Map area - takes all available space */}
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div id="map-container" className="relative flex min-h-0 flex-1 flex-col">
         <Suspense fallback={<MapViewFallback />}>
           <MapView
             clusters={mapData?.clusters ?? []}

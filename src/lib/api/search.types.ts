@@ -94,6 +94,7 @@ export interface SearchAlertCreate {
 
 export interface SearchAlertUpdate {
   name?: string;
+  filters?: SearchFilters;
   frequency?: AlertFrequency;
   channels?: AlertChannel[];
   enabled?: boolean;

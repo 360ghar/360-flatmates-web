@@ -20,35 +20,15 @@ export default defineConfig({
     timeout: 120_000
   },
   projects: [
-    // Auth setup project — runs first to save storage state for authenticated tests
-    {
-      name: "auth-setup",
-      testMatch: /auth-setup\.ts/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-
-    // Desktop Chromium — unauthenticated tests
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      dependencies: ["auth-setup"],
     },
 
-    // Mobile — unauthenticated tests
     {
       name: "mobile",
       use: { ...devices["Pixel 5"] },
-      dependencies: ["auth-setup"],
     },
 
-    // Authenticated desktop — tests that require a logged-in session
-    {
-      name: "authenticated",
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: ".auth/user.json",
-      },
-      dependencies: ["auth-setup"],
-    },
   ]
 });

@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { CheckCircle2, Eye, XCircle } from "lucide-react";
 import { useInfiniteAdminListings, useAdminModerate } from "@/hooks/queries";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
@@ -316,7 +316,7 @@ export function ModerationListingsPage() {
             </Button>
             <Button
               size="compact"
-              variant="primary"
+              variant="destructive"
               loading={moderate.isPending}
               onClick={handleConfirmApprove}
             >
@@ -432,10 +432,11 @@ function ListingRow({
               </span>
             )}
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="relative z-10 mt-3 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <Button
               size="compact"
               variant="primary"
+              className="w-full sm:w-auto"
               loading={isActing}
               disabled={actionsDisabled && !isActing}
               leadingIcon={<CheckCircle2 aria-hidden="true" className="h-4 w-4" />}
@@ -446,6 +447,7 @@ function ListingRow({
             <Button
               size="compact"
               variant="secondary"
+              className="w-full sm:w-auto"
               disabled={actionsDisabled}
               leadingIcon={<XCircle aria-hidden="true" className="h-4 w-4" />}
               onClick={onReject}
@@ -454,7 +456,7 @@ function ListingRow({
             </Button>
             <Link
               to={`/admin/moderation/prescreen/${listing.id}`}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-label-md font-semibold text-accent hover:bg-accent-soft hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+              className={buttonClasses("tertiary", "compact", false) + " w-full sm:w-auto"}
             >
               <Eye aria-hidden="true" className="h-4 w-4" />
               <span className="truncate">Review</span>
