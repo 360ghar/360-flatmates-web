@@ -105,7 +105,7 @@ export function HomePage() {
         <div className="relative z-[1]">
           <p className="text-label-md font-semibold text-accent">Dashboard</p>
           <h1 className="mt-2 text-display text-3xl md:text-4xl text-ink font-normal leading-tight">
-            Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.split(" ")[0] || "Friend"}</span>
+            Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.trim().split(/\s+/)[0] || "Friend"}</span>
           </h1>
           <p className="mt-3 text-body-md text-ink-2 max-w-[65ch]">
             Your recommendations, listings, and nearby flatmates are ready to review.

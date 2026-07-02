@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 
 import { buttonClasses } from "@/components/ui/Button";
+import { cn } from "@/components/ui/component-utils";
 import { AppStoreBadges } from "./AppStoreBadges";
 import { LandingSearch } from "./LandingSearch";
 import { MascotScene } from "./MascotScene";
@@ -35,7 +36,7 @@ export function HeroSection() {
           </div>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-            <Link to="/discover" className={buttonClasses("primary", "tall") + " min-w-[190px]"}>
+            <Link to="/discover" className={cn(buttonClasses("primary", "tall"), "min-w-[190px]")}>
               Start matching
             </Link>
             <Link
@@ -53,7 +54,9 @@ export function HeroSection() {
           </div>
         </div>
 
-        <MascotScene />
+        <div aria-hidden="true" inert>
+          <MascotScene />
+        </div>
       </div>
     </section>
   );

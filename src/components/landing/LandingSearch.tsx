@@ -64,10 +64,7 @@ export function LandingSearch() {
           <button
             key={item}
             type="button"
-            onClick={() => {
-              setQuery(item);
-              navigate(`/search?q=${encodeURIComponent(item)}`);
-            }}
+            onClick={() => navigate(`/search?q=${encodeURIComponent(item)}`)}
             className="rounded-full border border-line bg-surface px-3 py-1.5 text-body-md text-ink-2 shadow-xs transition-colors hover:border-accent/30 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {item}

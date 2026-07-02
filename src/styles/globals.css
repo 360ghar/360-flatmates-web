@@ -142,7 +142,7 @@
   --z-raised: 10;
   --z-sticky: 30;
   --z-overlay: 40;
-  /* ponytail: modal must clear both Leaflet panes (max 800) AND MapView's
+  /* Note: modal must clear both Leaflet panes (max 800) AND MapView's
      hard-coded z-[1000] map chrome, else the Explore filter drawer is occluded;
      toast stays above modal. */
   --z-modal: 1100;
@@ -154,6 +154,11 @@
   --control-h-lg: 52px;
   --control-h-xl: 56px;
   --touch-min: 44px;
+  --map-grid-bg:
+    linear-gradient(var(--color-map-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-map-line) 1px, transparent 1px),
+    var(--color-paper);
+  --map-grid-bg-size: 96px 96px, 96px 96px, auto;
 }
 
 [data-theme="dark"] {
@@ -250,11 +255,8 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(var(--color-map-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-map-line) 1px, transparent 1px),
-    var(--color-paper);
-  background-size: 96px 96px, 96px 96px, auto;
+  background: var(--map-grid-bg);
+  background-size: var(--map-grid-bg-size);
   color: var(--color-ink);
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 14px;
@@ -444,11 +446,8 @@ svg {
 }
 
 .map-grid-bg {
-  background:
-    linear-gradient(var(--color-map-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-map-line) 1px, transparent 1px),
-    var(--color-paper);
-  background-size: 96px 96px, 96px 96px, auto;
+  background: var(--map-grid-bg);
+  background-size: var(--map-grid-bg-size);
 }
 
 .promo-panel {

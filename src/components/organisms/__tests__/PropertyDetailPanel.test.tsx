@@ -79,6 +79,20 @@ it("renders full content from fullProperty", () => {
   expect(screen.getByText(/Swipe for more \(2\)/)).toBeInTheDocument();
 });
 
+it("uses the shared price fallback when rent is missing or invalid", () => {
+  render(
+    <PropertyDetailPanel
+      selectedPin={pin}
+      fullProperty={{ ...baseProperty, monthly_rent: 0 }}
+      isPropertyLoading={false}
+      onClose={vi.fn()}
+      onNavigate={vi.fn()}
+    />
+  );
+
+  expect(screen.getAllByText("Price on request")).toHaveLength(2);
+});
+
 it("invokes onClose when close button is clicked", async () => {
   const onClose = vi.fn();
   const user = userEvent.setup();

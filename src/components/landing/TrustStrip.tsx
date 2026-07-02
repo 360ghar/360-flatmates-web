@@ -49,14 +49,6 @@ export function TrustStrip() {
           </div>
         </div>
       </div>
-
-      <ul className="sr-only">
-        {trustItems.map((item) => (
-          <li key={item.label}>
-            {item.value} {item.label}
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

@@ -83,7 +83,7 @@ function ProviderInternals({
       }
     };
 
-    const applyPalette = (palette: PalettePreference | unknown) => {
+    const applyPalette = (palette: PalettePreference) => {
       document.documentElement.dataset.palette = normalizePalettePreference(palette);
     };
 

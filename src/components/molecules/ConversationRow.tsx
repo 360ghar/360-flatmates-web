@@ -39,9 +39,9 @@ export function ConversationRow({ conversation, className, ...props }: Conversat
           <span className="min-w-0 break-words text-body-md font-semibold text-ink">{conversation.name}</span>
           {conversation.mode ? <Badge mode={conversation.mode} variant="mode" className="md:max-lg:hidden" /> : null}
         </span>
-        <span className="mt-1 block text-caption text-ink-2">{conversation.preview}</span>
+        <span className="mt-1 line-clamp-1 block text-caption text-ink-2">{conversation.preview}</span>
         {conversation.propertyPreview ? (
-          <span className="mt-0.5 block text-caption text-ink-3">{conversation.propertyPreview}</span>
+          <span className="mt-0.5 line-clamp-1 block text-caption text-ink-3">{conversation.propertyPreview}</span>
         ) : null}
       </span>
       <span className="flex shrink-0 flex-col items-end gap-2">

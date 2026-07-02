@@ -449,7 +449,9 @@ Heights are tokenized: `--control-h-sm` 42 · `--control-h-md` 48 ·
 | `.card-glow` | Primary radial sheen on hover/focus-within |
 | `.accent-pill` | Mono uppercase accent pill (step numbers, tags) |
 | `.frosted` | `backdrop-filter: blur(var(--frost-blur))` + paper color-mix |
+| `.map-grid-bg` | Shared map-grid background utility using the global grid pattern tokens |
 | `.noise-texture` | SVG grain overlay (fixed, `pointer-events-none`) |
+| `.promo-panel` | Reusable promo band/panel shell with `radius-promo`, low border, and mixed surface background |
 | `.scroll-progress-bar` | Top reading-progress bar (`--z-overlay`) |
 | `.content-grid` | `auto-fit` responsive card grid |
 | `.hairline` | 0.5px line border |

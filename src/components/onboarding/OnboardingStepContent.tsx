@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { Camera, Crosshair, Loader2 } from "lucide-react";
 import { useMyProfile, useCreateProfile, useUpdateProfile, useReverseGeocode } from "@/hooks/queries";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib/stores/onboarding-store";
 import { authStore } from "@/lib/stores/auth-store";
 import { searchStore } from "@/lib/stores/search-store";
@@ -108,7 +108,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const previousStep = useStore(onboardingStore, (s) => s.previousStep);
   const setStep = useStore(onboardingStore, (s) => s.setStep);
 
-  const { upload: uploadImage } = useImageUpload();
+  const { upload: uploadImage } = useAvatarUpload();
   const { geocode, geoLoading } = useReverseGeocode();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -469,8 +469,8 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
               onClick={openFilePicker}
               loading={photoUploading}
               disabled={photoUploading}
+              leadingIcon={<Camera aria-hidden="true" className="h-4 w-4" />}
             >
-              <Camera aria-hidden="true" className="h-4 w-4" />
               {photoUploading
                 ? "Uploading..."
                 : photoPreview || draft.profile_image_url

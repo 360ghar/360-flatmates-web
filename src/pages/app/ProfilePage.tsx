@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useMyProfile, useUpdateProfile, useDeleteAccount } from "@/hooks/queries";
 import type { FlatmatesProfileUpdate } from "@/lib/api/types";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { useAuth } from "@/hooks/useAuth";
 import { uiStore } from "@/lib/stores/ui-store";
 import { MenuItemRow } from "@/components/molecules";
@@ -40,7 +40,7 @@ export function ProfilePage() {
   const { data: profile, isLoading, refetch } = useMyProfile();
   const updateProfile = useUpdateProfile();
   const deleteAccount = useDeleteAccount();
-  const { upload: uploadImage } = useImageUpload();
+  const { upload: uploadImage } = useAvatarUpload();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -176,9 +176,13 @@ export function ProfilePage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
     try {
-      const dataUrl = await uploadImage(file);
-      updateProfile.mutate({ profile_image_url: dataUrl });
+      await uploadImage(file);
+      uiStore.getState().pushToast({
+        type: "success",
+        title: "Photo updated",
+      });
     } catch {
       uiStore.getState().pushToast({
         type: "error",

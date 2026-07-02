@@ -476,13 +476,15 @@ function MatchCelebration({
 
         {/* Celebration Card Container */}
         <motion.div
-          className="relative max-w-sm overflow-hidden rounded-2xl border border-line bg-surface p-8 text-center shadow-lg flex flex-col items-center gap-6"
+          className="relative max-w-sm rounded-2xl border border-line bg-surface p-8 text-center shadow-lg flex flex-col items-center gap-6"
           onClick={(e) => e.stopPropagation()}
           initial={{ scale: 0.8, opacity: 0, y: 40 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ type: "spring", damping: 15, stiffness: 100 }}
         >
-          <div className="absolute inset-0 map-grid-bg opacity-20" aria-hidden="true" />
+          <div className="absolute inset-0 overflow-hidden rounded-2xl" aria-hidden="true">
+            <div className="absolute inset-0 map-grid-bg opacity-20" />
+          </div>
           {/* Match Score Progress Ring with animated delay */}
           <div className="relative flex items-center justify-center">
             <motion.div

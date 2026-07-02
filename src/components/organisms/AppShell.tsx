@@ -368,7 +368,7 @@ export function AppShell({
               <Logo compact />
             </div>
           )}
-          {title ? <h1 className="hidden shrink-0 text-h3 font-semibold text-ink md:block">{title}</h1> : null}
+          {title ? <h1 className="hidden min-w-0 truncate text-h3 font-semibold text-ink md:block">{title}</h1> : null}
           <form
             onSubmit={handleSearchSubmit}
             className="ml-auto hidden w-full max-w-[16rem] lg:max-w-md md:block"
@@ -463,7 +463,7 @@ export function AppShell({
             this, theme is unreachable on mobile in the authenticated shell
             (the top-bar toggle is md:flex only). */}
         <div className="mt-3 flex items-center gap-3 border-t border-line px-3 pt-4">
-          <ThemeToggle size="sm" />
+          <ThemeToggle size="md" />
           <span className="text-body-md text-ink-2">Appearance</span>
         </div>
       </BottomSheet>

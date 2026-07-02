@@ -180,8 +180,6 @@ export function ListingCard({
               if (onContact) {
                 event.stopPropagation();
                 onContact(listing.id);
-              } else {
-                onOpen?.(listing.id);
               }
             }}
             className="group-hover:bg-accent group-hover:text-white transition-all duration-300 shrink-0"
@@ -193,4 +191,3 @@ export function ListingCard({
     </Card>
   );
 }
-

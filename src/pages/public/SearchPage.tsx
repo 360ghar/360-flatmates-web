@@ -74,6 +74,10 @@ export function SearchPage() {
           : params.bedrooms
             ? Number(params.bedrooms)
             : undefined,
+      bedrooms_max:
+        params.bedrooms && params.bedrooms !== "4+"
+          ? Number(params.bedrooms)
+          : undefined,
       amenities: params.amenities.length > 0 ? params.amenities : undefined,
       price_min: params.priceMin ?? undefined,
       price_max: params.priceMax ?? undefined,
@@ -106,13 +110,6 @@ export function SearchPage() {
   // `searchStore` here. Doing so poisons the map filter on next reload
   // because the store is shared across surfaces (search ↔ map).
 
-  // Record a successful, non-empty text query into recent searches.
-  useEffect(() => {
-    if (params.q && searchResults?.pages[0]?.total) {
-      addRecentSearch(params.q);
-    }
-  }, [params.q, searchResults, addRecentSearch]);
-
   // Reset scroll to top when the filter set changes (UX parity with ExplorePage).
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -141,6 +138,13 @@ export function SearchPage() {
       return true;
     });
   }, [searchResults]);
+
+  // Record a successful, non-empty text query into recent searches.
+  useEffect(() => {
+    if (params.q && listings.length > 0) {
+      addRecentSearch(params.q);
+    }
+  }, [params.q, listings.length, addRecentSearch]);
 
   const totalResults = searchResults?.pages[0]?.total ?? listings.length;
 
@@ -369,12 +373,6 @@ export function SearchPage() {
                 </>
               )}
             </span>
-            <button
-              onClick={() => navigate("/saved-searches")}
-              className="text-body-sm font-semibold text-accent hover:underline"
-            >
-              Save search
-            </button>
           </div>
 
           {/* Scrolling list */}

@@ -5,8 +5,8 @@ import { formatCurrencyINR } from "@/lib/utils/format";
 export type PriceTextVariant = "hero" | "card" | "inline";
 
 export interface PriceTextProps extends HTMLAttributes<HTMLSpanElement> {
-  // ponytail: `number | null | undefined` so callers can pass optional API
-  // fields directly; the guard below handles missing/0/non-finite uniformly.
+  // Accept optional API price fields directly; the guard below handles
+  // missing/0/non-finite values uniformly.
   value: number | null | undefined;
   suffix?: string;
   variant?: PriceTextVariant;
@@ -33,4 +33,3 @@ export function PriceText({
     </span>
   );
 }
-

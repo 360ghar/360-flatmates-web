@@ -1,5 +1,5 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -70,6 +70,10 @@ describe("useAuth", () => {
       data: { subscription: { unsubscribe: vi.fn() } }
     });
     mockSignInWithOAuth.mockResolvedValue({ error: null });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("starts in loading state", () => {
@@ -256,6 +260,7 @@ describe("useAuth", () => {
   });
 
   it("signInWithGoogle sends Supabase the flatmates callback URL", async () => {
+    vi.stubEnv("VITE_AUTH_REDIRECT_URL", "");
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
     await act(async () => {
@@ -266,6 +271,22 @@ describe("useAuth", () => {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=%2Fswipe`
+      }
+    });
+  });
+
+  it("signInWithApple sends Supabase the flatmates callback URL", async () => {
+    vi.stubEnv("VITE_AUTH_REDIRECT_URL", "");
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.signInWithApple("/home");
+    });
+
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: "apple",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=%2Fhome`
       }
     });
   });

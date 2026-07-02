@@ -51,7 +51,7 @@ export function ComparisonFlow() {
               </div>
               <div className="relative flex min-h-[230px] flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl bg-surface p-4 sm:flex-row sm:gap-0">
                 <div className="absolute inset-0 map-grid-bg opacity-25" aria-hidden="true" />
-                <div className="relative z-[1] flex h-16 w-16 items-center justify-center rounded-full bg-ink text-body-md font-semibold text-white">
+                <div className="relative z-[1] flex h-16 w-16 items-center justify-center rounded-full bg-ink text-body-md font-semibold text-paper">
                   You
                 </div>
                 <div className="relative z-[1] h-8 w-px bg-ink-4 sm:mx-3 sm:h-px sm:max-w-20 sm:flex-1" />
@@ -69,7 +69,7 @@ export function ComparisonFlow() {
                   ))}
                 </div>
                 <div className="relative z-[1] h-8 w-px bg-ink-4 sm:mx-3 sm:h-px sm:max-w-20 sm:flex-1" />
-                <div className="relative z-[1] flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white">
+                <div className="relative z-[1] flex h-14 w-14 items-center justify-center rounded-full bg-accent text-paper">
                   <Home className="h-6 w-6" aria-hidden="true" />
                 </div>
               </div>
@@ -87,7 +87,7 @@ export function ComparisonFlow() {
               </div>
               <div className="flex min-h-[230px] flex-col justify-center gap-5 rounded-2xl bg-surface/72 p-5">
                 <div className="grid items-center justify-items-center gap-3 sm:grid-cols-[auto_minmax(24px,1fr)_auto_minmax(24px,1fr)_auto] sm:gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink text-body-md font-semibold text-white">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink text-body-md font-semibold text-paper">
                     You
                   </div>
                   <div className="h-8 w-px bg-ink-4 sm:h-px sm:w-full" />
@@ -96,7 +96,7 @@ export function ComparisonFlow() {
                     <span className="ml-1 text-h3 text-accent">Flatmates</span>
                   </div>
                   <div className="h-8 w-px bg-ink-4 sm:h-px sm:w-full" />
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-paper">
                     <Home className="h-6 w-6" aria-hidden="true" />
                   </div>
                 </div>
