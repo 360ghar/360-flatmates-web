@@ -9,7 +9,7 @@ import { getAuthState } from "@/lib/api/auth";
 import { refreshAccessToken } from "@/lib/auth/refresh";
 import { authStore } from "@/lib/stores/auth-store";
 import { useStore } from "zustand";
-import { uiStore } from "@/lib/stores/ui-store";
+import { normalizePalettePreference, uiStore } from "@/lib/stores/ui-store";
 import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { onboardingStore } from "@/lib/stores/onboarding-store";
@@ -83,8 +83,8 @@ function ProviderInternals({
       }
     };
 
-    const applyPalette = (palette: PalettePreference) => {
-      document.documentElement.dataset.palette = palette;
+    const applyPalette = (palette: PalettePreference | unknown) => {
+      document.documentElement.dataset.palette = normalizePalettePreference(palette);
     };
 
     applyTheme(uiStore.getState().theme);

@@ -174,8 +174,15 @@ export function ListingCard({
           <Button
             size="compact"
             onClick={(event) => {
-              event.stopPropagation();
-              onContact?.(listing.id);
+              // Only intercept the click when a dedicated contact handler
+              // exists. Otherwise fall through to the card-level onOpen
+              // (e.g. navigate to detail) so the CTA is never a no-op.
+              if (onContact) {
+                event.stopPropagation();
+                onContact(listing.id);
+              } else {
+                onOpen?.(listing.id);
+              }
             }}
             className="group-hover:bg-accent group-hover:text-white transition-all duration-300 shrink-0"
           >

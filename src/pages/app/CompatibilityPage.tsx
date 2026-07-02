@@ -180,13 +180,13 @@ function DimensionDetailModal({
           <div className="rounded-md bg-paper-2 p-3">
             <p className="text-caption text-ink-3">Your value</p>
             <p className="text-body-md font-semibold text-ink">
-              {dimension.user_value ? formatLifestyleLabel(dimension.name, dimension.user_value) : "—"}
+              {dimension.user_value ? formatLifestyleLabel(dimension.name, dimension.user_value) : "Not set"}
             </p>
           </div>
           <div className="rounded-md bg-paper-2 p-3">
             <p className="text-caption text-ink-3">Their value</p>
             <p className="text-body-md font-semibold text-ink">
-              {dimension.peer_value ? formatLifestyleLabel(dimension.name, dimension.peer_value) : "—"}
+              {dimension.peer_value ? formatLifestyleLabel(dimension.name, dimension.peer_value) : "Not set"}
             </p>
           </div>
         </div>
@@ -199,7 +199,7 @@ function DimensionDetailModal({
           </p>
         ) : (
           <p className="text-caption text-ink-3">
-            One of you hasn't filled this in yet — it doesn't count against your score.
+            One of you has not filled this in yet, so it does not count against your score.
           </p>
         )}
       </div>
@@ -361,7 +361,7 @@ export function CompatibilityPage() {
                   to roughly {Math.min(100, breakdown.overall_percentage + Math.round(opportunity.delta))}%.
                 </p>
                 <p className="text-caption text-ink-3">
-                  You're on "{opportunity.dimension.user_value ? formatLifestyleLabel(opportunity.dimension.name, opportunity.dimension.user_value) : "—"}" — they're on "{opportunity.dimension.peer_value ? formatLifestyleLabel(opportunity.dimension.name, opportunity.dimension.peer_value) : "—"}".
+                  You are on "{opportunity.dimension.user_value ? formatLifestyleLabel(opportunity.dimension.name, opportunity.dimension.user_value) : "Not set"}"; they are on "{opportunity.dimension.peer_value ? formatLifestyleLabel(opportunity.dimension.name, opportunity.dimension.peer_value) : "Not set"}".
                 </p>
               </Card>
             ) : null}

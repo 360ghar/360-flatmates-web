@@ -18,7 +18,7 @@ export function ListingDetailPage() {
     ? [
         property.title,
         formatLocation(property.locality, property.city),
-        formatRent(property.monthly_rent),
+        property.monthly_rent ? formatRent(property.monthly_rent) : undefined,
         property.bedrooms ? `${property.bedrooms} bed` : undefined,
         property.area_sqft ? `${property.area_sqft} sq ft` : undefined,
       ]

@@ -281,7 +281,7 @@ export function AppShell({
       <aside
         ref={asideRef}
         className={cn(
-          "fixed inset-y-0 left-0 z-30 hidden border-r border-line bg-paper-2 p-3 md:flex md:flex-col",
+          "fixed inset-y-0 left-0 z-[var(--z-sticky)] hidden border-r border-line bg-surface p-3 md:flex md:flex-col",
           !isDragging && "transition-[width] duration-200 ease-out"
         )}
         style={{ width: currentWidth }}
@@ -298,7 +298,7 @@ export function AppShell({
           <PrefetchLink
             to="/profile"
             className={cn(
-              "mb-3 flex items-center gap-3 rounded-[9px] p-2 hover:bg-paper-3",
+              "mb-3 flex items-center gap-3 rounded-[12px] p-2 hover:bg-lavender",
               focusRing,
               collapsed && "justify-center"
             )}
@@ -306,7 +306,7 @@ export function AppShell({
             <Avatar name={user.name} size="sm" src={user.avatarUrl} />
             {!collapsed ? (
               <div className="min-w-0">
-                <span className="block truncate text-body-md font-semibold text-ink">Hi, {user.name.split(" ")[0]}!</span>
+                <span className="block truncate text-body-md font-semibold text-ink">Hi, {(user.name?.trim().split(/\s+/)[0] || "there")}!</span>
                 {user.city ? (
                   <span className="block truncate text-caption text-ink-2">{user.city}</span>
                 ) : null}
@@ -350,7 +350,7 @@ export function AppShell({
         className={cn("min-h-dvh pb-[calc(76px+env(safe-area-inset-bottom))] md:pb-0 md:pl-[var(--sidebar-w)]", !isDragging && "transition-[padding-left] duration-200 ease-out")}
         style={{ '--sidebar-w': `${currentWidth}px` } as React.CSSProperties}
       >
-        <header className="sticky top-0 z-20 flex min-h-16 items-center gap-3 border-b border-line bg-paper px-5 pt-[env(safe-area-inset-top)] md:px-6">
+        <header className="sticky top-0 z-[var(--z-raised)] flex min-h-16 items-center gap-3 border-b border-line bg-surface/92 px-5 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:px-6">
           {/* Mobile: greeting with avatar. The desktop sidebar already shows
               the greeting on the left, so the topbar only renders the mobile
               variant. Previously a duplicate desktop greeting lived here too,
@@ -359,7 +359,7 @@ export function AppShell({
             <PrefetchLink to="/profile" className={cn("flex items-center gap-3 md:hidden", focusRing)}>
               <Avatar name={user.name} size="sm" src={user.avatarUrl} />
               <div className="min-w-0">
-                <p className="truncate text-h3 font-semibold text-ink">Hi, {user.name.split(" ")[0]}!</p>
+                <p className="truncate text-h3 font-semibold text-ink">Hi, {(user.name?.trim().split(/\s+/)[0] || "there")}!</p>
                 {user.city ? <p className="truncate text-caption text-ink-2">{user.city}</p> : null}
               </div>
             </PrefetchLink>
@@ -368,10 +368,10 @@ export function AppShell({
               <Logo compact />
             </div>
           )}
-          {title ? <h1 className="hidden min-w-0 truncate text-h3 font-semibold text-ink md:block">{title}</h1> : null}
+          {title ? <h1 className="hidden shrink-0 text-h3 font-semibold text-ink md:block">{title}</h1> : null}
           <form
             onSubmit={handleSearchSubmit}
-            className="ml-auto hidden w-full max-w-md md:block"
+            className="ml-auto hidden w-full max-w-[16rem] lg:max-w-md md:block"
             role="search"
           >
             <SearchBar
@@ -388,13 +388,13 @@ export function AppShell({
             to="/search"
             aria-label="Search"
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-[9px] text-ink-3 hover:bg-paper-3 hover:text-ink md:hidden",
+              "flex h-10 w-10 items-center justify-center rounded-[12px] text-ink-3 hover:bg-lavender hover:text-ink md:hidden",
               focusRing
             )}
           >
             <Search aria-hidden="true" className="h-5 w-5" />
           </PrefetchLink>
-          <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-10 w-10 items-center justify-center rounded-[9px] text-ink-3 hover:bg-paper-3 hover:text-ink", focusRing)}>
+          <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-10 w-10 items-center justify-center rounded-[12px] text-ink-3 hover:bg-lavender hover:text-ink", focusRing)}>
             <span className="relative">
               <Bell aria-hidden="true" className="h-5 w-5" />
               {unreadCount > 0 ? (
@@ -409,7 +409,7 @@ export function AppShell({
       </div>
       <nav
         aria-label="Mobile primary"
-        className="fixed inset-x-0 bottom-0 z-30 grid h-[calc(76px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-line bg-paper/88 px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] backdrop-blur-[9px] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-[var(--z-sticky)] grid h-[calc(76px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-line bg-paper/88 px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] backdrop-blur-[9px] md:hidden"
       >
         {mobileItems.map((item) => {
           if (item.href === "#more") {
@@ -421,7 +421,7 @@ export function AppShell({
                 aria-haspopup="dialog"
                 aria-expanded={moreOpen}
                 className={cn(
-                  "flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-[9px] px-1 py-1 text-ink-3 hover:bg-paper-3 hover:text-ink",
+                  "flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-[12px] px-1 py-1 text-ink-3 hover:bg-lavender hover:text-ink",
                   focusRing,
                   moreOpen && "bg-accent-soft text-accent"
                 )}
@@ -449,7 +449,7 @@ export function AppShell({
               to={item.href}
               onClick={() => setMoreOpen(false)}
               className={cn(
-                "flex min-h-[44px] items-center gap-3 rounded-[9px] px-3 py-2.5 text-body-md text-ink-2 hover:bg-paper-2 hover:text-ink",
+                "flex min-h-[44px] items-center gap-3 rounded-[12px] px-3 py-2.5 text-body-md text-ink-2 hover:bg-lavender hover:text-ink",
                 focusRing,
                 isActive(item.href) && "bg-accent-soft text-accent"
               )}
@@ -458,6 +458,13 @@ export function AppShell({
               <span className="truncate">{item.label}</span>
             </PrefetchLink>
           ))}
+        </div>
+        {/* Appearance control, parity with the public layout drawer. Without
+            this, theme is unreachable on mobile in the authenticated shell
+            (the top-bar toggle is md:flex only). */}
+        <div className="mt-3 flex items-center gap-3 border-t border-line px-3 pt-4">
+          <ThemeToggle size="sm" />
+          <span className="text-body-md text-ink-2">Appearance</span>
         </div>
       </BottomSheet>
     </div>
@@ -483,7 +490,7 @@ function ShellNavLink({
       aria-current={active ? "page" : undefined}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "relative flex items-center gap-3 rounded-[9px] text-ink-3 hover:bg-paper-3 hover:text-ink",
+        "relative flex items-center gap-3 rounded-[12px] text-ink-3 hover:bg-lavender hover:text-ink",
         focusRing,
         active && "bg-accent-soft text-accent",
         collapsed

@@ -1,53 +1,68 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #c96442;
-  --color-accent-soft: rgba(201, 100, 66, 0.1);
-  --color-accent-container: #f8d5c8;
-  --color-accent-50: #fdf5f1;
-  --color-accent-100: #fae8de;
-  --color-accent-200: #f8d5c8;
-  --color-accent-300: #f0b49c;
-  --color-accent-400: #e08e6e;
-  --color-accent-500: #c96442;
-  --color-accent-600: #b5533a;
-  --color-accent-700: #964230;
-  --color-accent-800: #7a352a;
-  --color-accent-900: #642e26;
-  --color-accent-950: #3a1810;
-  --color-paper: #f4f3ee;
-  --color-paper-2: #edebe3;
-  --color-paper-3: #e4e1d7;
-  --color-paper-4: #d8d4c7;
-  --color-surface: #fffdf8;
+  --color-primary: #6e57e8;
+  --color-primary-soft: rgba(110, 87, 232, 0.12);
+  --color-primary-container: #e9e5ff;
+  --color-action: #ffe85a;
+  --color-action-hover: #f7d73f;
+  --color-action-ink: #241d06;
+  --color-lavender: #e9e5ff;
+  --color-lavender-2: #dcd4ff;
+  /* Pastel section backgrounds, calmer than the categorical -soft tiers.
+     Used for alternating section rhythm on public/marketing surfaces;
+     body bg stays --color-paper. */
+  --color-peach: #f6e1d8;
+  --color-sky: #e1ebf3;
+  --color-mint: #e4ede0;
+  --color-map-line: rgba(32, 29, 27, 0.07);
+  --color-accent: #6e57e8;
+  --color-accent-soft: rgba(110, 87, 232, 0.12);
+  --color-accent-container: #e9e5ff;
+  --color-accent-50: #f7f5ff;
+  --color-accent-100: #eeeaff;
+  --color-accent-200: #dfd8ff;
+  --color-accent-300: #c4b8ff;
+  --color-accent-400: #9b87ff;
+  --color-accent-500: #6e57e8;
+  --color-accent-600: #5f46d8;
+  --color-accent-700: #4f37bd;
+  --color-accent-800: #412d98;
+  --color-accent-900: #372875;
+  --color-accent-950: #21164d;
+  --color-paper: #f7f5ec;
+  --color-paper-2: #eeeadf;
+  --color-paper-3: #e2ddd0;
+  --color-paper-4: #d3cbbb;
+  --color-surface: #fffefa;
   --color-surface-elevated: #ffffff;
-  --color-ink: #1f1a14;
-  --color-ink-2: #4a463e;
-  --color-ink-3: #756f65;
-  --color-ink-4: #b5afa3;
-  --color-line: rgba(31, 26, 20, 0.08);
-  --color-line-2: rgba(31, 26, 20, 0.04);
-  --color-line-low: rgba(31, 26, 20, 0.04);
-  --color-success: #5b8c44;
-  --color-success-soft: rgba(91, 140, 68, 0.12);
-  --color-error: #b4452c;
-  --color-error-soft: rgba(180, 69, 44, 0.1);
-  --color-warning: #b57828;
-  --color-warning-soft: rgba(181, 120, 40, 0.1);
-  --color-blue-soft: #e1eaf4;
-  --color-blue-mid: #5b88b5;
-  --color-purple-soft: #e7ddf1;
-  --color-purple-mid: #8b7bb8;
-  --color-green-soft: #dcead4;
-  --color-green-mid: #6a9068;
-  --color-yellow-soft: #f5e8b8;
-  --color-yellow-mid: #c49840;
-  --color-orange-soft: #fce0c8;
-  --color-orange-mid: #d17847;
-  --color-teal-soft: #cfe4df;
-  --color-teal-mid: #5a9da8;
-  --color-pink-soft: #f6dde3;
-  --color-pink-mid: #c28098;
+  --color-ink: #201d1b;
+  --color-ink-2: #47413c;
+  --color-ink-3: #746c62;
+  --color-ink-4: #b8afa0;
+  --color-line: rgba(32, 29, 27, 0.10);
+  --color-line-2: rgba(32, 29, 27, 0.05);
+  --color-line-low: rgba(32, 29, 27, 0.05);
+  --color-success: #638f4c;
+  --color-success-soft: rgba(99, 143, 76, 0.13);
+  --color-error: #b64a38;
+  --color-error-soft: rgba(182, 74, 56, 0.10);
+  --color-warning: #a97822;
+  --color-warning-soft: rgba(169, 120, 34, 0.12);
+  --color-blue-soft: #dfeaf7;
+  --color-blue-mid: #5d84b7;
+  --color-purple-soft: #e9e5ff;
+  --color-purple-mid: #6e57e8;
+  --color-green-soft: #e1ead7;
+  --color-green-mid: #6f9463;
+  --color-yellow-soft: #fff4b8;
+  --color-yellow-mid: #b3921c;
+  --color-orange-soft: #f7ddc6;
+  --color-orange-mid: #c77a46;
+  --color-teal-soft: #d7e9e5;
+  --color-teal-mid: #559aa2;
+  --color-pink-soft: #f4dee9;
+  --color-pink-mid: #bc7898;
   /* Google "Sign in with Google" brand palette (Material 3).
      Light = white pill with subtle grey border; dark = near-black pill.
      Used by the `google` Button variant. */
@@ -56,13 +71,13 @@
   --color-google-border: #dadce0;
   --color-google-hover: #f8f9fa;
   /* Categorical "ink" tier — accessible text on the matching soft background */
-  --color-blue-ink: #2a4868;
-  --color-purple-ink: #4a3e70;
-  --color-green-ink: #2d4a2e;
-  --color-yellow-ink: #5c4318;
-  --color-orange-ink: #5e3318;
-  --color-teal-ink: #1a4a52;
-  --color-pink-ink: #6b3548;
+  --color-blue-ink: #28496d;
+  --color-purple-ink: #4630a7;
+  --color-green-ink: #314f2d;
+  --color-yellow-ink: #574711;
+  --color-orange-ink: #5f371b;
+  --color-teal-ink: #184a50;
+  --color-pink-ink: #65354d;
   /* Semantic role aliases — intent-named layer mapped onto the palette.
      These re-resolve automatically in dark mode because they hold var() refs. */
   --color-content: var(--color-ink);
@@ -72,8 +87,8 @@
   --color-stroke: var(--color-line);
   --color-surface-base: var(--color-surface);
   --color-surface-raised: var(--color-surface-elevated);
-  --color-interactive: var(--color-accent);
-  --color-focus: var(--color-accent);
+  --color-interactive: var(--color-primary);
+  --color-focus: var(--color-primary);
   /* Motion easing — generates ease-standard / ease-emphasized / ease-spring utilities */
   --ease-standard: cubic-bezier(0, 0, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
@@ -83,13 +98,17 @@
   --font-mono: var(--font-jetbrains);
   --font-serif: var(--font-fraunces);
   --font-serif-italic: var(--font-instrument-serif);
-  --shadow-xs: 0 1px 2px rgba(31, 26, 20, 0.04);
-  --shadow-sm: 0 2px 6px rgba(31, 26, 20, 0.06);
-  --shadow-md: 0 6px 18px rgba(31, 26, 20, 0.08);
-  --shadow-lg: 0 18px 60px rgba(31, 26, 20, 0.12), 0 4px 16px rgba(31, 26, 20, 0.06);
-  --shadow-cta: 0 2px 8px rgba(201, 100, 66, 0.18);
-  --shadow-hover: 0 4px 16px rgba(201, 100, 66, 0.08);
-  --shadow-focus: 0 2px 12px rgba(201, 100, 66, 0.12);
+  --shadow-xs: 0 1px 2px rgba(32, 29, 27, 0.04);
+  --shadow-sm: 0 2px 6px rgba(32, 29, 27, 0.06);
+  --shadow-md: 0 6px 18px rgba(32, 29, 27, 0.08);
+  --shadow-lg: 0 18px 60px rgba(32, 29, 27, 0.12), 0 4px 16px rgba(32, 29, 27, 0.06);
+  --shadow-cta: 0 2px 10px rgba(110, 87, 232, 0.18);
+  --shadow-hover: 0 4px 16px rgba(110, 87, 232, 0.10);
+  --shadow-focus: 0 2px 12px rgba(110, 87, 232, 0.14);
+  /* Hard offset shadows are defined as plain utility classes further down
+     (search "Neo-brutalist hard shadows"), not as @theme tokens. Tailwind v4
+     inlines @theme shadow values into utilities, which makes the
+     [data-theme="dark"] override inert; plain classes keep dark mode correct. */
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1440px;
@@ -110,6 +129,8 @@
   --radius-compact: 12px;
   --radius-button: 10px;
   --radius-control: 9px;
+  --radius-promo: 28px;
+  --radius-panel: 24px;
   --frost-blur: 9px;
   /* Motion durations (CSS-var layer; use via duration-[var(--duration-fast)] or in keyframes) */
   --duration-fast: 120ms;
@@ -121,8 +142,11 @@
   --z-raised: 10;
   --z-sticky: 30;
   --z-overlay: 40;
-  --z-modal: 100;
-  --z-toast: 200;
+  /* ponytail: modal must clear both Leaflet panes (max 800) AND MapView's
+     hard-coded z-[1000] map chrome, else the Explore filter drawer is occluded;
+     toast stays above modal. */
+  --z-modal: 1100;
+  --z-toast: 1200;
   --z-max: 9999;
   /* Control sizing — formalizes interactive heights and the min touch target */
   --control-h-sm: 42px;
@@ -134,31 +158,45 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-paper: #1a1612;
-  --color-paper-2: #252018;
-  --color-paper-3: #342e28;
-  --color-paper-4: #3a3430;
-  --color-surface: #2a2520;
-  --color-surface-elevated: #342e28;
-  --color-ink: #f4f3ee;
-  --color-ink-2: #e4e1d7;
-  --color-ink-3: #aaa397;
-  --color-ink-4: #6a645c;
-  --color-line: rgba(244, 243, 238, 0.16);
-  --color-line-2: rgba(244, 243, 238, 0.08);
-  --color-line-low: rgba(244, 243, 238, 0.08);
-  --color-accent-container: rgba(201, 100, 66, 0.22);
-  --color-accent-50: #3a1810;
-  --color-accent-100: #4a2218;
-  --color-accent-200: rgba(201, 100, 66, 0.22);
-  --color-accent-300: rgba(201, 100, 66, 0.36);
-  --color-accent-400: rgba(201, 100, 66, 0.52);
-  --color-accent-500: #c96442;
-  --color-accent-600: #d17847;
-  --color-accent-700: #e08e6e;
-  --color-accent-800: #f0b49c;
-  --color-accent-900: #fae8de;
-  --color-accent-950: #fdf5f1;
+  --color-primary: #9b87ff;
+  --color-primary-soft: rgba(155, 135, 255, 0.18);
+  --color-primary-container: rgba(155, 135, 255, 0.24);
+  --color-action: #ffe85a;
+  --color-action-hover: #fff18a;
+  --color-action-ink: #241d06;
+  --color-lavender: #2d2649;
+  --color-lavender-2: #39305d;
+  --color-peach: #382722;
+  --color-sky: #202b34;
+  --color-mint: #212a22;
+  --color-map-line: rgba(247, 245, 236, 0.08);
+  --color-paper: #17151f;
+  --color-paper-2: #201d2d;
+  --color-paper-3: #2c263d;
+  --color-paper-4: #39334a;
+  --color-surface: #242130;
+  --color-surface-elevated: #302b40;
+  --color-ink: #f7f5ec;
+  --color-ink-2: #e7e1d2;
+  --color-ink-3: #b9b0a0;
+  --color-ink-4: #746c62;
+  --color-line: rgba(247, 245, 236, 0.16);
+  --color-line-2: rgba(247, 245, 236, 0.08);
+  --color-line-low: rgba(247, 245, 236, 0.08);
+  --color-accent: #9b87ff;
+  --color-accent-soft: rgba(155, 135, 255, 0.18);
+  --color-accent-container: rgba(155, 135, 255, 0.24);
+  --color-accent-50: #21164d;
+  --color-accent-100: #2b1f63;
+  --color-accent-200: rgba(155, 135, 255, 0.18);
+  --color-accent-300: rgba(155, 135, 255, 0.30);
+  --color-accent-400: rgba(155, 135, 255, 0.46);
+  --color-accent-500: #9b87ff;
+  --color-accent-600: #b3a5ff;
+  --color-accent-700: #c4b8ff;
+  --color-accent-800: #dfd8ff;
+  --color-accent-900: #eeeaff;
+  --color-accent-950: #f7f5ff;
   --color-blue-soft: #253447;
   --color-purple-soft: #33283f;
   --color-green-soft: #273521;
@@ -182,9 +220,9 @@
   --shadow-sm: 0 1px 2px rgba(31, 26, 20, 0.04);
   --shadow-md: 0 4px 12px rgba(31, 26, 20, 0.05);
   --shadow-lg: 0 12px 40px rgba(31, 26, 20, 0.08), 0 2px 8px rgba(31, 26, 20, 0.04);
-  --shadow-cta: 0 2px 8px rgba(201, 100, 66, 0.10);
-  --shadow-hover: 0 2px 6px rgba(201, 100, 66, 0.04);
-  --shadow-focus: 0 2px 8px rgba(201, 100, 66, 0.08);
+  --shadow-cta: 0 2px 8px rgba(155, 135, 255, 0.12);
+  --shadow-hover: 0 2px 8px rgba(155, 135, 255, 0.08);
+  --shadow-focus: 0 2px 10px rgba(155, 135, 255, 0.14);
 }
 
 [data-palette="ember"] {
@@ -213,8 +251,10 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at 12% 8%, rgba(201, 100, 66, 0.04), transparent 30%),
+    linear-gradient(var(--color-map-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-map-line) 1px, transparent 1px),
     var(--color-paper);
+  background-size: 96px 96px, 96px 96px, auto;
   color: var(--color-ink);
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 14px;
@@ -274,6 +314,16 @@ svg {
   line-height: 1;
   letter-spacing: -0.02em;
   font-variation-settings: "opsz" 144, "SOFT" 50, "WONK" 0;
+}
+
+.text-hero-display {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(3rem, 7vw, 5.6rem);
+  font-weight: 400;
+  line-height: 1.03;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  font-variation-settings: "opsz" 144, "SOFT" 45, "WONK" 0;
 }
 
 .text-h1 {
@@ -391,6 +441,20 @@ svg {
 .frosted {
   background: color-mix(in srgb, var(--color-paper) 88%, transparent);
   backdrop-filter: blur(var(--frost-blur));
+}
+
+.map-grid-bg {
+  background:
+    linear-gradient(var(--color-map-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-map-line) 1px, transparent 1px),
+    var(--color-paper);
+  background-size: 96px 96px, 96px 96px, auto;
+}
+
+.promo-panel {
+  border-radius: var(--radius-promo);
+  border: 1px solid var(--color-line-low);
+  background: color-mix(in srgb, var(--color-surface) 82%, var(--color-lavender));
 }
 
 .content-grid {
@@ -716,6 +780,8 @@ svg {
   .animate-fade-in-up,
   .animate-slide-in-right,
   .animate-gradient-shift::before,
+  .hero-animate,
+  .reveal,
   .stagger-reveal>* {
     animation: none;
     opacity: 1;
@@ -818,16 +884,16 @@ svg {
   }
 }
 
-/* Terracotta glow pulse for CTA hover */
+/* Primary glow pulse for CTA hover */
 @keyframes pulse-glow {
 
   0%,
   100% {
-    box-shadow: 0 2px 12px rgba(201, 100, 66, 0.12);
+    box-shadow: 0 2px 12px rgba(110, 87, 232, 0.12);
   }
 
   50% {
-    box-shadow: 0 8px 32px rgba(201, 100, 66, 0.2);
+    box-shadow: 0 8px 32px rgba(110, 87, 232, 0.20);
   }
 }
 
@@ -942,7 +1008,7 @@ svg {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: rgba(201, 100, 66, 0.1);
+  background: var(--color-accent-soft);
   color: var(--color-accent);
   font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 0.6875rem;
@@ -951,6 +1017,53 @@ svg {
   text-transform: uppercase;
   padding: 0.25rem 0.75rem;
   line-height: 1.4;
+}
+
+/* ── Neo-brutalist hard shadows ── */
+/* Zero-blur colored offset drops for the playful, confident register on
+   public/marketing surfaces. Plain classes (not @theme tokens) so the
+   [data-theme="dark"] overrides actually apply. Pair with solid fills only;
+   never combine a hard shadow with a 1px border + blur shadow (ghost-card). */
+.shadow-hard-sm {
+  box-shadow: 0 3px 0 0 var(--color-ink);
+}
+
+.shadow-hard {
+  box-shadow: 0 6px 0 0 var(--color-ink);
+}
+
+.shadow-hard-lg {
+  box-shadow: 0 8px 0 0 var(--color-ink);
+}
+
+.shadow-hard-accent {
+  box-shadow: 0 6px 0 0 var(--color-accent);
+}
+
+.shadow-hard-action {
+  box-shadow: 0 6px 0 0 var(--color-action-ink);
+}
+
+.shadow-hard-paper {
+  box-shadow: 0 6px 0 0 var(--color-paper-3);
+}
+
+/* On dark surfaces, ink/paper-based hard shadows become dark drops so they
+   read as depth instead of a bright edge. Accent/action keep their color. */
+[data-theme="dark"] .shadow-hard-sm {
+  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.40);
+}
+
+[data-theme="dark"] .shadow-hard {
+  box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .shadow-hard-lg {
+  box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.50);
+}
+
+[data-theme="dark"] .shadow-hard-paper {
+  box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.35);
 }
 
 /* ── Card Glow Hover Effect ── */
@@ -964,7 +1077,7 @@ svg {
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(201, 100, 66, 0.15), transparent 60%);
+  background: linear-gradient(135deg, rgba(110, 87, 232, 0.15), transparent 60%);
   opacity: 0;
   transition: opacity 300ms ease-out;
   pointer-events: none;
@@ -1074,11 +1187,11 @@ svg {
 
 /* ── Nudge gradient background (with dark mode) ── */
 .bg-nudge {
-  background: linear-gradient(135deg, rgba(201, 100, 66, 0.08), rgba(201, 100, 66, 0.03));
+  background: linear-gradient(135deg, rgba(110, 87, 232, 0.10), rgba(255, 232, 90, 0.10));
 }
 
 [data-theme="dark"] .bg-nudge {
-  background: linear-gradient(135deg, rgba(201, 100, 66, 0.04), rgba(201, 100, 66, 0.01));
+  background: linear-gradient(135deg, rgba(155, 135, 255, 0.12), rgba(255, 232, 90, 0.07));
 }
 
 /* ── Hero atmospheric glow (with dark mode) ── */
@@ -1093,9 +1206,9 @@ svg {
   position: absolute;
   inset: -50%;
   background:
-    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(201, 100, 66, 0.08), transparent),
-    radial-gradient(ellipse 50% 40% at 70% 80%, rgba(201, 100, 66, 0.06), transparent),
-    radial-gradient(ellipse 40% 30% at 15% 50%, rgba(201, 100, 66, 0.04), transparent);
+    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(110, 87, 232, 0.10), transparent),
+    radial-gradient(ellipse 50% 40% at 70% 80%, rgba(255, 232, 90, 0.12), transparent),
+    radial-gradient(ellipse 40% 30% at 15% 50%, rgba(99, 143, 76, 0.08), transparent);
   background-size: 200% 200%;
   background-position: center;
   will-change: transform;
@@ -1103,9 +1216,9 @@ svg {
 
 [data-theme="dark"] .hero-glow::before {
   background:
-    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(201, 100, 66, 0.12), transparent),
-    radial-gradient(ellipse 50% 40% at 70% 80%, rgba(201, 100, 66, 0.08), transparent),
-    radial-gradient(ellipse 40% 30% at 15% 50%, rgba(201, 100, 66, 0.05), transparent);
+    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(155, 135, 255, 0.14), transparent),
+    radial-gradient(ellipse 50% 40% at 70% 80%, rgba(255, 232, 90, 0.08), transparent),
+    radial-gradient(ellipse 40% 30% at 15% 50%, rgba(99, 143, 76, 0.10), transparent);
   background-size: 200% 200%;
   background-position: center;
 }

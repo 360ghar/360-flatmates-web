@@ -35,13 +35,13 @@ export function ConversationRow({ conversation, className, ...props }: Conversat
     >
       <Avatar name={conversation.name} src={conversation.avatarUrl} />
       <span className="min-w-0 flex-1">
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-body-md font-semibold text-ink">{conversation.name}</span>
-          {conversation.mode ? <Badge mode={conversation.mode} variant="mode" /> : null}
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="min-w-0 break-words text-body-md font-semibold text-ink">{conversation.name}</span>
+          {conversation.mode ? <Badge mode={conversation.mode} variant="mode" className="md:max-lg:hidden" /> : null}
         </span>
-        <span className="mt-1 block truncate text-caption text-ink-2">{conversation.preview}</span>
+        <span className="mt-1 block text-caption text-ink-2">{conversation.preview}</span>
         {conversation.propertyPreview ? (
-          <span className="mt-0.5 block truncate text-caption text-ink-3">{conversation.propertyPreview}</span>
+          <span className="mt-0.5 block text-caption text-ink-3">{conversation.propertyPreview}</span>
         ) : null}
       </span>
       <span className="flex shrink-0 flex-col items-end gap-2">
@@ -51,4 +51,3 @@ export function ConversationRow({ conversation, className, ...props }: Conversat
     </button>
   );
 }
-

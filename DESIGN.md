@@ -10,33 +10,33 @@
 
 ## 1. Principles
 
-The product is a warm-editorial flatmate-matching app: approachable like a
-well-made journal, trustworthy enough for rent and deposits, and human in a sea
-of generic property portals. Core differentiator: **6-dimension lifestyle
-compatibility**, not budget-only filtering.
+The product is a compatibility-first flatmate-matching app with a friendly,
+illustration-led public face and a restrained task-focused application shell.
+The core differentiator remains **6-dimension lifestyle compatibility**, not
+budget-only filtering.
 
-**Physical scene.** A 26-year-old engineer browsing on laptop or phone in a
-Bangalore co-working space at 3 PM, daylight from tall windows, half-distracted
-by Slack. They need a flatmate in two weeks and are cautiously optimistic. The
-UI should feel like a design-literate friend: good typography, warm surfaces,
-editorial craft, zero clutter.
+**Physical scene.** A 26-year-old renter browses on a laptop or phone between
+work calls in Bangalore or Gurugram. They are under time pressure, but trust is
+the deciding factor. The public site should feel optimistic and human; the app
+should feel calm, scannable, and reliable enough for rent, visits, and chat.
 
-**Decision tenets** (use these when a spec is silent):
+**Decision tenets**:
 
-1. **Warmth over sterility.** Off-whites and warm ink, never pure `#000`/`#fff`
-   for content. Shadows are warm-ink tinted, never cool black.
-2. **One accent, used with intent.** Terracotta `#C96442` is the only brand
-   accent. Categorical pastels are for data/labels, not decoration.
-3. **Hierarchy by weight, color, and space - not raw size.** Restrained scale;
-   let whitespace and the serif display do the work.
-4. **Every interactive element earns four states minimum**: rest, hover, active,
-   focus-visible. Data-bearing surfaces also earn loading, empty, and error.
-5. **Motion is motivated.** It communicates hierarchy, feedback, or a state
-   change, and always collapses under `prefers-reduced-motion`.
-6. **Accessible by default.** WCAG AA for body, AAA target for hero copy; never
-   convey meaning by color alone.
-7. **Never use em dashes.** Use commas, colons, or parentheses instead. This is
-   a hard rule across all copy, labels, and microcopy.
+1. **Friendly, not decorative.** Use original Flatmates illustrations on public
+   and onboarding surfaces; keep authenticated workflows focused on the task.
+2. **Violet is the primary product color.** `#6E57E8` owns links, active states,
+   focus, selected surfaces, and primary CTAs.
+3. **Yellow is an action highlight.** `#FFE85A` is reserved for hero search,
+   black CTA banners, and high-emphasis public actions.
+4. **Warm paper and ink carry trust.** Never use pure `#000` or pure `#fff` for
+   page-level content surfaces.
+5. **Hierarchy by weight, color, and space.** Product screens use restrained
+   type scale; landing heroes may use the dedicated hero display class.
+6. **Every interactive element earns states**: rest, hover, active,
+   focus-visible, disabled, and loading where relevant.
+7. **Motion is motivated.** It communicates hierarchy, feedback, or state
+   change, and collapses under `prefers-reduced-motion`.
+8. **Never use em dashes.** Use commas, colons, or parentheses instead.
 
 ---
 
@@ -46,17 +46,19 @@ Tokens live in `src/styles/globals.css`. There are three layers:
 
 | Layer | What it is | Examples | When to use |
 |-------|-----------|----------|-------------|
-| **Primitive** | Raw palette/scale values | `--color-ink`, `--color-accent-500`, `--shadow-md` | Building new tokens |
-| **Semantic role** | Intent-named aliases over primitives | `--color-content`, `--color-surface-raised`, `--color-interactive`, `--color-focus` | **Preferred** in new component code |
-| **Component** | Local choices inside a component | Button variant classes | Inside one component only |
+| **Primitive** | Raw palette/scale values | `--color-primary`, `--color-action`, `--color-ink`, `--shadow-md` | Building new tokens |
+| **Semantic role** | Intent-named aliases over primitives | `--color-content`, `--color-surface-raised`, `--color-interactive`, `--color-focus` | Preferred in new component code |
+| **Component** | Local choices inside a component | Button variants, card variants, landing panels | Inside one component only |
 
 - Tailwind v4 generates utilities from the `@theme` block: every `--color-*`
   becomes `text-* / bg-* / border-*`, every `--ease-*` becomes an `ease-*`
   timing utility.
-- Semantic role aliases hold `var()` references, so they **re-resolve
-  automatically in dark mode** without separate dark overrides.
-- Theme is applied via `[data-theme="dark"]` on `<html>`; accent palette via
-  `[data-palette="ember" | "monsoon_teal"]`.
+- `primary` is the new brand token. Existing `accent` utilities intentionally
+  alias the same violet value so legacy component code migrates safely.
+- `action` is not a second primary. Use it only for yellow high-emphasis public
+  actions and dark CTA banners.
+- Theme is applied via `[data-theme="dark"]` on `<html>`. Palette overrides
+  should be rare and must not break the violet brand read.
 
 ### Semantic role map
 
@@ -68,97 +70,87 @@ Tokens live in `src/styles/globals.css`. There are three layers:
 | `text-content-faint` | `ink-4` | Disabled text, faint dividers |
 | `border-stroke` | `line` | Default borders |
 | `bg-surface-base` | `surface` | Card/input fill |
-| `bg-surface-raised` | `surface-elevated` | Elevated surfaces (modals, elevated cards) |
-| `text-interactive` / `bg-interactive` | `accent` | Interactive affordances |
-| `outline-focus` | `accent` | Focus rings |
-
-> New components should prefer the semantic roles. The appearance-named tokens
-> (`ink`, `paper`, `surface`, `line`, `accent`) remain valid and are used widely;
-> they are not deprecated.
+| `bg-surface-raised` | `surface-elevated` | Modals, raised cards, overlays |
+| `text-interactive` / `bg-interactive` | `primary` | Interactive affordances |
+| `outline-focus` | `primary` | Focus rings |
 
 ---
 
 ## 3. Color
 
-### 3.1 Primary (Accent) + tonal ramp
+### 3.1 Brand and action tokens
 
 | Token | Light | Dark | Tailwind | Usage |
 |-------|-------|------|----------|-------|
-| **Accent** | `#C96442` | `#C96442` (unchanged) | `bg-accent` / `text-accent` | CTAs, active states, links, icons |
-| **Accent Soft** | `rgba(201,100,66,.10)` | same | `bg-accent-soft` | Selected/tint backgrounds |
-| **Accent Container** | `#F8D5C8` | `rgba(201,100,66,.22)` | `bg-accent-container` | Filled chips, hover fills |
+| **Primary** | `#6E57E8` | `#9B87FF` | `bg-primary` / `text-primary` | Brand color, selected states, focus, links |
+| **Primary Soft** | `rgba(110,87,232,.12)` | `rgba(155,135,255,.18)` | `bg-primary-soft` | Selected/tint backgrounds |
+| **Primary Container** | `#E9E5FF` | `rgba(155,135,255,.24)` | `bg-primary-container` | Filled chips, hover fills |
+| **Accent** | same as primary | same as primary | `bg-accent` / `text-accent` | Backward-compatible alias |
+| **Action** | `#FFE85A` | `#FFE85A` | `bg-action` | Hero search button, black CTA button |
+| **Action Ink** | `#241D06` | `#241D06` | `text-action-ink` | Text/icons on yellow |
+| **Lavender** | `#E9E5FF` | `#2D2649` | `bg-lavender` | Public panels, gentle product highlights |
+| **Peach / Sky / Mint** | `#F6E1D8` / `#E1EBF3` / `#E4EDE0` | `#382722` / `#202B34` / `#212A22` | `bg-peach` / `bg-sky` / `bg-mint` | Pastel section backgrounds for alternating rhythm (calmer than categorical `-soft`); body stays `paper` |
+| **Map Line** | `rgba(32,29,27,.07)` | `rgba(247,245,236,.08)` | `--color-map-line` | Landing/page map-grid background |
 
-Full tonal ramp (`accent-50` … `accent-950`) exists for gradients and dark
-surfaces. In **dark mode the ramp inverts** (50 = darkest, 950 = lightest) so
-`accent-*` utilities keep their light→dark intent across themes.
+Full tonal ramp (`accent-50` … `accent-950`) remains available and now maps to
+the violet family.
 
 | | 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 950 |
 |--|--|--|--|--|--|--|--|--|--|--|--|
-| Light | `#fdf5f1` | `#fae8de` | `#f8d5c8` | `#f0b49c` | `#e08e6e` | `#c96442` | `#b5533a` | `#964230` | `#7a352a` | `#642e26` | `#3a1810` |
-| Dark | `#3a1810` | `#4a2218` | `rgba(..,.22)` | `rgba(..,.36)` | `rgba(..,.52)` | `#c96442` | `#d17847` | `#e08e6e` | `#f0b49c` | `#fae8de` | `#fdf5f1` |
+| Light | `#F7F5FF` | `#EEEAFF` | `#DFD8FF` | `#C4B8FF` | `#9B87FF` | `#6E57E8` | `#5F46D8` | `#4F37BD` | `#412D98` | `#372875` | `#21164D` |
+| Dark | `#21164D` | `#2B1F63` | `rgba(155,135,255,.18)` | `rgba(155,135,255,.30)` | `rgba(155,135,255,.46)` | `#9B87FF` | `#B3A5FF` | `#C4B8FF` | `#DFD8FF` | `#EEEAFF` | `#F7F5FF` |
 
-### 3.2 Paper (backgrounds) & Surface
+### 3.2 Paper and surfaces
 
 | Token | Light | Dark | Tailwind | Usage |
 |-------|-------|------|----------|-------|
-| **Paper** | `#F4F3EE` | `#1A1612` | `bg-paper` | Page scaffold |
-| **Paper 2** | `#EDEBE3` | `#252018` | `bg-paper-2` | Sidebar, chip/track bg |
-| **Paper 3** | `#E4E1D7` | `#342E28` | `bg-paper-3` | Deeper surface, pressed track |
-| **Paper 4** | `#D8D4C7` | `#3A3430` | `bg-paper-4` | Deepest, disabled fills |
-| **Surface** | `#FFFDF8` | `#2A2520` | `bg-surface` | Card/input fill (base) |
-| **Surface Elevated** | `#FFFFFF` | `#342E28` | `bg-surface-elevated` | Raised surfaces - genuinely lighter than `surface` so elevation reads |
+| **Paper** | `#F7F5EC` | `#17151F` | `bg-paper` | Page scaffold |
+| **Paper 2** | `#EEEADF` | `#201D2D` | `bg-paper-2` | Sidebar, chip/track bg |
+| **Paper 3** | `#E2DDD0` | `#2C263D` | `bg-paper-3` | Pressed track, dense panels |
+| **Paper 4** | `#D3CBBB` | `#39334A` | `bg-paper-4` | Disabled fills |
+| **Surface** | `#FFFEFA` | `#242130` | `bg-surface` | Card/input fill |
+| **Surface Elevated** | `#FFFFFF` | `#302B40` | `bg-surface-elevated` | Modals, drawers, toasts |
 
-### 3.3 Ink (text)
+### 3.3 Ink and lines
 
-| Token | Light | Dark | Tailwind | Contrast on surface (light) |
+| Token | Light | Dark | Tailwind | Usage |
 |-------|-------|------|----------|------|
-| **Ink** | `#1F1A14` | `#F4F3EE` | `text-ink` | ~14:1 (AAA) |
-| **Ink 2** | `#4A463E` | `#E4E1D7` | `text-ink-2` | ~8:1 (AAA) |
-| **Ink 3** | `#756F65` | `#AAA397` | `text-ink-3` | ~4.7:1 (AA body) |
-| **Ink 4** | `#B5AFA3` | `#6A645C` | `text-ink-4` | decorative/disabled only - not for body |
+| **Ink** | `#201D1B` | `#F7F5EC` | `text-ink` | Primary text |
+| **Ink 2** | `#47413C` | `#E7E1D2` | `text-ink-2` | Secondary text |
+| **Ink 3** | `#746C62` | `#B9B0A0` | `text-ink-3` | Hints, timestamps, placeholders |
+| **Ink 4** | `#B8AFA0` | `#746C62` | `text-ink-4` | Disabled/decorative only |
+| **Line** | `rgba(32,29,27,.10)` | `rgba(247,245,236,.16)` | `border-line` | Default borders |
+| **Line Low** | `rgba(32,29,27,.05)` | `rgba(247,245,236,.08)` | `border-line-low` | Hairlines, section dividers |
 
-### 3.4 Line (borders)
-
-| Token | Light | Dark | Tailwind |
-|-------|-------|------|----------|
-| **Line** | `rgba(31,26,20,.08)` | `rgba(244,243,238,.16)` | `border-line` |
-| **Line 2** | `rgba(31,26,20,.04)` | `rgba(244,243,238,.08)` | `border-line-2` |
-| **Line Low** | `rgba(31,26,20,.04)` | `rgba(244,243,238,.08)` | `border-line-low` |
-
-> Dark-mode line uses the **warm-white ink hue** (`244,243,238`), not the
-> dark-ink hue, so borders stay visible on dark surfaces.
-
-### 3.5 Semantic status
+### 3.4 Semantic status
 
 | Token | Value | Soft | Usage |
 |-------|-------|------|-------|
-| **Success** | `#5B8C44` | `bg-success-soft` | Match rings ≥70%, confirmed, online |
-| **Warning** | `#B57828` | `bg-warning-soft` | Pending, expiring, match 40-69% |
-| **Error** | `#B4452C` | `bg-error-soft` | Errors, destructive, declined, match <40% |
-| **Info** | `#C96442` (accent) | `bg-accent-soft` | Tips, informational badges |
+| **Success** | `#638F4C` | `bg-success-soft` | Match rings ≥70%, confirmed, online |
+| **Warning** | `#A97822` | `bg-warning-soft` | Pending, expiring, match 40-69% |
+| **Error** | `#B64A38` | `bg-error-soft` | Errors, destructive, declined, match <40% |
+| **Info** | `primary` | `bg-accent-soft` | Tips, informational badges |
 
-### 3.6 Categorical palette (3 tiers)
+### 3.5 Categorical palette
 
-Eight families for data viz, feature pills, profile/dimension labels. Each has
-**soft** (background), **mid** (icon/accent on neutral bg), and **ink**
-(accessible text *on* the soft background). Use `ink` for text on a `soft` fill;
-use `mid` for icons or text on paper/surface.
+Categorical colors remain soft and functional. Use them for compatibility
+dimensions, profile labels, and data visualization only, not general decoration.
 
 | Family | Soft (light/dark) | Mid | Ink (light/dark) |
 |--------|------|-----|------|
-| Blue | `#E1EAF4` / `#253447` | `#5B88B5` | `#2A4868` / `#B8CDE4` |
-| Purple | `#E7DDF1` / `#33283F` | `#8B7BB8` | `#4A3E70` / `#CDBCE8` |
-| Green | `#DCEAD4` / `#273521` | `#6A9068` | `#2D4A2E` / `#BCD9AC` |
-| Yellow | `#F5E8B8` / `#43361C` | `#C49840` | `#5C4318` / `#E6CF8E` |
-| Orange | `#FCE0C8` / `#432A1C` | `#D17847` | `#5E3318` / `#F0C19A` |
-| Teal | `#CFE4DF` / `#203B38` | `#5A9DA8` | `#1A4A52` / `#A9D2CF` |
-| Pink | `#F6DDE3` / `#432833` | `#C28098` | `#6B3548` / `#E8B8C6` |
+| Blue | `#DFEAF7` / `#253447` | `#5D84B7` | `#28496D` / `#B8CDE4` |
+| Purple | `#E9E5FF` / `#33283F` | `#6E57E8` | `#4630A7` / `#CDBCE8` |
+| Green | `#E1EAD7` / `#273521` | `#6F9463` | `#314F2D` / `#BCD9AC` |
+| Yellow | `#FFF4B8` / `#43361C` | `#B3921C` | `#574711` / `#E6CF8E` |
+| Orange | `#F7DDC6` / `#432A1C` | `#C77A46` | `#5F371B` / `#F0C19A` |
+| Teal | `#D7E9E5` / `#203B38` | `#559AA2` | `#184A50` / `#A9D2CF` |
+| Pink | `#F4DEE9` / `#432833` | `#BC7898` | `#65354D` / `#E8B8C6` |
 
 Accessed in code via `toneClasses[tone]` (`src/components/ui/component-utils.ts`):
-`{ soft, text, inkText, border, icon, dot }`. **Use `inkText` for text on the
-matching soft background** (this is what gives chips/badges accessible contrast).
+`{ soft, text, inkText, border, icon, dot }`. Use `inkText` for text on the
+matching soft background.
 
-### 3.7 Brand partner palettes
+### 3.6 Brand partner palettes
 
 These are the **fixed** brand colors for third-party identity surfaces; do not
 palette-swap them. Each gets its own four-token set (`-bg`, `-text`, `-border`,
@@ -171,18 +163,21 @@ palette-swap them. Each gets its own four-token set (`-bg`, `-text`, `-border`,
 Accessed via Tailwind: `bg-google-bg`, `text-google-text`,
 `border-google-border`, `hover:bg-google-hover`.
 
-### 3.8 Compatibility score colors
+### 3.7 Compatibility score colors
 
 `≥70%` → Success green · `40-69%` → Warning amber · `<40%` → Error red. Always
 pair the color with the numeric value (never color alone).
 
-### 3.9 Palette themes
+### 3.8 Palette themes
 
-`[data-palette]` swaps the accent only (paper/ink unchanged):
+`[data-palette]` is a user preference hook and should be used sparingly. New
+work should keep the violet primary stable. Existing palette toggles swap
+`accent`; they do not change `primary`, `action`, paper, or ink. Older stored
+`terracotta` preferences are normalized to `violet` at boot.
 
 | Palette | Accent | Container |
 |---------|--------|-----------|
-| **Terracotta** (default) | `#C96442` | `#F8D5C8` |
+| **Violet** (`violet`) | `#6E57E8` | `#E9E5FF` |
 | **Ember** | `#D17847` | `#FCE0C8` |
 | **Monsoon Teal** | `#5A9DA8` | `#CFE4DF` |
 
@@ -203,6 +198,7 @@ pair the color with the numeric value (never color alone).
 
 | Class | Size | Weight | Line height | Tracking | Font |
 |-------|------|--------|-------------|----------|------|
+| `text-hero-display` | `clamp(3rem, 7vw, 5.6rem)` | 400 | 1.03 | -0.025em | Fraunces |
 | `text-display` | `clamp(1.75rem, 4vw, 2.75rem)` | 400 | 1.0 | -0.02em | Fraunces |
 | `text-h1` | `clamp(1.5rem, 3vw, 2.25rem)` | 400 | 1.1 | -0.01em | Fraunces |
 | `text-h2` | `clamp(1.25rem, 2.5vw, 1.75rem)` | 400 | 1.2 | - | Fraunces |
@@ -219,8 +215,8 @@ pair the color with the numeric value (never color alone).
 | `text-serif-italic` | inherit | 400 italic | inherit | - | Instrument Serif |
 | `.tabular` | - | - | - | `tabular-nums` | - |
 
-Display headlines scale fluidly with the viewport via `clamp()` - there is no
-separate per-breakpoint size override.
+`text-hero-display` is for the public landing hero only. Product screens use
+the tighter `text-display` / `text-h*` scale.
 
 ### 4.3 Fraunces variation settings
 
@@ -262,8 +258,8 @@ utilities (`gap-*`, `p-*`, `space-*`) - all multiples of 4px.
 ## 6. Elevation
 
 Elevation = **surface tier + shadow + (optional) 1px lift on interaction**.
-Shadows use warm-ink tints (`rgba(31,26,20,…)`); terracotta-tinted shadows use
-`rgba(201,100,66,…)`. Never pure-black shadows.
+Shadows use warm-ink tints (`rgba(32,29,27,…)`); primary-tinted shadows use
+`rgba(110,87,232,…)`. Never pure-black shadows.
 
 | Level | Helper (`elevation.*`) | Shadow (light) | Surface | Used for |
 |-------|------------------------|----------------|---------|----------|
@@ -272,10 +268,26 @@ Shadows use warm-ink tints (`rgba(31,26,20,…)`); terracotta-tinted shadows use
 | **Overlay** | `overlay` | `shadow-md` `0 6px 18px /.08` | `surface` / hover | Hover lift, dropdowns, FAB |
 | **Modal** | `modal` | `shadow-lg` (layered) | `surface-elevated` | Modals, drawers, toasts |
 
-Component-tinted shadows: `shadow-cta` (terracotta CTA), `shadow-hover` (ambient
-glow), `shadow-focus` (input focus glow). **Dark mode** reduces all shadow
+Component-tinted shadows: `shadow-cta` (primary CTA), `shadow-hover` (ambient
+lift), `shadow-focus` (input focus glow). **Dark mode** reduces all shadow
 intensity (dark surfaces carry inherent depth) and relies more on the
 `surface` → `surface-elevated` lightness step.
+
+### 6.1 Neo-brutalist hard shadows (deliberate accent)
+
+`shadow-hard` / `shadow-hard-sm` / `shadow-hard-lg` / `shadow-hard-accent` /
+`shadow-hard-action` / `shadow-hard-paper` are **zero-blur colored offset
+drops** (`0 6px 0 0 <color>`) used for the playful, confident register on
+public/marketing surfaces (hero cards, comparison panels, CTAs, bento cells).
+
+Rules:
+- Pair with a **solid fill only** (or no border). Never combine a hard shadow
+  with a `1px` border plus a blur shadow (the ghost-card tell).
+- Use selectively for emphasis, not on every card (monotony kills the effect).
+- Hover may `translateY(-2px to -3px)` to widen the perceived offset; collapse
+  the transform under reduced motion.
+- Dark mode re-tunes the ink/paper variants to dark drops (read as depth); the
+  accent/action variants keep their color (reads as a colored edge).
 
 `elevation` and `controlHeight` helpers live in
 `src/components/ui/component-utils.ts`.
@@ -310,13 +322,16 @@ One radius system; do not mix.
 |---------|--------|----------|
 | Cards (standard) | 16px | `rounded-2xl` |
 | Cards (compact) / icon containers / avatars (editorial) | 12px | `rounded-xl` |
+| Promo panels (landing only) | 28px | `rounded-[var(--radius-promo)]` |
+| Large panels | 24px | `rounded-[var(--radius-panel)]` |
 | Buttons | 10px | `rounded-[10px]` |
 | Inputs / nav items / icon buttons | 9px | `rounded-[9px]` |
 | Dialog (desktop) | 8px | `rounded-lg` |
 | Chips, toggles, pills, circular avatars | full | `rounded-full` |
 
-Rule of thumb: containers 12-16px, controls 9-10px, anything pill-shaped is
-fully rounded. Radius vars: `--radius-card/compact/button/control`.
+Rule of thumb: product containers 12-16px, landing promo panels may use 28px,
+controls 9-10px, anything pill-shaped is fully rounded. Radius vars:
+`--radius-card/compact/button/control/panel/promo`.
 
 ---
 
@@ -406,8 +421,8 @@ Heights are tokenized: `--control-h-sm` 42 · `--control-h-md` 48 ·
 
 | Component | File | Purpose | Key states / notes |
 |-----------|------|---------|--------------------|
-| **Button** | `Button.tsx` | primary / secondary / tertiary / icon / google / destructive / inverted × compact/default/tall/icon | Full matrix; heights from `--control-h-*`; loading spinner (hides `trailingIcon`); `shadow-cta` on primary; `google` uses Material 3 brand tokens (`--color-google-*`); `destructive` = `error` fill; `inverted` = white-on-accent |
-| **Card** | `Card.tsx` | default / compact / **elevated** / **flat** / **stacked** containers | `elevated` uses `surface-elevated` + `shadow-md`; `flat` = no border, no shadow; `stacked` = 2px accent top border; `interactive` adds hover-lift + press + focus; `selected` = accent border + soft fill |
+| **Button** | `Button.tsx` | primary / **highlight** / secondary / tertiary / icon / google / destructive / inverted × compact/default/tall/icon | Full matrix; `highlight` = yellow `action` fill for hero search and black CTA banners only; loading spinner hides `trailingIcon`; `google` uses Material 3 brand tokens |
+| **Card** | `Card.tsx` | default / compact / **elevated** / **flat** / **stacked** / **promo** / **illustration** containers | `promo` and `illustration` use `--radius-promo` for landing-only panels; product cards stay 12-16px; `interactive` adds hover-lift + press + focus; `selected` = accent border + soft fill |
 | **Chip** | `Chip.tsx` | filter / choice / info / removable | `role` radio/checkbox; selected spring `scale(1.03)`; removable splits remove button to avoid nested interactives |
 | **Badge** | `Badge.tsx` | default / mode / verified / status / count | Tone via `toneClasses`; **text uses `inkText`** for contrast on soft fill |
 | **Input / TextArea / SelectField** | `Input.tsx` | labeled fields via `FieldWrapper` | Label above (mono), helper/error below, leading/trailing icons, focus glow + `scale(1.01)`, `aria-invalid`/`aria-describedby`; min-h `--control-h-md` |
@@ -431,14 +446,14 @@ Heights are tokenized: `--control-h-sm` 42 · `--control-h-md` 48 ·
 | Class | Purpose |
 |-------|---------|
 | `.bento-card` | Bento tile: `surface` bg, 16px radius, hover lift. **Sets `background` shorthand - to layer a gradient inside, paint it on an absolute child, not the same element.** |
-| `.card-glow` | Terracotta radial sheen on hover/focus-within |
+| `.card-glow` | Primary radial sheen on hover/focus-within |
 | `.accent-pill` | Mono uppercase accent pill (step numbers, tags) |
 | `.frosted` | `backdrop-filter: blur(var(--frost-blur))` + paper color-mix |
 | `.noise-texture` | SVG grain overlay (fixed, `pointer-events-none`) |
 | `.scroll-progress-bar` | Top reading-progress bar (`--z-overlay`) |
 | `.content-grid` | `auto-fit` responsive card grid |
 | `.hairline` | 0.5px line border |
-| Gradients | hero-glow (radial trio), nudge (terracotta waitlist wash), shimmer |
+| Gradients | map grid, primary sheen, shimmer |
 
 ---
 
@@ -498,6 +513,9 @@ container level, never mix densities within one component.
   Retry?"). **Empty states:** say what goes here and how to add it.
 - **Names/numbers** in mock UI: realistic and locale-appropriate; never
   "John Doe" / fake-precise stats presented as real.
+- **Trust bands:** use concrete product capabilities unless metrics are sourced
+  from real analytics. Do not invent press logos, aggregate counts, or average
+  match scores for credibility.
 
 ---
 
@@ -526,8 +544,8 @@ Dual-mode by default; design and test both. Theme via `[data-theme="dark"]` on
 `localStorage` then `prefers-color-scheme`). State lives in `uiStore`
 (`src/lib/stores/ui-store.ts`); reusable `<ThemeToggle>`.
 
-Rules: accent stays `#C96442`; ink lightens to warm equivalents; **borders use
-the warm-white line hue**; shadows reduce; `surface` → `surface-elevated`
+Rules: primary stays recognizably violet; ink lightens to warm equivalents;
+**borders use the warm-white line hue**; shadows reduce; `surface` → `surface-elevated`
 lightness step carries elevation; categorical soft tiers darken and pair with
 the light `inkText` tier. Full token values are in §3 (light/dark columns) and
 mirror `globals.css` exactly. Default to system preference unless the brand

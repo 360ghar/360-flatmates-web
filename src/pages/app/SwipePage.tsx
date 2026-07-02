@@ -18,7 +18,7 @@ import { ErrorState } from "@/components/ui/StateViews";
 import { SwipeDeck, type SwipeProfile } from "@/components/organisms/SwipeDeck";
 import { formatLocation, formatMoveInTimeline } from "@/lib/utils/format";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Sparkles, Star, Trash2 } from "lucide-react";
 
 const SWIPE_HINT_DISMISSED_KEY = "360-flatmates-swipe-hint-dismissed";
 
@@ -303,7 +303,7 @@ export function SwipePage() {
 function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
   return (
     <motion.div
-      className="pointer-events-none fixed inset-0 z-40 flex items-end justify-center pb-32 md:pb-40"
+      className="pointer-events-none fixed inset-0 z-[var(--z-overlay)] flex items-end justify-center pb-32 md:pb-40"
       role="dialog"
       aria-label="Swipe controls overview"
       initial={{ opacity: 0 }}
@@ -440,7 +440,7 @@ function MatchCelebration({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/75 backdrop-blur-md"
+      className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-ink/75 backdrop-blur-md"
       onClick={onDismiss}
       role="dialog"
       aria-modal="true"
@@ -474,17 +474,15 @@ function MatchCelebration({
           ))}
         </div>
 
-        {/* Outer Halo Glow */}
-        <div className="absolute h-96 w-96 rounded-full bg-accent/20 blur-[120px] pointer-events-none animate-pulse" />
-
         {/* Celebration Card Container */}
         <motion.div
-          className="relative max-w-sm rounded-3xl border border-line bg-surface p-8 shadow-2xl text-center flex flex-col items-center gap-6"
+          className="relative max-w-sm overflow-hidden rounded-2xl border border-line bg-surface p-8 text-center shadow-lg flex flex-col items-center gap-6"
           onClick={(e) => e.stopPropagation()}
           initial={{ scale: 0.8, opacity: 0, y: 40 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ type: "spring", damping: 15, stiffness: 100 }}
         >
+          <div className="absolute inset-0 map-grid-bg opacity-20" aria-hidden="true" />
           {/* Match Score Progress Ring with animated delay */}
           <div className="relative flex items-center justify-center">
             <motion.div
@@ -495,9 +493,8 @@ function MatchCelebration({
               <ProgressRing value={profile.matchScore} size="xl" label="Compatibility score" />
             </motion.div>
 
-            {/* Sparkle details */}
-            <span className="absolute -top-1 -right-2 text-2xl animate-bounce">✨</span>
-            <span className="absolute -bottom-2 -left-2 text-xl animate-bounce delay-150">🎉</span>
+            <Sparkles className="absolute -right-2 -top-1 h-6 w-6 animate-bounce text-action" aria-hidden="true" />
+            <Sparkles className="absolute -bottom-2 -left-2 h-5 w-5 animate-bounce text-accent delay-150" aria-hidden="true" />
           </div>
 
           <div>

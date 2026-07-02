@@ -102,7 +102,7 @@ export function VisitCard({
     visit.status === "reschedule_suggested";
 
   return (
-    <Card as="article" className={cn("flex gap-3", className)} {...props}>
+    <Card as="article" className={cn("flex min-w-0 flex-col gap-3 sm:flex-row", className)} {...props}>
       {/*
         TODO: `propertyImageUrl` is currently always undefined because the
         adapter doesn't have access to the property. When the visit image is
@@ -112,7 +112,7 @@ export function VisitCard({
       <NetworkImage
         alt={visit.propertyTitle}
         src={visit.propertyImageUrl}
-        wrapperClassName="h-14 w-14 shrink-0 rounded-xl"
+        wrapperClassName="h-36 w-full shrink-0 rounded-xl sm:h-14 sm:w-14"
       />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">

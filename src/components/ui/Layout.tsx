@@ -104,7 +104,7 @@ export function OfflineBanner({
   return (
     <div
       role="status"
-      className={cn("fixed inset-x-0 top-0 z-50 flex h-10 items-center justify-center gap-2 bg-paper-3 text-body-md font-medium text-ink-2", className)}
+      className={cn("fixed inset-x-0 top-0 z-[var(--z-overlay)] flex h-10 items-center justify-center gap-2 bg-paper-3 text-body-md font-medium text-ink-2", className)}
       {...props}
     >
       <WifiOff aria-hidden="true" className="h-5 w-5 text-ink-3" />
@@ -112,4 +112,3 @@ export function OfflineBanner({
     </div>
   );
 }
-

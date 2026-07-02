@@ -153,10 +153,12 @@ test.describe("Landing page — / (public)", () => {
     await expect(page.getByText("Book visits in 2 taps")).toBeVisible();
   });
 
-  test("stats section is rendered", async ({ page }) => {
+  test("trust signals section is rendered", async ({ page }) => {
     const trustSignals = page.locator('section[aria-label="Platform trust signals"]');
-    await expect(trustSignals.getByText("Matches made", { exact: true })).toBeVisible();
-    await expect(trustSignals.getByText("Verified rooms", { exact: true })).toBeVisible();
+    await expect(trustSignals.getByText("Lifestyle compatibility", { exact: true })).toBeVisible();
+    await expect(trustSignals.getByText("Room and profile signals", { exact: true })).toBeVisible();
+    await expect(trustSignals.getByText("Listing-aware chats", { exact: true })).toBeVisible();
+    await expect(trustSignals.getByText("Scheduling in the flow", { exact: true })).toBeVisible();
   });
 
   test("bottom CTA section is rendered", async ({ page }) => {

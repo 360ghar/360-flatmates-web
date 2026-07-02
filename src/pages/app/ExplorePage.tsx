@@ -224,9 +224,9 @@ export function ExplorePage() {
         title: "Budget",
         options: [
           { value: "under5k", label: "Under ₹5,000", selected: filters.price_max !== undefined && filters.price_max <= 5000 },
-          { value: "5k-10k", label: "₹5,000 – ₹10,000", selected: filters.price_min === 5000 && filters.price_max === 10000 },
-          { value: "10k-20k", label: "₹10,000 – ₹20,000", selected: filters.price_min === 10000 && filters.price_max === 20000 },
-          { value: "20k-30k", label: "₹20,000 – ₹30,000", selected: filters.price_min === 20000 && filters.price_max === 30000 },
+          { value: "5k-10k", label: "₹5,000 - ₹10,000", selected: filters.price_min === 5000 && filters.price_max === 10000 },
+          { value: "10k-20k", label: "₹10,000 - ₹20,000", selected: filters.price_min === 10000 && filters.price_max === 20000 },
+          { value: "20k-30k", label: "₹20,000 - ₹30,000", selected: filters.price_min === 20000 && filters.price_max === 30000 },
           { value: "30k+", label: "₹30,000+", selected: filters.price_min === 30000 && filters.price_max === undefined },
         ],
       },

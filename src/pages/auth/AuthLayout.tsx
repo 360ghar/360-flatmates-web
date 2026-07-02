@@ -5,23 +5,19 @@ import { focusRing } from "@/components/ui/component-utils";
 
 export function AuthLayout() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-paper px-5 py-12 pt-[calc(48px+env(safe-area-inset-top))] pb-[calc(48px+env(safe-area-inset-bottom))] overflow-hidden">
-      {/* Decorative gradient backgrounds */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] aspect-square rounded-full bg-accent/5 blur-[100px] pointer-events-none animate-pulse duration-[6000ms]" />
-      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none animate-pulse duration-[8000ms]" />
+    <div className="map-grid-bg relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-12 pb-[calc(48px+env(safe-area-inset-bottom))] pt-[calc(48px+env(safe-area-inset-top))]">
+      <div className="absolute inset-x-0 top-0 h-24 border-b border-line-low bg-surface/70 backdrop-blur-xl" aria-hidden="true" />
 
-      {/* Back button at top-left */}
-      <div className="absolute top-6 left-6 z-20">
+      <div className="absolute left-5 top-6 z-[var(--z-raised)] md:left-8">
         <Link
           to="/"
-          className={`inline-flex items-center gap-1.5 rounded-[9px] text-label-md text-ink-3 hover:text-accent transition-colors duration-200 ${focusRing}`}
+          className={`inline-flex min-h-[var(--touch-min)] items-center gap-1.5 rounded-[9px] border border-line-low bg-surface/90 px-3 text-label-md text-ink-2 shadow-xs backdrop-blur transition-colors duration-200 hover:border-accent/25 hover:text-accent ${focusRing}`}
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Back to home
         </Link>
       </div>
 
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-line bg-surface p-8 shadow-sm hover:shadow-md transition-all duration-300">
-        {/* Brand Logo Header */}
+      <div className="relative z-[var(--z-raised)] w-full max-w-md rounded-[var(--radius-promo)] border border-line-low bg-surface p-6 shadow-md transition-shadow duration-300 hover:shadow-lg sm:p-8">
         <div className="flex justify-center mb-8">
           <Logo className="scale-105" />
         </div>

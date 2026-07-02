@@ -42,7 +42,7 @@ export function MenuItemRow({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-body-md font-medium text-ink transition-colors duration-300 group-hover:text-accent">{label}</span>
-        {description ? <span className="mt-0.5 block truncate text-caption text-ink-3">{description}</span> : null}
+        {description ? <span className="mt-0.5 block text-caption text-ink-3">{description}</span> : null}
       </span>
       {trailing ?? (
         <ChevronRight
@@ -53,4 +53,3 @@ export function MenuItemRow({
     </button>
   );
 }
-

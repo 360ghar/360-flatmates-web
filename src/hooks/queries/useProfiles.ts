@@ -15,16 +15,23 @@ import type {
   PeerFilters,
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
+import { flatmatesProfileSchema } from "@/lib/schemas/profile";
 
 const PEERS_PAGE_SIZE = 20;
 
 export const myProfileOptions = queryOptions({
   queryKey: ["profile", "me"],
-  queryFn: () =>
-    apiClient.request<FlatmatesProfile>({
+  queryFn: async () => {
+    // Parse through the zod schema so `.catch("")` and other coercions run
+    // on the API response. Without this, a backend `full_name: null` (partial
+    // onboarding, legacy account, schema drift) flows downstream untyped and
+    // crashes `AppShell`'s `user.name.split(" ")` greeting.
+    const raw = await apiClient.request<FlatmatesProfile>({
       method: "GET",
       path: "/flatmates/profile"
-    })
+    });
+    return flatmatesProfileSchema.parse(raw);
+  }
 });
 
 export function profileOptions(id: number) {
