@@ -19,7 +19,6 @@ export function CompatibilitySection() {
     <section className="bg-paper border-b border-line-low" aria-labelledby="compatibility-heading">
       <div className="mx-auto max-w-7xl px-5 py-20 md:px-12 md:py-28">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
-          {/* Left: editorial argument */}
           <RevealSection className="lg:col-span-6">
             <h2
               id="compatibility-heading"
@@ -40,42 +39,56 @@ export function CompatibilitySection() {
             </Link>
           </RevealSection>
 
-          {/* Right: compatibility readout */}
           <RevealSection className="lg:col-span-6">
             <div
               ref={ref}
-              className="bento-card bg-surface border border-line p-6 sm:p-8 shadow-sm"
+              className="overflow-hidden rounded-[var(--radius-promo)] border border-line bg-surface shadow-sm"
             >
-              <div className="flex items-center gap-5 pb-6 border-b border-line-low">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center text-success">
-                  {inView ? (
-                    <ProgressRing value={92} size="xl" label="Example compatibility score" />
-                  ) : (
-                    <span className="h-20 w-20" aria-hidden="true" />
-                  )}
+              <div className="grid gap-0 md:grid-cols-[1fr_1.08fr]">
+                <div className="flex min-h-[320px] items-center justify-center bg-lavender p-6">
+                  <img
+                    src="/brand/compatibility-scene.webp"
+                    alt="Compatibility dimensions arranged around a shared home"
+                    className="max-h-[300px] w-full object-contain"
+                    width={1536}
+                    height={1024}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
-                <div>
-                  <p className="text-h2 text-2xl md:text-3xl text-ink leading-tight">92% vibe match</p>
-                  <p className="text-body-md text-ink-3 mt-1 max-w-[28ch]">
-                    High alignment across all six dimensions.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-6">
-                {DIMENSIONS.map((dim) => {
-                  const DimIcon = dim.icon;
-                  return (
-                    <div
-                      key={dim.label}
-                      className={`flex items-center gap-2 rounded-xl border border-line/60 p-3 ${dim.tint}`}
-                    >
-                      <DimIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                      <span className="text-label-md truncate">{dim.label}</span>
-                      <Check className="ml-auto h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+                <div className="p-6 sm:p-8">
+                  <div className="flex items-center gap-5 border-b border-line-low pb-6">
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center text-success">
+                      {inView ? (
+                        <ProgressRing value={92} size="xl" label="Example compatibility score" />
+                      ) : (
+                        <span className="h-20 w-20" aria-hidden="true" />
+                      )}
                     </div>
-                  );
-                })}
+                    <div>
+                      <p className="text-h2 text-2xl md:text-3xl text-ink leading-tight">92% vibe match</p>
+                      <p className="mt-1 max-w-[28ch] text-body-md text-ink-3">
+                        High alignment across all six dimensions.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-6 sm:grid-cols-3">
+                    {DIMENSIONS.map((dim) => {
+                      const DimIcon = dim.icon;
+                      return (
+                        <div
+                          key={dim.label}
+                          className={`flex items-center gap-2 rounded-xl border border-line/60 p-3 ${dim.tint}`}
+                        >
+                          <DimIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <span className="truncate text-label-md">{dim.label}</span>
+                          <Check className="ml-auto h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </RevealSection>

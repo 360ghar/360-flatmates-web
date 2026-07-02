@@ -9,7 +9,7 @@ export type ModalId = "settings" | "photo-viewer" | "report-user" | "visit-resch
 export type DrawerId = "filters" | "chat-info" | "profile-edit" | "notifications";
 
 export type ThemePreference = "light" | "dark" | "system";
-export type PalettePreference = "terracotta" | "ember" | "monsoon_teal";
+export type PalettePreference = "violet" | "ember" | "monsoon_teal";
 export type SidebarState = "expanded" | "collapsed";
 
 export const THEME_OPTIONS: ReadonlyArray<{ value: ThemePreference; label: string }> = [
@@ -83,12 +83,18 @@ function createToastId(): string {
   return `toast-${crypto.randomUUID()}`;
 }
 
+export function normalizePalettePreference(value: unknown): PalettePreference {
+  if (value === "ember" || value === "monsoon_teal") return value;
+  return "violet";
+}
+
 export function createUiStore(initialState: UiStoreInitialState = {}) {
+  const { palette: initialPalette, ...restInitialState } = initialState;
   return createStore<UiStoreState>()(
     persist(
       (set) => ({
         theme: "light",
-        palette: "terracotta",
+        palette: normalizePalettePreference(initialPalette),
         sidebar: "expanded",
         sidebarWidth: SIDEBAR_WIDTH_DEFAULT,
         activeModal: null,
@@ -98,9 +104,9 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         ssePrimaryTab: false,
         reducedMotion: false,
         toasts: [],
-        ...initialState,
+        ...restInitialState,
         setTheme: (theme) => set((state) => state.theme === theme ? state : { theme }),
-        setPalette: (palette) => set({ palette }),
+        setPalette: (palette) => set({ palette: normalizePalettePreference(palette) }),
         setSidebar: (sidebar) => set({ sidebar }),
         setSidebarWidth: (sidebarWidth) => set({ sidebarWidth }),
         openModal: (activeModal) => set({ activeModal }),
@@ -145,11 +151,18 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
           sidebar: state.sidebar,
           sidebarWidth: state.sidebarWidth,
           reducedMotion: state.reducedMotion
-        })
+        }),
+        merge: (persistedState, currentState) => {
+          const persisted = (persistedState ?? {}) as Partial<UiStoreState> & { palette?: unknown };
+          return {
+            ...currentState,
+            ...persisted,
+            palette: normalizePalettePreference(persisted.palette ?? currentState.palette)
+          };
+        }
       }
     )
   );
 }
 
 export const uiStore = createUiStore();
-

@@ -198,7 +198,7 @@ export function LocationPage() {
           <ul
             id={listboxId}
             role="listbox"
-            className="absolute left-0 right-0 top-full z-20 mt-1 flex flex-col overflow-hidden rounded-[9px] border border-line bg-surface shadow-md"
+            className="absolute left-0 right-0 top-full z-[var(--z-overlay)] mt-1 flex flex-col overflow-hidden rounded-[9px] border border-line bg-surface shadow-md"
           >
             {suggestions.map((name) => (
               <li

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router";
-import { Menu } from "lucide-react";
+import { Instagram, Linkedin, Menu, Twitter } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -10,6 +10,13 @@ import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 import { Drawer } from "@/components/ui/Modal";
 import { OfflineBanner } from "@/components/ui/Layout";
 import { PWAInstallBanner } from "@/components/molecules/PWAInstallBanner";
+import { AppStoreBadges } from "@/components/landing/AppStoreBadges";
+
+const SOCIAL_LINKS = [
+  { href: "https://www.instagram.com/360ghar", label: "Instagram", Icon: Instagram },
+  { href: "https://www.linkedin.com/company/360ghar", label: "LinkedIn", Icon: Linkedin },
+  { href: "https://twitter.com/360ghar", label: "Twitter", Icon: Twitter },
+] as const;
 
 const NAV_LINKS = [
   { href: "/discover", label: "Discover" },
@@ -49,8 +56,8 @@ export function PublicLayout() {
     <div className="flex min-h-screen flex-col bg-paper text-ink">
       <ScrollProgressBar />
       <OfflineBanner visible={offline} />
-      <header className="sticky top-0 z-30 border-b border-line-low bg-surface/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-5 md:px-12">
+      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-line-low bg-surface/88 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-5 md:px-12">
           <Link to="/" aria-label="360 Flatmates home" className="shrink-0">
             <Logo compact />
           </Link>
@@ -75,9 +82,9 @@ export function PublicLayout() {
             </Link>
             <Link
               to="/discover"
-              className={buttonClasses("primary", "compact") + " hidden px-6 h-10 shadow-cta sm:inline-flex"}
+              className={buttonClasses("primary", "compact") + " hidden h-10 px-5 shadow-cta sm:inline-flex"}
             >
-              Join
+              Start matching
             </Link>
             <button
               type="button"
@@ -130,7 +137,7 @@ export function PublicLayout() {
               onClick={() => setDrawerOpen(false)}
               className={buttonClasses("primary", "compact") + " h-10 shadow-cta text-center"}
             >
-              Join
+              Start matching
             </Link>
             <div className="flex items-center gap-2 px-4 py-2">
               <ThemeToggle size="sm" />
@@ -145,14 +152,18 @@ export function PublicLayout() {
         <Outlet />
       </div>
 
-      <footer className="bg-surface border-t border-line-low py-20 pb-[env(safe-area-inset-bottom)]">
+      <footer className="bg-paper border-t border-line-low py-20 pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto max-w-7xl px-5 md:px-12">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-24">
             <div className="lg:col-span-2 space-y-6">
               <Logo compact />
               <p className="max-w-md text-body-lg text-ink-3">
-                Expanding the horizons of shared living through meticulously matched communities across India&apos;s premier urban landscapes.
+                Compatibility-first flatmate search for verified rooms, better chats, and visits that stay organized.
               </p>
+              <div className="flex flex-col gap-2">
+                <p className="text-label-md text-ink-3">Get the app</p>
+                <AppStoreBadges variant="light" />
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -175,7 +186,7 @@ export function PublicLayout() {
                 </li>
                 <li>
                   <Link to="/about" className="text-body-md text-ink-3 hover:text-accent transition-colors">
-                    Our Philosophy
+                    About
                   </Link>
                 </li>
               </ul>
@@ -207,16 +218,19 @@ export function PublicLayout() {
             <p className="text-caption text-ink-4 tracking-widest uppercase" suppressHydrationWarning>
               &copy; {new Date().getFullYear()} 360 Flatmates. All rights reserved.
             </p>
-            <div className="flex gap-8">
-              <a href="https://www.instagram.com/360ghar" target="_blank" rel="noopener noreferrer" className="text-caption text-ink-4 tracking-widest uppercase hover:text-accent transition-colors">
-                Instagram
-              </a>
-              <a href="https://www.linkedin.com/company/360ghar" target="_blank" rel="noopener noreferrer" className="text-caption text-ink-4 tracking-widest uppercase hover:text-accent transition-colors">
-                LinkedIn
-              </a>
-              <a href="https://twitter.com/360ghar" target="_blank" rel="noopener noreferrer" className="text-caption text-ink-4 tracking-widest uppercase hover:text-accent transition-colors">
-                Twitter
-              </a>
+            <div className="flex items-center gap-2">
+              {SOCIAL_LINKS.map(({ href, label, Icon }) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${label} (opens in a new tab)`}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <Icon className="h-[18px] w-[18px]" />
+                </a>
+              ))}
             </div>
           </div>
         </div>

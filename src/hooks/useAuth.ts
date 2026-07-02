@@ -7,8 +7,8 @@ import {
   reportLastMethod,
   type IdentifierStatus,
 } from "@/lib/api/auth";
+import { buildOAuthRedirectUrl } from "@/lib/auth/oauth-redirect";
 import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
-import { resolveRedirect } from "@/lib/redirect";
 import type { Session, User } from "@supabase/supabase-js";
 
 interface UseAuthReturn {
@@ -300,17 +300,6 @@ export function useAuth(): UseAuthReturn {
     signOut,
     recordAuthSuccess
   };
-}
-
-function buildOAuthRedirectUrl(next?: string): string {
-  const base =
-    import.meta.env.VITE_AUTH_REDIRECT_URL ??
-    `${window.location.origin}/auth/callback`;
-  const url = new URL(base, window.location.origin);
-  if (next) {
-    url.searchParams.set("next", resolveRedirect(next));
-  }
-  return url.toString();
 }
 
 function getPlaywrightSession(): Session | null {

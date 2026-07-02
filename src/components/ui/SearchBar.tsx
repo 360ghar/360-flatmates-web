@@ -142,7 +142,7 @@ export function SearchBar({
           role="listbox"
           aria-label="Recent searches"
           onKeyDown={handlePopoverKeyDown}
-          className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 rounded-lg border border-line bg-surface p-2 shadow-md"
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-[var(--z-overlay)] rounded-lg border border-line bg-surface p-2 shadow-md"
         >
           <div className="flex flex-col">
             {visibleRecents.map((query, index) => (
@@ -177,4 +177,3 @@ export function SearchBar({
     </div>
   );
 }
-

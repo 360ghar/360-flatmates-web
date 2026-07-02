@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { Camera, Crosshair, Loader2 } from "lucide-react";
 import { useMyProfile, useCreateProfile, useUpdateProfile, useReverseGeocode } from "@/hooks/queries";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { onboardingStore, ONBOARDING_STEPS, type OnboardingStepKey } from "@/lib/stores/onboarding-store";
 import { authStore } from "@/lib/stores/auth-store";
 import { searchStore } from "@/lib/stores/search-store";
@@ -108,11 +108,12 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const previousStep = useStore(onboardingStore, (s) => s.previousStep);
   const setStep = useStore(onboardingStore, (s) => s.setStep);
 
-  const { upload: uploadImage } = useImageUpload();
+  const { upload: uploadImage } = useAvatarUpload();
   const { geocode, geoLoading } = useReverseGeocode();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   const handleUseMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -173,11 +174,47 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const handlePhotoSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
+      // Reset so re-picking the same file (e.g. after a failure) fires again.
+      e.target.value = "";
       if (!file) return;
 
-      const dataUrl = await uploadImage(file);
-      setPhotoPreview(dataUrl);
-      patchDraft({ profile_image_url: dataUrl });
+      if (!file.type.startsWith("image/")) {
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Unsupported file",
+          description: "Please choose an image file.",
+        });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Image too large",
+          description: "Please choose an image under 5 MB.",
+        });
+        return;
+      }
+
+      setPhotoUploading(true);
+      try {
+        const publicUrl = await uploadImage(file);
+        setPhotoPreview(publicUrl);
+        patchDraft({ profile_image_url: publicUrl });
+        uiStore.getState().pushToast({
+          type: "success",
+          title: "Photo uploaded",
+        });
+      } catch (err) {
+        const description =
+          err instanceof Error ? err.message : "Could not upload your photo. Please try again.";
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Upload failed",
+          description,
+        });
+      } finally {
+        setPhotoUploading(false);
+      }
     },
     [uploadImage, patchDraft]
   );
@@ -427,9 +464,18 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
               editable
               onEdit={openFilePicker}
             />
-            <Button variant="secondary" onClick={openFilePicker}>
-              <Camera aria-hidden="true" className="h-4 w-4" />
-              {photoPreview || draft.profile_image_url ? "Change Photo" : "Choose Photo"}
+            <Button
+              variant="secondary"
+              onClick={openFilePicker}
+              loading={photoUploading}
+              disabled={photoUploading}
+              leadingIcon={<Camera aria-hidden="true" className="h-4 w-4" />}
+            >
+              {photoUploading
+                ? "Uploading..."
+                : photoPreview || draft.profile_image_url
+                  ? "Change Photo"
+                  : "Choose Photo"}
             </Button>
           </div>
         </>

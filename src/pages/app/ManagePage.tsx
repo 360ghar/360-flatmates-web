@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
 import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
 import { useMyProperties } from "@/hooks/queries";
@@ -68,11 +67,13 @@ export function ManagePage() {
     <div className="flex flex-col gap-5 page-fade">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-h1">Post & Manage</h1>
-        <Link to="/post">
-          <Button size="compact" leadingIcon={<Plus aria-hidden="true" className="h-4 w-4" />}>
-            New Listing
-          </Button>
-        </Link>
+        <Button
+          size="compact"
+          leadingIcon={<Plus aria-hidden="true" className="h-4 w-4" />}
+          onClick={() => navigate("/post")}
+        >
+          New Listing
+        </Button>
       </div>
 
       {/* Filters (client-side: /properties/me has no status/sort params) */}
@@ -129,9 +130,7 @@ export function ManagePage() {
             {statusFilter === "all" ? (
               <>
                 <p className="text-body-md text-ink-2">You have not posted any listings yet.</p>
-                <Link to="/post">
-                  <Button>Post your first listing</Button>
-                </Link>
+                <Button onClick={() => navigate("/post")}>Post your first listing</Button>
               </>
             ) : (
               <>

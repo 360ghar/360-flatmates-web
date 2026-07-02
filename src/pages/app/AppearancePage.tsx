@@ -28,7 +28,7 @@ const THEME_DESCRIPTIONS: Record<ThemePreference, string> = {
 };
 
 const PALETTE_OPTIONS: Array<{ value: PalettePreference; label: string; description: string }> = [
-  { value: "terracotta", label: "Terracotta", description: "Warm, earthy orange accent" },
+  { value: "violet", label: "Flatmates Violet", description: "Default violet accent with yellow action highlights" },
   { value: "ember", label: "Ember", description: "Golden, sunset-toned accent" },
   { value: "monsoon_teal", label: "Monsoon Teal", description: "Cool, refreshing teal accent" },
 ];
@@ -36,7 +36,7 @@ const PALETTE_OPTIONS: Array<{ value: PalettePreference; label: string; descript
 // All palette swatches use the live --color-accent CSS variable so the swatch
 // updates as soon as the user picks a new palette.
 const PALETTE_ICONS: Record<PalettePreference, React.ReactNode> = {
-  terracotta: (
+  violet: (
     <div className="flex h-6 w-6 items-center justify-center">
       <span
         className="h-5 w-5 rounded-full"
