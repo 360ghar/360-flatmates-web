@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetSession = vi.fn();
 const mockRefreshAccessToken = vi.fn();
-const mockConvertToWebP = vi.fn();
+const mockConvertUploadImageToDataUrl = vi.fn();
 const mockDebugError = vi.fn();
 const mockFetch = vi.fn();
 
@@ -22,7 +22,7 @@ vi.mock("@/lib/auth/refresh", () => ({
 }));
 
 vi.mock("@/lib/image-utils", () => ({
-  convertToWebP: (...args: unknown[]) => mockConvertToWebP(...args),
+  convertUploadImageToDataUrl: (...args: unknown[]) => mockConvertUploadImageToDataUrl(...args),
 }));
 
 vi.mock("@/lib/debug", () => ({
@@ -64,7 +64,7 @@ describe("useAvatarUpload", () => {
       data: { session: { access_token: "stale-token" } },
     });
     mockRefreshAccessToken.mockResolvedValue("fresh-token");
-    mockConvertToWebP.mockRejectedValue(new Error("canvas unavailable"));
+    mockConvertUploadImageToDataUrl.mockRejectedValue(new Error("canvas unavailable"));
   });
 
   afterEach(() => {

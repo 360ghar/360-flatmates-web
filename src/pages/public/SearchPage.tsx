@@ -92,6 +92,7 @@ export function SearchPage() {
     isError,
     error,
     isFetching,
+    isPlaceholderData,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -139,14 +140,16 @@ export function SearchPage() {
     });
   }, [searchResults]);
 
+  const totalResults = searchResults?.pages[0]?.total ?? listings.length;
+  const hasSettledSearchResults =
+    !isPlaceholderData && !isFetching && !isError && totalResults > 0;
+
   // Record a successful, non-empty text query into recent searches.
   useEffect(() => {
-    if (params.q && listings.length > 0) {
+    if (params.q && hasSettledSearchResults) {
       addRecentSearch(params.q);
     }
-  }, [params.q, listings.length, addRecentSearch]);
-
-  const totalResults = searchResults?.pages[0]?.total ?? listings.length;
+  }, [params.q, hasSettledSearchResults, addRecentSearch]);
 
   const filterSections: FilterSection[] = useMemo(
     () => [

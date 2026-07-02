@@ -6,11 +6,9 @@ import type { FlatmatesProfile } from "@/lib/api/types";
 import { refreshAccessToken } from "@/lib/auth/refresh";
 import { debug } from "@/lib/debug";
 import { getEnv } from "@/lib/env";
-import { convertToWebP } from "@/lib/image-utils";
+import { convertUploadImageToDataUrl } from "@/lib/image-utils";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
-const MAX_DIMENSION = 1600;
-const WEBP_QUALITY = 0.82;
 const REQUEST_TIMEOUT_MS = 30_000;
 
 interface UploadResponse {
@@ -18,7 +16,7 @@ interface UploadResponse {
 }
 
 async function toWebpBlob(file: File): Promise<Blob> {
-  const dataUrl = await convertToWebP(file, MAX_DIMENSION, WEBP_QUALITY);
+  const dataUrl = await convertUploadImageToDataUrl(file);
   const res = await fetch(dataUrl);
   return res.blob();
 }
