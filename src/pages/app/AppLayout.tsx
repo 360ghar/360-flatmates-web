@@ -57,6 +57,14 @@ function titleForPath(pathname: string): string | undefined {
   return undefined;
 }
 
+function normalizeUserMode(mode?: string | null): UserMode {
+  if (mode === "room_poster" || mode === "co_hunter" || mode === "open_to_both") {
+    return mode;
+  }
+
+  return "open_to_both";
+}
+
 export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
   const { data: profile } = useMyProfile();
@@ -68,7 +76,7 @@ export function AppLayout() {
   const sidebarWidth = useStore(uiStore, (s) => s.sidebarWidth);
   const setSidebarWidth = useStore(uiStore, (s) => s.setSidebarWidth);
 
-  const mode: UserMode = (profile?.mode as UserMode) ?? "open_to_both";
+  const mode = normalizeUserMode(profile?.mode);
 
   const shellUser: ShellUser | undefined = profile
     ? { name: profile.full_name, avatarUrl: profile.profile_image_url, mode, city: profile.city }
