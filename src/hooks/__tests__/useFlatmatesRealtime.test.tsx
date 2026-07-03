@@ -291,4 +291,51 @@ describe("useFlatmatesRealtime", () => {
     });
     expect(uiStore.getState().realtimeState).toBe("disconnected");
   });
+
+  it("subscribes to all events when the config omits the events list", async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+    renderHook(
+      () =>
+        useFlatmatesRealtime({
+          enabled: true,
+          accessToken: "access-token",
+          // The static type requires `events`, but the backend can omit it at
+          // runtime; the hook must default to "all" rather than crash.
+          realtime: {
+            provider: "supabase",
+            channel: "flatmates:user:1",
+            private: true,
+          } as unknown as typeof realtime,
+        }),
+      { wrapper: createWrapper(queryClient) }
+    );
+
+    await waitFor(() => expect(subscribeHandler).not.toBeNull());
+    expect([...broadcastHandlers.keys()]).toEqual(realtime.events);
+  });
+
+  it("honors an explicit empty events array instead of widening to all", async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+    renderHook(
+      () =>
+        useFlatmatesRealtime({
+          enabled: true,
+          accessToken: "access-token",
+          realtime: {
+            provider: "supabase",
+            channel: "flatmates:user:1",
+            private: true,
+            events: [],
+          },
+        }),
+      { wrapper: createWrapper(queryClient) }
+    );
+
+    // The channel still opens and subscribes…
+    await waitFor(() => expect(subscribeHandler).not.toBeNull());
+    // …but no broadcast handlers are registered (explicit opt-out, not "all").
+    expect(broadcastHandlers.size).toBe(0);
+  });
 });

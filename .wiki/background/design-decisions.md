@@ -10,8 +10,7 @@ flowchart LR
     B --> C[Vanilla Zustand stores]
     C --> D[ApiAdapter abstraction]
     D --> E[Prerendered SPA]
-    D --> F[Supabase Broadcast real-time]
-    C --> F
+    C --> F[Supabase Broadcast real-time]
     A --> G[Compatibility engine]
 ```
 
@@ -96,7 +95,7 @@ sequenceDiagram
 | `src/lib/stores/auth-store.ts` | Vanilla store consumed by guards and providers without React context |
 | `src/providers.tsx` | Token getter + refresh handler injection that keeps the API client Supabase-agnostic |
 | `scripts/prerender.ts` | Build-time Chromium prerender of every public route |
-| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription, pure event-to-cache integration |
+| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription; invalidates the QueryClient cache and surfaces toasts / realtime UI state |
 | `src/lib/api/client.ts` | `ApiAdapter` interface and `HttpApiClient` with single-refresh retry |
 | `src/lib/api/index.ts` | Module-level `apiClient` singleton and token getter wiring |
 | `src/lib/compatibility/engine.ts` | Weighted six-dimension compatibility scoring |

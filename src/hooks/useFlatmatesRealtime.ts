@@ -49,11 +49,11 @@ function normalizeBroadcastData(payload: unknown): Record<string, unknown> {
 }
 
 function configuredEvents(events: readonly string[] | undefined): FlatmatesRealtimeEvent[] {
+  // ponytail: `undefined` (no config) → subscribe to all; an explicit `[]`
+  // is an opt-out and must be honored as "nothing", not widened to all.
+  if (events === undefined) return [...FLATMATES_REALTIME_EVENTS];
   const allowed = new Set<string>(FLATMATES_REALTIME_EVENTS);
-  const filtered = (events ?? []).filter((event): event is FlatmatesRealtimeEvent =>
-    allowed.has(event)
-  );
-  return filtered.length > 0 ? filtered : [...FLATMATES_REALTIME_EVENTS];
+  return events.filter((event): event is FlatmatesRealtimeEvent => allowed.has(event));
 }
 
 function trackChannelRemoval(channelName: string, removal: Promise<unknown> | unknown) {

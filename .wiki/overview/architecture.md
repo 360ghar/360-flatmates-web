@@ -13,6 +13,7 @@ graph LR
     Page --> Store["Zustand vanilla store<br/>(client state)"]
     Provider["Providers"] --> RT["Supabase Broadcast"]
     Backend --> RT
+    RT --> Query
     Provider --> Supabase["Supabase auth"]
     Supabase --> Provider
     Page --> Map["Leaflet maps"]

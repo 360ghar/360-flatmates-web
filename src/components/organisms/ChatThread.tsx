@@ -99,6 +99,7 @@ export function ChatThread({
   const [reportReason, setReportReason] = useState<ChatReportReason>("spam");
   const [reportNotes, setReportNotes] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   /* Track whether the user is pinned to the bottom of the log. We only
      auto-scroll on new messages when they already were, so incoming history
@@ -192,6 +193,25 @@ export function ChatThread({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [showMenu]);
+
+  /* Close the emoji picker on outside click / Escape — mirrors the menu above. */
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+    function onPointerDown(event: PointerEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setShowEmojiPicker(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [showEmojiPicker]);
 
   function submit() {
     const trimmed = draft.trim();
@@ -372,10 +392,9 @@ export function ChatThread({
         />
         <div className="flex items-center gap-2">
           <TrustBadge variant="privacy" className="hidden sm:inline-flex" />
-          <div className="relative">
+          <div className="relative" ref={emojiPickerRef}>
             <Button
               aria-label="Emoji"
-              aria-haspopup="menu"
               aria-expanded={showEmojiPicker}
               size="icon"
               variant="icon"
@@ -385,7 +404,6 @@ export function ChatThread({
             </Button>
             {showEmojiPicker ? (
               <div
-                role="menu"
                 aria-label="Choose emoji"
                 className="absolute bottom-full left-0 z-[var(--z-raised)] mb-2 grid w-[min(20rem,calc(100vw-2rem))] grid-cols-6 gap-1 rounded-[12px] border border-line bg-surface-elevated p-2 shadow-md"
               >
@@ -393,7 +411,6 @@ export function ChatThread({
                   <button
                     key={emoji}
                     type="button"
-                    role="menuitem"
                     className={cn("flex aspect-square min-h-10 w-full items-center justify-center rounded-[9px] text-xl leading-none hover:bg-lavender", focusRing)}
                     onClick={() => insertEmoji(emoji)}
                   >

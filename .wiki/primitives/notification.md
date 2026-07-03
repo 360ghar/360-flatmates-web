@@ -11,7 +11,7 @@ A notification is a transient in-app alert: a new match, a new message, a visit 
 ```ts
 interface FlatmatesNotification {
   id: string;
-  type: string;             // free-form kind, e.g. "new_match", "new_message", "visit_update"
+  type: string;             // free-form kind, e.g. "new_match", "new_message", "visit_updated"
   title: string;
   body: string;
   is_read: boolean;
