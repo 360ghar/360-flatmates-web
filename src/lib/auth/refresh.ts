@@ -9,10 +9,10 @@ const AUTH_PATH_PREFIXES = ["/login", "/signup", "/forgot-password", "/auth/"];
 // Fire-once guard so a burst of failed refreshes only triggers one recovery.
 let recovering = false;
 
-// In-flight mutex: the single dedupe point for all callers (API client 401
-// path AND SSE auth-failure path). N concurrent callers share one refresh
-// promise; this prevents racing refreshSession() calls that increase the
-// chance of tripping Supabase refresh-token reuse detection.
+// In-flight mutex: the single dedupe point for all callers. N concurrent
+// callers share one refresh promise; this prevents racing refreshSession()
+// calls that increase the chance of tripping Supabase refresh-token reuse
+// detection.
 let inflight: Promise<string | null> | null = null;
 
 function isRecoverableAuthError(err: unknown): boolean {
@@ -58,16 +58,15 @@ export function recoverDeadSession(): void {
 /**
  * The single source of truth for refreshing the access token.
  *
- * Dedupes concurrent callers (API client 401 path + SSE auth-failure path)
- * onto one in-flight refreshSession() call, writes the new token via the one
- * authorized setter, and triggers recovery when the session is dead.
+ * Dedupes concurrent callers onto one in-flight refreshSession() call, writes
+ * the new token via the one authorized setter, and triggers recovery when the
+ * session is dead.
  *
  * Returns the new access token on success, or `null` if the session could
  * not be refreshed (caller should treat the request as failed; recovery has
  * already been initiated if the failure is unrecoverable).
  *
- * @internal — consumed by providers.tsx (API client 401 handler) and
- * useSSE.ts (SSE auth-failure handler).
+ * @internal — consumed by providers.tsx as the API client 401 handler.
  */
 export function refreshAccessToken(): Promise<string | null> {
   if (inflight) return inflight;

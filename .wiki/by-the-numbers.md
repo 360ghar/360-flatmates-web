@@ -49,7 +49,7 @@ Ranked by number of commits that touched each file across the 23-commit history:
 | `src/components/organisms/SwipeDeck.tsx` | high | The swipe deck, the product's hero surface, churned the most |
 | `src/pages/app/PostPage.tsx` | high | The listing builder entry point |
 | `src/pages/auth/LoginPage.tsx` | high | Auth flows were overhauled in early June |
-| `src/providers.tsx` | high | Theme, SSE, and query client wiring |
+| `src/providers.tsx` | high | Theme, realtime, and query client wiring |
 | `src/App.tsx` | high | Router and route guards |
 
 These five files are the natural focal points of the codebase: the main interaction surface (SwipeDeck), the two create-or-enter flows (PostPage, LoginPage), and the two top-level wiring files (providers, App). A change to any of them likely ripples widely.

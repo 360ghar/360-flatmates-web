@@ -138,12 +138,28 @@ export interface FlatmatesPeer {
   available_from?: string | null;
 }
 
+export type FlatmatesRealtimeEventType =
+  | "new_match"
+  | "new_message"
+  | "conversation_updated"
+  | "visit_updated"
+  | "listing_status_changed"
+  | "new_notification";
+
+export interface FlatmatesRealtimeConfig {
+  provider: "supabase";
+  channel: string;
+  private: boolean;
+  events: FlatmatesRealtimeEventType[];
+}
+
 export interface FlatmatesBootstrap {
   profile: FlatmatesProfile;
   catalogs: import("./common.types").CatalogEntry[];
   active_listing_count: number;
   conversation_count: number;
   unread_message_count: number;
+  realtime: FlatmatesRealtimeConfig;
 }
 
 export interface ProfileViewEventCreate {

@@ -55,66 +55,66 @@ Drag, keyboard, or action bar.
 Every swipe is an optimistic mutation with rollback on error.
 
 15
-00:01:08,187 --> 00:01:12,550
-Real-time runs over Server-Sent Events, not WebSockets.
+00:01:08,187 --> 00:01:13,825
+Real-time runs over Supabase private Broadcast from the backend bootstrap config.
 
 16
-00:01:12,550 --> 00:01:20,337
-A single connection manager handles twelve event types, exponential backoff, and BroadcastChannel dedup across tabs.
+00:01:13,825 --> 00:01:20,087
+One hook handles six event types, reconnect backoff, and cache catch-up after outages.
 
 17
-00:01:20,337 --> 00:01:22,762
+00:01:20,087 --> 00:01:22,512
 Auth goes through Supabase.
 
 18
-00:01:22,762 --> 00:01:26,675
+00:01:22,512 --> 00:01:26,425
 Phone OTP, password, Google, and Apple.
 
 19
-00:01:26,675 --> 00:01:32,700
+00:01:26,425 --> 00:01:32,450
 A gate-state guard enforces profile completion and onboarding before the user reaches the app.
 
 20
-00:01:32,700 --> 00:01:35,425
+00:01:32,450 --> 00:01:35,175
 The build pipeline is unusual.
 
 21
-00:01:35,425 --> 00:01:41,925
+00:01:35,175 --> 00:01:41,675
 After Vite builds the bundle, Playwright Chromium renders every public route to static HTML.
 
 22
-00:01:41,925 --> 00:01:47,237
+00:01:41,675 --> 00:01:46,987
 This makes the SPA crawlable by LLM bots that do not run JavaScript.
 
 23
-00:01:47,237 --> 00:01:50,337
+00:01:46,987 --> 00:01:50,087
 The design system is warm-editorial.
 
 24
-00:01:50,337 --> 00:01:57,500
+00:01:50,087 --> 00:01:57,250
 Terracotta accent, Fraunces headlines, Inter body, a categorical palette with accessible ink tiers.
 
 25
-00:01:57,500 --> 00:02:03,587
+00:01:57,250 --> 00:02:03,337
 Dark mode is first-class, applied via a data-theme attribute on the HTML element.
 
 26
-00:02:03,587 --> 00:02:09,087
+00:02:03,337 --> 00:02:08,837
 Twenty-three commits, one contributor, thirty-eight thousand lines of TypeScript.
 
 27
-00:02:09,087 --> 00:02:14,100
+00:02:08,837 --> 00:02:13,850
 The compatibility engine survived a rogue-agent deletion and was restored.
 
 28
-00:02:14,100 --> 00:02:16,912
+00:02:13,850 --> 00:02:16,662
 Zero TODO comments in the source.
 
 29
-00:02:16,912 --> 00:02:19,625
+00:02:16,662 --> 00:02:19,375
 360 Flatmates.
 
 30
-00:02:19,625 --> 00:02:22,625
+00:02:19,375 --> 00:02:22,375
 Find your flatmate, not a nightmare.
 

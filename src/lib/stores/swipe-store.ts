@@ -2,9 +2,8 @@ import { createStore } from "zustand/vanilla";
 import type { FlatmatesPeer } from "@/lib/api/types";
 
 // NOTE (F10 #18): `cardQueue` is technically server state — it originates
-// from `useSwipeDeck`. It is mirrored here so non-React consumers (SSE
-// handlers, animation effects) can mutate it without going through the
-// React tree. The proper refactor is to derive `cardQueue` from
+// from `useSwipeDeck`. It is mirrored here so animation effects can mutate it
+// without going through the React tree. The proper refactor is to derive `cardQueue` from
 // `useSwipeDeck` via `useMemo` in the consumer and keep this store for
 // only `currentIndex` / `isAnimating` / `direction` / `isExpanded`. Flag
 // for follow-up; this pass adds the comment but does not refactor the

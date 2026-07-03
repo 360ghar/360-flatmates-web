@@ -6,7 +6,7 @@ The 360 Flatmates web app is a Vite + React 19 SPA that consumes a shared FastAP
 
 ## Child pages
 
-- [Design decisions](design-decisions.md), the rationale behind the load-bearing architectural choices (vanilla Zustand stores, prerender over SSR, SSE over WebSockets, the `ApiAdapter` abstraction, the weighted compatibility engine, strict TypeScript, the CSS custom property token system).
+- [Design decisions](design-decisions.md), the rationale behind the load-bearing architectural choices (vanilla Zustand stores, prerender over SSR, Supabase Broadcast realtime, the `ApiAdapter` abstraction, the weighted compatibility engine, strict TypeScript, the CSS custom property token system).
 - [Pitfalls and danger zones](pitfalls.md), the traps that have already cost time and the fixes that prevent them from recurring.
 
 ## Related pages

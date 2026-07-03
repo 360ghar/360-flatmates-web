@@ -8,7 +8,7 @@ Three surfaces sit on top of that engine. A public marketing surface with preren
 
 The swipe deck is the heart of the experience. Drag, keyboard, or action bar. Every swipe is an optimistic mutation with rollback on error.
 
-Real-time runs over Server-Sent Events, not WebSockets. A single connection manager handles twelve event types, exponential backoff, and BroadcastChannel dedup across tabs.
+Real-time runs over Supabase private Broadcast from the backend bootstrap config. One hook handles six event types, reconnect backoff, and cache catch-up after outages.
 
 Auth goes through Supabase. Phone OTP, password, Google, and Apple. A gate-state guard enforces profile completion and onboarding before the user reaches the app.
 

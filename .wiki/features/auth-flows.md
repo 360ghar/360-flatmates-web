@@ -17,7 +17,7 @@ Auth state lives in a Zustand vanilla store, not in component state. `src/lib/st
 | `authStage` | `AuthStage` | Backend-computed gate stage: `active`, `profile_completion`, `app_onboarding` |
 | `missingProfileFields` | `string[]` | Profile fields still required when `authStage` is `profile_completion` |
 
-The store is a vanilla `createStore()` so it can be read from React-free code paths (the SSE manager, the providers effect, tests). The `useAuth` hook (`src/hooks/useAuth.ts`) is the React-facing surface: it subscribes to `user`, `session`, and `loading` from the store and exposes the full action surface (sign-in methods, OTP verify, OAuth, add-phone, sign-out, `recordAuthSuccess`).
+The store is a vanilla `createStore()` so it can be read from React-free code paths (realtime integration hooks, provider effects, tests). The `useAuth` hook (`src/hooks/useAuth.ts`) is the React-facing surface: it subscribes to `user`, `session`, and `loading` from the store and exposes the full action surface (sign-in methods, OTP verify, OAuth, add-phone, sign-out, `recordAuthSuccess`).
 
 ## Bootstrap and the singleton subscription
 

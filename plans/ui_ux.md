@@ -637,7 +637,7 @@ Pill shape (999px radius), icon (16px) + text (12px semibold).
 **Desktop layout (split view)**:
 - Left panel: 320px, conversation list (see `/chats`)
 - Right panel: Flex-1
-  - **Header** (56px): Back (mobile only) + avatar (40px) + name + verified dot + mode badge pill + compatibility score dot + SSE status icon (20px, right of mode badge: cloud-off icon ink-3 when disconnected, tooltip "Messages may be delayed") + schedule visit icon + overflow menu (3-dot: "Archive Conversation", "Block User", "Report")
+  - **Header** (56px): Back (mobile only) + avatar (40px) + name + verified dot + mode badge pill + compatibility score dot + realtime status icon (20px, right of mode badge: cloud-off icon ink-3 when disconnected, tooltip "Messages may be delayed") + schedule visit icon + overflow menu (3-dot: "Archive Conversation", "Block User", "Report")
   - **MatchContextCard**: Pinned at top, expandable (AnimatedSize 250ms)
   - **QnA section**: Collapsible, shows answers or "Waiting" banner
   - **Pre-message area**: Shown if no messages sent yet
@@ -1152,7 +1152,7 @@ See SwipeDeck organism (4.2) for full specification.
 
 **Mobile layout**: Full-screen conversation list, tapping a conversation navigates to `/chats/[id]`
 
-#### Page 14: `/chats/[id]` -- Chat Thread (CSR, real-time SSE)
+#### Page 14: `/chats/[id]` -- Chat Thread (CSR, real-time Supabase Broadcast)
 
 See ChatThread organism (4.3) for full specification.
 

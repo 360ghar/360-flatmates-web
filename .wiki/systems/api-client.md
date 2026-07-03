@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-The API client is the only path between the SPA and the FastAPI backend at `/api/v1`. It is a thin, typed layer that builds URLs, injects the bearer token, normalizes errors, and transparently refreshes expired sessions. Everything above it (TanStack Query hooks, SSE manager, the auth flow) calls `apiClient.request(...)`, and nothing below it knows about Supabase.
+The API client is the only path between the SPA and the FastAPI backend at `/api/v1`. It is a thin, typed layer that builds URLs, injects the bearer token, normalizes errors, and transparently refreshes expired sessions. Everything above it (TanStack Query hooks, bootstrap queries, the auth flow) calls `apiClient.request(...)`, and nothing below it knows about Supabase.
 
 The canonical implementation lives in `src/lib/api/client.ts` (`HttpApiClient`), with error types in `src/lib/api/errors.ts`, the wiring in `src/lib/api/index.ts`, and the Supabase-side refresh handler injected from `src/providers.tsx`.
 
@@ -114,7 +114,7 @@ Callers can branch on `error instanceof ApiClientError && error.appError.type ==
 - `reportLastMethod(method)` is a best-effort `POST /auth/last-method` that never throws, so a failing bookkeeping call cannot break a successful sign-in.
 - `getAuthState(app)` calls `GET /users/me/auth-state` to read the backend-computed gate stage (`identifier_verification`, `password_setup`, `profile_completion`, `app_onboarding`, `active`). The result feeds `authStore.authStage`, which the `GateGuard` reads to route users into profile completion or onboarding (see [Routing and guards](routing-guards.md)).
 
-The same `apiClient` is also the source of the token that gets appended to the SSE URL in `src/providers.tsx`, so the real-time channel and the request channel share one refresh lifecycle (see [Real-time](../features/real-time.md)).
+`src/providers.tsx` also uses the same live Supabase session token to authorize Supabase Realtime before subscribing to the bootstrap-provided private Broadcast channel. REST requests and realtime therefore share the same session lifecycle without embedding tokens in backend stream URLs (see [Real-time](../features/real-time.md)).
 
 ## Key source files
 

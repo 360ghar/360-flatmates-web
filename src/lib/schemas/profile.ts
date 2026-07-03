@@ -106,6 +106,22 @@ export type FlatmatesProfileUpdateInput = z.infer<
 >;
 export type FlatmatesPeerInput = z.infer<typeof flatmatesPeerSchema>;
 
+export const flatmatesRealtimeEventSchema = z.enum([
+  "new_match",
+  "new_message",
+  "conversation_updated",
+  "visit_updated",
+  "listing_status_changed",
+  "new_notification"
+]);
+
+export const flatmatesRealtimeConfigSchema = z.object({
+  provider: z.literal("supabase"),
+  channel: z.string().min(1),
+  private: z.boolean(),
+  events: z.array(flatmatesRealtimeEventSchema)
+});
+
 export const flatmatesBootstrapSchema = z.object({
   profile: flatmatesProfileSchema,
   catalogs: z.array(z.object({
@@ -115,8 +131,14 @@ export const flatmatesBootstrapSchema = z.object({
   })),
   active_listing_count: z.number().int().min(0).catch(0),
   conversation_count: z.number().int().min(0).catch(0),
-  unread_message_count: z.number().int().min(0).catch(0)
+  unread_message_count: z.number().int().min(0).catch(0),
+  realtime: flatmatesRealtimeConfigSchema
 });
 
+export type FlatmatesRealtimeEventInput = z.infer<
+  typeof flatmatesRealtimeEventSchema
+>;
+export type FlatmatesRealtimeConfigInput = z.infer<
+  typeof flatmatesRealtimeConfigSchema
+>;
 export type FlatmatesBootstrapInput = z.infer<typeof flatmatesBootstrapSchema>;
-

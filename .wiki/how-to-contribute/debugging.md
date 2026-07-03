@@ -55,20 +55,21 @@ Use `toAppError(unknown)` to normalize a thrown value into an `AppError` before 
 
 **Fix:** There is a 5-second safety timeout built in: a `setTimeout` that calls `authStore.getState().setLoading(false)` after 5000ms regardless of whether `getSession` has resolved. If you still see a stuck loader, check that the timeout was not removed, that `authStore` is the same instance the timeout writes to, and that a route guard is not separately blocking on a query. In dev, you can also force a test session via `localStorage["flatmates-playwright-auth"] = "true"` and reload. For the full auth flow, see [auth flows](../features/auth-flows.md).
 
-### SSE not connecting
+### Realtime not connecting
 
 **Symptom:** Real-time updates (notifications, chat, visit status) stop arriving, or the connection indicator stays on `disconnected` or `reconnecting`.
 
-**Cause:** The `SSEConnectionManager` in `src/lib/sse/connection.ts` connects only when it can fetch a non-null token from `getToken()`. If the token is null, it sets state to `Disconnected` and returns without opening an `EventSource`. If the connection opens but no events arrive within `HEARTBEAT_TIMEOUT_MS` (60s), the manager tears down and reconnects with exponential backoff (1s, 2s, 4s, 8s, 16s, capped at 30s). After 3 consecutive auth failures (the `EventSource` errored before `open`), it calls `onAuthFailure` to refresh the token.
+**Cause:** `src/hooks/useFlatmatesRealtime.ts` connects only when the user is authenticated, the backend auth stage is `active`, the Supabase access token is present, and `/flatmates/bootstrap` returns a realtime config with a channel. It calls `supabase.realtime.setAuth(token)`, subscribes to the private Broadcast channel, and reconnects with exponential backoff on `CHANNEL_ERROR`, `TIMED_OUT`, or `CLOSED`.
 
 **Fix, in order:**
 
-1. Confirm the user is signed in and `getToken()` resolves to a non-null JWT. An expired or null token is the most common cause.
-2. Confirm the backend SSE endpoint is up and sending heartbeats. The manager reconnects if no event (including `ping`) arrives within 60s.
-3. Watch the backoff. If you see repeated `Reconnecting` state, the endpoint may be rejecting the token in the query string (the `EventSource` API cannot send headers, so the token rides on `?token=...`). Confirm `Referrer-Policy: no-referrer` is set so the token does not leak via `Referer`.
-4. In tests, mock the manager as shown in [testing](testing.md); a real `EventSource` will not fire in jsdom.
+1. Confirm the user is signed in and `session.access_token` is non-null.
+2. Confirm `GET /flatmates/bootstrap` returns a `realtime` object with `provider: "supabase"`, a non-empty `channel`, `private: true`, and the expected event names.
+3. Confirm Supabase Realtime Authorization allows the authenticated user to receive the configured private channel.
+4. Watch the `uiStore.realtimeState` transitions. Repeated `reconnecting` usually means Supabase rejected the channel auth or the Realtime socket is unavailable.
+5. In tests, mock the Supabase client as shown in [testing](testing.md); a real Realtime socket should not be opened in jsdom.
 
-For the production wiring and the multi-tab dedup, see [real-time](../features/real-time.md).
+For the production wiring, see [real-time](../features/real-time.md).
 
 ### Dev proxy not working
 
@@ -102,8 +103,8 @@ For the production wiring and the multi-tab dedup, see [real-time](../features/r
 | 401 retry loop on a public page | Request did not set `auth: false` | Pass `{ auth: false }` on public endpoint requests |
 | `Missing or invalid environment variables` at startup | A required `VITE_` var is missing or malformed | Fill `.env`, restart the dev server, see [Getting started](../overview/getting-started.md) |
 | Auth loader never resolves | `getSession()` hung and the 5s safety timeout was removed or blocked | Restore the `setTimeout` in `initAuthSubscription`, check `authStore` wiring |
-| SSE stuck on `disconnected` | `getToken()` returned null (no signed-in user) | Sign in, confirm the JWT is fresh |
-| SSE stuck on `reconnecting` | Backend not sending heartbeats, or rejecting the query-string token | Confirm heartbeat interval, confirm `Referrer-Policy: no-referrer` |
+| Realtime stuck on `disconnected` | No active user, no access token, or missing bootstrap realtime config | Sign in, confirm the auth stage is active, and inspect `/flatmates/bootstrap` |
+| Realtime stuck on `reconnecting` | Supabase Realtime channel auth failed or the socket closed repeatedly | Confirm `setAuth(token)`, private channel policy, and Supabase Realtime availability |
 | Dev API calls 404 | Proxy rewrite mismatch (`/api` to `/app/v1`) | Call relative paths, confirm the rewrite in `vite.config.ts` |
 | `authenticated` E2E project redirects to `/login` | `.auth/user.json` stale or missing | Delete `.auth/user.json`, re-run `npm run test:e2e` |
 | Unit test hangs on a `motion.*` element | Real framer-motion loaded instead of the mock | Run via `npx vitest`, do not import real framer-motion |
@@ -118,7 +119,7 @@ For the production wiring and the multi-tab dedup, see [real-time](../features/r
 | `src/lib/api/errors.ts` | The `AppError` union, `ApiClientError`, `toAppError`, and `mapStatusToAppError`. |
 | `src/lib/env.ts` | The Zod schema for `import.meta.env` and the validation error message. |
 | `src/hooks/useAuth.ts` | The singleton `initAuthSubscription`, the 5s safety timeout, `getPlaywrightSession`, `_resetAuthForTests`. |
-| `src/lib/sse/connection.ts` | The `SSEConnectionManager`, backoff schedule, heartbeat timeout, auth-failure retry cap. |
+| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription, query invalidation, backoff, and cleanup. |
 | `vite.config.ts` | The dev server proxy (`/api` to backend, rewrite to `/app/v1`, `changeOrigin`). |
 | `playwright.config.ts` | The four projects and the `.auth/user.json` storage state wiring. |
 | `e2e/auth-setup.ts` | The auth-setup project that writes `.auth/user.json`. |

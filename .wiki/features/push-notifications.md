@@ -2,16 +2,16 @@
 
 Active contributors: Saksham
 
-360 Flatmates delivers notifications through two complementary channels while the app is open and while it is not. The in-app channel is real-time Server-Sent Events (SSE), which drives the notifications inbox, the toast surface, and the cache invalidation that keeps every list fresh. The out-of-app channel is web push via the standard Web Push API (PushManager), which delivers a system-level notification when the tab is closed or in the background. This page covers the VAPID configuration, the FCM token registration, the notification preferences page, the saved-search alerts page, and how SSE and web push split the work. For the full SSE lifecycle, see [Real-time](real-time.md). For the VAPID env var and the build pipeline, see [SEO and prerendering](seo-prerendering.md) and [Configuration](../reference/configuration.md).
+360 Flatmates delivers notifications through two complementary channels while the app is open and while it is not. The in-app channel is Supabase private Broadcast, which drives the notifications inbox, the toast surface, and the cache invalidation that keeps every list fresh. The out-of-app channel is web push via the standard Web Push API (PushManager), which delivers a system-level notification when the tab is closed or in the background. This page covers the VAPID configuration, the FCM token registration, the notification preferences page, the saved-search alerts page, and how Broadcast and web push split the work. For the full realtime lifecycle, see [Real-time](real-time.md). For the VAPID env var and the build pipeline, see [SEO and prerendering](seo-prerendering.md) and [Configuration](../reference/configuration.md).
 
 ## Two channels, one goal
 
 | Channel | When it fires | Transport | Requires |
 | --- | --- | --- | --- |
-| SSE `notification` event | App is open (any tab) | `GET /flatmates/sse` | An authenticated session |
+| Broadcast `new_notification` event | App is open (any tab) | Supabase private Broadcast channel from `/flatmates/bootstrap` | An authenticated Supabase session |
 | Web push (FCM token) | App is closed or backgrounded | Web Push API via the service worker | Notification permission + VAPID key + registered device |
 
-SSE is the primary, always-on channel for signed-in users. Web push is the fallback for when no tab is open, and for system-level alerts that must surface even if the user has navigated away. The two never duplicate in-app: SSE events are consumed by the open app, web push is consumed by the browser. The backend decides which channel to use per notification based on the device registry (see below).
+Broadcast is the primary, always-on in-app channel for signed-in users. Web push is the fallback for when no tab is open, and for system-level alerts that must surface even if the user has navigated away. The two never duplicate in-app: Broadcast events are consumed by the open app, web push is consumed by the browser. The backend decides which channel to use per notification based on the device registry (see below).
 
 ## VAPID key configuration
 
@@ -69,18 +69,16 @@ Each mutation invalidates the `["search", "alerts"]` query key on success, so th
 
 The `NotificationCard` molecule (`src/components/molecules/NotificationCard.tsx`) renders the icon, title, description, timestamp, and an unread dot. Each notification type maps to a tone and a lucide icon: `new_match` (pink, Heart), `new_message` (blue, MessageCircle), `listing_approved` (success, CheckCircle2), `listing_rejected` (error, XCircle), `visit_scheduled` (teal, CalendarCheck), `visit_confirmed` (success, CalendarCheck), `general` (accent, Bell). Unread cards get a 3px accent left border to signal state beyond color alone.
 
-## How SSE and push complement each other
+## How Broadcast and push complement each other
 
-The SSE manager (`src/hooks/useSSE.ts`, wired from `src/providers.tsx`) connects to `GET /flatmates/sse` whenever the user is authenticated. The `notification` event type carries an `SSENotificationData` payload (id, type, title, description, created_at) defined in `src/lib/sse/types.ts`. When such an event arrives, the open app consumes it: the notifications inbox refetches, a toast may fire, and any related query keys (matches, conversations, etc.) invalidate so every surface stays current. BroadcastChannel dedupes events across tabs so a multi-tab user only processes each event once.
+`useFlatmatesRealtime` (`src/hooks/useFlatmatesRealtime.ts`, wired from `src/providers.tsx`) subscribes to the bootstrap-provided Supabase private Broadcast channel whenever the user is authenticated and active. The `new_notification` event carries notification metadata such as `type_key`, `title`, `body`, and `route`. When such an event arrives, the open app consumes it: the notifications inbox refetches, a toast fires, and related query keys (matches, conversations, etc.) invalidate so every surface stays current.
 
-Web push covers the case SSE cannot: the user has closed every tab. In that scenario the browser service worker receives the push, the backend has the device token on file from `registerDevice`, and the platform shows a system notification. The two channels do not race for the same open-tab delivery because the backend targets the open SSE connection first and only falls back to the device registry when no connection is alive. The notification preferences (the toggles on the settings page) gate both channels at the backend: a disabled category stops the SSE event and the web push for that category.
+Web push covers the case Broadcast cannot: the user has closed every tab. In that scenario the browser service worker receives the push, the backend has the device token on file from `registerDevice`, and the platform shows a system notification. The notification preferences (the toggles on the settings page) gate both channels at the backend: a disabled category stops the Broadcast event and the web push for that category.
 
 ```mermaid
 graph LR
-    B["FastAPI backend"] -->|"notification SSE event"| S["SSE manager"]
+    B["FastAPI backend"] -->|"new_notification Broadcast"| H["useFlatmatesRealtime hook"]
     B -->|"web push via device token"| W["Service worker"]
-    S --> BC["BroadcastChannel<br/>multi-tab dedup"]
-    BC --> H["useSSE hook"]
     H --> N["NotificationsPage refetch"]
     H --> T["Toast surface"]
     W --> P["System notification<br/>tab closed or background"]
@@ -88,7 +86,7 @@ graph LR
 
 ## Source-of-truth docs
 
-For the notification event payload shapes, see `src/lib/sse/types.ts` and [docs/flatmates-openapi.yaml](../../docs/flatmates-openapi.yaml). For the env var reference including `VITE_VAPID_PUBLIC_KEY`, see `.env.example` and [Configuration](../reference/configuration.md). For the async-state rules that govern the notification and alert pages, see [DESIGN.md](../../DESIGN.md) section 12.
+For the notification event payload shapes, see [Real-time](real-time.md) and [docs/flatmates-openapi.yaml](../../docs/flatmates-openapi.yaml). For the env var reference including `VITE_VAPID_PUBLIC_KEY`, see `.env.example` and [Configuration](../reference/configuration.md). For the async-state rules that govern the notification and alert pages, see [DESIGN.md](../../DESIGN.md) section 12.
 
 ## Key source files
 
@@ -102,5 +100,4 @@ For the notification event payload shapes, see `src/lib/sse/types.ts` and [docs/
 | `src/components/molecules/NotificationCard.tsx` | Notification card with type-to-tone icon mapping |
 | `src/hooks/queries/useNotifications.ts` | `useNotifications`, `useMarkNotificationRead`, `useMarkAllNotificationsRead` |
 | `src/hooks/queries/useSearch.ts` | `useSearchAlerts`, `useCreateSearchAlert`, `useUpdateSearchAlert`, `useDeleteSearchAlert` |
-| `src/lib/sse/types.ts` | `SSENotificationData` and the full SSE event discriminated union |
-| `src/hooks/useSSE.ts` | SSE connection manager and event dispatch (see [Real-time](real-time.md)) |
+| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast event dispatch and notification query invalidation |
