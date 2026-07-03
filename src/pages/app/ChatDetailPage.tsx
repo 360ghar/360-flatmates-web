@@ -279,12 +279,21 @@ export function ChatDetailPage() {
     );
   }
 
+  function handleAttachFile(file: File) {
+    uiStore.getState().pushToast({
+      type: "info",
+      title: "Attachment selected",
+      description: `${file.name} is ready, but chat uploads are not enabled yet.`
+    });
+  }
+
   return (
     <ChatThread
       participant={participant}
       messages={messages}
       onSend={handleSend}
       onRetryMessage={handleRetryMessage}
+      onAttachFile={handleAttachFile}
       onBlock={handleBlock}
       onReport={handleReport}
       onScheduleVisit={handleScheduleVisit}
