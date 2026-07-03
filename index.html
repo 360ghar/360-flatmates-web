@@ -21,7 +21,7 @@
   <meta property="og:site_name" content="360 Flatmates" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/og-image.webp" />
-  <meta property="og:image:alt" content="360 Flatmates — Find your flatmate, find your vibe" />
+  <meta property="og:image:alt" content="360 Flatmates - Find your flatmate, find your vibe" />
   <meta property="og:locale" content="en_IN" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@360ghar" />
@@ -29,17 +29,17 @@
   <link rel="icon" href="/favicon.ico" sizes="32x32" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/favicon-192.webp" />
-  <link rel="mask-icon" href="/favicon.svg" color="#C96442" />
+  <link rel="mask-icon" href="/favicon.svg" color="#6E57E8" />
   <!-- Preconnect early for 3rd-party image CDN used by hero -->
   <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
   <!-- Preload critical fonts so they start downloading before the inline @font-face block is parsed -->
   <link rel="preload" href="/fonts/Inter-Variable.ttf" as="font" type="font/ttf" crossorigin />
   <link rel="preload" href="/fonts/Fraunces-Variable.ttf" as="font" type="font/ttf" crossorigin />
   <!-- Preload the LCP hero image so it starts downloading immediately, not after JS execution -->
-  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&amp;fm=webp&amp;fit=crop&amp;q=80&amp;auto=format" fetchpriority="high" />
+  <link rel="preload" as="image" href="/brand/flatmate-hero-companion.webp" fetchpriority="high" />
 
   <!--
-    Critical-path CSS — prevents FOUC by inlining the minimum styles needed
+    Critical-path CSS - prevents FOUC by inlining the minimum styles needed
     for correct layout, colors, and typography before the full Tailwind
     stylesheet loads. The hydration gate (#root starts visibility:hidden)
     hides the unstyled React shell; entry.tsx adds .hydrated after mount to
@@ -79,13 +79,13 @@
 
     *, *::before, *::after { box-sizing: border-box; }
     html {
-      background: #F4F3EE;
-      color: #1F1A14;
+      background: #F7F5EC;
+      color: #201D1B;
       scroll-behavior: smooth;
     }
     [data-theme="dark"] {
-      background: #1a1612;
-      color: #f4f3ee;
+      background: #17151F;
+      color: #f7f5ec;
     }
     body {
       margin: 0;
@@ -100,7 +100,7 @@
       Hydration gate: #root starts visibility:hidden to prevent FOUC while
       React mounts and the full stylesheet loads. Using visibility (not opacity)
       so that .noscript-fallback children can override to visibility:visible
-      when JS is disabled — a child with visibility:visible renders even when
+      when JS is disabled - a child with visibility:visible renders even when
       its parent is visibility:hidden.
     */
     #root {
@@ -116,7 +116,7 @@
       margin: 0 auto;
       padding: 32px 20px;
       font-family: Inter, system-ui, sans-serif;
-      color: #1F1A14;
+      color: #201D1B;
     }
     [data-theme="dark"] .noscript-fallback { color: #f4f3ee; }
     .noscript-fallback h1 {
@@ -142,7 +142,7 @@
     [data-theme="dark"] .noscript-fallback p,
     [data-theme="dark"] .noscript-fallback li { color: #e4e1d7; }
     .noscript-fallback a {
-      color: #C96442;
+      color: #6E57E8;
       text-decoration: none;
     }
     .noscript-fallback a:hover { text-decoration: underline; }
@@ -156,7 +156,7 @@
     }
     .noscript-fallback li::before {
       content: "→ ";
-      color: #C96442;
+      color: #6E57E8;
     }
     .noscript-fallback .section {
       margin: 24px 0;
@@ -175,7 +175,7 @@
       font-weight: 600;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: #C96442;
+      color: #6E57E8;
       display: block;
       margin-bottom: 4px;
     }
@@ -184,7 +184,7 @@
       margin-top: 16px;
       padding: 10px 24px;
       border-radius: 10px;
-      background: #C96442;
+      background: #6E57E8;
       color: #fff;
       font-weight: 600;
       font-size: 14px;
@@ -205,9 +205,9 @@
   <script>
     (() => {
       try {
-        const raw = localStorage.getItem("360_flatmates-ui");
+        const raw = localStorage.getItem("360-flatmates-ui");
         let theme = "light";
-        let palette = "terracotta";
+        let palette = "violet";
         if (raw) {
           try {
             const parsed = JSON.parse(raw);
@@ -217,6 +217,7 @@
             }
           } catch { }
         }
+        if (palette !== "ember" && palette !== "monsoon_teal") palette = "violet";
         const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         if (theme === "dark" || (theme === "system" && systemDark)) {
           document.documentElement.dataset.theme = "dark";
@@ -242,7 +243,7 @@
     -->
     <noscript>
       <div class="noscript-fallback" role="main">
-        <h1>360 Flatmates — Find Compatible Flatmates &amp; Verified Rooms Across India</h1>
+        <h1>360 Flatmates - Find Compatible Flatmates &amp; Verified Rooms Across India</h1>
         <p>
           360 Flatmates matches you with flatmates on 6 lifestyle dimensions: sleep, cleanliness,
           food, guests, work, and vibe. Verified listings, visit scheduling, in-app chat.
@@ -252,9 +253,9 @@
         <div class="section">
           <h2>How It Works</h2>
           <ul>
-            <li>Tell us your vibe — budget, location, and lifestyle preferences</li>
-            <li>Get matched — our engine finds flatmates and rooms that fit how you live</li>
-            <li>Move in — book a visit, chat with context, sign up</li>
+            <li>Tell us your vibe: budget, location, and lifestyle preferences</li>
+            <li>Get matched: our engine finds flatmates and rooms that fit how you live</li>
+            <li>Move in: book a visit, chat with context, sign up</li>
           </ul>
         </div>
 
@@ -270,7 +271,7 @@
 
         <div class="section">
           <span class="eyebrow">Guides</span>
-          <h2>Blog — Living Together Better</h2>
+          <h2>Blog: Living Together Better</h2>
           <ul>
             <li><a href="/blog/how-to-find-compatible-flatmates">How to Find Compatible Flatmates</a></li>
             <li><a href="/blog/flatmate-agreement-essentials">The Essential Flatmate Agreement Checklist</a></li>
@@ -297,10 +298,10 @@
           <span class="eyebrow">Platform</span>
           <h2>Key Features</h2>
           <ul>
-            <li>6-dimension compatibility scoring — sleep, clean, food, guests, work, vibe</li>
-            <li>Every listing reviewed before going live — real photos, real rent</li>
-            <li>Book visits in 2 taps — no WhatsApp ping-pong</li>
-            <li>Chat that starts with context — listing, match score, and visit details pinned</li>
+            <li>6-dimension compatibility scoring: sleep, clean, food, guests, work, vibe</li>
+            <li>Every listing reviewed before going live: real photos, real rent</li>
+            <li>Book visits in 2 taps: no WhatsApp ping-pong</li>
+            <li>Chat that starts with context: listing, match score, and visit details pinned</li>
             <li>Phone OTP login, profile checks, in-app reporting</li>
           </ul>
         </div>

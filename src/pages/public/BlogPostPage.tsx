@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router";
 import { SeoHelmet, SITE_URL, buildArticleSchema, buildHowToSchema, buildSpeakableSchema } from "@/lib/seo";
+import { buttonClasses } from "@/components/ui/Button";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { BlogPostPage as DynamicBlogPostPage } from "@/pages/app/BlogPostPage";
 
@@ -398,24 +399,25 @@ function LegacyBlogPostPage() {
             />
           </div>
 
-          <div className="prose max-w-[65ch] mx-auto">
+          <div className="max-w-[65ch] mx-auto">
             {renderContent(post.content)}
           </div>
 
-          <div className="mt-20 pt-12 border-t border-line-low text-center max-w-2xl mx-auto relative overflow-hidden bg-surface/50 border border-line-low rounded-2xl p-8 shadow-xs">
-            <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
-            <h2 className="text-display text-3xl text-ink font-normal">Find Your Compatible Flatmate</h2>
-            <p className="mt-4 text-body-lg text-ink-2 leading-relaxed">
-              Use our 6-dimension matching algorithm to connect with roommates who share your living style, schedules, and values.
-            </p>
-            <div className="mt-8">
+          <div className="relative mx-auto mt-20 max-w-2xl overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-8 text-center shadow-hard-paper">
+            <div className="absolute inset-0 map-grid-bg opacity-25" aria-hidden="true" />
+            <div className="relative">
+              <h2 className="text-display text-3xl text-ink font-normal">Find your compatible flatmate</h2>
+              <p className="mt-4 text-body-lg text-ink-2 leading-relaxed">
+                Use 6-dimension matching to connect with roommates who share your living style, schedules, and values.
+              </p>
+              <div className="mt-8">
               <Link
                 to="/signup"
-                className="inline-flex h-12 items-center justify-center rounded-[10px] bg-accent px-8 text-label-lg text-white shadow-cta hover:shadow-hover hover:scale-[1.02] active:scale-98 transition-all duration-300"
-                style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+                className={buttonClasses("primary", "tall") + " shadow-cta"}
               >
-                Get Started Free
+                Start matching
               </Link>
+              </div>
             </div>
           </div>
         </article>

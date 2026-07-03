@@ -17,7 +17,7 @@ The largest files by line count are the natural refactor candidates. None of the
 | `src/components/onboarding/OnboardingStepContent.tsx` | 519 | One branch per onboarding step. Extract each step into its own component file behind a shared layout. |
 | `src/pages/app/ProfileEditPage.tsx` | 507 | Form state, field validation, and image upload likely co-located. Extract a `useProfileEdit` hook and per-section form components. |
 | `src/components/organisms/MapView.tsx` | 498 | Map rendering, marker logic, and viewport state. Extract the marker layer and the viewport store bridge. |
-| `src/components/organisms/ChatThread.tsx` | 498 | Message list rendering, composition input, and SSE-driven optimistic updates. Extract the message list and the composer. |
+| `src/components/organisms/ChatThread.tsx` | 498 | Message list rendering, composition input, and realtime-driven optimistic updates. Extract the message list and the composer. |
 | `src/pages/app/MyListingEditPage.tsx` | 447 | Mirrors `PostPage` for editing. Share the form schema and per-step components with the builder. |
 | `src/pages/app/ProfilePage.tsx` | 440 | Profile display, compatibility breakdown, and actions. Extract the compatibility section and the actions cluster. |
 | `src/pages/app/SearchPage.tsx` | 435 | Search input, filter state, and results layout. Extract the filter bar and the results grid. |

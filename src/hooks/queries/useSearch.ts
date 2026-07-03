@@ -61,7 +61,7 @@ export function webSearchOptions(filters: SearchFilters) {
 
       return {
         results: response.items,
-        total: response.total ?? 0,
+        total: response.total ?? undefined,
         next_cursor: response.next_cursor,
         has_more: response.has_more,
         limit: response.limit,
@@ -125,7 +125,7 @@ export function infiniteWebSearchOptions(
 
       return {
         results: response.items,
-        total: response.total ?? 0,
+        total: response.total ?? undefined,
         next_cursor: response.next_cursor,
         has_more: response.has_more,
         limit: response.limit,

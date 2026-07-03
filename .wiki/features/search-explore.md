@@ -56,7 +56,7 @@ It returns a `{ city, locality }` pair extracted from the OSM address object (ci
 
 ## Filter state and view mode
 
-Two Zustand stores hold client-only state for the search and explore surfaces. Both use the vanilla `createStore()` pattern so they can be consumed outside React (in SSE handlers and tests) without a hook wrapper.
+Two Zustand stores hold client-only state for the search and explore surfaces. Both use the vanilla `createStore()` pattern so they can be consumed outside React (in integration hooks and tests) without a hook wrapper.
 
 `searchStore` (`src/lib/stores/search-store.ts`) owns:
 

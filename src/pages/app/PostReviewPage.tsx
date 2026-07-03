@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { CheckCircle2, CircleCheck, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +13,7 @@ const reviewSteps: Array<{ label: string; icon: LucideIcon }> = [
 export function PostReviewPage() {
   const { listingId: listingIdParam } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const listingId =
     Number.parseInt(listingIdParam ?? "", 10) ||
     (location.state as { listingId?: number } | null)?.listingId;
@@ -45,12 +46,12 @@ export function PostReviewPage() {
           <p>3. Approved listings receive a 24 hour launch boost.</p>
         </div>
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link to={editPath} className="w-full sm:w-auto">
-            <Button fullWidth>Edit Listing</Button>
-          </Link>
-          <Link to="/manage" className="w-full sm:w-auto">
-            <Button variant="tertiary" fullWidth>Back to Manage</Button>
-          </Link>
+          <Button className="w-full sm:w-auto" onClick={() => navigate(editPath)}>
+            Edit Listing
+          </Button>
+          <Button variant="tertiary" className="w-full sm:w-auto" onClick={() => navigate("/manage")}>
+            Back to Manage
+          </Button>
         </div>
       </Card>
     </div>

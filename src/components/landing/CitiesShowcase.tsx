@@ -12,7 +12,7 @@ const numberFormatter = new Intl.NumberFormat("en-IN");
 
 export function CitiesShowcase() {
   return (
-    <section className="bg-surface py-20 md:py-24 border-b border-line-low" aria-labelledby="cities-heading">
+    <section className="bg-paper py-20 md:py-24 border-b border-line-low" aria-labelledby="cities-heading">
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <div className="mb-14 text-center">
           <h2 id="cities-heading" className="text-display max-w-xl mx-auto text-ink">
@@ -24,7 +24,7 @@ export function CitiesShowcase() {
           {CITIES.map((city) => (
             <div
               key={city.name}
-              className="group relative aspect-[3/4] md:aspect-[4/3] overflow-hidden rounded-3xl bg-surface border border-line-low shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
+              className="group relative aspect-[3/4] overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md md:aspect-[4/3]"
             >
               <NetworkImage
                 src={`https://images.unsplash.com/photo-${CITY_IMAGES[city.name] || "1596176530529-78163a4f7af2"}`}
@@ -35,18 +35,16 @@ export function CitiesShowcase() {
                 width={800}
                 quality={80}
               />
-              {/* Image darkening overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent opacity-80 transition-all duration-500 group-hover:opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-t from-ink/58 via-transparent to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-80" />
 
-              {/* Floating Glassmorphic Panel */}
-              <div className="absolute bottom-6 left-6 right-6 p-6 rounded-2xl bg-white/5 backdrop-blur-[12px] border border-white/10 flex items-center justify-between text-white transition-all duration-500 group-hover:bg-white/10 group-hover:border-white/15 shadow-md">
+              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/65 bg-surface/92 p-5 text-ink shadow-sm backdrop-blur-[9px] transition-all duration-300 group-hover:border-action/80">
                 <div>
-                  <h3 className="text-display text-3xl md:text-4xl text-white mb-1.5">{city.name}</h3>
-                  <p className="text-label-md text-white/80 tracking-widest uppercase" suppressHydrationWarning>
+                  <h3 className="text-display mb-1.5 text-3xl text-ink md:text-4xl">{city.name}</h3>
+                  <p className="text-label-md text-ink-3" suppressHydrationWarning>
                     {numberFormatter.format(city.listings)} ACTIVE LISTINGS
                   </p>
                 </div>
-                <div className="h-11 w-11 shrink-0 rounded-full bg-white/15 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white transition-all duration-300 group-hover:bg-accent group-hover:border-accent group-hover:rotate-45 shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-action text-action-ink shadow-sm transition-transform duration-300 group-hover:rotate-45">
                   <ArrowUpRight className="h-5 w-5" />
                 </div>
               </div>
@@ -59,11 +57,10 @@ export function CitiesShowcase() {
             to="/discover"
             className="text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 border-b border-ink-4 hover:border-accent pb-1"
           >
-            Browse all rooms →
+            Browse all rooms
           </Link>
         </div>
       </div>
     </section>
   );
 }
-

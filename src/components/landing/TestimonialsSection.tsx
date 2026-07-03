@@ -13,28 +13,35 @@ function getInitials(name: string): string {
 
 export function TestimonialsSection() {
   return (
-    <section className="bg-paper py-20 md:py-28 border-b border-line-low" aria-labelledby="testimonials-heading">
+    <section className="bg-sky py-20 md:py-28 border-b border-line-low" aria-labelledby="testimonials-heading">
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <RevealSection className="mb-14 text-center">
           <h2 id="testimonials-heading" className="text-display text-ink">
-            8,600 people stopped settling.
+            People are choosing fit over guesswork.
           </h2>
         </RevealSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-          {TESTIMONIALS.map((testimonial) => (
-            <RevealSection key={testimonial.name} className="bento-card card-glow relative flex flex-col justify-between p-8 md:p-10 bg-surface border border-line-low hover:border-accent/15 transition-all duration-300">
-              <div className="relative pl-6">
-                <span className="font-serif-italic text-accent/25 text-7xl select-none absolute -left-2 -top-5 font-light" aria-hidden="true">&ldquo;</span>
-                <p className="font-serif-italic text-2xl md:text-3xl text-ink leading-relaxed font-light italic relative z-10">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {TESTIMONIALS.map((testimonial, index) => (
+            <RevealSection
+              key={testimonial.name}
+              className={
+                index === 0
+                  ? "relative flex flex-col justify-between rounded-[var(--radius-promo)] border border-line-low bg-lavender p-8 lg:col-span-2"
+                  : "relative flex flex-col justify-between rounded-[var(--radius-promo)] border border-line-low bg-surface p-8"
+              }
+            >
+              <div className="relative">
+                <span className="absolute -left-1 -top-6 select-none font-serif-italic text-7xl font-light text-accent/20" aria-hidden="true">&ldquo;</span>
+                <p className={index === 0 ? "relative z-10 max-w-2xl font-serif-italic text-3xl italic leading-snug text-ink md:text-4xl" : "relative z-10 text-body-lg leading-relaxed text-ink"}>
                   {testimonial.quote}
                 </p>
               </div>
 
-              <div className="mt-10 flex items-center justify-between">
+              <div className="mt-10 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-line shadow-sm bg-accent-soft text-accent font-semibold text-label-lg select-none"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-label-lg font-semibold text-accent shadow-sm select-none"
                     aria-hidden="true"
                   >
                     {getInitials(testimonial.name)}
@@ -45,7 +52,7 @@ export function TestimonialsSection() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 rounded-full border border-success/15 bg-success-soft px-3.5 py-1 text-success shadow-xs">
+                <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-success/15 bg-success-soft px-3.5 py-1 text-success shadow-xs">
                   <span className="text-label-lg font-bold tabular">{testimonial.compatibility}%</span>
                   <span className="text-label-md uppercase tracking-wider">match</span>
                 </div>
@@ -57,4 +64,3 @@ export function TestimonialsSection() {
     </section>
   );
 }
-

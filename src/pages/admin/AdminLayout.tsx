@@ -9,6 +9,7 @@ import {
   Shield
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn, focusRing } from "@/components/ui/component-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -77,11 +78,13 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-paper-2 p-3 xl:flex">
-        <div className="flex h-14 items-center px-2">
+      <aside className="fixed inset-y-0 left-0 z-[var(--z-sticky)] hidden w-60 flex-col border-r border-line bg-surface p-3 xl:flex">
+        <div className="flex h-14 items-center justify-center px-2">
           <Logo compact />
-          <span className="ml-3 text-label-lg text-ink-3">Admin</span>
         </div>
+        <span className="mx-2 mt-2 rounded-full border border-line-low bg-paper px-3 py-1 text-center text-label-md text-ink-3">
+          Admin
+        </span>
         <nav aria-label="Admin navigation" className="mt-5 flex flex-1 flex-col gap-1">
           {adminNavItems.map((item) => (
             <AdminNavLink
@@ -94,14 +97,14 @@ export function AdminLayout() {
       </aside>
 
       <div className="min-h-screen xl:pl-60">
-        <header className="sticky top-0 z-20 flex min-h-16 items-center gap-3 border-b border-line bg-paper px-5 pt-[env(safe-area-inset-top)] md:px-6">
-          <div className="xl:hidden">
+        <header className="sticky top-0 z-[var(--z-raised)] flex min-h-16 items-center gap-3 border-b border-line bg-surface/92 px-5 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:px-6">
+          <div className="flex min-w-0 items-center gap-2 xl:hidden">
             <Logo compact />
-            <span className="ml-2 text-label-lg text-ink-3">Admin</span>
+            <span className="text-label-lg text-ink-3">Admin</span>
           </div>
           <nav
             aria-label="Mobile admin navigation"
-            className="ml-auto flex items-center gap-1 xl:hidden"
+            className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto xl:hidden"
           >
             {adminNavItems.map((item) => {
               const active = isNavActive(location.pathname, item.href, item.exact);
@@ -123,6 +126,7 @@ export function AdminLayout() {
               );
             })}
           </nav>
+          <ThemeToggle size="sm" className="ml-auto hidden xl:flex" />
         </header>
         <main id="main" className="min-h-[calc(100dvh-64px)] px-5 py-6 md:px-6">
           <Outlet />

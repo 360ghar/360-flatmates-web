@@ -33,6 +33,7 @@ const mockUpdateUser = vi.fn();
 const mockSignInWithPassword = vi.fn();
 const mockSignInWithEmailPassword = vi.fn();
 const mockSignInWithGoogle = vi.fn();
+const mockSignInWithApple = vi.fn();
 const mockRecordAuthSuccess = vi.fn();
 
 vi.mock("@/hooks/useAuth", () => ({
@@ -46,6 +47,7 @@ vi.mock("@/hooks/useAuth", () => ({
     signInWithPassword: mockSignInWithPassword,
     signInWithEmailPassword: mockSignInWithEmailPassword,
     signInWithGoogle: mockSignInWithGoogle,
+    signInWithApple: mockSignInWithApple,
     recordAuthSuccess: mockRecordAuthSuccess,
   }),
 }));
@@ -60,6 +62,21 @@ function typeIdentifierAndContinue(value: string) {
   });
   fireEvent.click(screen.getByRole("button", { name: /^continue$/i }));
 }
+
+describe("LoginPage — OAuth redirects", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSignInWithGoogle.mockResolvedValue(undefined);
+  });
+
+  it("starts Google sign-in with the sanitized default app redirect", async () => {
+    render(<LoginPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: /continue with google/i }));
+
+    await waitFor(() => expect(mockSignInWithGoogle).toHaveBeenCalledWith("/home"));
+  });
+});
 
 describe("LoginPage — set-password after OTP (requirement 6)", () => {
   beforeEach(() => {

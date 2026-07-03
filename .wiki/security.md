@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-360 Flatmates is a client-rendered SPA, so the security model is built around three trust boundaries (public, authenticated, admin), a Supabase-issued JWT carried in the `Authorization` header, route guards that enforce the boundaries client-side, and a deliberately small set of secrets that ever reach the browser. This page covers the boundaries, the auth token flow, the SSE token-in-URL trade-off and its mitigations, the route guards, environment variable handling, the `robots.txt` policy, and the Zod-based input validation that runs before any payload is submitted. For the end-to-end login and OAuth flows, see [Auth flows](features/auth-flows.md). For the real-time transport, see [Real-time](features/real-time.md). For the `HttpApiClient` mechanics, see [API client](systems/api-client.md).
+360 Flatmates is a client-rendered SPA, so the security model is built around three trust boundaries (public, authenticated, admin), a Supabase-issued JWT carried in the `Authorization` header, route guards that enforce the boundaries client-side, and a deliberately small set of secrets that ever reach the browser. This page covers the boundaries, the auth token flow, Supabase private Broadcast authorization for realtime, the route guards, environment variable handling, the `robots.txt` policy, and the Zod-based input validation that runs before any payload is submitted. For the end-to-end login and OAuth flows, see [Auth flows](features/auth-flows.md). For the real-time transport, see [Real-time](features/real-time.md). For the `HttpApiClient` mechanics, see [API client](systems/api-client.md).
 
 ## Trust boundaries
 
@@ -52,23 +52,13 @@ The mechanics, implemented in `src/lib/api/client.ts`:
 
 The `QueryClient` retry policy in `providers.tsx` reads `appError.type === "auth"` to decide whether a failed query is worth retrying (one retry, then stop). See [API client](systems/api-client.md) for the full sequence diagram and [Server state](systems/server-state.md) for the retry policy.
 
-## The SSE token-in-URL trade-off
+## Realtime authorization
 
-The real-time channel is a single Server-Sent Events connection per browser, owned by `SSEConnectionManager` in `src/lib/sse/connection.ts`. The browser `EventSource` API does not support custom headers, so the auth token cannot travel in an `Authorization` header the way REST requests do. Instead it is passed as a URL query parameter:
+The Flatmates realtime channel uses Supabase private Broadcast. `src/providers.tsx` fetches the backend-owned `FlatmatesBootstrap.realtime` config, and `src/hooks/useFlatmatesRealtime.ts` calls `supabase.realtime.setAuth(session.access_token)` before subscribing to the configured private channel.
 
-```ts
-const url = `${this.url}?token=${encodeURIComponent(token)}`;
-const es = new EventSource(url);
-```
+The access token is passed to the Supabase Realtime client as auth state, not embedded in a backend stream URL. The channel name comes from the backend (`flatmates:user:{id}`), and Supabase Realtime Authorization/RLS is responsible for allowing only the owning authenticated user to receive private broadcasts on that channel. The frontend treats Broadcast payloads as invalidation hints only; it refetches authoritative data through the normal REST API before rendering changed records.
 
-This is a known limitation of the `EventSource` specification, and the code documents it explicitly with a `SECURITY NOTE`. The trade-off is accepted because the alternative (a custom `fetch` + `ReadableStream` SSE parser with an `Authorization` header) is materially more complex and re-implements what the browser gives for free. The mitigations, all in place:
-
-- **Short-lived token.** The token is a Supabase JWT with refresh rotation, so a leaked query-string token has a short window of validity. The SSE manager also calls `onAuthFailure` after repeated auth failures, which triggers the same refresh flow as the REST client.
-- **URL-encoding.** `encodeURIComponent(token)` prevents injection into the URL.
-- **Referrer-Policy.** A `Referrer-Policy: no-referrer` (or equivalent) on the document prevents the token from leaking via the `Referer` header if the SSE response or any linked resource navigates off-origin.
-- **Server-side query-string hygiene.** The server is expected not to log the full query string in production, so the token does not end up in access logs.
-
-See [Real-time](features/real-time.md) for the connection lifecycle, the BroadcastChannel multi-tab dedup, and the twelve event types.
+See [Real-time](features/real-time.md) for the connection lifecycle and event dispatch.
 
 ## Route guards
 
@@ -121,7 +111,7 @@ The client never surfaces raw `TypeError` or unknown thrown values to the UI. `s
 ## Related pages
 
 - [Auth flows](features/auth-flows.md) for the end-to-end login, OTP, password, and OAuth flows.
-- [Real-time](features/real-time.md) for the SSE connection manager, multi-tab dedup, and event dispatch.
+- [Real-time](features/real-time.md) for Supabase Broadcast subscription, reconnect, and event dispatch.
 - [API client](systems/api-client.md) for the `HttpApiClient`, the 401 refresh-and-retry flow, and error normalization.
 - [Routing and guards](systems/routing-guards.md) for the route tree, the four guards, and redirect resolution.
 - [Validation schemas](systems/validation-schemas.md) for the Zod schema inventory.
@@ -130,12 +120,12 @@ The client never surfaces raw `TypeError` or unknown thrown values to the UI. `s
 
 | File | Role |
 | --- | --- |
-| `src/lib/sse/connection.ts` | `SSEConnectionManager`, the `SECURITY NOTE` on the token-in-URL trade-off and its mitigations |
 | `src/lib/api/client.ts` | `HttpApiClient`, `buildHeaders` (auth header injection), the 401 refresh-and-retry single-flight |
 | `src/lib/api/errors.ts` | `AppError` union, `ApiClientError`, `mapStatusToAppError`, `toAppError`, `isAppError` |
 | `src/lib/api/auth.ts` | `checkIdentifierStatus` (public), `reportLastMethod`, `getAuthState` (gate stage) |
 | `src/hooks/useAuth.ts` | Supabase session bootstrap, the auth-state subscription, `isTokenExpired` |
-| `src/providers.tsx` | Pushes `session.access_token` into the client, wires the Supabase-backed refresh handler, runs the gate-state fetch |
+| `src/providers.tsx` | Pushes `session.access_token` into the client, wires the Supabase-backed refresh handler, runs the gate-state fetch, and starts realtime from bootstrap |
+| `src/hooks/useFlatmatesRealtime.ts` | Authorizes Supabase Realtime and subscribes to the private Broadcast channel |
 | `src/pages/guards.tsx` | `AuthGuard`, `AdminGuard`, `AuthRedirectGuard`, `GateGuard`, `resolveRedirect` (open-redirect defense) |
 | `src/lib/env.ts` | Zod-validated environment variable accessor; only `VITE_`-prefixed vars reach the client |
 | `src/entry.tsx` | Calls `validateEnv()` before mount; renders the configuration-error screen on failure |

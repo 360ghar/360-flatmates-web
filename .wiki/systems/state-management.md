@@ -13,7 +13,7 @@ import { createStore } from "zustand/vanilla";
 export const uiStore = createUiStore(); // returns a vanilla store, not a hook
 ```
 
-The reason is that vanilla stores are plain objects with `.getState()`, `.setState()`, and `.subscribe()`, so they can be read and mutated from anywhere: React components, the SSE handlers in `src/lib/sse/`, the provider effect in `src/providers.tsx`, and unit tests. A `create()`-based hook store would force every non-React caller to either mount a React tree or reach into internals.
+The reason is that vanilla stores are plain objects with `.getState()`, `.setState()`, and `.subscribe()`, so they can be read and mutated from anywhere: React components, realtime integration hooks, provider effects in `src/providers.tsx`, and unit tests. A `create()`-based hook store would force every non-React caller to either mount a React tree or reach into internals.
 
 React components consume a store through the `useStore` binding from `zustand`:
 
@@ -40,7 +40,7 @@ The one exception is auth: `authStore` does hold the Supabase `Session` and `Use
 | Store | File | Owns | Persisted |
 | --- | --- | --- | --- |
 | `authStore` | `src/lib/stores/auth-store.ts` | Supabase `user`/`session`, `loading`, login modal state, `pendingRedirect`, `midAuthFlow`, backend `authStage` + `missingProfileFields` | No |
-| `uiStore` | `src/lib/stores/ui-store.ts` | `theme`, `palette`, sidebar state + width, active modal/drawer, SSE connection flags, `reducedMotion`, toast queue | Yes (theme, palette, sidebar, sidebarWidth, reducedMotion) |
+| `uiStore` | `src/lib/stores/ui-store.ts` | `theme`, `palette`, sidebar state + width, active modal/drawer, realtime connection flags, `reducedMotion`, toast queue | Yes (theme, palette, sidebar, sidebarWidth, reducedMotion) |
 | `searchStore` | `src/lib/stores/search-store.ts` | `filters` (defaults in `DEFAULT_SEARCH_FILTERS`), `recentSearches`, `viewMode` (`grid`/`list`/`map`), active-filter counter | Yes (filters, recentSearches, viewMode) |
 | `mapStore` | `src/lib/stores/map-store.ts` | Map `center`, `zoom`, `selectedPinId`, `bounds`, `MapFilters` | No |
 | `swipeStore` | `src/lib/stores/swipe-store.ts` | `currentIndex`, `isAnimating`, swipe `direction`, `cardQueue`, `isExpanded` | No |
@@ -71,7 +71,7 @@ For the broader architectural split between Zustand and TanStack Query, see [Arc
 | File | Role |
 | --- | --- |
 | `src/lib/stores/auth-store.ts` | Supabase session, login modal, `midAuthFlow`, backend gate stage |
-| `src/lib/stores/ui-store.ts` | Theme, palette, sidebar, modals, drawers, SSE flags, toasts |
+| `src/lib/stores/ui-store.ts` | Theme, palette, sidebar, modals, drawers, realtime flags, toasts |
 | `src/lib/stores/search-store.ts` | Search filters, recent searches, view mode, active-filter counter |
 | `src/lib/stores/map-store.ts` | Map viewport center/zoom/bounds, selected pin, map filters |
 | `src/lib/stores/swipe-store.ts` | Swipe deck index, animation direction, card queue, expanded flag |

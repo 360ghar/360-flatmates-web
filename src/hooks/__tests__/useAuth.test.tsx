@@ -1,5 +1,5 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -10,13 +10,17 @@ const mockVerifyOtp = vi.fn();
 const mockSignInWithPassword = vi.fn();
 const mockSignOut = vi.fn();
 const mockUpdateUser = vi.fn();
+const mockRefreshSession = vi.fn();
+const mockSignInWithOAuth = vi.fn();
 
 const mockSupabaseAuth = {
   getSession: mockGetSession,
   onAuthStateChange: mockOnAuthStateChange,
+  refreshSession: mockRefreshSession,
   signInWithOtp: mockSignInWithOtp,
   verifyOtp: mockVerifyOtp,
   signInWithPassword: mockSignInWithPassword,
+  signInWithOAuth: mockSignInWithOAuth,
   signOut: mockSignOut,
   updateUser: mockUpdateUser
 };
@@ -65,6 +69,11 @@ describe("useAuth", () => {
     mockOnAuthStateChange.mockReturnValue({
       data: { subscription: { unsubscribe: vi.fn() } }
     });
+    mockSignInWithOAuth.mockResolvedValue({ error: null });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("starts in loading state", () => {
@@ -247,6 +256,38 @@ describe("useAuth", () => {
     expect(mockSignInWithPassword).toHaveBeenCalledWith({
       email: "user@example.com",
       password: "secret"
+    });
+  });
+
+  it("signInWithGoogle sends Supabase the flatmates callback URL", async () => {
+    vi.stubEnv("VITE_AUTH_REDIRECT_URL", "");
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.signInWithGoogle("/swipe");
+    });
+
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=%2Fswipe`
+      }
+    });
+  });
+
+  it("signInWithApple sends Supabase the flatmates callback URL", async () => {
+    vi.stubEnv("VITE_AUTH_REDIRECT_URL", "");
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await result.current.signInWithApple("/home");
+    });
+
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: "apple",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=%2Fhome`
+      }
     });
   });
 

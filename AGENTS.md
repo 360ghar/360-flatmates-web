@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+> **Canonical guide: [CLAUDE.md](./CLAUDE.md).** Read it first for stack, structure, commands, and conventions.
+
 ## Project Structure & Module Organization
 
 ```
@@ -7,7 +9,7 @@ src/
   components/   # Shared UI components (atomic: ui/, molecules/, organisms/, landing/, onboarding/, page-clients/)
                 # Full-page components (LegalPage, PeopleGridPage) live in organisms/, not molecules/
   hooks/        # Custom React hooks + TanStack Query hooks (queries/)
-  lib/          # Utilities, API client, stores, schemas, SSE, compatibility engine, Supabase config
+  lib/          # Utilities, API client, stores, schemas, compatibility engine, Supabase config
                 # API types split into domain files under lib/api/types/ (common, user, property, conversation, visit, search, match, notification, admin)
                 # lib/api/types.ts re-exports all domain types for backward compatibility
   pages/        # React Router pages organized by domain (app/, auth/, admin/, public/)
@@ -62,7 +64,7 @@ npm run generate:static-html # Generate static HTML pages for crawlers (runs aft
 
 ## Architecture Overview
 
-Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time updates via SSE with BroadcastChannel multi-tab dedup. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
+Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time Flatmates updates use Supabase private Broadcast from the `/flatmates/bootstrap` realtime config. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
 
 ### Progressive Enhancement & SEO
 
@@ -137,7 +139,7 @@ Every page that fetches data must handle all three async states: **loading**, **
   - `searchStore` for filter state
   - `swipeStore` for animation direction
   - `mapStore` for viewport state
-  - All stores use **vanilla `createStore()`** pattern (not `create()` with hook wrapper) — this enables React-free consumption in SSE handlers, providers, and tests
+  - All stores use **vanilla `createStore()`** pattern (not `create()` with hook wrapper) — this enables React-free consumption in providers, integration hooks, and tests
 - **Never** mix server state into Zustand stores — let TanStack Query own the cache
 - **Optimistic updates**: use TanStack Query's `onMutate` + `onError` rollback pattern for mutations
 - **Account deletion**: `useDeleteAccount` (`src/hooks/queries/useProfiles.ts`) calls `DELETE /users/me` and clears the entire query cache (`queryClient.clear()`) on success. The Profile page handler then best-effort `signOut()`s (the backend already hard-deletes the Supabase user) and navigates to `/login`. The confirm modal requires typing `DELETE` exactly before the destructive button enables (see ui_ux.md §7.19).

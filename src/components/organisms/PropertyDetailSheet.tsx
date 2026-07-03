@@ -25,7 +25,7 @@ export function PropertyDetailSheet({ pin, onClose, onNavigate }: PropertyDetail
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <PriceText value={pin.monthly_rent ?? 0} variant="hero" />
+              <PriceText value={pin.monthly_rent} variant="hero" />
               <h3 className="mt-0.5 line-clamp-1 text-h4 font-semibold text-ink sm:text-h3">{pin.title}</h3>
               {pin.locality && (
                 <p className="mt-0.5 text-caption text-ink-3">{pin.locality}</p>

@@ -190,10 +190,10 @@
 <!-- Scene 06: Real-time (68.2-80.3s) -->
 <div class="clip" data-start="68.2" data-duration="12.1">
   <div class="eyebrow">Real-time</div>
-  <div class="h2">Server-Sent Events, not WebSockets.</div>
+  <div class="h2">Supabase private Broadcast.</div>
   <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
     <div style="display: flex; align-items: center; gap: 12px;">
-      <div class="node accent" style="min-width: 170px;">SSEConnectionManager</div><span class="arrow">--&gt;</span>
+      <div class="node accent" style="min-width: 170px;">useFlatmatesRealtime</div><span class="arrow">--&gt;</span>
       <div class="node">12 event types</div><span class="arrow">--&gt;</span>
       <div class="node">QueryClient cache</div>
     </div>
@@ -206,7 +206,7 @@
       <div class="card" style="flex: 1;"><div class="label">Multi-tab</div><div class="value" style="font-size: 19px;">BroadcastChannel</div></div>
     </div>
   </div>
-  <div class="footnote"><span>src/lib/sse/connection.ts</span><span>06 / 11</span></div>
+  <div class="footnote"><span>src/hooks/useFlatmatesRealtime.ts</span><span>06 / 11</span></div>
 </div>
 
 <!-- Scene 07: Auth (80.3-92.7s) -->
@@ -293,7 +293,7 @@
     <div class="eyebrow" style="text-align: center;">360 Flatmates</div>
     <div style="font-family: var(--serif); font-weight: 400; font-size: 46px; line-height: 1.05; letter-spacing: -0.02em; color: var(--ink); text-align: center;">Find your flatmate,<br><span style="font-family: var(--italic); font-style: italic; color: var(--accent);">not a nightmare.</span></div>
     <div style="margin-top: 36px; display: flex; gap: 8px;">
-      <div class="tag accent">6-dim compatibility</div><div class="tag neutral">SSE real-time</div><div class="tag neutral">prerendered SPA</div>
+      <div class="tag accent">6-dim compatibility</div><div class="tag neutral">Broadcast real-time</div><div class="tag neutral">prerendered SPA</div>
     </div>
     <div style="font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 36px;">github.com/360ghar/360-flatmates-web</div>
   </div>

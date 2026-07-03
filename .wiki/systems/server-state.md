@@ -28,7 +28,7 @@ new QueryClient({
 
 The decisions, in plain language:
 
-- **No refetch on window focus.** Returning to a tab does not silently refetch every query; explicit invalidation (mutations, SSE events) is the only thing that refreshes data.
+- **No refetch on window focus.** Returning to a tab does not silently refetch every query; explicit invalidation (mutations, Broadcast events, reconnect catch-up) is the thing that refreshes data.
 - **One retry for transient errors.** A network blip or 5xx gets a single retry. Auth errors are special: the [API client](api-client.md) already attempted a refresh-and-retry inside the request, so a second 401 here means the session is truly gone and we stop.
 - **60-second stale time.** Navigating between routes does not refetch data that was loaded less than a minute ago. High-churn surfaces override this per-query (`useWebSearch` and `useMapView` drop to 30s; `useCatalogs` raises to 30 minutes because the city/locality catalog is effectively static).
 
@@ -110,9 +110,9 @@ sequenceDiagram
 
 The chat send path (`useSendMessage`) is a deliberate variant: on error it does **not** roll back. Instead it leaves the optimistic bubble in place tagged `{ __optimistic: true }` so the user can retry, and only invalidates on success. Removing the bubble on a network error would make the user's text vanish. See [Messaging](../features/messaging.md) for the full flow.
 
-## SSE-driven invalidation
+## Broadcast-driven invalidation
 
-Real-time events arrive over Server-Sent Events and are dispatched into the same `QueryClient` cache by the SSE manager in `src/lib/sse/`. A `new_message` event writes into the relevant `["conversations", id, "messages", page]` page and invalidates `["conversations"]` so the list preview refreshes; a `visit_update` event invalidates `["visits"]`; a `swipe` or `new_match` event invalidates `["swipes", "deck"]` and `["matches"]`. Because every query key follows the scope conventions above, the SSE layer can invalidate by prefix without knowing the page parameter. See [Real-time](../features/real-time.md).
+Real-time events arrive over the Supabase private Broadcast channel from `/flatmates/bootstrap` and are dispatched into the same `QueryClient` cache by `src/hooks/useFlatmatesRealtime.ts`. A `new_message` event invalidates `["conversations"]` and the relevant message page; a `conversation_updated` event also refreshes message pages for read receipts; a `visit_updated` event invalidates `["visits"]`; a `new_match` event invalidates `["swipes", "deck"]`, `["matches"]`, likes, and conversations. Because every query key follows the scope conventions above, the realtime layer can invalidate by prefix without knowing every page parameter. See [Real-time](../features/real-time.md).
 
 ## Catalogs and other long-lived queries
 

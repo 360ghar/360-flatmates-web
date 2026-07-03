@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-Visits are the in-person step between a match and a move-in. After two flatmates connect in chat, either side can propose a property tour or a flatmate meet, pick a date, and track the visit through confirmation, reschedule, completion, and cancellation. This page covers the visit lifecycle, the host-versus-seeker views, the create, update, and cancel flows, and how SSE keeps both parties' lists in sync. For the chat that typically produces a visit, see [Messaging](messaging.md). For the listing the visit is booked against, see the listing management surface. For the real-time transport that delivers visit updates, see [Real-time updates](real-time.md).
+Visits are the in-person step between a match and a move-in. After two flatmates connect in chat, either side can propose a property tour or a flatmate meet, pick a date, and track the visit through confirmation, reschedule, completion, and cancellation. This page covers the visit lifecycle, the host-versus-seeker views, the create, update, and cancel flows, and how Supabase Broadcast keeps both parties' lists in sync. For the chat that typically produces a visit, see [Messaging](messaging.md). For the listing the visit is booked against, see the listing management surface. For the real-time transport that delivers visit updates, see [Real-time updates](real-time.md).
 
 ## Visit states and contexts
 
@@ -74,9 +74,9 @@ stateDiagram-v2
     cancelled --> [*]
 ```
 
-## Real-time refresh via SSE
+## Real-time refresh via Supabase Broadcast
 
-Both parties stay in sync without polling. The `useSSE` hook (`src/hooks/useSSE.ts`) handles a `visit_update` event by invalidating the `["visits"]` query key, which refetches both the list and any open detail view. When the host confirms a visit, the seeker's `visit_update` event fires, their cache invalidates, and the card flips from `pending` to `confirmed` without a manual refresh. The event payload carries the `visit_id`, `property_id`, `status`, and optional `scheduled_date`, but the UI treats it purely as an invalidation signal and refetches the authoritative record. See [Real-time updates](real-time.md) for the connection lifecycle, the BroadcastChannel dedup that relays the event to secondary tabs, and the primary-tab election.
+Both parties stay in sync without polling. `useFlatmatesRealtime` (`src/hooks/useFlatmatesRealtime.ts`) handles the backend `visit_updated` Broadcast event by invalidating the `["visits"]` query key and, when `visit_id` is present, `["visits", id]`. When the host confirms a visit, the seeker's `visit_updated` event fires, their cache invalidates, and the card flips from `requested` to `confirmed` after the authoritative refetch. The event payload carries `visit_id` and `status`, but the UI treats it purely as an invalidation signal. See [Real-time updates](real-time.md) for the connection lifecycle.
 
 ## Source-of-truth docs
 
@@ -93,4 +93,4 @@ This page summarizes the visit implementation. For the page-by-page spec of the 
 | `src/lib/api/visit.types.ts` | `Visit`, `VisitCreate`, `VisitUpdate`, `VisitCancel`, `VisitFilters` types |
 | `src/lib/schemas/visit.ts` | Zod schemas, flatmate-meet requires conversation and counterparty |
 | `src/lib/data/domain.ts` | `VISIT_STATUS_VALUES`, `VISIT_CONTEXT_VALUES`, `INTEREST_LEVEL_VALUES` enums |
-| `src/hooks/useSSE.ts` | SSE hook, `visit_update` invalidation of the visits query |
+| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast hook, `visit_updated` invalidation of the visits query |

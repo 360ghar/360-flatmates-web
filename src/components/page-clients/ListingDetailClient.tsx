@@ -195,7 +195,11 @@ export default function ListingDetailClient() {
                   <div className="mt-4 grid gap-4 sm:grid-cols-3">
                     <div className="rounded-xl border border-line bg-surface p-4 text-center">
                       <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Monthly Rent</p>
-                      <p className="text-h2 font-serif font-normal text-accent mt-1">{formatCurrencyINR(data.price)}</p>
+                      <p className="text-h2 font-serif font-normal text-accent mt-1">
+                        {typeof data.price === "number" && Number.isFinite(data.price) && data.price > 0
+                          ? formatCurrencyINR(data.price)
+                          : "Price on request"}
+                      </p>
                     </div>
                     <div className="rounded-xl border border-line bg-surface p-4 text-center">
                       <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Security Deposit</p>

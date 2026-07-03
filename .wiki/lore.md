@@ -10,7 +10,7 @@ By **2026-05-19** the focus shifted to the public surface and reliability. A sin
 
 ## Stabilization and standardization (May 19 to 20)
 
-**2026-05-20** was a consolidation day. Legacy compatibility modules were deprecated, the PWA was enhanced, and UI consistency was tightened (ca0a6bc). The `authStore` was migrated to the Zustand vanilla `createStore()` pattern with session and loading state (d487579), a deliberate choice so the store could be consumed from non-React code (SSE handlers, providers, tests). Zustand store patterns were then standardized across the codebase (d069942). The monolithic `src/lib/api/types.ts` was split into domain-specific files (f25f2cf), giving the repo the `types/common.types.ts`, `types/user.types.ts`, `types/property.types.ts`, and so on that it has today.
+**2026-05-20** was a consolidation day. Legacy compatibility modules were deprecated, the PWA was enhanced, and UI consistency was tightened (ca0a6bc). The `authStore` was migrated to the Zustand vanilla `createStore()` pattern with session and loading state (d487579), a deliberate choice so the store could be consumed from non-React code (integration hooks, providers, tests). Zustand store patterns were then standardized across the codebase (d069942). The monolithic `src/lib/api/types.ts` was split into domain-specific files (f25f2cf), giving the repo the `types/common.types.ts`, `types/user.types.ts`, `types/property.types.ts`, and so on that it has today.
 
 ## The rogue-agent incident (May 20)
 

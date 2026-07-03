@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-A conversation is a chat thread between two flatmates, and a message is a single line in that thread. The canonical types live in `src/lib/api/conversation.types.ts` (re-exported from `src/lib/api/types.ts`), and the TanStack Query hooks that fetch and mutate them live in `src/hooks/queries/useConversations.ts`. A conversation crosses the messaging surface, the real-time SSE surface (which delivers new messages), the visits surface (which links a flatmate-meet visit to its thread), and the compatibility surface (which ranks who you might want to start a conversation with).
+A conversation is a chat thread between two flatmates, and a message is a single line in that thread. The canonical types live in `src/lib/api/conversation.types.ts` (re-exported from `src/lib/api/types.ts`), and the TanStack Query hooks that fetch and mutate them live in `src/hooks/queries/useConversations.ts`. A conversation crosses the messaging surface, the Supabase Broadcast surface (which delivers new message invalidations), the visits surface (which links a flatmate-meet visit to its thread), and the compatibility surface (which ranks who you might want to start a conversation with).
 
 ## Conversation
 
@@ -61,7 +61,7 @@ interface MessageOut {
 
 - A negative temp id is minted for the optimistic message so it never collides with a real backend id (which are positive integers).
 - On error, the optimistic bubble is intentionally kept in cache and tagged as failed, so the user's text does not vanish on a network error. The user can retry from the failed bubble.
-- On success, the optimistic temp message is swapped in-place for the authoritative server message before invalidation, so the SSE echo that follows finds the real id already present and the user's own message never double-renders.
+- On success, the optimistic temp message is swapped in-place for the authoritative server message before invalidation, so the Broadcast echo that follows finds the real id already present and the user's own message never double-renders.
 - `onSettled` does not invalidate on error (which would refetch and wipe the failed bubble), only on success.
 
 ## Pagination
@@ -71,7 +71,7 @@ interface MessageOut {
 ## Related pages
 
 - [Messaging](../features/messaging.md) for the inbox, chat thread, QnA, and the schedule-visit-from-chat flow.
-- [Real-time updates](../features/real-time.md) for how SSE delivers new messages and conversation updates.
+- [Real-time updates](../features/real-time.md) for how Broadcast delivers new message and conversation invalidations.
 - [Flatmate profile](flatmate-profile.md) for the peer shape embedded in a conversation.
 
 ## Key source files

@@ -83,7 +83,7 @@ export function SeoHelmet({
   const image = ogImage ?? DEFAULT_OG_IMAGE;
   const ogImageAlt = ogImage
     ? `Preview image for ${title ?? SITE_NAME}`
-    : `${SITE_NAME} — ${SITE_TAGLINE}`;
+    : `${SITE_NAME} | ${SITE_TAGLINE}`;
 
   const organizationSchema = buildOrganizationSchema();
   const webSiteSchema = buildWebSiteSchema();

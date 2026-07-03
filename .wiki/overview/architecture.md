@@ -11,9 +11,8 @@ graph LR
     Query --> Client["HTTP API client"]
     Client --> Backend["FastAPI /api/v1"]
     Page --> Store["Zustand vanilla store<br/>(client state)"]
-    Provider["Providers"] --> SSE["SSE manager"]
-    SSE --> Backend
-    Backend --> SSE
+    Provider["Providers"] --> RT["Supabase Broadcast"]
+    Backend --> RT
     Provider --> Supabase["Supabase auth"]
     Supabase --> Provider
     Page --> Map["Leaflet maps"]
@@ -26,7 +25,7 @@ graph LR
 | `index.html` | Document shell, font links, flash-prevention theme script, PWA manifest link |
 | `src/entry.tsx` | Validates env, mounts `<App />` into `#root`, registers the service worker |
 | `src/App.tsx` | Declares the `<Routes>` tree with lazy-loaded pages and four layouts |
-| `src/providers.tsx` | Wraps the app in QueryClientProvider, NuqsAdapter, auth/SSE/theme wiring |
+| `src/providers.tsx` | Wraps the app in QueryClientProvider, NuqsAdapter, auth/realtime/theme wiring |
 
 `src/App.tsx` is the canonical map of every route in the app. It declares four layout wrappers:
 
@@ -67,11 +66,11 @@ The codebase enforces a hard boundary between two state stores. Mixing them is a
 | TanStack Query | Server data (anything that comes from `/api/v1`) | `src/hooks/queries/` | `useMyProfile()`, `useSwipeDeck()` |
 | Zustand vanilla stores | Client-only UI state (toggles, drafts, preferences, viewport) | `src/lib/stores/` | `uiStore.theme`, `searchStore.filters` |
 
-Zustand stores use the `createStore()` pattern (not `create()` with a hook wrapper) so they can be consumed from non-React code: SSE handlers in `src/lib/sse/`, the provider effect in `src/providers.tsx`, and tests. React components read them with `useStore(store, selector)`. See [State management](../systems/state-management.md).
+Zustand stores use the `createStore()` pattern (not `create()` with a hook wrapper) so they can be consumed from non-React code: realtime integration hooks, provider effects in `src/providers.tsx`, and tests. React components read them with `useStore(store, selector)`. See [State management](../systems/state-management.md).
 
 ## Real-time updates
 
-Real-time data flows over Server-Sent Events, not WebSockets. The `SSEConnectionManager` class in `src/lib/sse/connection.ts` opens an `EventSource`, listens for twelve named event types (`notification`, `message`, `visit_update`, `swipe`, `new_match`, `new_message`, and so on), and dispatches each into the QueryClient cache. A `BroadcastChannel` in `src/lib/sse/broadcast.ts` dedupes events across browser tabs so a notification opened in one tab does not re-appear in another. See [Real-time](../features/real-time.md).
+Real-time data flows over Supabase private Broadcast channels configured by `/flatmates/bootstrap`. `src/hooks/useFlatmatesRealtime.ts` authorizes Supabase Realtime with the current access token, subscribes to the user's private channel, listens for six backend event types, and dispatches each into the QueryClient cache as an invalidation signal. See [Real-time](../features/real-time.md).
 
 ## Authentication and token handling
 

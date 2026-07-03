@@ -32,7 +32,10 @@ function NetworkImageInner({
       <div
         aria-label={alt}
         role="img"
-        className={cn("flex h-full w-full items-center justify-center bg-paper-2 text-ink-3", wrapperClassName)}
+        className={cn(
+          "flex items-center justify-center bg-paper-2 text-ink-3",
+          wrapperClassName ?? "h-full w-full"
+        )}
       >
         {fallback ?? <ImageIcon aria-hidden="true" className="h-6 w-6" />}
       </div>
@@ -40,7 +43,7 @@ function NetworkImageInner({
   }
 
   return (
-    <span className={cn("relative block h-full w-full overflow-hidden bg-paper-2", wrapperClassName)}>
+    <span className={cn("relative block overflow-hidden bg-paper-2", wrapperClassName ?? "h-full w-full")}>
       <img
         alt={alt}
         className={cn("object-cover absolute inset-0 h-full w-full", className)}
@@ -73,7 +76,10 @@ export function NetworkImage({
       <div
         aria-label={alt}
         role="img"
-        className={cn("flex h-full w-full items-center justify-center bg-paper-2 text-ink-3", wrapperClassName)}
+        className={cn(
+          "flex items-center justify-center bg-paper-2 text-ink-3",
+          wrapperClassName ?? "h-full w-full"
+        )}
       >
         {fallback ?? <ImageIcon aria-hidden="true" className="h-6 w-6" />}
       </div>
@@ -97,4 +103,3 @@ export function NetworkImage({
     />
   );
 }
-

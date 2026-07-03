@@ -6,9 +6,7 @@ import {
   BedDouble,
   CalendarCheck,
   CheckCircle,
-  Heart,
   Home,
-  MapPin,
   MessageSquareText,
   Moon,
   ShieldCheck,
@@ -50,12 +48,6 @@ export interface StepItem {
   title: string;
   description: string;
   icon: LucideIcon;
-}
-
-export interface StatItem {
-  display: string;
-  label: string;
-  numericValue: number;
 }
 
 export interface TestimonialItem {
@@ -163,13 +155,6 @@ export const STEPS: StepItem[] = [
   },
 ];
 
-export const STATS: StatItem[] = [
-  { display: "8,600+", label: "Matches made", numericValue: 8600 },
-  { display: "1,800+", label: "Verified rooms", numericValue: 1800 },
-  { display: "86%", label: "Avg. match score", numericValue: 86 },
-  { display: "2", label: "Cities live", numericValue: 2 },
-];
-
 export const TESTIMONIALS: TestimonialItem[] = [
   {
     quote:
@@ -241,37 +226,3 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Hit the report button on any listing or profile. Our team reviews it within 24 hours.",
   },
 ];
-
-/* ─────────────────────────────────────────────
-   Hero mini-card data
-   ───────────────────────────────────────────── */
-
-export const HERO_MINI_CARDS = [
-  {
-    type: "listing" as const,
-    price: "₹18,000/mo",
-    title: "Sunlit room in Koramangala",
-    location: "Koramangala 4th Block",
-    match: 86,
-  },
-  {
-    type: "compatibility" as const,
-    score: 92,
-    label: "Match Score",
-  },
-  {
-    type: "chat" as const,
-    message: "Hey! Saw we're a 92% match 😄",
-    time: "2m ago",
-  },
-  {
-    type: "verified" as const,
-    label: "Verified Profile",
-  },
-];
-
-/* ─────────────────────────────────────────────
-   Re-exports used by hero mini-cards
-   ───────────────────────────────────────────── */
-
-export { Heart, MapPin };

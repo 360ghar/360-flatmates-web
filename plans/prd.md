@@ -2,7 +2,7 @@
 
 ## Context
 
-The 360 Flatmates mobile app (Flutter) has 27+ screens, 38+ API endpoints, Supabase Auth, real-time SSE, swipe deck, chat, visits, listings, and an 8-step onboarding flow. The web application is a **greenfield project** -- the repo at `360-flatmates-web` contains only an OpenAPI spec file and empty placeholder files. This PRD defines the complete product and technical specification for building a Vite + React Router v7 SPA that replicates all mobile features and adds web-specific features (advanced search, saved searches, analytics dashboard, etc.) using the existing backend API.
+The 360 Flatmates mobile app (Flutter) has 27+ screens, 38+ API endpoints, Supabase Auth, real-time messaging, swipe deck, chat, visits, listings, and an 8-step onboarding flow. The web application is a **greenfield project** -- the repo at `360-flatmates-web` contains only an OpenAPI spec file and empty placeholder files. This PRD defines the complete product and technical specification for building a Vite + React Router v7 SPA that replicates all mobile features and adds web-specific features (advanced search, saved searches, analytics dashboard, etc.) using the existing backend API.
 
 > **Architecture note:** The project was originally specified as Next.js but implemented as a Vite 8 + React Router v7 client-side SPA. All pages are CSR. SEO for public pages should be addressed via pre-rendering (e.g., prerender spa plugin) or a separate SSR layer if needed in future.
 
@@ -162,7 +162,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 4. Q&A answers displayed if both parties completed (collapsible)
 5. Match context card pinned at top (property photo, mode, locality, rent)
 6. Icebreaker suggestions and Q&A nudge in pre-message area
-7. Real-time messages via SSE (`/flatmates/sse`) with 5-second polling fallback
+7. Real-time messages via Supabase private Broadcast from the bootstrap realtime config
 8. Message types: text, image (upload via backend API/Cloudinary), visit_request
 9. Schedule Visit: Calendar date picker (up to 90 days) + time slot chips (Morning/Afternoon/Evening) + optional note -> `POST /visits` + sends chat message with `message_type=visit_request`
 10. Visit request card renders in chat thread with Confirm/Reschedule/Cancel actions
@@ -182,7 +182,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
    - Step 7: Review (summary of all data, jump back to any step)
 2. `POST /properties` -> listing enters 24hr review (AI pre-screen runs first)
 3. Navigate to listing review page: status (pending_review/rejected), 3-step progress indicator, "What happens next" steps
-4. SSE `listing_status_changed` event auto-refreshes status
+4. Realtime `listing_status_changed` event auto-refreshes status
 5. Manage listings at `/manage`: segmented tabs (Active/Pending/Drafts/Paused/Expired) with Pause/Resume, Share, Edit, View Stats, Renew actions. Rejected listings visible inside Expired tab with a "Rejected" badge.
 6. Room Poster Dashboard at `/dashboard`: total listings, views/likes/conversations/visits per listing (30d), boost status
 
@@ -192,7 +192,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 2. Visits page at `/visits`: Timeline view with sections (Confirmed, Requested, Completed)
 3. Visit actions: Confirm (`PUT /visits/{id}`), Reschedule (`POST /visits/{id}/reschedule`), Cancel (`POST /visits/{id}/cancel`), Complete (`POST /visits/{id}/complete`)
 4. Visit types: `flatmate_meet` (requires conversation_id + counterparty_user_id), `property_tour`
-5. SSE `visit_updated` event refreshes visit data
+5. Realtime `visit_updated` event refreshes visit data
 
 ### 4.8 Profile & Settings Flow
 
@@ -213,7 +213,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 3. Tap notification: mark as read (`PUT /flatmates/notifications/{id}`) + navigate via route field
 4. Mark all read: `PUT /flatmates/notifications`
 5. FCM web push: `POST /notifications/devices/register` with `platform: 'web'`
-6. SSE `new_notification` event increments badge + shows toast
+6. Realtime `new_notification` event increments badge + shows toast
 
 ### 4.10 Admin Moderation Flow
 
@@ -236,7 +236,7 @@ Draft persisted to localStorage (survives tab close). Key: `360-flatmates-onboar
 | Hybrid Swipe Deck (collapsed + expanded) | Keyboard shortcuts + mouse drag + click action bar; expanded view in right-panel drawer |
 | Compatibility Engine (6-dimension scoring) | Client-side calculation identical to mobile, same weights and thresholds |
 | Listing Builder (8-step) | Multi-step form with React Hook Form + Zod, same validation rules |
-| Chat with Real-time Updates | SSE for message streaming, 5s polling fallback |
+| Chat with Real-time Updates | Supabase private Broadcast for message updates; no interval refetch fallback |
 | Visit Scheduling/Confirmation | Calendar date picker + time slot pills, same as mobile |
 | Match Flow + Q&A Nudge | Match celebration modal, Q&A bottom sheet |
 | Notifications | In-app notification center + FCM web push |
@@ -433,7 +433,7 @@ Small, focused stores for ephemeral UI state only:
 | `useAuthStore` | `user`, `session`, `isAuthenticated`, `isLoading` |
 | `useOnboardingStore` | `currentStep`, `draftData`, `isSubmitting`, `resumedStep` |
 | `useSwipeStore` | `currentIndex`, `deck`, `isExpanded`, `isAnimating` |
-| `useChatStore` | `activeConversationId`, `isTyping`, `sseConnected` |
+| `useChatStore` | `activeConversationId`, `draftMessages`, `isTyping`, `showInfoPanel` |
 | `useUIStore` | `sidebarOpen`, `theme`, `palette`, `locale`, `activeModal` |
 | `useMapStore` | `center`, `zoom`, `bounds`, `selectedPin`, `filters` |
 | `useSearchStore` | `filters`, `sortBy`, `searchType`, `savedSearchName` |
@@ -466,11 +466,11 @@ This enables deep linking, browser back/forward, and shareable search URLs.
 
 ## 9. Real-time Strategy
 
-### 9.1 SSE for Event Streaming
+### 9.1 Supabase Broadcast for Event Streaming
 
-The web app uses Server-Sent Events (`GET /flatmates/sse?token={access_token}`) as the primary real-time channel, not Supabase Realtime (which the mobile app uses). SSE is simpler for web, works through proxies, and does not require WebSocket connections. Since SSE does not support custom headers, the Bearer token is passed as a query parameter. Connection uses `EventSource` polyfill with query param auth. Token refreshed on rotation by closing and reconnecting SSE.
+The web app uses Supabase Realtime private Broadcast channels supplied by the `/flatmates/bootstrap` realtime config. The client authorizes Realtime with the Supabase access token, subscribes to the configured private channel, and invalidates TanStack Query caches from broadcast events. No legacy backend stream endpoint is used.
 
-**SSE Event Types:**
+**Realtime Broadcast Event Types:**
 - `new_match` -- refresh matches list, show toast
 - `new_message` -- append to active chat if conversation is open, otherwise increment unread badge
 - `conversation_updated` -- refresh conversation list
@@ -480,19 +480,16 @@ The web app uses Server-Sent Events (`GET /flatmates/sse?token={access_token}`) 
 
 ### 9.2 Connection Management
 
-- SSE connection established after successful auth
+- Supabase Realtime channel subscription established after successful auth and active bootstrap config
 - Auto-reconnect with exponential backoff (1s, 2s, 4s, 8s, max 30s)
-- Connection status tracked in `useChatStore.sseConnected`
+- Connection status tracked in `uiStore.realtimeState`
 - Visual indicator when real-time is disconnected
 - On reconnect: invalidate relevant TanStack Query caches to catch up
-- **Multi-tab deduplication**: SSE connection managed via `BroadcastChannel` API. Primary tab holds the SSE connection; secondary tabs receive events via the channel. On primary tab close, next tab establishes SSE. Prevents duplicate connections and 503 "too many subscribers" errors.
+- Supabase Realtime manages socket multiplexing; no custom primary-tab election is required.
 
-### 9.3 Chat Fallback
+### 9.3 No Chat Polling Fallback
 
-If SSE is unavailable (503 response, connection timeout > 10s), fall back to 5-second polling:
-- `GET /flatmates/conversations/{id}/messages?before={lastMessageId}` on active chat
-- `GET /flatmates/conversations` for conversation list refresh
-- Polling interval: 5 seconds for active chat, 15 seconds for conversation list
+Realtime failures surface through the generic realtime status indicator while the hook reconnects with backoff. Do not add interval-based chat or conversation-list refetching as a fallback.
 
 ### 9.4 Optimistic Message Send
 
@@ -535,12 +532,12 @@ Seven pages are fully indexable by search engines:
 
 | Route | Strategy |
 |-------|----------|
-| `/discover` | TanStack Query staleTime 5min + SSE invalidation on listing update |
-| `/discover/[id]` | TanStack Query staleTime 10min + SSE on-demand invalidation on listing update |
+| `/discover` | TanStack Query staleTime 5min + realtime invalidation on listing update |
+| `/discover/[id]` | TanStack Query staleTime 10min + realtime on-demand invalidation on listing update |
 | `/stats` | TanStack Query staleTime 15min |
 | `/` (landing) | TanStack Query staleTime 24hr |
 
-On-demand revalidation: when a listing is approved, updated, or paused, the SSE `property_update` event invalidates the `properties` and `discover` query keys.
+On-demand revalidation: when a listing is approved, updated, or paused, the realtime `listing_status_changed` event invalidates related property and dashboard query keys.
 
 ---
 
@@ -733,7 +730,7 @@ Client-side handling: TanStack Query retry with exponential backoff on 429. UI s
 | Notifications | `GET/PUT /flatmates/notifications`, `PUT /flatmates/notifications/{id}`, `POST /notifications/devices/register`, `POST /notifications/devices/unregister` | Required |
 | Blocks & Reports | `GET/POST /flatmates/blocks`, `DELETE /flatmates/blocks/{id}`, `POST /flatmates/reports` | Required |
 | Interactions | `POST /flatmates/profile-views`, `POST /flatmates/listings/{id}/society-tags/votes` | Required |
-| SSE | `GET /flatmates/sse` | Required |
+| Realtime config | `/flatmates/bootstrap` payload `realtime` | Required |
 | Admin Moderation | `GET /flatmates/moderation/listings`, `PUT /flatmates/moderation/listings/{id}`, `GET /flatmates/moderation/reports`, `PUT /flatmates/moderation/reports/{id}`, `POST /flatmates/moderation/prescreen/{id}` | Required + Admin |
 | Web Discovery | `GET /flatmates/web/search`, `GET/POST /flatmates/web/saved-searches`, `GET/PUT/DELETE /flatmates/web/saved-searches/{id}`, `POST /flatmates/web/saved-searches/{id}/run`, `GET/POST /flatmates/web/alerts`, `PUT/DELETE /flatmates/web/alerts/{id}`, `GET /flatmates/web/map`, `GET /flatmates/web/stats`, `GET /flatmates/web/listings/{id}/share-card`, `GET /flatmates/web/listings/{id}/analytics`, `GET /flatmates/web/dashboard`, `GET /flatmates/web/compatibility/{user_id}` | Mixed |
 
@@ -864,7 +861,7 @@ AppError (base)
 | Form field error | Inline below field | Red text with error icon, scroll to first error on submit |
 | Network offline | Banner overlay | Persistent "You are offline" banner at top of viewport |
 | Auth expired | Redirect to `/login` | Preserves redirect target, shows "Session expired" message |
-| SSE disconnect | Subtle indicator | Small icon in chat header indicating "Messages may be delayed" |
+| Realtime disconnect | Subtle indicator | Small icon in chat header indicating "Messages may be delayed" |
 
 ### 16.3 Banned Patterns
 
@@ -1020,7 +1017,7 @@ All events follow `object_action` naming with a consistent property schema:
         dimensions.ts             # Dimension definitions and weights
         types.ts
       hooks/                       # Custom React hooks
-        use-sse.ts                 # SSE connection management
+        use-flatmates-realtime.ts  # Supabase Broadcast subscription
         use-keyboard-swipe.ts      # Keyboard shortcut handler
         use-optimized-scroll.ts   # Virtual scrolling for chat
         use-intersection-loader.ts # Infinite scroll pagination
@@ -1114,7 +1111,7 @@ Validation: Use `zod` to validate all env vars at app startup. Invalid/missing r
 - Swipe deck (desktop-adapted with keyboard + mouse + action bar)
 - Compatibility engine (6-dimension client-side scoring)
 - Likes tab with profile grid cards and Match CTA
-- Chat thread with SSE real-time + 5s polling fallback
+- Chat thread with Supabase Broadcast real-time updates
 - Match flow with Q&A nudge
 - Visit scheduling from chat
 - Mode-dependent sidebar navigation
@@ -1326,7 +1323,7 @@ On every pull request:
 - **Preview**: Per-PR deployment on Vercel preview URL
 - **Production**: Deploy on merge to `main` branch
 - **Branch naming**: `feature/*`, `fix/*`, `chore/*`
-- **On-demand cache revalidation**: SSE `property_update` event from FastAPI on listing status change triggers TanStack Query invalidation
+- **On-demand cache revalidation**: Supabase Broadcast `listing_status_changed` event from FastAPI on listing status change triggers TanStack Query invalidation
 
 ### 25.3 Environment Strategy
 
@@ -1394,7 +1391,7 @@ Client-side calculation from cached profile data. No server call per swipe. The 
 1. **Type Generation**: Run `openapi-typescript docs/flatmates-openapi.yaml -o lib/api/types.ts` and verify no errors
 2. **Auth Flow**: Test phone OTP login -> bootstrap -> onboarding redirect -> home feed cycle
 3. **Public SEO**: Verify listing pages are indexable (view page source, check meta tags, JSON-LD, canonical URLs)
-4. **SSE Connection**: Verify real-time events flow (new message appears in chat, match notification shows toast)
+4. **Realtime Broadcast**: Verify real-time events flow (new message appears in chat, match notification shows toast)
 5. **Swipe Deck**: Test keyboard shortcuts (Left/Right/Up), mouse drag, expanded drawer
 6. **Responsive**: Test at 375px (mobile), 768px (tablet), 1280px (desktop), 1440px (wide)
 7. **Dark Mode**: Toggle dark mode, verify all pages render with warm charcoal palette

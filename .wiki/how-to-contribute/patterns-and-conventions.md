@@ -7,7 +7,7 @@ The rules every contributor must follow. These are summarized from [CLAUDE.md](.
 - Strict mode, always. `tsconfig.json` sets `"strict": true` and ESLint enforces `@typescript-eslint/no-explicit-any: error`.
 - No `any` types. If you genuinely cannot type something, justify it in a comment and use `unknown` with a narrowing guard.
 - Unused vars are a warning with `_`-prefixed ignores for intentional skips.
-- Target is ES2022. Native `fetch`, `URL`, `EventSource`, `BroadcastChannel`, `crypto` are all available; do not polyfill.
+- Target is ES2022. Native `fetch`, `URL`, and `crypto` are available; do not polyfill.
 
 ## Styling
 
@@ -40,7 +40,7 @@ Use `<AsyncView>` from `src/components/ui/StateViews.tsx` for simple flows. The 
 | Hooks in `src/hooks/queries/` | Stores in `src/lib/stores/` |
 | Mutations with optimistic update + rollback | Vanilla `createStore()` (not `create()`) |
 
-Never mirror server state into a Zustand store. Never `useEffect + useState` for a fetch, always a Query hook. The vanilla `createStore()` pattern is mandatory so stores can be read from non-React code (SSE handlers, providers, tests).
+Never mirror server state into a Zustand store. Never `useEffect + useState` for a fetch, always a Query hook. The vanilla `createStore()` pattern is mandatory so stores can be read from non-React code (integration hooks, providers, tests).
 
 ## Routing and code splitting
 

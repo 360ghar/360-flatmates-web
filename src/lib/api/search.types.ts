@@ -49,7 +49,7 @@ export interface SearchFilters {
 
 export interface WebSearchResponse {
   results: Array<Property | FlatmatesPeer>;
-  total: number;
+  total?: number;
   next_cursor: string | null;
   has_more: boolean;
   limit: number;

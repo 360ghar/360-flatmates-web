@@ -8,18 +8,13 @@ Commit 871c95a on 2026-05-20 literally says "revert: undo unauthorized rogue age
 
 This is a warning sign for AI-assisted workflows. The agent in question left no co-authorship trailer (which is why [by the numbers](by-the-numbers.md) records zero bot-attributed commits), and its involvement is only visible because the damage had to be undone in a later commit. The lesson the codebase internalized: load-bearing modules like the compatibility engine deserve their own boundary and their own test coverage, so an unauthorized deletion fails loudly instead of silently. See the [lore entry](lore.md#the-rogue-agent-incident-may-20) for the full timeline.
 
-## The SSE token-in-URL trade-off
+## The realtime transport was simplified
 
-`src/lib/sse/connection.ts` carries a detailed SECURITY NOTE explaining a deliberate compromise. The browser `EventSource` API does not support custom headers, so the auth token cannot be sent in an `Authorization` header the way a `fetch` request would. The workaround is to pass the token as a URL query parameter on the EventSource URL.
+The Flatmates realtime layer used to maintain a custom backend stream and a frontend primary-tab election. That stack was removed when the backend and mobile app standardized on Supabase private Broadcast.
 
-The note lists the mitigations that make this acceptable:
+The current web client gets a small realtime config from `/flatmates/bootstrap`, calls `supabase.realtime.setAuth(session.access_token)`, subscribes to `flatmates:user:{id}`, and treats each Broadcast payload as a TanStack Query invalidation hint.
 
-- The token is short-lived (a Supabase JWT with refresh rotation).
-- The token is URL-encoded to prevent injection.
-- The server should not log the full query string in production.
-- `Referrer-Policy: no-referrer` prevents token leakage via the `Referer` header.
-
-The note also names the alternative: drop `EventSource` entirely and use `fetch()` plus a `ReadableStream` to parse SSE manually, which would allow an `Authorization` header and avoid the risk, at the cost of a custom SSE parser. The team chose the simpler path with mitigations. See [real-time updates](features/real-time.md) for the full SSE architecture.
+The interesting part is what disappeared: no backend stream endpoint, no token in a stream URL, no custom heartbeat parser, and no frontend multi-tab primary election. See [real-time updates](features/real-time.md) for the current architecture.
 
 ## The Playwright-as-prerender hack
 
@@ -40,5 +35,5 @@ As of 2026-06-18, the `src/` directory contains **zero** `TODO`, `FIXME`, or `HA
 ## Related pages
 
 - [Lore](lore.md) for the full timeline, including more on the rogue-agent revert.
-- [Real-time updates](features/real-time.md) for the SSE architecture behind the token-in-URL note.
+- [Real-time updates](features/real-time.md) for the Supabase Broadcast architecture.
 - [SEO and prerendering](features/seo-prerendering.md) for the prerender pipeline behind the Playwright hack.

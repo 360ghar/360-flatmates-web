@@ -5,11 +5,11 @@ Features are cross-cutting user-visible and developer-visible capabilities. They
 ## Compatibility and matching
 
 - [Compatibility matching](compatibility-matching/index.md) - the six-dimension lifestyle engine, scoring, and ranking. Includes a sub-page on the [swipe deck](compatibility-matching/swipe-deck.md).
-- [Likes and matches](likes-and-matches.md) - the incoming-likes and matches inboxes, unmatch flow, SSE-driven refetch.
+- [Likes and matches](likes-and-matches.md) - the incoming-likes and matches inboxes, unmatch flow, Broadcast-driven refetch.
 
 ## Communication
 
-- [Messaging](messaging.md) - conversation list, chat thread, optimistic send, SSE invalidation.
+- [Messaging](messaging.md) - conversation list, chat thread, optimistic send, Broadcast invalidation.
 - [Visits](visits.md) - visit scheduling lifecycle, host and seeker views, status transitions.
 
 ## Listing and management
@@ -30,7 +30,7 @@ Features are cross-cutting user-visible and developer-visible capabilities. They
 
 ## Infrastructure
 
-- [Real-time updates](real-time.md) - SSE connection manager, twelve event types, BroadcastChannel dedup.
+- [Real-time updates](real-time.md) - Supabase private Broadcast subscription, six event types, reconnect catch-up.
 - [Push notifications](push-notifications.md) - FCM web push, VAPID, notification preferences, search alerts.
 - [SEO and prerendering](seo-prerendering.md) - build-time prerendering, sitemap, JSON-LD, meta tags.
 - [PWA and install](pwa-install.md) - service worker, manifest, install banner, iOS guide.

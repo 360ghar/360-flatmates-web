@@ -13,7 +13,7 @@ export function MapZoomControls({
   onLocate,
 }: MapZoomControlsProps) {
   return (
-    <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
+    <div className="absolute bottom-4 right-4 z-[var(--z-raised)] flex flex-col gap-2">
       <Button
         aria-label="Zoom in"
         size="icon"

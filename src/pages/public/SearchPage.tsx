@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, SelectField } from "@/components/ui/Input";
 import { EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/Layout";
 import { BottomSheet } from "@/components/ui/Modal";
 
 const breadcrumb = [{ name: "Search", item: `${SITE_URL}/search` }];
@@ -65,7 +66,18 @@ export function SearchPage() {
     () => ({
       q: params.q || undefined,
       city: cities?.find((c) => c.id === params.city)?.name,
-      bedrooms_min: params.bedrooms ? Number(params.bedrooms) : undefined,
+      // "4+" is an open-ended BHK filter (no upper bound); numeric strings
+      // are exact. Avoids Number("4+") → NaN leaking into the query.
+      bedrooms_min:
+        params.bedrooms === "4+"
+          ? 4
+          : params.bedrooms
+            ? Number(params.bedrooms)
+            : undefined,
+      bedrooms_max:
+        params.bedrooms && params.bedrooms !== "4+"
+          ? Number(params.bedrooms)
+          : undefined,
       amenities: params.amenities.length > 0 ? params.amenities : undefined,
       price_min: params.priceMin ?? undefined,
       price_max: params.priceMax ?? undefined,
@@ -80,6 +92,7 @@ export function SearchPage() {
     isError,
     error,
     isFetching,
+    isPlaceholderData,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -97,13 +110,6 @@ export function SearchPage() {
   // NOTE: We deliberately do NOT mirror URL params into the persisted
   // `searchStore` here. Doing so poisons the map filter on next reload
   // because the store is shared across surfaces (search ↔ map).
-
-  // Record a successful, non-empty text query into recent searches.
-  useEffect(() => {
-    if (params.q && searchResults?.pages[0]?.total) {
-      addRecentSearch(params.q);
-    }
-  }, [params.q, searchResults, addRecentSearch]);
 
   // Reset scroll to top when the filter set changes (UX parity with ExplorePage).
   useEffect(() => {
@@ -135,6 +141,15 @@ export function SearchPage() {
   }, [searchResults]);
 
   const totalResults = searchResults?.pages[0]?.total ?? listings.length;
+  const hasSettledSearchResults =
+    !isPlaceholderData && !isFetching && !isError && totalResults > 0;
+
+  // Record a successful, non-empty text query into recent searches.
+  useEffect(() => {
+    if (params.q && hasSettledSearchResults) {
+      addRecentSearch(params.q);
+    }
+  }, [params.q, hasSettledSearchResults, addRecentSearch]);
 
   const filterSections: FilterSection[] = useMemo(
     () => [
@@ -234,20 +249,16 @@ export function SearchPage() {
 
       <main id="main" className="page-fade mx-auto max-w-7xl px-4 py-6 md:px-6">
         {/* Title Header */}
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-6">
-          <div>
-            <h1 className="text-display font-serif font-normal text-3xl leading-none text-ink">Search Listings</h1>
-            <p className="text-body-md text-ink-3 mt-1">Find verified properties by query, budget, city, or configuration.</p>
-          </div>
-          <Button
-            variant="secondary"
-            size="compact"
-            onClick={() => navigate("/saved-searches")}
-            className="self-start md:self-auto rounded-xl"
-          >
-            Saved Searches
-          </Button>
-        </div>
+        <PageHeader
+          title="Search Listings"
+          description="Find verified properties by query, budget, city, or configuration."
+          className="mb-6"
+          actions={
+            <Button variant="secondary" size="compact" onClick={() => navigate("/saved-searches")} className="rounded-xl">
+              Saved Searches
+            </Button>
+          }
+        />
 
         {/* Unified Search & Quick Filter Bar */}
         <div className="flex flex-wrap items-center gap-3 border border-line bg-surface p-3 rounded-2xl mb-6 shadow-xs">
@@ -345,8 +356,8 @@ export function SearchPage() {
         )}
 
         {/* Listings Container */}
-        <div className="flex flex-col min-w-0 h-full border border-line rounded-2xl bg-surface shadow-sm overflow-hidden min-h-[550px]">
-          <div className="flex items-center justify-between border-b border-line px-5 py-3 bg-paper-2/30 shrink-0">
+        <div className="flex flex-col min-w-0 min-h-[550px] gap-4">
+          <div className="flex items-center justify-between">
             <span
               className="flex items-center gap-2 text-eyebrow text-ink-3 tracking-widest uppercase"
               aria-live="polite"
@@ -365,18 +376,12 @@ export function SearchPage() {
                 </>
               )}
             </span>
-            <button
-              onClick={() => navigate("/saved-searches")}
-              className="text-body-sm font-semibold text-accent hover:underline"
-            >
-              Save search
-            </button>
           </div>
 
           {/* Scrolling list */}
-          <div id="listings-scroll-container" className="flex-1 p-4 md:p-6 bg-paper-2/10">
+          <div id="listings-scroll-container" className="flex-1">
             {isLoading && listings.length === 0 ? (
-              <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {Array.from({ length: 8 }, (_, i) => (
                   <Skeleton key={i} variant="listingCard" />
                 ))}
@@ -401,7 +406,7 @@ export function SearchPage() {
                 onAction={handleClearFilters}
               />
             ) : (
-              <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {listings.map((listing, index) => (
                   <div
                     key={listing.id}

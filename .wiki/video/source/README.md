@@ -28,8 +28,8 @@ npm install
 # 2. Lint the composition
 npx hyperframes lint .
 
-# 3. Render the visual-only video (medium quality)
-npx hyperframes render . -o out/visual.mp4 --fps 24 --quality medium --no-browser-gpu
+# 3. Render the visual-only video (standard quality)
+npx hyperframes render . -o out/visual.mp4 --fps 24 --quality standard --no-browser-gpu
 
 # 4. Regenerate narration if script.txt changed
 edge-tts --voice en-US-AriaNeural --rate "+0%" \
