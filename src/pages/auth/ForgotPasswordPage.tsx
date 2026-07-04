@@ -16,6 +16,8 @@ import { authStore } from "@/lib/stores/auth-store";
 import { uiStore } from "@/lib/stores/ui-store";
 import { normalizePhone } from "@/lib/redirect";
 import { PASSWORD_POLICY_HELPER_TEXT, PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
+import { checkIdentifierStatus } from "@/lib/api/auth";
+import { mapSupabaseAuthError, NO_ACCOUNT_FOUND_MESSAGE } from "@/lib/authErrors";
 
 /**
  * Password reset — 6-digit OTP for BOTH channels (decision 1).
@@ -101,12 +103,17 @@ export function ForgotPasswordPage() {
     setSubmitting(true);
     const target = channel === "phone" ? normalizePhone(input) : input.trim();
     try {
+      const status = await checkIdentifierStatus(target);
+      if (!status.exists) {
+        setError(NO_ACCOUNT_FOUND_MESSAGE);
+        return;
+      }
       await sendResetOtp(target);
       setIdentifier(target);
       setStep("verify");
       resendTimer.start();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to send code. Please try again.");
+      setError(mapSupabaseAuthError(err, "forgot_password"));
     } finally {
       setSubmitting(false);
     }
@@ -119,7 +126,7 @@ export function ForgotPasswordPage() {
       await sendResetOtp(identifier);
       resendTimer.start();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to resend code. Please try again.");
+      setError(mapSupabaseAuthError(err, "forgot_password"));
     } finally {
       setResending(false);
     }

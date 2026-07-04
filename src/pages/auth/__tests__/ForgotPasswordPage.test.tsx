@@ -19,6 +19,16 @@ vi.mock("@/lib/lastAuthMethod", () => ({
   maskIdentifier: (v: string) => v,
 }));
 
+const mockCheckIdentifierStatus = vi.fn();
+
+vi.mock("@/lib/api/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api/auth")>();
+  return {
+    ...actual,
+    checkIdentifierStatus: (...args: unknown[]) => mockCheckIdentifierStatus(...args),
+  };
+});
+
 const mockSignInWithPhone = vi.fn();
 const mockSignInWithEmailOtp = vi.fn();
 const mockVerifyOtp = vi.fn();
@@ -44,6 +54,13 @@ const VALID_PASSWORD = "Password1!";
 describe("ForgotPasswordPage — OTP reset for both channels (decision 1)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCheckIdentifierStatus.mockResolvedValue({
+      exists: true,
+      verified: true,
+      has_password: true,
+      channel: "email",
+      next_step: "password",
+    });
     mockSignInWithPhone.mockResolvedValue(undefined);
     mockSignInWithEmailOtp.mockResolvedValue(undefined);
     mockVerifyOtp.mockResolvedValue(undefined);

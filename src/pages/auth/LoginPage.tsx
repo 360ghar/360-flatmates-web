@@ -18,6 +18,7 @@ import { getLastAuthMethod, maskIdentifier } from "@/lib/lastAuthMethod";
 import { PASSWORD_REGEX } from "@/lib/schemas/common";
 import { resolveRedirect, normalizePhone } from "@/lib/redirect";
 import { PASSWORD_POLICY_HELPER_TEXT, PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
+import { UNVERIFIED_ACCOUNT_MESSAGE } from "@/lib/authErrors";
 
 /**
  * Lightweight format gate so a malformed identifier never reaches the
@@ -94,16 +95,18 @@ export function LoginPage() {
   const [otpAllowsCreate, setOtpAllowsCreate] = useState(false);
   // Surface the OAuth-callback failure (`/login?error=auth`) inline on first render.
   const [error, setError] = useState<string | null>(() => {
-    if (searchParams.get("error") === "auth") {
+    const param = searchParams.get("error");
+    if (!param) return null;
+    if (param === "auth") {
       return "We couldn't complete that sign-in. Please try again.";
     }
-    return null;
+    return param;
   });
-  // Clear the `?error=auth` query param on first render so a refresh doesn't
+  // Clear the `?error=` query param on first render so a refresh doesn't
   // re-surface the same toast and a copy/paste of the URL doesn't carry the
   // error state forward.
   useEffect(() => {
-    if (searchParams.get("error") === "auth") {
+    if (searchParams.get("error")) {
       const next = new URLSearchParams(searchParams);
       next.delete("error");
       setSearchParams(next, { replace: true });
@@ -236,6 +239,9 @@ export function LoginPage() {
         // for unconfirmed accounts ("Signups not allowed for otp"). An existing
         // account is never duplicated by shouldCreateUser=true.
         const allowCreate = !status.exists || !status.verified;
+        if (status.exists && !status.verified) {
+          setError(UNVERIFIED_ACCOUNT_MESSAGE);
+        }
         if (channel === "phone") {
           await signInWithPhone(resolvedIdentifier, allowCreate);
         } else {
