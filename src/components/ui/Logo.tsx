@@ -2,6 +2,7 @@ import { cn } from "./component-utils";
 
 export interface LogoProps {
   compact?: boolean;
+  iconOnly?: boolean;
   stacked?: boolean;
   className?: string;
 }
@@ -35,7 +36,7 @@ function RotateIcon({ size }: { size: number }) {
   );
 }
 
-export function Logo({ compact = false, stacked = false, className }: LogoProps) {
+export function Logo({ compact = false, iconOnly = false, stacked = false, className }: LogoProps) {
   const iconSize = compact ? 28 : stacked ? 22 : 36;
 
   if (stacked) {
@@ -61,14 +62,16 @@ export function Logo({ compact = false, stacked = false, className }: LogoProps)
         36
       </span>
       <RotateIcon size={iconSize} />
-      <span
-        className={cn(
-          "font-sans font-bold uppercase tracking-[1.6px]",
-          compact ? "text-[12px]" : "text-[14px]"
-        )}
-      >
-        Flatmates
-      </span>
+      {!iconOnly ? (
+        <span
+          className={cn(
+            "font-sans font-bold uppercase tracking-[1.6px]",
+            compact ? "text-[12px]" : "text-[14px]"
+          )}
+        >
+          Flatmates
+        </span>
+      ) : null}
     </span>
   );
 }
