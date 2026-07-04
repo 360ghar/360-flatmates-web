@@ -7,6 +7,7 @@ import { PageSpinner } from "@/components/ui/Spinner";
 import { setLastAuthMethod } from "@/lib/lastAuthMethod";
 import { reportLastMethod } from "@/lib/api/auth";
 import { resolveRedirect } from "@/lib/redirect";
+import { mapSupabaseAuthError } from "@/lib/authErrors";
 import type { AuthMethod } from "@/lib/lastAuthMethod";
 
 const EXCHANGE_TIMEOUT_MS = 10_000;
@@ -18,7 +19,16 @@ export function AuthCallbackPage() {
 
   const handleCallback = useCallback(async () => {
     const code = searchParams.get("code");
+    const oauthError =
+      searchParams.get("error_description") || searchParams.get("error");
     const next = resolveRedirect(searchParams.get("next"));
+
+    if (oauthError) {
+      navigate(`/login?error=${encodeURIComponent(oauthError)}`, {
+        replace: true,
+      });
+      return;
+    }
 
     if (!code) {
       navigate("/login?error=auth", { replace: true });
@@ -47,7 +57,10 @@ export function AuthCallbackPage() {
       if (timeoutId) clearTimeout(timeoutId);
 
       if (error) {
-        setFailed(true);
+        navigate(
+          `/login?error=${encodeURIComponent(mapSupabaseAuthError(error))}`,
+          { replace: true }
+        );
         return;
       }
 
@@ -70,9 +83,12 @@ export function AuthCallbackPage() {
         ? next
         : `/add-phone?next=${encodeURIComponent(next)}`;
       navigate(destination, { replace: true });
-    } catch {
+    } catch (err) {
       if (timeoutId) clearTimeout(timeoutId);
-      setFailed(true);
+      navigate(
+        `/login?error=${encodeURIComponent(mapSupabaseAuthError(err))}`,
+        { replace: true }
+      );
     }
   }, [searchParams, navigate]);
 

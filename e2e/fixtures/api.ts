@@ -99,30 +99,44 @@ const catalogs = [
   {
     key: "cities",
     version: 1,
-    payload: [
+    payload: { items: [
       { id: 1, name: "Bangalore", state: "Karnataka", is_active: true },
       { id: 2, name: "Mumbai", state: "Maharashtra", is_active: true },
-    ],
+    ] },
   },
   {
     key: "localities",
     version: 1,
-    payload: [
+    payload: { items: [
       { id: 11, name: "Koramangala", city_id: 1, city_name: "Bangalore" },
       { id: 12, name: "Indiranagar", city_id: 1, city_name: "Bangalore" },
       { id: 21, name: "Bandra", city_id: 2, city_name: "Mumbai" },
-    ],
+    ] },
   },
   {
     key: "amenities",
     version: 1,
-    payload: [
+    payload: { items: [
       { id: 101, name: "WiFi", category: "utility", icon: "wifi" },
       { id: 102, name: "Gym", category: "society", icon: "dumbbell" },
       { id: 103, name: "Security", category: "society", icon: "shield" },
-    ],
+    ] },
   },
 ];
+
+const realtime = {
+  provider: "supabase",
+  channel: "flatmates:user:1",
+  private: true,
+  events: [
+    "new_match",
+    "new_message",
+    "conversation_updated",
+    "visit_updated",
+    "listing_status_changed",
+    "new_notification",
+  ],
+};
 
 const conversation = {
   id: 201,
@@ -181,14 +195,6 @@ function pathFor(route: Route): string {
 }
 
 export async function installApiMocks(page: Page) {
-  await page.route("**/flatmates/sse**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      headers: { "Content-Type": "text/event-stream" },
-      body: "event: connected\ndata: {}\n\n",
-    });
-  });
-
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
     const method = request.method();
@@ -214,6 +220,7 @@ export async function installApiMocks(page: Page) {
         active_listing_count: 1,
         conversation_count: 1,
         unread_message_count: 0,
+        realtime,
       });
     }
     if (path === "/flatmates/catalogs") return json(route, catalogs);

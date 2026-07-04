@@ -8,6 +8,6 @@ If you are looking for an end-to-end feature walkthrough (login, search, chat, v
 
 - [API client](api-client.md): the `HttpApiClient`, its adapter abstraction, the 401 refresh-and-retry flow, and error normalization.
 - [State management (Zustand)](state-management.md): the vanilla `createStore()` pattern, what each store owns, and the hard rule against mirroring server state.
-- [Server state (TanStack Query)](server-state.md): the `QueryClient` config, query key conventions, optimistic updates with rollback, and SSE-driven invalidation.
+- [Server state (TanStack Query)](server-state.md): the `QueryClient` config, query key conventions, optimistic updates with rollback, and Broadcast-driven invalidation.
 - [Routing and guards](routing-guards.md): the four layouts, the four guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`, `GateGuard`), and the gate-state flow.
 - [Validation schemas (Zod)](validation-schemas.md): how Zod schemas mirror the backend contract and feed react-hook-form and nuqs.

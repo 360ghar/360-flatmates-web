@@ -73,8 +73,9 @@ export function AboutPage() {
         </section>
 
         <section className="py-16 border-t border-line-low">
-          <div className="bg-paper/50 border border-line-low rounded-2xl p-8 md:p-12 max-w-3xl mx-auto text-center relative overflow-hidden">
-            <div className="absolute top-[-20%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
+          <div className="relative mx-auto max-w-3xl overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-8 text-center shadow-hard-paper md:p-12">
+            <div className="absolute inset-0 map-grid-bg opacity-25" aria-hidden="true" />
+            <div className="relative">
             <h2 className="text-display text-3xl text-ink font-normal mb-6">The team</h2>
             <p className="text-body-lg text-ink-2 leading-relaxed max-w-2xl mx-auto font-serif italic text-lg md:text-xl">
               "We are a small team of engineers and designers based in India, building the flatmate
@@ -82,6 +83,7 @@ export function AboutPage() {
               that your flatmate keeps the AC on 18 degrees all night, you understand our mission."
             </p>
             <p className="mt-6 text-eyebrow text-accent uppercase tracking-wider">The 360 Flatmates Team</p>
+            </div>
           </div>
         </section>
 

@@ -56,8 +56,6 @@ tags:
     description: User safety, blocking, and reporting
   - name: Interactions
     description: Profile views and society tag voting
-  - name: SSE
-    description: Server-sent events for real-time updates
   - name: Admin Moderation
     description: Admin-only listing and report moderation
   - name: Web Discovery
@@ -1606,35 +1604,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/SocietyTagVoteOut'
 
-  # ===================== SSE =====================
-  /flatmates/sse:
-    get:
-      tags: [SSE]
-      summary: SSE event stream
-      description: |
-        Server-sent events stream for real-time flatmates updates.
-        Event types: `new_match`, `new_message`, `conversation_updated`, `visit_updated`, `listing_status_changed`, `new_notification`.
-      operationId: flatmatesSse
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: SSE stream
-          content:
-            text/event-stream:
-              schema:
-                type: string
-        '503':
-          description: Too many subscribers
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
-                    example: Too many real-time subscribers. Please retry shortly.
-
   # ===================== ADMIN MODERATION =====================
   /flatmates/moderation/listings:
     get:
@@ -2991,7 +2960,7 @@ components:
     # ===================== BOOTSTRAP SCHEMAS =====================
     FlatmatesBootstrap:
       type: object
-      required: [profile, catalogs, active_listing_count, conversation_count, unread_message_count]
+      required: [profile, catalogs, active_listing_count, conversation_count, unread_message_count, realtime]
       properties:
         profile:
           $ref: '#/components/schemas/FlatmatesProfile'
@@ -3005,6 +2974,31 @@ components:
           type: integer
         unread_message_count:
           type: integer
+        realtime:
+          $ref: '#/components/schemas/FlatmatesRealtimeConfig'
+
+    FlatmatesRealtimeConfig:
+      type: object
+      required: [provider, channel, private, events]
+      properties:
+        provider:
+          type: string
+          enum: [supabase]
+          description: Realtime provider used by the client.
+        channel:
+          type: string
+          description: Supabase private Broadcast channel for the authenticated user.
+          example: flatmates:user:1
+        private:
+          type: boolean
+          description: Whether the Supabase Broadcast channel requires private Realtime Authorization.
+          example: true
+        events:
+          type: array
+          description: Supported flatmates realtime Broadcast event names.
+          items:
+            type: string
+            enum: [new_match, new_message, conversation_updated, visit_updated, listing_status_changed, new_notification]
 
     # ===================== CATALOG SCHEMAS =====================
     CatalogEntry:

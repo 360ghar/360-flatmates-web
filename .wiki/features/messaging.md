@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-Messaging is the conversation layer that follows a mutual match. Once two flatmates both swipe right, a conversation opens and they can chat, schedule visits against the linked property, block or report each other, and watch messages arrive live without polling. This page covers the chat list, the thread view, the optimistic send flow, the SSE-driven cache invalidation that keeps every tab in sync, and the local draft state. For the match that opens a conversation in the first place, see [Likes and matches](likes-and-matches.md). For the underlying real-time transport that pushes new messages into the cache, see [Real-time updates](real-time.md). For how a conversation connects to the compatibility engine that created the match, see [Compatibility matching](compatibility-matching/index.md).
+Messaging is the conversation layer that follows a mutual match. Once two flatmates both swipe right, a conversation opens and they can chat, schedule visits against the linked property, block or report each other, and watch messages arrive live without polling. This page covers the chat list, the thread view, the optimistic send flow, the Supabase Broadcast cache invalidation, and the local draft state. For the match that opens a conversation in the first place, see [Likes and matches](likes-and-matches.md). For the underlying real-time transport that pushes new messages into the cache, see [Real-time updates](real-time.md). For how a conversation connects to the compatibility engine that created the match, see [Compatibility matching](compatibility-matching/index.md).
 
 ## Two surfaces: the inbox and the thread
 
@@ -35,19 +35,19 @@ Scroll management is deliberate. The component tracks whether the user is pinned
 
 1. **`onMutate`.** The page mints a negative temp id (via `nextTempMessageId`, which decrements from `-1` so it can never collide with a positive backend id). The mutation cancels any in-flight `messages` queries for this conversation, snapshots the current cache, and appends an optimistic `MessageOut` tagged with `metadata: { __optimistic: true }` to every cached page. The bubble adapter then renders that message with `status: "sending"`.
 2. **`onError`.** The optimistic message is intentionally left in cache. The page adds the temp id to a `failedIds` set, so the bubble re-renders as `status: "failed"` with a retry control. Removing it here would make the user's text vanish on a transient network error, which is worse than showing a retry.
-3. **`onSuccess`.** The temp message is swapped in place for the authoritative server message. This matters for the SSE echo: when the `message` event arrives a moment later, the real id is already in the cache, so the user's own message never double-renders.
+3. **`onSuccess`.** The temp message is swapped in place for the authoritative server message. This matters for the Broadcast echo: when the `new_message` event arrives a moment later, the real id is already in the cache, so the user's own message never double-renders.
 4. **`onSettled`.** Only on success does it invalidate the `messages` page query (to reconcile ordering and read receipts) and the `conversations` list (to refresh the preview and unread badge). On error it skips invalidation so the failed bubble survives.
 
 Retrying a failed message reuses the same temp id (passed as `retryTempId`), clears it from the `failedIds` set, and re-runs the mutation. The `onMutate` step drops any prior copy carrying that temp id before appending the fresh optimistic bubble, so there is no duplicate.
 
-## Real-time refresh via SSE
+## Real-time refresh via Supabase Broadcast
 
-The thread never polls. The `useSSE` hook (`src/hooks/useSSE.ts`) holds the SSE connection on the primary tab and dispatches every event through `invalidateForEvent`. For messaging, two event types matter:
+The thread never polls. `useFlatmatesRealtime` (`src/hooks/useFlatmatesRealtime.ts`) subscribes to the bootstrap-configured private Broadcast channel and dispatches every event through its invalidation switch. For messaging, two event types matter:
 
-- `message` and `new_message` invalidate the `["conversations"]` list (so previews and unread counts refresh) and, when the payload carries a `conversation_id`, the `["conversations", id, "messages"]` page (so the new message appears in any open thread).
-- `conversation_updated` invalidates only the `["conversations"]` list, covering status or metadata changes that do not introduce a new message.
+- `new_message` invalidates the `["conversations"]` list (so previews and unread counts refresh) and, when the payload carries a `conversation_id`, the `["conversations", id, "messages"]` page (so the new message appears in any open thread).
+- `conversation_updated` invalidates the `["conversations"]` list, the conversation detail, and the message page when a `conversation_id` is present, covering read receipts and metadata changes.
 
-Because the send mutation already swapped the real id into the cache on success, the SSE echo for your own message finds nothing to add and produces no flicker. For a peer's message, the invalidation triggers a refetch that supplies the authoritative row. The event payload itself is treated as a cache-invalidation signal only, never as a render source. See [Real-time updates](real-time.md) for the connection lifecycle, the BroadcastChannel dedup that relays these events to secondary tabs, and the primary-tab election.
+Because the send mutation already swapped the real id into the cache on success, the Broadcast echo for your own message finds nothing to add and produces no flicker. For a peer's message, the invalidation triggers a refetch that supplies the authoritative row. The event payload itself is treated as a cache-invalidation signal only, never as a render source. See [Real-time updates](real-time.md) for the connection lifecycle.
 
 ```mermaid
 sequenceDiagram
@@ -56,7 +56,7 @@ sequenceDiagram
     participant M as useSendMessage
     participant Q as QueryClient cache
     participant B as FastAPI backend
-    participant S as SSE manager
+    participant S as Supabase Broadcast
     U->>P: types "Hi" + Enter
     P->>M: mutate(tempId=-1)
     M->>Q: onMutate: append optimistic msg
@@ -65,7 +65,7 @@ sequenceDiagram
     B-->>M: 200 + server message (id=42)
     M->>Q: onSuccess: swap tempId for id=42
     M->>Q: onSettled: invalidate messages + conversations
-    B-->>S: SSE echo {type:"message", id=42}
+    B-->>S: Broadcast echo {type:"new_message", id=42}
     S->>Q: invalidate messages page
     Q-->>P: refetch finds id=42 already present
     P-->>U: no double render
@@ -81,7 +81,7 @@ sequenceDiagram
 
 ## Source-of-truth docs
 
-This page summarizes the chat implementation. For the page-by-page spec of the chats inbox, the thread layout, the schedule-visit modal, and the block and report flows, see [plans/ui_ux.md](../../plans/ui_ux.md). For the async-state rules that govern the skeleton, error, and empty handling on these pages, and for the bubble and row component specs, see [DESIGN.md](../../DESIGN.md) section 12.1 and section 11.3. For the SSE transport that drives the invalidations described here, see [Real-time updates](real-time.md).
+This page summarizes the chat implementation. For the page-by-page spec of the chats inbox, the thread layout, the schedule-visit modal, and the block and report flows, see [plans/ui_ux.md](../../plans/ui_ux.md). For the async-state rules that govern the skeleton, error, and empty handling on these pages, and for the bubble and row component specs, see [DESIGN.md](../../DESIGN.md) section 12.1 and section 11.3. For the Broadcast transport that drives the invalidations described here, see [Real-time updates](real-time.md).
 
 ## Key source files
 
@@ -94,5 +94,5 @@ This page summarizes the chat implementation. For the page-by-page spec of the c
 | `src/components/molecules/ConversationRow.tsx` | Inbox row with avatar, preview, timestamp, unread badge |
 | `src/hooks/queries/useConversations.ts` | `useConversations`, `useConversation`, `useMessages`, `useSendMessage`, `useCreateConversation` |
 | `src/lib/stores/chat-store.ts` | Vanilla Zustand store for drafts, typing, active conversation |
-| `src/hooks/useSSE.ts` | SSE hook, `message` / `new_message` / `conversation_updated` invalidation |
+| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast hook, `new_message` / `conversation_updated` invalidation |
 | `src/lib/api/conversation.types.ts` | `ConversationSummary`, `MessageOut`, `MessageCreate`, `ConversationCreate` types |

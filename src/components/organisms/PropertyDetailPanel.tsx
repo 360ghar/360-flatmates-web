@@ -97,7 +97,12 @@ export function PropertyDetailPanel({
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
               <span className="text-[9px] uppercase font-mono tracking-wider text-ink-3 block">Rent</span>
-              <p className="text-body-md font-serif font-normal text-accent mt-0.5">{formatCurrencyINR(fullProperty.monthly_rent)}</p>
+              <PriceText
+                value={fullProperty.monthly_rent}
+                variant="inline"
+                suffix=""
+                className="mt-0.5 text-body-md font-serif font-normal text-accent"
+              />
             </div>
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
               <span className="text-[9px] uppercase font-mono tracking-wider text-ink-3 block">Deposit</span>

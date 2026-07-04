@@ -71,18 +71,31 @@ Then drive `mockRequest.mockResolvedValue(...)` or `mockRejectedValue(...)`. Thi
 
 **Mocking Supabase auth.** The auth hooks read from `authStore`, not directly from Supabase, so most tests do not need a Supabase mock. When a test does need to control auth state, set `authStore` directly via `authStore.setState({ user, session, loading })`. The `_resetAuthForTests()` export in `src/hooks/useAuth.ts` resets the singleton initializer and the store between tests.
 
-**Testing SSE.** Mock the connection manager and the broadcast layer, then drive the captured `onEvent` and `onStateChange` callbacks. The canonical pattern is in `src/hooks/__tests__/useSSE.test.tsx`:
+**Testing realtime.** Mock the Supabase browser client, capture the channel's Broadcast callbacks, and drive the subscription lifecycle manually. The canonical pattern is in `src/hooks/__tests__/useFlatmatesRealtime.test.tsx`:
 
 ```tsx
-const mockManager = { connect: vi.fn(), disconnect: vi.fn(), getConnectionState: vi.fn() };
-vi.mock("@/lib/sse/connection", () => ({
-  getSSEManager: (options) => { sseManagerOptions = options; return mockManager; },
-  resetSSEManager: vi.fn(),
+const broadcastHandlers = new Map<string, (payload: unknown) => void>();
+const mockChannel = {
+  on: vi.fn((kind, filter, callback) => {
+    if (kind === "broadcast") broadcastHandlers.set(filter.event, callback);
+    return mockChannel;
+  }),
+  subscribe: vi.fn((callback) => {
+    subscribeHandler = callback;
+    return mockChannel;
+  }),
+};
+
+vi.mock("@/lib/supabase/client", () => ({
+  getSupabaseBrowserClient: () => ({
+    realtime: { setAuth: mockSetAuth },
+    channel: mockChannelFactory,
+    removeChannel: mockRemoveChannel,
+  }),
 }));
-vi.mock("@/lib/sse/broadcast", () => ({ /* stubbed broadcast fns */ }));
 ```
 
-Capture the options object passed to `getSSEManager`, then invoke `sseManagerOptions.onEvent({ type: "message", data: { conversation_id: 5 } })` inside `act(...)` and assert that `queryClient.invalidateQueries` was called with the right key. This proves the event-to-invalidation wiring without a real `EventSource`. For the production wiring, see [real-time](../features/real-time.md).
+Drive `subscribeHandler("SUBSCRIBED")` to assert status updates, invoke a captured Broadcast handler with `{ payload: { data: { conversation_id: 5 } } }`, and assert that `queryClient.invalidateQueries` was called with the right key. This proves the event-to-invalidation wiring without opening a real Supabase socket. For the production wiring, see [real-time](../features/real-time.md).
 
 **The query key conventions test.** `tests/integration/query-keys.test.ts` is the guardrail for the TanStack Query cache contract. When you add a new query hook, the test picks up its `queryKey` automatically by scanning the module. If a mutation should invalidate that key, add the invalidation and the test will verify the match. If you rename a key scope (for example `["profiles"]` to `["users"]`), update every invalidation in the same change or this test fails. See [server state](../systems/server-state.md) for the key conventions.
 
@@ -137,7 +150,7 @@ For common test failures and their fixes, see [debugging](debugging.md). For the
 | `vitest.setup.ts` | Pulls in `@testing-library/jest-dom/vitest`. |
 | `src/test-utils.tsx` | The `render` helper that wraps components in `QueryClientProvider` and `MemoryRouter`. |
 | `src/__mocks__/framer-motion.tsx` | The Proxy mock that strips framer props and renders plain DOM. |
-| `src/hooks/__tests__/useSSE.test.tsx` | Canonical SSE test pattern: mock the manager, drive `onEvent`. |
+| `src/hooks/__tests__/useFlatmatesRealtime.test.tsx` | Canonical realtime test pattern: mock Supabase Broadcast, drive subscription status and events. |
 | `src/hooks/__tests__/useProfiles.test.tsx` | Canonical API mock pattern and hook test layout. |
 | `tests/integration/query-keys.test.ts` | The query-key contract guardrail. |
 | `tests/integration/compatibility-engine.test.ts` | The compatibility math and threshold contract. |

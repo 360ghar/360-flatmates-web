@@ -562,7 +562,7 @@ function SwipeableCard({
       whileHover={
         prefersReducedMotion
           ? undefined
-          : { y: -2, boxShadow: "0 4px 16px rgba(201,100,66,0.08)" }
+          : { y: -2, boxShadow: "var(--shadow-hover)" }
       }
       whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
       initial={{ x: 0, y: 0, rotate: 0, opacity: 1, scale: 1 }}
@@ -574,7 +574,7 @@ function SwipeableCard({
         className={cn(
           "h-full w-full overflow-hidden rounded-2xl bg-surface text-left shadow-lg relative",
           "transition-shadow duration-150 ease-out",
-          "hover:shadow-[0_4px_16px_rgba(201,100,66,0.08)]",
+          "hover:shadow-hover",
           isSelected && "ring-4 ring-accent"
         )}
       >

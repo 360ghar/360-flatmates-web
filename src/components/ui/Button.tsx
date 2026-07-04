@@ -4,6 +4,7 @@ import { cn, focusRing, interactiveMotion } from "./component-utils";
 
 export type ButtonVariant =
   | "primary"
+  | "highlight"
   | "secondary"
   | "tertiary"
   | "icon"
@@ -44,6 +45,8 @@ export type ButtonProps = ButtonAsButtonProps | ButtonAsAnchorProps;
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
     "bg-accent text-white shadow-cta hover:-translate-y-px hover:bg-accent/95 hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none",
+  highlight:
+    "bg-action text-action-ink shadow-sm hover:-translate-y-px hover:bg-action-hover hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none",
   secondary:
     "border-[1.5px] border-accent bg-transparent text-accent hover:bg-accent-soft disabled:border-line disabled:bg-transparent disabled:text-ink-3",
   tertiary:
@@ -65,8 +68,18 @@ const sizeClasses: Record<ButtonSize, string> = {
   icon: "h-10 w-10 p-2"
 };
 
+// NOTE (#7): `shrink-0` is intentionally NOT in `baseClasses`. A button that is
+// both `shrink-0` and `w-full` (fullWidth) demands 100% width AND refuses to
+// shrink, so when it sits in a flex row next to a sibling (e.g. Back + Next)
+// the combined width exceeds 100% and the fullWidth button bleeds past the
+// container edge. Instead `shrink-0` is applied only to non-fullWidth buttons;
+// fullWidth buttons get `w-full min-w-0` — full-width when alone, and able to
+// shrink (past their content min-size, handled by the inner `truncate` span)
+// when sharing a row. We avoid `flex-1` here because it would make fullWidth
+// buttons grow along the main axis of `flex-col` containers (stretching them
+// vertically in stacked forms), a regression for the many auth/form layouts.
 const baseClasses =
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-[10px] font-semibold active:scale-[0.97]";
+  "inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold active:scale-[0.97]";
 
 /** Shared classes for Link elements that should look like a Button. */
 export function buttonClasses(
@@ -81,7 +94,7 @@ export function buttonClasses(
     focusRing,
     variantClasses[variant],
     sizeClasses[resolvedSize],
-    fullWidth && "w-full",
+    fullWidth ? "w-full min-w-0" : "shrink-0",
   );
 }
 
@@ -109,7 +122,7 @@ export function Button({
     focusRing,
     variantClasses[variant],
     sizeClasses[resolvedSize],
-    fullWidth && "w-full",
+    fullWidth ? "w-full min-w-0" : "shrink-0",
     className
   );
 

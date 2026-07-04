@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-A visit is a scheduled in-person or virtual viewing of a listing, or a meet between two flatmates. It is the step between a match in chat and an actual move-in. Its canonical type is `Visit` in `src/lib/api/visit.types.ts`, validated by `visitSchema` in `src/lib/schemas/visit.ts`, and its status and context enums live in `src/lib/data/domain.ts`. A visit crosses the visits surface, the chat surface (where it is usually proposed), the listing surface (its property anchor), and the SSE layer (which pushes status updates to both parties).
+A visit is a scheduled in-person or virtual viewing of a listing, or a meet between two flatmates. It is the step between a match in chat and an actual move-in. Its canonical type is `Visit` in `src/lib/api/visit.types.ts`, validated by `visitSchema` in `src/lib/schemas/visit.ts`, and its status and context enums live in `src/lib/data/domain.ts`. A visit crosses the visits surface, the chat surface (where it is usually proposed), the listing surface (its property anchor), and the Supabase Broadcast layer (which pushes status-update invalidations to both parties).
 
 ## Context
 

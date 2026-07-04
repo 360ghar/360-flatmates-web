@@ -60,7 +60,7 @@ const DEFAULT_ZOOM = 12;
 // ── Custom Leaflet icons ───────────────────────────────────────
 
 function formatRent(rent?: number): string {
-  if (rent === undefined) return "₹--";
+  if (rent === undefined || !Number.isFinite(rent) || rent <= 0) return "₹--";
   if (rent >= 100000) {
     const l = rent / 100000;
     return `₹${rent % 100000 !== 0 ? l.toFixed(1) : l.toFixed(0)}L`;

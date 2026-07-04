@@ -10,6 +10,7 @@ import { Button, buttonClasses } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { NetworkImage } from "@/components/ui/NetworkImage";
+import { PriceText } from "@/components/ui/PriceText";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, ErrorState, EmptyState } from "@/components/ui/StateViews";
@@ -195,7 +196,12 @@ export default function ListingDetailClient() {
                   <div className="mt-4 grid gap-4 sm:grid-cols-3">
                     <div className="rounded-xl border border-line bg-surface p-4 text-center">
                       <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Monthly Rent</p>
-                      <p className="text-h2 font-serif font-normal text-accent mt-1">{formatCurrencyINR(data.price)}</p>
+                      <PriceText
+                        value={data.price}
+                        variant="inline"
+                        suffix=""
+                        className="block text-h2 font-serif font-normal text-accent mt-1"
+                      />
                     </div>
                     <div className="rounded-xl border border-line bg-surface p-4 text-center">
                       <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Security Deposit</p>

@@ -28,7 +28,7 @@ export function FAQAccordion() {
                 </div>
               </summary>
               <div className="faq-item-content">
-                <div className="overflow-hidden border-l-2 border-accent/30 pl-4">
+                <div className="overflow-hidden pl-4">
                   <p className="pb-6 text-body-lg text-ink-3 leading-relaxed">
                     {item.answer}
                   </p>

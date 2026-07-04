@@ -166,7 +166,7 @@ All Vitest fixtures mock `apiClient.request` via `vi.mock("@/lib/api", ...)` and
 | `src/hooks/__tests__/useKeyboardSwipe.test.tsx` | **LOW** | n/a | n/a | n/a | No API. |
 | `src/hooks/__tests__/usePWA.test.tsx` | **LOW** | n/a | n/a | n/a | No API. |
 | `src/hooks/__tests__/useResendTimer.test.tsx` | **LOW** | n/a | n/a | n/a | No API. |
-| `src/hooks/__tests__/useSSE.test.tsx` | **LOW** | n/a | n/a | n/a | Tests SSE bus, not REST. |
+| `src/hooks/__tests__/useFlatmatesRealtime.test.tsx` | **LOW** | n/a | n/a | n/a | Tests Supabase Broadcast invalidation, not REST. |
 
 **Total: 6 fixtures need cursor-shape updates (useVisits, useProfiles, useSearch, useMapView, useConversations for messages-only, and the useProperties tests for any future change).** The rest are stable.
 
@@ -318,4 +318,3 @@ A grep across `src/` for the new endpoint paths (`payments`, `webhook`, `swipes/
 Read end-to-end: 30+ files including all of `src/lib/api/*`, all of `src/hooks/queries/*`, all of `src/hooks/__tests__/*`, `src/lib/schemas/*`, `src/lib/stores/search-store.ts`, `src/lib/__tests__/adapters.test.ts`, `src/lib/api/__tests__/client.test.ts`, `package.json`, `e2e/auth-flow.spec.ts`, `e2e/chat-flow.spec.ts`, `e2e/explore-flow.spec.ts`, `e2e/search-flow.spec.ts`, `e2e/visit-flow.spec.ts`, `e2e/critical-flows.spec.ts`, `e2e/profile-interaction-flow.spec.ts`, `e2e/app-navigation.spec.ts`, `e2e/compatibility-flow.spec.ts`, `e2e/public-pages.spec.ts`, `docs/flatmates-openapi.yaml` (lines 1-500, 300-500 surveyed; full 4259-line file greps for `payments|webhook|swipes|upload|batch|blog`), representative pages: `HomePage`, `VisitsPage`, `NotificationsPage`, `ProfilePage`, `ExplorePage`, `SwipePage`, `ManagePage`, `DashboardPage`, `AnalyticsPage`, `BlockedUsersPage`, `ChatDetailPage`, `ChatsPage`, `LikesPage`, `MatchesPage`, `SavedSearchesPage`, `AlertsPage`, `PublicProfilePage`, `SearchPage`, `DiscoverPage`, `BlogPage`, `BlogPostPage`, plus the `AppShell`, `ChatThread`, `PeopleGridPage`, `SearchResults` organisms and the `SemanticSearchClient` page-client.
 
 Read but not cited in detail: 15+ other pages under `src/pages/app/` and `src/pages/public/` — all confirmed to be either single-property / no-API consumers or to use one of the hooks inventoried above.
-

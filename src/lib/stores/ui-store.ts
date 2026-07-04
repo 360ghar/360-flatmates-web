@@ -1,7 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import { persist } from "zustand/middleware";
 import { createSafeJsonStorage } from "./storage";
-import { type SSEConnectionState } from "@/lib/sse/types";
 
 export const UI_STORE_KEY = "360-flatmates-ui";
 
@@ -9,8 +8,9 @@ export type ModalId = "settings" | "photo-viewer" | "report-user" | "visit-resch
 export type DrawerId = "filters" | "chat-info" | "profile-edit" | "notifications";
 
 export type ThemePreference = "light" | "dark" | "system";
-export type PalettePreference = "terracotta" | "ember" | "monsoon_teal";
+export type PalettePreference = "violet" | "ember" | "monsoon_teal";
 export type SidebarState = "expanded" | "collapsed";
+export type RealtimeState = "disconnected" | "connecting" | "connected" | "reconnecting" | "error";
 
 export const THEME_OPTIONS: ReadonlyArray<{ value: ThemePreference; label: string }> = [
   { value: "light", label: "Light" },
@@ -40,9 +40,8 @@ export interface UiStoreState {
   sidebarWidth: number;
   activeModal: ModalId | null;
   activeDrawer: DrawerId | null;
-  sseConnected: boolean;
-  sseState: SSEConnectionState;
-  ssePrimaryTab: boolean;
+  realtimeConnected: boolean;
+  realtimeState: RealtimeState;
   reducedMotion: boolean;
   toasts: ToastMessage[];
   setTheme: (theme: ThemePreference) => void;
@@ -53,9 +52,7 @@ export interface UiStoreState {
   closeModal: () => void;
   openDrawer: (drawer: DrawerId) => void;
   closeDrawer: () => void;
-  setSseConnected: (connected: boolean) => void;
-  setSSEState: (state: SSEConnectionState) => void;
-  setSSEPrimaryTab: (isPrimary: boolean) => void;
+  setRealtimeState: (state: RealtimeState) => void;
   setReducedMotion: (reduced: boolean) => void;
   pushToast: (toast: Omit<ToastMessage, "id" | "createdAt"> & { id?: string }) => string;
   dismissToast: (id: string) => void;
@@ -71,9 +68,8 @@ export type UiStoreInitialState = Partial<
     | "sidebarWidth"
     | "activeModal"
     | "activeDrawer"
-    | "sseConnected"
-    | "sseState"
-    | "ssePrimaryTab"
+    | "realtimeConnected"
+    | "realtimeState"
     | "reducedMotion"
     | "toasts"
   >
@@ -83,33 +79,43 @@ function createToastId(): string {
   return `toast-${crypto.randomUUID()}`;
 }
 
+export function normalizePalettePreference(value: unknown): PalettePreference {
+  if (value === "ember" || value === "monsoon_teal") return value;
+  return "violet";
+}
+
 export function createUiStore(initialState: UiStoreInitialState = {}) {
+  const { palette: initialPalette, ...restInitialState } = initialState;
   return createStore<UiStoreState>()(
     persist(
       (set) => ({
         theme: "light",
-        palette: "terracotta",
+        palette: normalizePalettePreference(initialPalette),
         sidebar: "expanded",
         sidebarWidth: SIDEBAR_WIDTH_DEFAULT,
         activeModal: null,
         activeDrawer: null,
-        sseConnected: false,
-        sseState: "disconnected" as SSEConnectionState,
-        ssePrimaryTab: false,
+        realtimeConnected: false,
+        realtimeState: "disconnected",
         reducedMotion: false,
         toasts: [],
-        ...initialState,
+        ...restInitialState,
         setTheme: (theme) => set((state) => state.theme === theme ? state : { theme }),
-        setPalette: (palette) => set({ palette }),
+        setPalette: (palette) => set({ palette: normalizePalettePreference(palette) }),
         setSidebar: (sidebar) => set({ sidebar }),
         setSidebarWidth: (sidebarWidth) => set({ sidebarWidth }),
         openModal: (activeModal) => set({ activeModal }),
         closeModal: () => set({ activeModal: null }),
         openDrawer: (activeDrawer) => set({ activeDrawer }),
         closeDrawer: () => set({ activeDrawer: null }),
-        setSseConnected: (sseConnected) => set((s) => s.sseConnected === sseConnected ? s : { sseConnected }),
-        setSSEState: (sseState) => set((s) => s.sseState === sseState ? s : { sseState }),
-        setSSEPrimaryTab: (ssePrimaryTab) => set((s) => s.ssePrimaryTab === ssePrimaryTab ? s : { ssePrimaryTab }),
+        setRealtimeState: (realtimeState) =>
+          set((s) => {
+            const realtimeConnected = realtimeState === "connected";
+            return s.realtimeState === realtimeState &&
+              s.realtimeConnected === realtimeConnected
+              ? s
+              : { realtimeState, realtimeConnected };
+          }),
         setReducedMotion: (reducedMotion) => set({ reducedMotion }),
         pushToast: (toast) => {
           const id = toast.id ?? createToastId();
@@ -145,11 +151,18 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
           sidebar: state.sidebar,
           sidebarWidth: state.sidebarWidth,
           reducedMotion: state.reducedMotion
-        })
+        }),
+        merge: (persistedState, currentState) => {
+          const persisted = (persistedState ?? {}) as Partial<UiStoreState> & { palette?: unknown };
+          return {
+            ...currentState,
+            ...persisted,
+            palette: normalizePalettePreference(persisted.palette ?? currentState.palette)
+          };
+        }
       }
     )
   );
 }
 
 export const uiStore = createUiStore();
-

@@ -20,7 +20,7 @@ A 26-year-old engineer in a Bangalore co-working space at 3 PM, daylight from ta
 
 ## Tech stack in one paragraph
 
-Vite plus React 19 plus React Router v7 (SPA, no SSR). TypeScript strict mode. Tailwind CSS v4 with custom design tokens defined as CSS custom properties. Zustand stores for client-only state using the vanilla `createStore()` pattern (so they can be consumed from non-React code). TanStack React Query for all server state, with hooks in `src/hooks/queries/`. Supabase for auth (phone OTP, password, Google, Apple). Server-Sent Events for real-time updates with BroadcastChannel multi-tab deduplication. Leaflet for maps. Firebase Cloud Messaging for web push. Build-time prerendering with Playwright Chromium for SEO.
+Vite plus React 19 plus React Router v7 (SPA, no SSR). TypeScript strict mode. Tailwind CSS v4 with custom design tokens defined as CSS custom properties. Zustand stores for client-only state using the vanilla `createStore()` pattern (so they can be consumed from non-React code). TanStack React Query for all server state, with hooks in `src/hooks/queries/`. Supabase for auth (phone OTP, password, Google, Apple) and private Broadcast real-time updates from the backend bootstrap config. Leaflet for maps. Firebase Cloud Messaging for web push. Build-time prerendering with Playwright Chromium for SEO.
 
 ## Quick links
 
@@ -39,4 +39,3 @@ These live outside the wiki and are the source of truth for their domains. The w
 - [plans/prd.md](../../plans/prd.md) - product requirements and technical architecture.
 - [plans/ui_ux.md](../../plans/ui_ux.md) - page-by-page UI and interaction specs.
 - [docs/flatmates-openapi.yaml](../../docs/flatmates-openapi.yaml) - the backend API contract.
-- [AUDIT_REPORT.md](../../AUDIT_REPORT.md) - findings from the full-platform QA audit.

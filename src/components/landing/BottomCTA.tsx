@@ -1,58 +1,60 @@
 import { Link } from "react-router";
+import { ArrowRight } from "lucide-react";
+
 import { buttonClasses } from "@/components/ui/Button";
+import { NetworkImage } from "@/components/ui/NetworkImage";
 import { AppStoreBadges } from "./AppStoreBadges";
 
 export function BottomCTA() {
   return (
     <section
-      className="relative py-24 md:py-36 overflow-hidden bg-accent-950"
+      className="bg-surface px-5 py-16 md:px-12 md:py-24"
       aria-labelledby="bottom-cta-heading"
     >
-      {/* Accent gradient background. In light mode the bright terracotta ramp
-          (from-accent-700 → accent-950) reads as warm; in dark mode that same
-          ramp collapses to a flat brown, so we brighten and shift hue. */}
-      <div className="absolute inset-0 bg-gradient-to-br from-accent-700 via-accent-900 to-accent-950 opacity-90 dark:from-accent-600 dark:via-accent-800 dark:to-accent-950" />
-      
-      {/* Animated Mesh Glows */}
-      <div className="absolute top-[-50%] left-[-20%] w-[80%] aspect-square rounded-full bg-accent-400/15 blur-[120px] pointer-events-none animate-pulse duration-[6000ms]" />
-      <div className="absolute bottom-[-50%] right-[-20%] w-[80%] aspect-square rounded-full bg-accent-600/25 blur-[120px] pointer-events-none animate-pulse duration-[8000ms]" />
-
-      {/* Noise pattern overlay */}
-      <div className="noise-texture absolute inset-0 pointer-events-none opacity-[0.04]" aria-hidden="true" />
-
-      <div className="mx-auto max-w-5xl px-5 md:px-12 relative z-10 text-center">
-        <p className="text-eyebrow mb-6 text-accent-300">Get started</p>
-        <h2 id="bottom-cta-heading" className="text-display mb-10 text-white lg:text-6xl max-w-2xl mx-auto leading-tight tracking-tight">
-          Ready to find your <span className="text-serif-italic text-accent-300 italic font-normal text-5xl md:text-6xl lg:text-7xl">vibe match</span>?
-        </h2>
-
-        <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
-          <Link
-            to="/discover"
-            className={buttonClasses("primary", "tall") + " min-w-[220px] !bg-white !text-accent shadow-cta hover:!bg-paper hover:scale-[1.04] active:scale-[0.96] transition-all duration-200"}
-          >
-            Start matching
-          </Link>
-          <Link
-            to="/login?intent=list-property"
-            className="text-label-lg text-white/80 hover:text-white transition-colors duration-300 border-b border-white/30 hover:border-white pb-1 hover:scale-[1.02] active:scale-[0.98] transition-all"
-          >
-            List your property
-          </Link>
-        </div>
-
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <p className="text-label-md text-white/50 uppercase tracking-wider text-[10px]">Download the app</p>
-          <AppStoreBadges variant="dark" />
-        </div>
-
-        <div className="mt-10 pt-10 border-t border-white/15 max-w-2xl mx-auto">
-          <p className="text-body-md text-white/70">
-            Free to search and match. No WhatsApp groups required.
+      <div className="mx-auto grid max-w-7xl items-center gap-8 overflow-hidden rounded-[var(--radius-promo)] bg-ink p-6 text-paper shadow-hard md:grid-cols-[1.35fr_0.65fr] md:p-10">
+        <div>
+          <h2 id="bottom-cta-heading" className="max-w-2xl font-serif text-4xl leading-tight tracking-tight md:text-6xl">
+            Ready to find your vibe match?
+          </h2>
+          <p className="mt-5 max-w-[58ch] text-body-lg text-paper/72">
+            Start with verified rooms, real compatibility signals, and visits that stay attached to the listing.
           </p>
+
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <Link
+              to="/discover"
+              className={buttonClasses("highlight", "tall") + " min-w-[190px]"}
+            >
+              Start matching
+            </Link>
+            <Link
+              to="/login?intent=list-property"
+              className="inline-flex items-center gap-1.5 text-label-lg text-paper/76 transition-colors hover:text-action"
+            >
+              List a room
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3">
+            <p className="text-label-md text-paper/55">Download the app</p>
+            <AppStoreBadges variant="dark" />
+          </div>
+        </div>
+
+        <div className="relative hidden min-h-[220px] md:block">
+          <div className="absolute inset-0 rounded-full bg-lavender/10" aria-hidden="true" />
+          <NetworkImage
+            src="/brand/flatmate-cta-companion.webp"
+            alt="Flatmate carrying a moving box and keys"
+            wrapperClassName="absolute bottom-[-30px] left-1/2 h-[242px] w-[430px] !max-w-none -translate-x-1/2 md:bottom-[-26px] md:h-[280px] md:w-[498px]"
+            className="object-contain"
+            width={1672}
+            loading="lazy"
+            decoding="async"
+          />
         </div>
       </div>
     </section>
   );
 }
-

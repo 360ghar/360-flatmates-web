@@ -6,14 +6,14 @@ The `.github/CODEOWNERS` file assigns `@saksham1991999` as the default owner for
 | --- | --- | --- |
 | Auth (Supabase phone OTP, password, Google, Apple, gate-state guards) | Saksham | 2026-06-15 |
 | Compatibility engine (six-dimension scoring, weights, breakdown) | Saksham | 2026-06-15 |
-| Messaging (conversations, messages, SSE real-time, Q&A icebreakers) | Saksham | 2026-06-15 |
+| Messaging (conversations, messages, Broadcast real-time, Q&A icebreakers) | Saksham | 2026-06-15 |
 | Visits (scheduling, reschedule, completion, feedback) | Saksham | 2026-06-15 |
 | Listings (property CRUD, moderation lifecycle, boosts, renewals) | Saksham | 2026-06-15 |
 | Search and explore (filters, map view, swipe deck, saved searches) | Saksham | 2026-06-15 |
 | Admin (moderation queue, reports, dashboard stats) | Saksham | 2026-06-15 |
 | Design system (tokens, primitives, dark mode, motion) | Saksham | 2026-06-15 |
 | SEO and prerendering (sitemap, OG image, route prerendering) | Saksham | 2026-06-15 |
-| Real-time (SSE manager, BroadcastChannel multi-tab dedup) | Saksham | 2026-06-15 |
+| Real-time (Supabase private Broadcast hook and cache invalidation) | Saksham | 2026-06-15 |
 | PWA (service worker, manifest, install banner, offline precaching) | Saksham | 2026-06-15 |
 
 ## Bus factor

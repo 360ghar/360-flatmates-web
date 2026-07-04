@@ -6,7 +6,7 @@
 src/
   components/   # Shared UI components (atomic: ui/, molecules/, organisms/, landing/, onboarding/, page-clients/)
   hooks/        # Custom React hooks + TanStack Query hooks (queries/)
-  lib/          # Utilities, API client, stores, schemas, SSE, compatibility engine, Supabase config
+  lib/          # Utilities, API client, stores, schemas, compatibility engine, Supabase config
   pages/        # React Router pages organized by domain (app/, auth/, admin/, public/)
 docs/            # OpenAPI spec (flatmates-openapi.yaml)
 plans/           # PRD (prd.md) and UI/UX specification (ui_ux.md)
@@ -58,7 +58,7 @@ npm run generate:pwa-icons  # Generate PWA standard & maskable PNG icons from fa
 
 ## Architecture Overview
 
-Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time updates via SSE with BroadcastChannel multi-tab dedup. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
+Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time Flatmates updates use Supabase private Broadcast from the `/flatmates/bootstrap` realtime config. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
 
 ## Theme & Appearance
 

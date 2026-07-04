@@ -202,6 +202,9 @@ export function getBlurPlaceholders(): Record<BlurPlaceholderKey, string> {
   return blurPlaceholdersCache;
 }
 
+export const UPLOAD_IMAGE_MAX_DIMENSION = 1600;
+export const UPLOAD_IMAGE_WEBP_QUALITY = 0.82;
+
 /**
  * Converts an image file to WebP format on the client side, resizing it if it exceeds max dimensions.
  * Returns a promise resolving to the base64 WebP data URL.
@@ -290,6 +293,10 @@ export function convertToWebP(
   });
 }
 
+export function convertUploadImageToDataUrl(file: File): Promise<string> {
+  return convertToWebP(file, UPLOAD_IMAGE_MAX_DIMENSION, UPLOAD_IMAGE_WEBP_QUALITY);
+}
+
 /**
  * Optimizes an image URL if it is from a supported CDN (Unsplash).
  * Transforms format to webp and adjusts dimensions/quality.
@@ -329,4 +336,3 @@ export function optimizeImageUrl(
 
   return url;
 }
-

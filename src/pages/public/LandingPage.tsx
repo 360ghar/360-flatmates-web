@@ -22,7 +22,7 @@ function TestimonialsFallback() {
     <section className="bg-paper py-20 md:py-28 border-b border-line-low">
       <div className="mx-auto max-w-7xl px-5 md:px-12 text-center">
         <h2 className="text-display text-4xl md:text-5xl text-ink">
-          8,600 people stopped settling.
+          People are choosing fit over guesswork.
         </h2>
       </div>
     </section>

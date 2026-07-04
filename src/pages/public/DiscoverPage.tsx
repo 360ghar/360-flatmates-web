@@ -117,11 +117,9 @@ export function DiscoverPage() {
         jsonLd={collectionLd}
       />
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
-        {/* Editorial introductory header with ambient glows */}
-        <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 mb-8 shadow-xs">
-          <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-[-30%] right-[-10%] w-[40%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
-
+        <div className="relative mb-8 overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-6 shadow-xs md:p-8">
+          <div className="absolute inset-0 map-grid-bg opacity-25" aria-hidden="true" />
+          <div className="relative z-[1]">
           <PageHeader
             eyebrow="Public discovery"
             title="Browse Listings"
@@ -139,6 +137,7 @@ export function DiscoverPage() {
               ) : undefined
             }
           />
+          </div>
         </div>
 
         <div

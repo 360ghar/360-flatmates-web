@@ -15,7 +15,7 @@ A modern web platform for finding compatible roommates and shared living spaces.
 - **Styling**: Tailwind CSS v4 with custom design tokens
 - **State**: Zustand (client) + TanStack React Query (server)
 - **Auth**: Supabase (Phone OTP, Password, Google OAuth)
-- **Real-time**: SSE with BroadcastChannel multi-tab dedup
+- **Real-time**: Supabase private Broadcast via backend bootstrap config
 - **Maps**: Leaflet + React-Leaflet
 - **Testing**: Vitest + React Testing Library (unit), Playwright (E2E)
 - **API**: FastAPI backend at `/api/v1`
@@ -44,7 +44,6 @@ npm run dev             # http://localhost:5173
 ```
 360-flatmates-web/
 ├─ AGENTS.md
-├─ AUDIT_REPORT.md
 ├─ CLAUDE.md
 ├─ DESIGN.md
 ├─ README.md
@@ -127,8 +126,8 @@ npm run dev             # http://localhost:5173
 │  │  ├─ usePWA.ts
 │  │  ├─ useResendTimer.ts
 │  │  ├─ useScrollProgress.ts
-│  │  ├─ useSSE.ts
-│  │  ├─ useSSEStatus.ts
+│  │  ├─ useFlatmatesRealtime.ts
+│  │  ├─ useRealtimeStatus.ts
 │  │  ├─ useWebOtp.ts
 │  │  └─ __tests__/
 │  │     └─ queries/
@@ -149,7 +148,6 @@ npm run dev             # http://localhost:5173
 │  │  ├─ push/
 │  │  ├─ schemas/
 │  │  ├─ seo/
-│  │  ├─ sse/
 │  │  ├─ storage/
 │  │  ├─ stores/
 │  │  ├─ supabase/

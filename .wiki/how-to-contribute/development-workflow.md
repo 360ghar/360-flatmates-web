@@ -27,7 +27,7 @@ Conventional commits, enforced by convention rather than a tooling check. The ty
 | `feat:` | A new user-facing capability or component | `feat: add compatibility breakdown sheet on swipe card` |
 | `fix:` | A bug fix | `fix: clear query cache on account deletion` |
 | `refactor:` | A code change that neither adds a feature nor fixes a bug | `refactor: extract focus ring into a shared helper` |
-| `docs:` | Documentation only (CLAUDE.md, AGENTS.md, wiki, DESIGN.md) | `docs: document the SSE reconnect backoff in the wiki` |
+| `docs:` | Documentation only (CLAUDE.md, AGENTS.md, wiki, DESIGN.md) | `docs: document realtime reconnect behavior in the wiki` |
 | `chore:` | Tooling, deps, build config | `chore: bump tanstack/react-query to 5.90` |
 
 A scope is optional but encouraged when the change is scoped to one module: `feat(listings): add price range filter`. The subject line is imperative mood, lowercase, no trailing period, no em dashes (use commas, colons, or parentheses instead, per [DESIGN.md](../../DESIGN.md) section 1).

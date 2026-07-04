@@ -1,15 +1,16 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useSSE } from "@/hooks/useSSE";
+import { useFlatmatesRealtime } from "@/hooks/useFlatmatesRealtime";
+import { bootstrapOptions } from "@/hooks/queries/useBootstrap";
 import { ApiClientError, setAccessToken, setRefreshTokenHandler } from "@/lib/api";
 import { getAuthState } from "@/lib/api/auth";
 import { refreshAccessToken } from "@/lib/auth/refresh";
 import { authStore } from "@/lib/stores/auth-store";
 import { useStore } from "zustand";
-import { uiStore } from "@/lib/stores/ui-store";
+import { normalizePalettePreference, uiStore } from "@/lib/stores/ui-store";
 import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { onboardingStore } from "@/lib/stores/onboarding-store";
@@ -24,6 +25,7 @@ function ProviderInternals({
   const { session, loading } = useAuth();
 
   const isAuthenticated = !loading && !!session;
+  const authStage = useStore(authStore, (s) => s.authStage);
 
   const queryClient = useQueryClient();
   const wasAuthenticated = useRef(isAuthenticated);
@@ -53,21 +55,24 @@ function ProviderInternals({
   useAuthStateQuery(isAuthenticated);
 
   // Wire the API client's 401-recovery path to the shared refresh module.
-  // The same module also serves the SSE auth-failure path (see useSSE.ts), so
-  // concurrent failures from both subsystems dedupe onto a single
-  // refreshSession() call and a single recovery on a dead session. This
-  // avoids racing refresh calls that would otherwise trip Supabase refresh
-  // token reuse detection.
+  // This keeps concurrent 401 failures deduped onto one refreshSession() call
+  // and one recovery path for a dead session.
   useEffect(() => {
     setRefreshTokenHandler(() => refreshAccessToken());
     return () => setRefreshTokenHandler(null);
   }, []);
 
-  const getToken = useCallback(async (): Promise<string | null> => {
-    return session?.access_token ?? null;
-  }, [session?.access_token]);
+  const { data: realtimeConfig } = useQuery({
+    ...bootstrapOptions,
+    enabled: isAuthenticated && authStage === "active",
+    select: (data) => data.realtime ?? null
+  });
 
-  useSSE(isAuthenticated, getToken);
+  useFlatmatesRealtime({
+    enabled: isAuthenticated && authStage === "active",
+    accessToken: session?.access_token ?? null,
+    realtime: realtimeConfig ?? null
+  });
 
   useEffect(() => {
     const applyTheme = (theme: ThemePreference) => {
@@ -84,7 +89,7 @@ function ProviderInternals({
     };
 
     const applyPalette = (palette: PalettePreference) => {
-      document.documentElement.dataset.palette = palette;
+      document.documentElement.dataset.palette = normalizePalettePreference(palette);
     };
 
     applyTheme(uiStore.getState().theme);

@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { cn, focusRing, interactiveMotion } from "./component-utils";
 
-export type CardVariant = "default" | "compact" | "elevated" | "flat" | "stacked";
+export type CardVariant = "default" | "compact" | "elevated" | "flat" | "stacked" | "promo" | "illustration";
 export type CardElement = "article" | "section" | "div" | "li" | "button";
 
 export interface CardProps extends HTMLAttributes<HTMLElement> {
@@ -20,7 +20,9 @@ const variantClasses: Record<CardVariant, string> = {
   compact: "rounded-xl p-3 bg-surface shadow-xs",
   elevated: "rounded-2xl p-4 bg-surface-elevated shadow-md",
   flat: "rounded-2xl p-4 bg-surface border-0 shadow-none",
-  stacked: "rounded-2xl p-4 bg-surface border-t-2 border-t-accent shadow-sm"
+  stacked: "rounded-2xl p-4 bg-surface border-t-2 border-t-accent shadow-sm",
+  promo: "rounded-[var(--radius-promo)] p-5 bg-lavender shadow-none",
+  illustration: "rounded-[var(--radius-promo)] p-5 bg-surface shadow-xs"
 };
 
 export function Card({
@@ -53,4 +55,3 @@ export function Card({
     />
   );
 }
-

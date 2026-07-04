@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-The traps that have already cost time in the 360 Flatmates web codebase, each with the fix that prevents it from recurring. These are the things a contributor is most likely to break by accident. Read this before touching the API client, the auth flow, the SSE manager, or the build config.
+The traps that have already cost time in the 360 Flatmates web codebase, each with the fix that prevents it from recurring. These are the things a contributor is most likely to break by accident. Read this before touching the API client, the auth flow, realtime wiring, or the build config.
 
 ## Fetch "Illegal invocation"
 
@@ -36,15 +36,15 @@ apiClient.request<CatalogEntry[]>({
 
 The same `auth: false` appears in `useMapView.ts`, `useShareCard.ts`, `useSearch.ts`, and `useProperties.ts`. This was fixed on 2026-05-19 in commit 4c76ef3. When you add a new public query, set `auth: false`. If you are unsure whether an endpoint is public, check `docs/flatmates-openapi.yaml`.
 
-## SSE token in the URL
+## Realtime bootstrap drift
 
-**Symptom.** (Latent, not yet exploited.) The auth token used to authenticate the SSE connection is visible in the connection URL as a query parameter.
+**Symptom.** Live notifications, messages, visits, or listing updates stop arriving even though normal REST calls still work.
 
-**Cause.** The browser `EventSource` API does not support custom headers. The SSE manager in `src/lib/sse/connection.ts` therefore passes the token as `?token=...` on the connection URL. This is a known limitation of the `EventSource` specification, documented in a `SECURITY NOTE` comment in the source.
+**Cause.** The backend owns the Supabase Broadcast channel and event list through `GET /flatmates/bootstrap`. If the frontend schema drops `bootstrap.realtime`, rejects a valid backend event list, or subscribes before `authStore.authStage` is `active`, the realtime hook has no usable channel even though the user is signed in.
 
-**Mitigations in place.** The token is short-lived (a Supabase JWT with refresh rotation), URL-encoded to prevent injection, and the client sets `Referrer-Policy: no-referrer` so the token does not leak via the `Referer` header on cross-origin navigations. The server is expected to avoid logging the full query string in production.
+**Fix.** Keep `FlatmatesBootstrap.realtime` in sync across `src/lib/api/user.types.ts`, `src/lib/schemas/profile.ts`, `docs/flatmates-openapi.yaml`, and `e2e/fixtures/api.ts`. The provider must pass the current Supabase access token into `useFlatmatesRealtime`, which calls `supabase.realtime.setAuth(token)` before opening the private Broadcast channel.
 
-**The escape hatch.** The comment in the source names the alternative explicitly: switch to `fetch()` plus a `ReadableStream` parser for SSE, which would let the token travel in an `Authorization` header. This is more code (a custom SSE parser) but removes the URL exposure. It is the right move if the threat model ever demands it. See [real-time](../features/real-time.md).
+The no-SSE contract test (`tests/contracts/no-sse.contract.test.ts`) guards against accidentally reintroducing the removed backend stream endpoint. See [real-time](../features/real-time.md).
 
 ## The mid-auth-flow redirect trap
 
@@ -121,7 +121,7 @@ So a client request to `/api/flatmates/catalogs` is rewritten to `https://api.36
 | `src/lib/api/client.ts` | `fetch.bind(window)` fix for the Illegal invocation |
 | `src/lib/api/index.ts` | Module-level token getter and refresh handler wiring |
 | `src/hooks/queries/useCatalogs.ts` | Example of the `auth: false` pattern on a public endpoint |
-| `src/lib/sse/connection.ts` | SSE token-in-URL trade-off and `SECURITY NOTE` |
+| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast auth, event subscription, reconnect, and cleanup |
 | `src/pages/guards.tsx` | `AuthRedirectGuard`, `GateGuard`, and the `midAuthFlow` hold |
 | `src/lib/stores/auth-store.ts` | `midAuthFlow` flag definition |
 | `vite.config.ts` | Dev proxy `/api` to `/app/v1` rewrite |
@@ -131,7 +131,7 @@ So a client request to `/api/flatmates/catalogs` is rewritten to `https://api.36
 
 - [API client](../systems/api-client.md) for the full adapter contract and retry behavior.
 - [Auth flows](../features/auth-flows.md) for the multi-step flows the guards protect.
-- [Real-time](../features/real-time.md) for the SSE manager and its reconnect logic.
+- [Real-time](../features/real-time.md) for the Supabase Broadcast hook and reconnect logic.
 - [Lore](../lore.md) for the full rogue-agent timeline.
 - [Getting started](../overview/getting-started.md) for the dev proxy and environment setup.
 - [Design decisions](design-decisions.md) for the rationale behind the choices that introduced these traps.

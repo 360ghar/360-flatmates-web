@@ -57,7 +57,7 @@ The generated `src/lib/api/openapi-types.ts` is ignored because it is machine-wr
 
 `tsc --noEmit`, exposed as `npm run typecheck` and also run as step 1 of the build. The config lives in `tsconfig.json`:
 
-- `target: ES2022`, `lib: ["dom", "dom.iterable", "es2022"]`. Native `fetch`, `URL`, `EventSource`, `BroadcastChannel`, `crypto` are available; do not polyfill.
+- `target: ES2022`, `lib: ["dom", "dom.iterable", "es2022"]`. Native `fetch`, `URL`, and `crypto` are available; do not polyfill.
 - `strict: true`. Strict null checks, no implicit `any`, no implicit returns.
 - `module: esnext`, `moduleResolution: bundler`. Matches the Vite bundler.
 - `paths: { "@/*": ["./src/*"] }`. The `@/` alias is resolved here and in Vite via `vite-tsconfig-paths`.

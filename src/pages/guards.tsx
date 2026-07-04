@@ -6,6 +6,7 @@ import { authStore } from "@/lib/stores/auth-store";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/Button";
 import { resolveRedirect } from "@/lib/redirect";
+import { uiStore } from "@/lib/stores/ui-store";
 
 // /signup intentionally omitted: it's a <Navigate to="/login">, never guarded
 // content — a signed-in user is bounced to /home via the /login entry anyway.
@@ -47,6 +48,11 @@ export function AdminGuard() {
   }
 
   if (user.app_metadata?.role !== "admin") {
+    uiStore.getState().pushToast({
+      type: "warning",
+      title: "Access denied",
+      description: "You don't have permission to access that page.",
+    });
     return <Navigate to="/home" replace />;
   }
 

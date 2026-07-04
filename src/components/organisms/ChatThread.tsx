@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import type { ChangeEvent, HTMLAttributes } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Ban, CalendarPlus, CloudOff, Flag, MessageCircle, MoreVertical, Paperclip, Send, Smile } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
@@ -48,6 +48,7 @@ export interface ChatThreadProps extends HTMLAttributes<HTMLElement> {
   onSend?: (message: string) => void;
   onRetryMessage?: (messageId: string) => void;
   onScheduleVisit?: (data: { scheduledDate: string; specialRequirements: string }) => void;
+  onAttachFile?: (file: File) => void;
   onBlock?: () => void;
   onReport?: (reason: ChatReportReason, notes: string) => void;
   /** Called when the user scrolls to the top and more history is available. */
@@ -65,6 +66,7 @@ export function ChatThread({
   onSend,
   onRetryMessage,
   onScheduleVisit,
+  onAttachFile,
   onBlock,
   onReport,
   onLoadMore,
@@ -72,8 +74,10 @@ export function ChatThread({
   ...props
 }: ChatThreadProps) {
   const [draft, setDraft] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const atBottomRef = useRef(true);
   const prevMsgCountRef = useRef(0);
   const prevFirstIdRef = useRef<string | null>(null);
@@ -95,6 +99,7 @@ export function ChatThread({
   const [reportReason, setReportReason] = useState<ChatReportReason>("spam");
   const [reportNotes, setReportNotes] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   /* Track whether the user is pinned to the bottom of the log. We only
      auto-scroll on new messages when they already were, so incoming history
@@ -189,6 +194,25 @@ export function ChatThread({
     };
   }, [showMenu]);
 
+  /* Close the emoji picker on outside click / Escape — mirrors the menu above. */
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+    function onPointerDown(event: PointerEvent) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setShowEmojiPicker(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [showEmojiPicker]);
+
   function submit() {
     const trimmed = draft.trim();
     if (!trimmed) {
@@ -200,6 +224,19 @@ export function ChatThread({
     onSend?.(trimmed);
     setDraft("");
     focusComposer();
+  }
+
+  function insertEmoji(emoji: string) {
+    setDraft((value) => `${value}${emoji}`);
+    setShowEmojiPicker(false);
+    requestAnimationFrame(focusComposer);
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    onAttachFile?.(file);
   }
 
   function confirmBlock() {
@@ -345,11 +382,44 @@ export function ChatThread({
         )}
       </div>
       <footer ref={footerRef} className="border-t border-line bg-paper/88 p-3 backdrop-blur-[9px]">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          aria-label="Choose message attachment"
+          onChange={handleFileChange}
+        />
         <div className="flex items-center gap-2">
           <TrustBadge variant="privacy" className="hidden sm:inline-flex" />
-          <Button aria-label="Emoji" size="icon" variant="icon">
-            <Smile aria-hidden="true" className="h-5 w-5" />
-          </Button>
+          <div className="relative" ref={emojiPickerRef}>
+            <Button
+              aria-label="Emoji"
+              aria-expanded={showEmojiPicker}
+              size="icon"
+              variant="icon"
+              onClick={() => setShowEmojiPicker((open) => !open)}
+            >
+              <Smile aria-hidden="true" className="h-5 w-5" />
+            </Button>
+            {showEmojiPicker ? (
+              <div
+                aria-label="Choose emoji"
+                className="absolute bottom-full left-0 z-[var(--z-raised)] mb-2 grid w-[min(20rem,calc(100vw-2rem))] grid-cols-6 gap-1 rounded-[12px] border border-line bg-surface-elevated p-2 shadow-md"
+              >
+                {["😀", "😂", "😊", "😍", "👍", "🙏", "🎉", "🏠", "✨", "😅", "🙌", "🤝"].map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    className={cn("flex aspect-square min-h-10 w-full items-center justify-center rounded-[9px] text-xl leading-none hover:bg-lavender", focusRing)}
+                    onClick={() => insertEmoji(emoji)}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <Input
             aria-label="Type a message"
             placeholder="Type a message..."
@@ -374,7 +444,12 @@ export function ChatThread({
           >
             <CalendarPlus aria-hidden="true" className="h-5 w-5" />
           </Button>
-          <Button aria-label="Attach image" size="icon" variant="icon">
+          <Button
+            aria-label="Attach image"
+            size="icon"
+            variant="icon"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <Paperclip aria-hidden="true" className="h-5 w-5" />
           </Button>
           <Button

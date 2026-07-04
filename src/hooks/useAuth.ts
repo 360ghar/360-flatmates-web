@@ -7,9 +7,17 @@ import {
   reportLastMethod,
   type IdentifierStatus,
 } from "@/lib/api/auth";
+import { buildOAuthRedirectUrl } from "@/lib/auth/oauth-redirect";
 import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
-import { resolveRedirect } from "@/lib/redirect";
 import type { Session, User } from "@supabase/supabase-js";
+import {
+  mapSupabaseAuthError,
+  type AuthErrorContext,
+} from "@/lib/authErrors";
+
+function throwMapped(error: unknown, context: AuthErrorContext = "login"): never {
+  throw new Error(mapSupabaseAuthError(error, context));
+}
 
 interface UseAuthReturn {
   user: User | null;
@@ -156,7 +164,7 @@ export function useAuth(): UseAuthReturn {
         phone,
         options: { shouldCreateUser },
       });
-      if (error) throw error;
+      if (error) throwMapped(error);
     },
     [supabase]
   );
@@ -167,7 +175,7 @@ export function useAuth(): UseAuthReturn {
         email,
         options: { shouldCreateUser },
       });
-      if (error) throw error;
+      if (error) throwMapped(error);
     },
     [supabase]
   );
@@ -179,7 +187,7 @@ export function useAuth(): UseAuthReturn {
         token,
         type: "sms"
       });
-      if (error) throw error;
+      if (error) throwMapped(error, "otp");
     },
     [supabase]
   );
@@ -191,7 +199,7 @@ export function useAuth(): UseAuthReturn {
         token,
         type: "email"
       });
-      if (error) throw error;
+      if (error) throwMapped(error, "otp");
     },
     [supabase]
   );
@@ -202,7 +210,7 @@ export function useAuth(): UseAuthReturn {
         phone,
         password
       });
-      if (error) throw error;
+      if (error) throwMapped(error);
     },
     [supabase]
   );
@@ -213,7 +221,7 @@ export function useAuth(): UseAuthReturn {
         email,
         password
       });
-      if (error) throw error;
+      if (error) throwMapped(error);
     },
     [supabase]
   );
@@ -224,7 +232,7 @@ export function useAuth(): UseAuthReturn {
       provider: "google",
       options: { redirectTo },
     });
-    if (error) throw error;
+    if (error) throwMapped(error);
   }, [supabase]);
 
   const signInWithApple = useCallback(async (next?: string) => {
@@ -233,13 +241,13 @@ export function useAuth(): UseAuthReturn {
       provider: "apple",
       options: { redirectTo },
     });
-    if (error) throw error;
+    if (error) throwMapped(error);
   }, [supabase]);
 
   const updateUser = useCallback(
     async (password: string) => {
       const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (error) throwMapped(error);
     },
     [supabase]
   );
@@ -248,7 +256,7 @@ export function useAuth(): UseAuthReturn {
     async (phone: string) => {
       // Triggers a phone-change OTP for the currently signed-in user.
       const { error } = await supabase.auth.updateUser({ phone });
-      if (error) throw error;
+      if (error) throwMapped(error);
     },
     [supabase]
   );
@@ -260,7 +268,7 @@ export function useAuth(): UseAuthReturn {
         token,
         type: "phone_change"
       });
-      if (error) throw error;
+      if (error) throwMapped(error, "otp");
     },
     [supabase]
   );
@@ -270,7 +278,7 @@ export function useAuth(): UseAuthReturn {
     clearPlaywrightSession();
     authStore.getState().resetAuthFlow();
     authStore.getState().setSession(null);
-    if (error) throw error;
+    if (error) throwMapped(error);
   }, [supabase]);
 
   const recordAuthSuccess = useCallback(
@@ -300,17 +308,6 @@ export function useAuth(): UseAuthReturn {
     signOut,
     recordAuthSuccess
   };
-}
-
-function buildOAuthRedirectUrl(next?: string): string {
-  const base =
-    import.meta.env.VITE_AUTH_REDIRECT_URL ??
-    `${window.location.origin}/auth/callback`;
-  const url = new URL(base, window.location.origin);
-  if (next) {
-    url.searchParams.set("next", resolveRedirect(next));
-  }
-  return url.toString();
 }
 
 function getPlaywrightSession(): Session | null {

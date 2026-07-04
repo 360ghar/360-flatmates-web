@@ -99,23 +99,20 @@ export function HomePage() {
 
   return (
     <div className="flex flex-col gap-6 page-fade">
-      {/* Personalized Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-line-low bg-surface/50 p-6 md:p-8 shadow-xs md:grid md:grid-cols-2 md:gap-6 md:items-center">
-        <div className="absolute top-[-30%] left-[-20%] w-[50%] aspect-square rounded-full bg-accent/5 blur-[80px] pointer-events-none" />
-        <div className="absolute bottom-[-30%] right-[-10%] w-[40%] aspect-square rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
+      <div className="relative overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-6 shadow-hard-paper md:grid md:grid-cols-2 md:items-center md:gap-6 md:p-8">
+        <div className="absolute inset-0 map-grid-bg opacity-20" aria-hidden="true" />
 
-        <div>
-          <p className="text-eyebrow text-accent uppercase tracking-[0.16em]">Dashboard</p>
+        <div className="relative z-[1]">
+          <p className="text-label-md font-semibold text-accent">Dashboard</p>
           <h1 className="mt-2 text-display text-3xl md:text-4xl text-ink font-normal leading-tight">
-            Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.split(" ")[0] || "Friend"}</span>
+            Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.trim().split(/\s+/)[0] || "Friend"}</span>
           </h1>
           <p className="mt-3 text-body-md text-ink-2 max-w-[65ch]">
-            Ready to find your vibe match? Check out your personal dashboard and recommendations below.
+            Your recommendations, listings, and nearby flatmates are ready to review.
           </p>
         </div>
 
-        {/* Dashboard Quick Stats */}
-        <div className="grid grid-cols-3 gap-2 mt-4 md:mt-0">
+        <div className="relative z-[1] mt-4 grid grid-cols-3 gap-2 md:mt-0">
           {[
             { Icon: Users, value: recommended.length, label: "Recommended peers", to: "/swipe" },
             { Icon: Building2, value: listings.length, label: "Property listings", to: "/search" },
@@ -227,6 +224,7 @@ export function HomePage() {
                   style={{ animationDelay: `${Math.min(i, 5) * 50}ms` }}>
                   <ListingCard
                     listing={propertyToListingCardProps(property)}
+                    ctaLabel="View Details"
                     onOpen={(id) => navigate(`/listing/${id}`)}
                   />
                 </div>

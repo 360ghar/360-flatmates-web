@@ -38,9 +38,9 @@ Project-specific terms used across the codebase, design docs, and this wiki.
 
 | Term | Meaning |
 | --- | --- |
-| **SSE event type** | One of twelve named events the backend pushes over Server-Sent Events. See `SSE_EVENT_TYPES` in `src/lib/sse/connection.ts`. |
-| **BroadcastChannel dedup** | A `BroadcastChannel` that ships each received SSE event to other tabs so a notification opened in one tab is not re-rendered in another. |
-| **Heartbeat timeout** | If no SSE event arrives within 60s, the manager assumes the connection is stale and reconnects. |
+| **Broadcast event type** | One of six backend events delivered over the Supabase private Broadcast channel. See `FLATMATES_REALTIME_EVENTS` in `src/hooks/useFlatmatesRealtime.ts`. |
+| **Realtime config** | The `FlatmatesBootstrap.realtime` object from `/flatmates/bootstrap`, containing the Supabase provider, private channel, and event list. |
+| **Reconnect catch-up** | Broad query invalidation after a disconnected Broadcast channel successfully resubscribes, because Broadcast events are not replayed. |
 
 ## Listings and visits
 

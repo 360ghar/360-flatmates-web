@@ -15,7 +15,7 @@
     "test:e2e": "playwright test",
     "generate:api-types": "openapi-typescript docs/flatmates-openapi.yaml -o src/lib/api/openapi-types.ts",
     "generate:pwa-icons": "npx tsx scripts/generate-pwa-icons.ts",
-    "wiki:render-video": "cd .wiki/video/source && npm install && npx hyperframes render . -o out/visual.mp4 --fps 24 --quality medium --no-browser-gpu && echo 'Visual rendered. Run mux steps per .wiki/video/source/README.md'"
+    "wiki:render-video": "cd .wiki/video/source && npm install && npx hyperframes render . -o out/visual.mp4 --fps 24 --quality standard --no-browser-gpu && echo 'Visual rendered. Run mux steps per .wiki/video/source/README.md'"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

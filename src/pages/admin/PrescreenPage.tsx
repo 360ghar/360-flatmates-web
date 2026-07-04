@@ -363,7 +363,7 @@ export function PrescreenPage() {
       </div>
 
       {/* Action Bar */}
-      <div className="sticky bottom-0 z-20 -mx-5 mt-6 border-t border-line bg-paper/88 px-5 py-3 backdrop-blur-[9px] md:-mx-6 md:px-6">
+      <div className="sticky bottom-0 z-[var(--z-sticky)] -mx-5 mt-6 border-t border-line bg-paper/88 px-5 py-3 backdrop-blur-[9px] md:-mx-6 md:px-6">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-end gap-3">
           <Button
             size="compact"

@@ -20,7 +20,7 @@ import {
   type ChatThreadParticipant,
   type ChatReportReason
 } from "@/components/organisms/ChatThread";
-import { useSSEStatus } from "@/hooks/useSSEStatus";
+import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { uiStore } from "@/lib/stores/ui-store";
 
 export function ChatDetailPage() {
@@ -44,7 +44,7 @@ export function ChatDetailPage() {
   const createVisit = useCreateVisit();
   const reportUser = useReportUserMutation();
   const markRead = useMarkConversationRead();
-  const { isConnected } = useSSEStatus();
+  const { isConnected: realtimeConnected } = useRealtimeStatus();
 
   // Block-create has no dedicated hook in useBlocks.ts yet (see SHARED
   // FINDINGS); co-locate the mutation here so the chat safety action works.
@@ -279,18 +279,28 @@ export function ChatDetailPage() {
     );
   }
 
+  function handleAttachFile(file: File) {
+    uiStore.getState().pushToast({
+      type: "info",
+      title: "Attachment selected",
+      description: `${file.name} is ready, but chat uploads are not enabled yet.`
+    });
+  }
+
   return (
     <ChatThread
       participant={participant}
       messages={messages}
       onSend={handleSend}
       onRetryMessage={handleRetryMessage}
+      onAttachFile={handleAttachFile}
       onBlock={handleBlock}
       onReport={handleReport}
       onScheduleVisit={handleScheduleVisit}
       onLoadMore={hasNextPage ? () => fetchNextPage() : undefined}
       loadingMore={isFetchingNextPage}
-      disconnected={!isConnected}
+      sending={sendMessage.isPending}
+      disconnected={!realtimeConnected}
     />
   );
 }

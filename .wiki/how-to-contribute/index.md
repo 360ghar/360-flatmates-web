@@ -7,7 +7,7 @@ If you are setting up the repo for the first time, start with [Getting started](
 ## Pages in this section
 
 - [Development workflow](development-workflow.md): the branch, code, test, PR, and merge cycle, the conventional commit format, and the pre-PR checklist.
-- [Testing](testing.md): the Vitest and Playwright setup, the test pyramid, and how to mock API calls, Supabase auth, and SSE.
+- [Testing](testing.md): the Vitest and Playwright setup, the test pyramid, and how to mock API calls, Supabase auth, and realtime.
 - [Debugging](debugging.md): common errors and a symptom, cause, fix troubleshooting table.
 - [Patterns and conventions](patterns-and-conventions.md): TypeScript, styling, async state, state management split, routing, components, accessibility, content and voice, and motion.
 - [Tooling](tooling.md): the build pipeline, ESLint, the type check, and the code generators for API types, PWA icons, OG image, favicon, and sitemap.

@@ -10,8 +10,7 @@ flowchart LR
     B --> C[Vanilla Zustand stores]
     C --> D[ApiAdapter abstraction]
     D --> E[Prerendered SPA]
-    D --> F[SSE real-time]
-    C --> F
+    C --> F[Supabase Broadcast real-time]
     A --> G[Compatibility engine]
 ```
 
@@ -21,7 +20,7 @@ flowchart LR
 
 **Alternatives considered.** The more common Zustand pattern is `create()(config)`, which returns a React hook directly. That is the pattern in most tutorials and starter templates.
 
-**Rationale.** The vanilla store can be read and written from non-React code. Three concrete consumers need this: the SSE connection manager in `src/lib/sse/connection.ts` pushes connection state into `uiStore` without any React context; the providers in `src/providers.tsx` read `authStore.getState()` inside a `useEffect` to gate the backend auth-state fetch; and tests assert against `store.getState()` directly without mounting a component tree. The `create()` hook wrapper would have forced each of these to thread a React context, or to duplicate the state. This decision landed on 2026-05-20 (commits d487579 and d069942) and was standardized across the codebase the same day. The trade-off is a tiny ergonomic cost: components must call `useStore(uiStore, selector)` instead of `useUiStore()`. See [state management](../systems/state-management.md).
+**Rationale.** The vanilla store can be read and written from non-React code. Concrete consumers include realtime integration hooks that push connection state into `uiStore`, the providers in `src/providers.tsx` that read `authStore.getState()` inside effects to gate the backend auth-state fetch, and tests that assert against `store.getState()` directly without mounting a component tree. The `create()` hook wrapper would have forced each of these to thread a React context, or to duplicate the state. This decision landed on 2026-05-20 (commits d487579 and d069942) and was standardized across the codebase the same day. The trade-off is a tiny ergonomic cost: components must call `useStore(uiStore, selector)` instead of `useUiStore()`. See [state management](../systems/state-management.md).
 
 ## No SSR. Prerender the public surface instead
 
@@ -31,13 +30,13 @@ flowchart LR
 
 **Rationale.** The backend is a shared FastAPI service that the SPA consumes, not a Node server the team controls. Running a React SSR layer would mean standing up and operating a second runtime, which is a large cost for a single-contributor repo. The only audience that genuinely needs server-rendered HTML is crawlers that do not run JavaScript (GPTBot, ClaudeBot, CCBot, and so on), and those crawlers hit a known, enumerable set of public routes. Prerendering those routes at build time gives crawlers real HTML with real meta, JSON-LD, and visible content, without any per-request server cost and without coupling the frontend to a Node host. Authenticated routes are never prerendered (they would render a login redirect at build time), so the prerenderer only covers the `PublicLayout` surface. See [SEO and prerendering](../features/seo-prerendering.md).
 
-## SSE over WebSockets for real-time updates
+## Supabase Broadcast for real-time updates
 
-**Decision.** Real-time events (notifications, messages, visit updates, swipes) arrive over Server-Sent Events via the `EventSource`-based manager in `src/lib/sse/connection.ts`. There is no WebSocket client in the web app.
+**Decision.** Flatmates real-time events arrive over Supabase Realtime private Broadcast channels. The backend exposes the channel and event list through `/flatmates/bootstrap`, and `src/hooks/useFlatmatesRealtime.ts` authorizes Realtime with the current Supabase access token before subscribing.
 
-**Alternatives considered.** WebSockets give bidirectional communication and a richer framing model. Long polling is the simplest fallback.
+**Alternatives considered.** A custom backend stream was previously used, but the backend and mobile app deprecated that endpoint in favor of Supabase private Broadcast. Long polling is the simplest fallback but wastes requests and was intentionally not added.
 
-**Rationale.** The traffic is unidirectional, server-to-client. Notifications, chat messages, and status updates flow one way; the client already has the REST API for any upstream action. SSE is cheaper on the server (one HTTP connection per client, no frame protocol, no upgrade handshake), degrades gracefully over flaky connections with built-in browser reconnection, and works through proxies that block WebSockets. The `EventSource` API is also simpler to reason about than a raw WebSocket. The trade-off is documented in the source: `EventSource` does not support custom headers, so the auth token travels as a URL query parameter, which is a deliberate security trade-off (see [pitfalls](pitfalls.md#sse-token-in-the-url)). See [real-time](../features/real-time.md).
+**Rationale.** The traffic is still server-to-client, but Supabase Broadcast removes the backend stream endpoint, avoids token-in-query-string auth, and aligns web with the backend/mobile contract. Broadcast payloads remain invalidation hints: the client refetches authoritative data through the REST API instead of trusting event payloads as state. See [real-time](../features/real-time.md).
 
 ## The `ApiAdapter` abstraction
 
@@ -78,7 +77,7 @@ sequenceDiagram
 
 **Alternatives considered.** A looser config with `any` permitted for rapid prototyping. A `NodeNext` or `node` module resolution. An older ES target for maximum browser compatibility.
 
-**Rationale.** Strict typing catches the class of bugs (typos in field names, missing null checks, wrong union arms) that are expensive to find at runtime in a client-rendered SPA with no server logs to grep. `no-explicit-any` as an error, rather than a warning, forces contributors to model data properly, which compounds: every hook and component that consumes a typed API response is itself type-safe for free. ES2022 is the right target because the app uses native `fetch`, `URL`, `EventSource`, `BroadcastChannel`, and `crypto`, all of which are baseline in evergreen browsers, and the PWA install audience is modern. `bundler` module resolution matches how Vite actually resolves modules (including the `@/*` path alias) and avoids false errors on modern import patterns. Zero warnings as a hard gate means the codebase never accumulates lint debt; combined with the zero-TODO state (see [cleanup opportunities](../cleanup-opportunities.md)), this keeps the codebase auditable for a single contributor.
+**Rationale.** Strict typing catches the class of bugs (typos in field names, missing null checks, wrong union arms) that are expensive to find at runtime in a client-rendered SPA with no server logs to grep. `no-explicit-any` as an error, rather than a warning, forces contributors to model data properly, which compounds: every hook and component that consumes a typed API response is itself type-safe for free. ES2022 is the right target because the app uses native `fetch`, `URL`, and `crypto`, all of which are baseline in evergreen browsers, and the PWA install audience is modern. `bundler` module resolution matches how Vite actually resolves modules (including the `@/*` path alias) and avoids false errors on modern import patterns. Zero warnings as a hard gate means the codebase never accumulates lint debt; combined with the zero-TODO state (see [cleanup opportunities](../cleanup-opportunities.md)), this keeps the codebase auditable for a single contributor.
 
 ## A CSS custom property token system, not a JS theme
 
@@ -92,11 +91,11 @@ sequenceDiagram
 
 | File | Role |
 | --- | --- |
-| `src/lib/stores/ui-store.ts` | Vanilla `createStore()` example: theme, toasts, modals, SSE state |
+| `src/lib/stores/ui-store.ts` | Vanilla `createStore()` example: theme, toasts, modals, realtime state |
 | `src/lib/stores/auth-store.ts` | Vanilla store consumed by guards and providers without React context |
 | `src/providers.tsx` | Token getter + refresh handler injection that keeps the API client Supabase-agnostic |
 | `scripts/prerender.ts` | Build-time Chromium prerender of every public route |
-| `src/lib/sse/connection.ts` | `EventSource`-based SSE manager, pure TypeScript, no React |
+| `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription; invalidates the QueryClient cache and surfaces toasts / realtime UI state |
 | `src/lib/api/client.ts` | `ApiAdapter` interface and `HttpApiClient` with single-refresh retry |
 | `src/lib/api/index.ts` | Module-level `apiClient` singleton and token getter wiring |
 | `src/lib/compatibility/engine.ts` | Weighted six-dimension compatibility scoring |
@@ -109,7 +108,7 @@ sequenceDiagram
 
 - [State management](../systems/state-management.md) for the store consumption patterns these decisions enable.
 - [API client](../systems/api-client.md) for the full adapter contract.
-- [Real-time](../features/real-time.md) for the SSE manager in action.
+- [Real-time](../features/real-time.md) for the Supabase Broadcast integration.
 - [SEO and prerendering](../features/seo-prerendering.md) for the prerender pipeline.
 - [Design system](../systems/design-system.md) for the token system in practice.
 - [Compatibility matching](../features/compatibility-matching/index.md) for the engine's inputs and outputs.
