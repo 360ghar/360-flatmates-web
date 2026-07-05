@@ -4,7 +4,7 @@ import { STEPS } from "./landing-data";
 export function HowItWorks() {
   return (
     <section
-      className="bg-peach py-20 md:py-28 border-b border-line-low"
+      className="bg-accent-soft py-20 md:py-28 border-b border-line-low"
       aria-labelledby="how-it-works-heading"
     >
       <div className="mx-auto max-w-7xl px-5 md:px-12">
@@ -29,7 +29,7 @@ export function HowItWorks() {
               <RevealSection
                 key={step.number}
                 staggerIndex={idx + 1}
-                className="relative rounded-[var(--radius-promo)] border border-line-low bg-paper p-6 text-center"
+                className="relative rounded-[var(--radius-promo)] border border-line-low bg-surface p-6 text-center"
               >
                 <div className="relative z-10 mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-surface text-accent shadow-sm">
                   <StepIcon className="h-6 w-6" aria-hidden="true" />

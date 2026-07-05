@@ -320,7 +320,7 @@ svg {
 
 .text-hero-display {
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: clamp(3rem, 7vw, 5.6rem);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
   font-weight: 400;
   line-height: 1.03;
   letter-spacing: -0.025em;

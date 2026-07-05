@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { Camera, Crosshair, Loader2 } from "lucide-react";
@@ -114,6 +114,19 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
+  // Tracks the active object URL so we can revoke it on swap/unmount to avoid
+  // leaking blob: URLs. Null when the current preview is a hosted URL (or none).
+  const objectUrlRef = useRef<string | null>(null);
+
+  // Revoke any outstanding object URL when the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const handleUseMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -195,9 +208,24 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
         return;
       }
 
+      // Show an instant local preview so the user gets visual feedback before
+      // the (possibly slow or missing) upload round-trip completes.
+      const localPreview = URL.createObjectURL(file);
+      // Revoke the previous object URL (if any) before replacing it.
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+      objectUrlRef.current = localPreview;
+      setPhotoPreview(localPreview);
+
       setPhotoUploading(true);
       try {
         const publicUrl = await uploadImage(file);
+        // Swap the local preview for the hosted URL and release the blob.
+        if (objectUrlRef.current === localPreview) {
+          URL.revokeObjectURL(localPreview);
+          objectUrlRef.current = null;
+        }
         setPhotoPreview(publicUrl);
         patchDraft({ profile_image_url: publicUrl });
         uiStore.getState().pushToast({
@@ -205,6 +233,10 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
           title: "Photo uploaded",
         });
       } catch (err) {
+        // Keep the local object URL preview so the user still sees their
+        // selection. Do NOT patch the draft with a hosted URL — the upload
+        // didn't succeed, so profile_image_url stays as-is and the user can
+        // retry. The error toast carries the friendly message.
         const description =
           err instanceof Error ? err.message : "Could not upload your photo. Please try again.";
         uiStore.getState().pushToast({

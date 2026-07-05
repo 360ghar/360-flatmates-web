@@ -1,5 +1,22 @@
 import { resolveRedirect } from "@/lib/redirect";
 
+/**
+ * OAuth redirect URL construction.
+ *
+ * In production this always uses the current browser origin + `/auth/callback`,
+ * so a user on `https://flatmates.360ghar.com` is redirected back there after
+ * Google/Apple sign-in — never to a different 360ghar host.
+ *
+ * IMPORTANT (Supabase dashboard requirement):
+ * For this to work, the Supabase project's Authentication → URL Configuration
+ * must include each deployment's callback URL in the "Redirect URLs" allowlist:
+ *   - https://flatmates.360ghar.com/auth/callback
+ *   - https://360ghar.com/auth/callback  (if the main site also uses OAuth)
+ * The "Site URL" should be set to the primary app URL (e.g. https://flatmates.360ghar.com).
+ * If a redirect URL is NOT in the allowlist, Supabase silently falls back to the
+ * configured Site URL — which is the root cause of issue #14 (redirect to
+ * 360ghar.com instead of flatmates.360ghar.com).
+ */
 export const OAUTH_CALLBACK_PATH = "/auth/callback";
 
 interface BuildOAuthRedirectUrlOptions {

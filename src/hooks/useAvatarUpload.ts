@@ -39,6 +39,12 @@ function fileExtensionFor(blob: Blob): string {
 }
 
 async function readErrorMessage(response: Response): Promise<string> {
+  // The avatar endpoint isn't in the OpenAPI spec, so a 404 likely means the
+  // backend hasn't shipped it yet. Surface a friendly, actionable message
+  // instead of the raw "Not Found" status text.
+  if (response.status === 404) {
+    return "Photo upload isn't available right now. Your selection is saved — please try again later.";
+  }
   try {
     const payload = (await response.json()) as unknown;
     if (typeof payload === "object" && payload !== null) {

@@ -19,7 +19,7 @@ Key reference documents:
 - **DESIGN.md** — single source of truth for all UI tokens, component specs, and visual targets
 - **plans/prd.md** — product requirements and technical architecture
 - **plans/ui_ux.md** — detailed page, component, and interaction specifications
-- **docs/flatmates-openapi.yaml** — backend API contract (FastAPI at `/api/v1`)
+- **docs/flatmates-openapi.yaml** — backend API contract (FastAPI at `/api/v1`). Mirror of `360ghar-backend/docs/flatmates-openapi.yaml`; kept byte-identical. The authoritative full spec is `360ghar-backend/docs/openapi.json` (regenerate via `uv run python scripts/generate_openapi.py`). Update the backend copy first, then copy it here.
 
 ## Build, Test, and Development Commands
 

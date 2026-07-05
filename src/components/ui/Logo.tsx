@@ -7,6 +7,11 @@ export interface LogoProps {
 }
 
 function RotateIcon({ size }: { size: number }) {
+  // A near-complete ring that reads as the digit "0": a stroked circle
+  // (center 20,20, radius 13) with a ~40° opening at the top so the rotation
+  // stays perceptible. A subtle filled bead just outside the gap gives the
+  // slow spin a clear reference point — evoking the "360°" concept without
+  // resorting to a chunky refresh arrowhead.
   return (
     <svg
       width={size}
@@ -15,22 +20,15 @@ function RotateIcon({ size }: { size: number }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
-      className="animate-spin-slow"
+      className="animate-spin-slow motion-reduce:animate-none -mt-px"
     >
       <path
-        d="M34 20C34 27.732 27.732 34 20 34C12.268 34 6 27.732 6 20C6 12.268 12.268 6 20 6C25 6 29.3 8.9 31.6 13.2"
+        d="M 15.55 7.78 A 13 13 0 1 1 24.45 7.78"
         stroke="currentColor"
-        strokeWidth="3.5"
+        strokeWidth="3.25"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
-      <path
-        d="M31.6 13.2L30 6L23.5 8"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <circle cx="20" cy="3.5" r="1.3" fill="currentColor" />
     </svg>
   );
 }

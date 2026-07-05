@@ -97,7 +97,6 @@ export function AuthCallbackPage() {
     // Calling setState inside the effect is intentional here (the function
     // doesn't render-react to React state — it just kicks off the auth
     // exchange). The cascade only happens on the error path, which is rare.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     handleCallback();
   }, [handleCallback]);
 

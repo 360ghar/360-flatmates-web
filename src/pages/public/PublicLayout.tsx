@@ -53,10 +53,15 @@ export function PublicLayout() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper text-ink">
+    <div className={cn("flex min-h-screen flex-col bg-paper text-ink", offline && "pt-10")}>
       <ScrollProgressBar />
       <OfflineBanner visible={offline} />
-      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-line-low bg-surface/88 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+      <header
+        className={cn(
+          "sticky z-[var(--z-sticky)] border-b border-line-low bg-surface/88 pt-[env(safe-area-inset-top)] backdrop-blur-xl",
+          offline ? "top-10" : "top-0",
+        )}
+      >
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-5 md:px-12">
           <Link to="/" aria-label="360 Flatmates home" className="shrink-0">
             <Logo compact />
@@ -148,7 +153,6 @@ export function PublicLayout() {
       </Drawer>
 
       <div className="flex-1">
-        <PWAInstallBanner className="mx-auto mt-4 max-w-3xl px-5" pageviewLimit={3} variant="compact" />
         <Outlet />
       </div>
 
@@ -235,6 +239,12 @@ export function PublicLayout() {
           </div>
         </div>
       </footer>
+
+      <PWAInstallBanner
+        className="fixed inset-x-0 bottom-4 z-[var(--z-overlay)] mx-auto max-w-3xl px-5 shadow-lg md:inset-x-auto md:right-5 md:bottom-5 md:max-w-md"
+        pageviewLimit={3}
+        variant="compact"
+      />
     </div>
   );
 }

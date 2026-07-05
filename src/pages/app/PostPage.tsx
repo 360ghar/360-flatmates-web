@@ -85,6 +85,16 @@ function loadDraft(): DraftState {
   }
 }
 
+/** Returns only hosted http(s) URLs, filtering out base64 data URLs and blob: previews
+ *  that the backend's `format: uri` validation would reject with a 422. */
+function hostedImageUrls(urls: string[] | undefined): string[] | undefined {
+  if (!urls || urls.length === 0) return undefined;
+  const filtered = urls.filter(
+    (u) => typeof u === "string" && (u.startsWith("http://") || u.startsWith("https://"))
+  );
+  return filtered.length > 0 ? filtered : undefined;
+}
+
 /** Coerce a numeric input to a number, mapping empty/NaN to undefined so a
  *  cleared field doesn't trip `Number.isFinite` validation. */
 function optionalNumberValue(raw: string): number | undefined {
@@ -202,7 +212,11 @@ export function PostPage() {
 
     if (currentStep >= STEPS.length - 1) {
       if (createProperty.isPending) return; // guard against double-submit
-      createProperty.mutate(form as PropertyCreate, {
+      const submissionPayload: PropertyCreate = {
+        ...form,
+        image_urls: hostedImageUrls(form.image_urls)
+      } as PropertyCreate;
+      createProperty.mutate(submissionPayload, {
         onSuccess: (property) => {
           /* Clear the saved draft now that the listing is published */
           try {

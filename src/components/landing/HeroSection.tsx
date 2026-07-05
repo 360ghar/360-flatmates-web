@@ -22,7 +22,7 @@ export function HeroSection() {
 
           <h1
             id="hero-heading"
-            className="text-hero-display max-w-[11ch] text-ink"
+            className="text-hero-display max-w-[16ch] text-ink"
           >
             Find your flatmate, not a nightmare.
           </h1>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Bell,
@@ -13,6 +13,7 @@ import {
   Smartphone,
   Check,
   ImageOff,
+  Loader2,
 } from "lucide-react";
 import { useMyProfile, useUpdateProfile, useDeleteAccount } from "@/hooks/queries";
 import type { FlatmatesProfileUpdate } from "@/lib/api/types";
@@ -49,6 +50,23 @@ export function ProfilePage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [showPWAInstructions, setShowPWAInstructions] = useState(false);
+  // Local preview shown while/after an upload attempt. Set to a blob: URL on
+  // file selection and swapped to the hosted URL on success. On failure the
+  // blob: URL is retained so the user still sees their selection.
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  // Tracks the active object URL so it can be revoked on swap/unmount.
+  const objectUrlRef = useRef<string | null>(null);
+
+  // Revoke any outstanding object URL when the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
   const deleteEnabled = deleteConfirmText.trim().toUpperCase() === "DELETE";
   const { isInstallable, isInstalled, isIOS, installApp } = usePWA();
 
@@ -177,18 +195,58 @@ export function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
+
+    if (!file.type.startsWith("image/")) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Unsupported file",
+        description: "Please choose an image file.",
+      });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Image too large",
+        description: "Please choose an image under 5 MB.",
+      });
+      return;
+    }
+
+    // Instant local preview before the upload round-trip.
+    const localPreview = URL.createObjectURL(file);
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+    }
+    objectUrlRef.current = localPreview;
+    setPhotoPreview(localPreview);
+
+    setPhotoUploading(true);
     try {
-      await uploadImage(file);
+      const publicUrl = await uploadImage(file);
+      // Swap the local preview for the hosted URL and release the blob.
+      if (objectUrlRef.current === localPreview) {
+        URL.revokeObjectURL(localPreview);
+        objectUrlRef.current = null;
+      }
+      setPhotoPreview(publicUrl);
       uiStore.getState().pushToast({
         type: "success",
         title: "Photo updated",
       });
-    } catch {
+    } catch (err) {
+      // Keep the local preview so the user still sees their selection. The
+      // hosted URL is not applied — profile_image_url stays as-is and the
+      // user can retry.
+      const description =
+        err instanceof Error ? err.message : "Could not update your profile photo. Please try again.";
       uiStore.getState().pushToast({
         type: "error",
         title: "Upload failed",
-        description: "Could not update your profile photo. Please try again.",
+        description,
       });
+    } finally {
+      setPhotoUploading(false);
     }
   };
 
@@ -199,6 +257,12 @@ export function ProfilePage() {
     const payload = { profile_image_url: null } as unknown as FlatmatesProfileUpdate;
     updateProfile.mutate(payload, {
       onSuccess: () => {
+        // Clear any local blob preview and release the object URL.
+        if (objectUrlRef.current) {
+          URL.revokeObjectURL(objectUrlRef.current);
+          objectUrlRef.current = null;
+        }
+        setPhotoPreview(null);
         uiStore.getState().pushToast({
           type: "success",
           title: "Photo removed",
@@ -231,12 +295,15 @@ export function ProfilePage() {
             <Avatar
               name={profile.full_name}
               size="xl"
-              src={profile.profile_image_url}
+              src={photoPreview ?? profile.profile_image_url ?? null}
               editable
               onEdit={() => {
-                handlePhotoUpload();
+                if (!photoUploading) handlePhotoUpload();
               }}
             />
+            {photoUploading && (
+              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin text-ink-2" />
+            )}
             {profile.profile_image_url && (
               <Button
                 size="compact"

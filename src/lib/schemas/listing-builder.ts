@@ -10,7 +10,13 @@ import {
 import { optionalUrlSchema } from "./common";
 
 export const LISTING_DRAFT_STORAGE_KEY = "360-flatmates-listing-draft";
-const optionalUrlArraySchema = z.array(z.string().url()).default([]);
+const httpUrlSchema = z
+  .string()
+  .url()
+  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+    message: "Must be a valid http(s) URL"
+  });
+const optionalUrlArraySchema = z.array(httpUrlSchema).default([]);
 
 export const listingLocationStepSchema = z.object({
   society_name: z.string().min(1).max(160).optional(),
