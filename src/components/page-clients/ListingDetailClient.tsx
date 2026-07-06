@@ -56,15 +56,6 @@ export default function ListingDetailClient() {
       return;
     }
 
-    if (isProfileLoading) {
-      uiStore.getState().pushToast({
-        type: "info",
-        title: "Profile still loading",
-        description: "Please wait a moment before contacting the owner."
-      });
-      return;
-    }
-
     if (isOwnListing) {
       uiStore.getState().pushToast({
         type: "info",
@@ -355,8 +346,8 @@ export default function ListingDetailClient() {
                     <Button
                       fullWidth
                       className="py-2.5 font-semibold"
-                      disabled={isOwnListing || isProfileLoading}
-                      loading={createConversation.isPending}
+                      disabled={isOwnListing}
+                      loading={isProfileLoading || createConversation.isPending}
                       onClick={handleContactOwner}
                     >
                       {isOwnListing ? "Your listing" : "Contact Owner"}
