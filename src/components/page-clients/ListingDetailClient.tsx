@@ -1,9 +1,12 @@
+import { useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { MapPin } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useCreateConversation } from "@/hooks/queries/useConversations";
 import { useProperty } from "@/hooks/queries/useProperties";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
+import { uiStore } from "@/lib/stores/ui-store";
 import { formatCurrencyINR } from "@/lib/utils/format";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button, buttonClasses } from "@/components/ui/Button";
@@ -22,16 +25,54 @@ export default function ListingDetailClient() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: property, isLoading, error, refetch } = useProperty(propertyId);
+  const createConversation = useCreateConversation();
+  const ownerId = property?.owner?.id ?? property?.owner_id;
 
-  const handleContactOwner = () => {
-    if (user && property?.owner?.id) {
-      navigate(`/profile/${property.owner.id}`);
-    } else if (property?.owner?.id) {
-      navigate(`/login?redirect=${encodeURIComponent(`/profile/${property.owner.id}`)}`);
+  const handleOpenOwnerProfile = useCallback(() => {
+    if (user && ownerId) {
+      navigate(`/profile/${ownerId}`);
+    } else if (ownerId) {
+      navigate(`/login?redirect=${encodeURIComponent(`/profile/${ownerId}`)}`);
     } else {
       navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
     }
-  };
+  }, [navigate, ownerId, propertyId, user]);
+
+  const handleContactOwner = useCallback(() => {
+    if (!ownerId) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Owner unavailable",
+        description: "We could not find the owner for this listing. Please try another listing."
+      });
+      return;
+    }
+
+    if (!user) {
+      navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
+      return;
+    }
+
+    createConversation.mutate(
+      {
+        peer_user_id: ownerId,
+        context_property_id: propertyId,
+        initial_message: `Hi, I am interested in ${property?.title ?? "this listing"}.`
+      },
+      {
+        onSuccess: (conversation) => {
+          navigate(`/chats/${conversation.id}`);
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not contact owner",
+            description: "Something went wrong while starting the chat. Please try again."
+          });
+        }
+      }
+    );
+  }, [createConversation, navigate, ownerId, property?.title, propertyId, user]);
 
   // Guard against invalid IDs before rendering content
   if (!params.id || isNaN(propertyId) || propertyId <= 0) {
@@ -265,15 +306,7 @@ export default function ListingDetailClient() {
                   <button
                     type="button"
                     className="flex items-center gap-3 border-b border-line pb-4 mb-4 w-full text-left hover:opacity-80 transition-opacity"
-                    onClick={() => {
-                      if (user && property?.owner?.id) {
-                        navigate(`/profile/${property.owner.id}`);
-                      } else if (property?.owner?.id) {
-                        navigate(`/login?redirect=${encodeURIComponent(`/profile/${property.owner.id}`)}`);
-                      } else {
-                        navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
-                      }
-                    }}
+                    onClick={handleOpenOwnerProfile}
                   >
                     <div className="relative">
                       <Avatar name={data.owner?.name ?? "Host"} size="lg" src={data.owner?.avatarUrl} />
@@ -298,7 +331,12 @@ export default function ListingDetailClient() {
 
                   {/* Actions inside the host card */}
                   <div className="flex flex-col gap-3">
-                    <Button fullWidth className="py-2.5 font-semibold" onClick={handleContactOwner}>
+                    <Button
+                      fullWidth
+                      className="py-2.5 font-semibold"
+                      loading={createConversation.isPending}
+                      onClick={handleContactOwner}
+                    >
                       Contact Owner
                     </Button>
                   </div>
