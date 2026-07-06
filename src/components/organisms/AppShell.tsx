@@ -287,7 +287,7 @@ export function AppShell({
         style={{ width: currentWidth }}
       >
         <div className={cn("flex h-14 items-center", collapsed ? "justify-center" : "justify-center px-2")}>
-          <Logo compact={collapsed} stacked={!collapsed} />
+          <Logo compact={collapsed} iconOnly={collapsed} stacked={!collapsed} />
         </div>
         <nav aria-label="Primary" className="mt-5 flex flex-1 flex-col gap-1">
           {visibleItems.map((item) => (
