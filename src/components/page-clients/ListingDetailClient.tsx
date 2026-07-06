@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateConversation } from "@/hooks/queries/useConversations";
+import { useMyProfile } from "@/hooks/queries/useProfiles";
 import { useProperty } from "@/hooks/queries/useProperties";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -25,8 +26,10 @@ export default function ListingDetailClient() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: property, isLoading, error, refetch } = useProperty(propertyId);
+  const { data: myProfile, isLoading: isProfileLoading } = useMyProfile();
   const createConversation = useCreateConversation();
   const ownerId = property?.owner?.id ?? property?.owner_id;
+  const isOwnListing = Boolean(ownerId && myProfile?.id === ownerId);
 
   const handleOpenOwnerProfile = useCallback(() => {
     if (user && ownerId) {
@@ -53,6 +56,24 @@ export default function ListingDetailClient() {
       return;
     }
 
+    if (isProfileLoading) {
+      uiStore.getState().pushToast({
+        type: "info",
+        title: "Profile still loading",
+        description: "Please wait a moment before contacting the owner."
+      });
+      return;
+    }
+
+    if (isOwnListing) {
+      uiStore.getState().pushToast({
+        type: "info",
+        title: "This is your listing",
+        description: "You cannot start a conversation with yourself."
+      });
+      return;
+    }
+
     createConversation.mutate(
       {
         peer_user_id: ownerId,
@@ -72,7 +93,7 @@ export default function ListingDetailClient() {
         }
       }
     );
-  }, [createConversation, navigate, ownerId, property?.title, propertyId, user]);
+  }, [createConversation, isOwnListing, isProfileLoading, navigate, ownerId, property?.title, propertyId, user]);
 
   // Guard against invalid IDs before rendering content
   if (!params.id || isNaN(propertyId) || propertyId <= 0) {
@@ -334,10 +355,11 @@ export default function ListingDetailClient() {
                     <Button
                       fullWidth
                       className="py-2.5 font-semibold"
+                      disabled={isOwnListing || isProfileLoading}
                       loading={createConversation.isPending}
                       onClick={handleContactOwner}
                     >
-                      Contact Owner
+                      {isOwnListing ? "Your listing" : "Contact Owner"}
                     </Button>
                   </div>
                 </Card>
