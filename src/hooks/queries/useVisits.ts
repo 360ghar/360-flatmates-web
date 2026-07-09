@@ -158,31 +158,36 @@ export function useUpdateVisit(id: number) {
         return Promise.reject(new Error("Invalid visit id"));
       }
 
+      const current = queryClient.getQueryData<Visit>(["visits", id]);
+      
       // Client-side status transition guard. Only enforced when the payload
       // includes a status change; non-status updates (date, notes, feedback)
       // are still allowed regardless of current state.
       if (payload.status !== undefined) {
-        const current = queryClient.getQueryData<Visit>(["visits", id])?.status;
-        if (!canTransitionVisitStatus(current, payload.status)) {
+        if (!canTransitionVisitStatus(current?.status, payload.status)) {
           return Promise.reject(
             new Error(
-              `Invalid visit status transition: ${current ?? "unknown"} → ${payload.status}`
+              `Invalid visit status transition: ${current?.status ?? "unknown"} → ${payload.status}`
             )
           );
         }
       }
 
-      return apiClient.request<Visit>({
+      const isFlatmateMeet = current?.visit_context === "flatmate_meet";
+
+      return apiClient.request<any>({
         method: "PUT",
-        path: `/visits/${id}`,
+        path: isFlatmateMeet ? `/flatmates/visits/${id}` : `/visits/${id}`,
         body: payload
-      });
+      }).then((res) => ({ isFlatmateMeet, res }));
     },
-    onSuccess: (updated) => {
+    onSuccess: ({ isFlatmateMeet, res }) => {
       // Seed the detail cache with the server response, then invalidate the
       // whole "visits" namespace so the list and calendar reflect the new
       // status/date as well as the detail view.
-      queryClient.setQueryData(["visits", id], updated);
+      if (!isFlatmateMeet) {
+        queryClient.setQueryData(["visits", id], res);
+      }
       queryClient.invalidateQueries({ queryKey: ["visits"] });
     }
   });

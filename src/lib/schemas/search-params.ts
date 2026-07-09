@@ -13,6 +13,7 @@ import {
   parseAsString,
   parseAsInteger,
   parseAsArrayOf,
+  parseAsFloat,
 } from "nuqs";
 
 // ── Search page params ─────────────────────────────────────────
@@ -41,4 +42,6 @@ export const discoverPageParams = {
   city: parseAsInteger.withDefault(0),
   filter: parseAsString.withDefault("Nearby"),
   cursor: parseAsString.withDefault(""),
+  latitude: parseAsFloat,
+  longitude: parseAsFloat,
 };

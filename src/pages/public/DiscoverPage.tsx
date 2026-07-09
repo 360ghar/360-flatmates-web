@@ -4,6 +4,7 @@ import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
 
 import { useAuth } from "@/hooks/useAuth";
+import { uiStore } from "@/lib/stores/ui-store";
 import { useCities } from "@/hooks/queries/useCatalogs";
 import { useWebSearch } from "@/hooks/queries/useSearch";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
@@ -78,9 +79,13 @@ export function DiscoverPage() {
       if (quickFilter) {
         Object.assign(base, quickFilter);
       }
+      if (params.filter === "Nearby" && params.latitude && params.longitude) {
+        base.lat = params.latitude;
+        base.lng = params.longitude;
+      }
       return base;
     },
-    [cities, params.city, params.filter]
+    [cities, params.city, params.filter, params.latitude, params.longitude]
   );
 
   const {
@@ -106,6 +111,42 @@ export function DiscoverPage() {
   const hasActiveFilters = params.city !== 0 || Boolean(params.filter);
 
   const handleClearFilters = () => setParams(null);
+
+  const handleQuickFilter = (item: string) => {
+    if (item === "Nearby" && params.filter !== "Nearby") {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setParams({
+              filter: item,
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              cursor: ""
+            });
+          },
+          (err) => {
+            uiStore.getState().pushToast({
+              type: "error",
+              title: "Location access denied",
+              description: "Please enable location to see nearby listings."
+            });
+          }
+        );
+      } else {
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Geolocation not supported"
+        });
+      }
+    } else {
+      setParams({
+        filter: params.filter === item ? "" : item,
+        latitude: params.filter === item ? null : params.latitude,
+        longitude: params.filter === item ? null : params.longitude,
+        cursor: ""
+      });
+    }
+  };
 
   return (
     <>
@@ -150,9 +191,7 @@ export function DiscoverPage() {
               key={item}
               variant="choice"
               selected={params.filter === item}
-              onClick={() =>
-                setParams({ filter: params.filter === item ? "" : item, cursor: "" })
-              }
+              onClick={() => handleQuickFilter(item)}
               aria-label={`Filter by ${item}`}
               className="snap-start"
             >
