@@ -19,7 +19,7 @@ import {
 
 const parseAsLatitude = createParser({
   parse: (v) => {
-    const n = Number(v);
+    const n = v.trim() === "" ? NaN : Number(v);
     if (isNaN(n) || n < -90 || n > 90) return null;
     return Number(n.toFixed(4));
   },
@@ -28,7 +28,7 @@ const parseAsLatitude = createParser({
 
 const parseAsLongitude = createParser({
   parse: (v) => {
-    const n = Number(v);
+    const n = v.trim() === "" ? NaN : Number(v);
     if (isNaN(n) || n < -180 || n > 180) return null;
     return Number(n.toFixed(4));
   },
