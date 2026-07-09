@@ -14,7 +14,26 @@ import {
   parseAsInteger,
   parseAsArrayOf,
   parseAsFloat,
+  createParser,
 } from "nuqs";
+
+const parseAsLatitude = createParser({
+  parse: (v) => {
+    const n = parseFloat(v);
+    if (isNaN(n) || n < -90 || n > 90) return null;
+    return Number(n.toFixed(4));
+  },
+  serialize: (v) => v.toString()
+});
+
+const parseAsLongitude = createParser({
+  parse: (v) => {
+    const n = parseFloat(v);
+    if (isNaN(n) || n < -180 || n > 180) return null;
+    return Number(n.toFixed(4));
+  },
+  serialize: (v) => v.toString()
+});
 
 // ── Search page params ─────────────────────────────────────────
 // URL: /search?q=Delhi&city=1&bedrooms=2&amenities=WiFi,Parking&priceMin=3000&priceMax=15000&cursor=<opaque>
@@ -42,6 +61,6 @@ export const discoverPageParams = {
   city: parseAsInteger.withDefault(0),
   filter: parseAsString.withDefault("Nearby"),
   cursor: parseAsString.withDefault(""),
-  latitude: parseAsFloat,
-  longitude: parseAsFloat,
+  latitude: parseAsLatitude,
+  longitude: parseAsLongitude,
 };

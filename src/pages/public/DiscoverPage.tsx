@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
@@ -57,6 +57,7 @@ export function DiscoverPage() {
 
   // One-time migration from the legacy `?page=N` URL shape to the cursor
   // form. Drop the param silently so old links still land on a sensible view.
+  const latestFilterRef = useRef<string | null>(params.filter);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
@@ -79,7 +80,7 @@ export function DiscoverPage() {
       if (quickFilter) {
         Object.assign(base, quickFilter);
       }
-      if (params.filter === "Nearby" && params.latitude && params.longitude) {
+      if (params.filter === "Nearby" && params.latitude != null && params.longitude != null) {
         base.lat = params.latitude;
         base.lng = params.longitude;
       }
@@ -110,21 +111,30 @@ export function DiscoverPage() {
   const totalResults = searchResults?.total ?? listings.length;
   const hasActiveFilters = params.city !== 0 || Boolean(params.filter);
 
-  const handleClearFilters = () => setParams(null);
+  const handleClearFilters = () => {
+    latestFilterRef.current = null;
+    setParams(null);
+  };
 
   const handleQuickFilter = (item: string) => {
-    if (item === "Nearby" && params.filter !== "Nearby") {
+    const isNearbyClick = item === "Nearby";
+    const needsLocation = isNearbyClick && (params.filter !== "Nearby" || params.latitude == null || params.longitude == null);
+
+    if (needsLocation) {
+      latestFilterRef.current = item;
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
+            if (latestFilterRef.current !== item) return;
             setParams({
               filter: item,
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
+              latitude: Number(pos.coords.latitude.toFixed(4)),
+              longitude: Number(pos.coords.longitude.toFixed(4)),
               cursor: ""
             });
           },
           (err) => {
+            if (latestFilterRef.current !== item) return;
             uiStore.getState().pushToast({
               type: "error",
               title: "Location access denied",
@@ -139,11 +149,13 @@ export function DiscoverPage() {
         });
       }
     } else {
-      setParams({
-        filter: params.filter === item ? "" : item,
+      const nextFilter = params.filter === item ? "" : item;
+      latestFilterRef.current = nextFilter;
+      setParams({ 
+        filter: nextFilter,
         latitude: params.filter === item ? null : params.latitude,
         longitude: params.filter === item ? null : params.longitude,
-        cursor: ""
+        cursor: "" 
       });
     }
   };
