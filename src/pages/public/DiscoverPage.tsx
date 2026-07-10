@@ -190,9 +190,11 @@ export function DiscoverPage() {
             error={searchError}
             onRetry={() => refetch()}
             loading={
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 col-span-full">
-                <Skeleton variant="listingCard" count={6} />
-              </div>
+              <Skeleton
+                variant="listingCard"
+                count={6}
+                className="col-span-full grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              />
             }
             empty={
               <div className="col-span-full text-center py-16 bg-surface/30 border border-line-low rounded-2xl">

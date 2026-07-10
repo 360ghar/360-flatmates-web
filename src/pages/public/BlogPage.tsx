@@ -128,11 +128,11 @@ export function BlogPage() {
         ) : null}
 
         {isLoading ? (
-          <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} variant="listingCard" />
-            ))}
-          </div>
+          <Skeleton
+            variant="blogCard"
+            count={6}
+            className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          />
         ) : isError ? (
           <div className="mt-16 text-center">
             <p className="text-h3 text-ink-2 font-semibold">

@@ -381,11 +381,11 @@ export function SearchPage() {
           {/* Scrolling list */}
           <div id="listings-scroll-container" className="flex-1">
             {isLoading && listings.length === 0 ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {Array.from({ length: 8 }, (_, i) => (
-                  <Skeleton key={i} variant="listingCard" />
-                ))}
-              </div>
+              <Skeleton
+                variant="listingCard"
+                count={8}
+                className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+              />
             ) : isError && listings.length === 0 ? (
               <Card className="flex items-center justify-center p-8">
                 <ErrorState

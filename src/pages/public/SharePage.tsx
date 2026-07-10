@@ -48,8 +48,10 @@ export function SharePage() {
         ogImage={ogImage}
       />
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
-        <Skeleton className="h-8 w-64 rounded-full" />
-        <p className="mt-4 text-body-md text-ink-2">Redirecting to the listing...</p>
+        <div className="max-w-md">
+          <Skeleton variant="listingCard" />
+          <p className="mt-4 text-body-md text-ink-2">Redirecting to the listing...</p>
+        </div>
       </main>
     </>
   );

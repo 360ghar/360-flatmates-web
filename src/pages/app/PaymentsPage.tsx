@@ -131,23 +131,7 @@ export function PaymentsPage() {
         error={error}
         isEmpty={(data) => data.length === 0}
         onRetry={() => refetch()}
-        loading={
-          <div className="flex flex-col gap-3">
-            {Array.from({ length: 3 }, (_, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm"
-              >
-                <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
-                <div className="flex flex-1 flex-col gap-1.5">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-20" />
-                </div>
-                <Skeleton className="h-8 w-20 shrink-0 rounded-full" />
-              </div>
-            ))}
-          </div>
-        }
+        loading={<Skeleton variant="paymentMethodRow" count={3} />}
         empty={
           <Card className="p-8 text-center">
             <p className="text-h3 text-ink-2 font-semibold">No payment methods yet</p>

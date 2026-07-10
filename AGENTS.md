@@ -97,11 +97,12 @@ Every page that fetches data must handle all three async states: **loading**, **
 
 - Every page with API calls must show a **skeleton loader** matching its layout during `isLoading`
 - Use `<Skeleton variant="...">` from `src/components/ui/Skeleton.tsx` with the appropriate variant:
-  - Page-level: `feed`, `listingDetail`, `publicProfile`, `swipeCard`
-  - Component-level: `menuItemRow`, `notificationCard`, `conversationRow`, `visitCard`, `statCard`, `chatMessage`, `profileGridCard`, `listingCard`, `searchBar`, `filterChips`, `searchResults`
-  - Fallback: `block`, `card`, `listItem`, `profile`
-- Skeletons must match the real layout dimensions (same grid columns, card structure, spacing)
-- Skeletons must include `aria-hidden="true"` and `motion-reduce:animate-none` for accessibility
+  - Page-level: `homeFeed`, `listingDetail`, `publicProfile`, `swipeCard`, `mapExplore`, `chatThread`, `profilePage`, `form`, `blogPost`, `compatibility`, `dashboardPanel`, `searchResults`
+  - Component-level: `menuItemRow`, `notificationCard`, `conversationRow`, `visitCard`, `statCard`, `chatMessage`, `profileGridCard`, `listingCard`, `blogCard`, `searchBar`, `filterChips`, `savedSearchCard`, `alertCard`, `paymentMethodRow`, `moderationRow`
+  - Fallback / legacy: `block`, `card`, `listItem`, `profile`, `feed`
+- Skeletons must match the real layout dimensions (same grid columns, card structure, spacing) — never reuse `listingCard` for blog/people/forms
+- Multi-item grids: pass layout via `className` (e.g. `count={6} className="grid gap-4 md:grid-cols-3"`)
+- Composite variants announce loading (`role="status"`); leaf `block` bones use `aria-hidden`. Shimmer respects `motion-reduce:animate-none`
 - Never show a blank page or generic spinner when content-specific skeletons exist
 
 ### Error States — Graceful Degradation

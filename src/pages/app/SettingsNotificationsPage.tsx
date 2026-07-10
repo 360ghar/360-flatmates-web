@@ -3,6 +3,10 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useUpdateProfile, useMyProfile } from "@/hooks/queries";
 import { uiStore } from "@/lib/stores/ui-store";
+import {
+  requestAndRegisterPush,
+  unregisterDevice
+} from "@/lib/push/fcm";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -104,6 +108,7 @@ export function SettingsNotificationsPage() {
 
   const handleToggle = useCallback(
     (key: string) => {
+      const wasOn = (userEdits ?? baseToggles)[key] ?? false;
       setUserEdits((prev) => {
         const base = prev ?? baseToggles;
         const next = { ...base, [key]: !base[key] };
@@ -114,8 +119,59 @@ export function SettingsNotificationsPage() {
 
         return next;
       });
+
+      // Opt-in browser push: register/unregister when the master toggle flips.
+      if (key === "push_notifications") {
+        const enabling = !wasOn;
+        void (async () => {
+          try {
+            if (enabling) {
+              const token = await requestAndRegisterPush();
+              if (!token) {
+                uiStore.getState().pushToast({
+                  type: "info",
+                  title: "Push not enabled",
+                  description:
+                    "Allow notifications in the browser prompt, or check VAPID configuration."
+                });
+                return;
+              }
+              try {
+                localStorage.setItem("flatmates_web_push_token", token);
+              } catch {
+                /* private mode / quota — registration still succeeded */
+              }
+              uiStore.getState().pushToast({
+                type: "success",
+                title: "Push notifications enabled"
+              });
+            } else {
+              let token: string | null = null;
+              try {
+                token = localStorage.getItem("flatmates_web_push_token");
+              } catch {
+                token = null;
+              }
+              if (token) {
+                await unregisterDevice(token);
+                try {
+                  localStorage.removeItem("flatmates_web_push_token");
+                } catch {
+                  /* ignore */
+                }
+              }
+            }
+          } catch {
+            uiStore.getState().pushToast({
+              type: "error",
+              title: "Could not update push registration",
+              description: "Preferences were saved; try again later for device sync."
+            });
+          }
+        })();
+      }
     },
-    [baseToggles, flushPrefs]
+    [baseToggles, flushPrefs, userEdits]
   );
 
   if (isLoading) {
@@ -127,7 +183,10 @@ export function SettingsNotificationsPage() {
         </div>
         <div className="rounded-2xl border border-line bg-surface">
           {Array.from({ length: 6 }, (_, i) => (
-            <div key={i} className="flex min-h-14 items-center justify-between px-4 py-3 border-b border-line last:border-b-0">
+            <div
+              key={i}
+              className="flex min-h-14 items-center justify-between border-b border-line px-4 py-3 last:border-b-0"
+            >
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-7 w-12 rounded-full" />
             </div>

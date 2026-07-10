@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "./component-utils";
 
 export type SkeletonVariant =
@@ -20,26 +20,55 @@ export type SkeletonVariant =
   | "filterChips"
   | "searchResults"
   | "listingDetail"
-  | "publicProfile";
+  | "publicProfile"
+  | "blogCard"
+  | "blogPost"
+  | "homeFeed"
+  | "mapExplore"
+  | "chatThread"
+  | "profilePage"
+  | "form"
+  | "savedSearchCard"
+  | "alertCard"
+  | "paymentMethodRow"
+  | "compatibility"
+  | "dashboardPanel"
+  | "moderationRow";
 
 export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   variant?: SkeletonVariant;
   count?: number;
   /** For "chatMessage" variant: which side the bubble is on */
   side?: "left" | "right";
+  /** For "listingCard": match ListingCard layout prop */
+  layout?: "vertical" | "horizontal";
+  /** For "form": number of field rows */
+  fields?: number;
 }
 
 /**
  * Shared shimmer class using the `.shimmer` CSS utility from globals.css
- * which properly sets `background-size: 220% 100%` for the sweep animation.
- * Falls back to Tailwind gradient + animate-shimmer when .shimmer is unavailable.
+ * (background-size + sweep). Reduced motion disables the animation.
  */
-const shimmer = "shimmer animate-shimmer motion-reduce:animate-none";
+const shimmer = "shimmer motion-reduce:animate-none";
+
+const rootA11y = {
+  role: "status" as const,
+  "aria-busy": true as const,
+  "aria-label": "Loading",
+};
 
 /* ─── Primitive building blocks ─── */
 
 function BlockSkeleton({ className }: { className?: string }) {
-  return <div aria-hidden="true" className={cn("h-4 rounded-full", shimmer, className)} />;
+  // cn() does not twMerge — avoid default h-4 when caller supplies an h-* class.
+  const hasHeight = Boolean(className && /\bh-\[|\bh-\d|\bh-full|\bh-auto|\bh-px|\bh-screen/.test(className));
+  return (
+    <div
+      aria-hidden="true"
+      className={cn(!hasHeight && "h-4", "rounded-full", shimmer, className)}
+    />
+  );
 }
 
 /* ─── Legacy variants (kept for backward compatibility) ─── */
@@ -58,16 +87,16 @@ function ListItemSkeleton() {
 
 function CardSkeleton() {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
-      <div className={cn("aspect-[5/6] rounded-2xl", shimmer)} />
-      <div className="mt-3 flex flex-col gap-2">
-        <BlockSkeleton className="h-6 w-1/4" />
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <div className={cn("aspect-[20/19] w-full", shimmer)} />
+      <div className="flex flex-col gap-2 p-3.5">
+        <BlockSkeleton className="h-4 w-1/4" />
         <BlockSkeleton className="h-4 w-4/5" />
-        <BlockSkeleton className="w-3/5" />
-        <div className="flex gap-2">
-          <div className={cn("h-6 w-14 rounded-full", shimmer)} />
-          <div className={cn("h-6 w-14 rounded-full", shimmer)} />
-          <div className={cn("h-6 w-16 rounded-full", shimmer)} />
+        <BlockSkeleton className="h-3 w-3/5" />
+        <div className="flex gap-1.5">
+          <div className={cn("h-5 w-14 rounded-full", shimmer)} />
+          <div className={cn("h-5 w-14 rounded-full", shimmer)} />
+          <div className={cn("h-5 w-16 rounded-full", shimmer)} />
         </div>
       </div>
     </div>
@@ -84,75 +113,74 @@ function ProfileSkeleton() {
   );
 }
 
-/* ─── New design-accurate variants ─── */
+/* ─── Design-accurate molecule variants ─── */
 
-/** Matches ListingCard molecule — desktop horizontal, mobile vertical */
-function ListingCardSkeleton() {
+/** Matches ListingCard — full-bleed media card, vertical or horizontal */
+function ListingCardSkeleton({ layout = "vertical" }: { layout?: "vertical" | "horizontal" }) {
+  const isHorizontal = layout === "horizontal";
+
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
-      <div className="grid gap-3 lg:grid-cols-[148px_minmax(0,1fr)]">
-        {/* Image area */}
-        <div className="relative">
-          <div className={cn("aspect-[5/6] w-full rounded-2xl lg:aspect-[0.82]", shimmer)} />
+    <div
+      className={cn(
+        "overflow-hidden rounded-2xl border border-line bg-surface shadow-sm",
+        isHorizontal ? "grid gap-0 lg:grid-cols-[200px_minmax(0,1fr)]" : "flex flex-col"
+      )}
+    >
+      <div
+        className={cn(
+          "bg-surface-soft",
+          isHorizontal
+            ? "aspect-[4/3] lg:aspect-auto lg:min-h-[160px]"
+            : "aspect-[20/19] w-full",
+          shimmer
+        )}
+      />
+      <div className={cn("flex min-w-0 flex-1 flex-col gap-2 bg-surface", isHorizontal ? "p-3.5" : "p-3.5 pt-3")}>
+        <div className={cn("h-4 w-1/4 rounded-sm", shimmer)} />
+        <div className={cn("h-4 w-4/5 rounded-sm", shimmer)} />
+        <div className="flex items-center gap-1">
+          <div className={cn("h-3.5 w-3.5 shrink-0 rounded-sm", shimmer)} />
+          <div className={cn("h-3 w-2/5 rounded-sm", shimmer)} />
         </div>
-        {/* Content */}
-        <div className="flex flex-col gap-2">
-          {/* Price */}
-          <div className={cn("h-6 w-1/4 rounded-md", shimmer)} />
-          {/* Title */}
-          <div className={cn("h-4 w-4/5 rounded-md", shimmer)} />
-          {/* Location row */}
-          <div className="flex items-center gap-1.5">
-            <div className={cn("h-4 w-4 rounded-sm", shimmer)} />
-            <div className={cn("h-3 w-1/3 rounded-md", shimmer)} />
+        <div className="flex flex-wrap gap-1.5">
+          <div className={cn("h-5 w-14 rounded-full", shimmer)} />
+          <div className={cn("h-5 w-14 rounded-full", shimmer)} />
+          <div className={cn("h-5 w-16 rounded-full", shimmer)} />
+        </div>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className={cn("h-8 w-8 shrink-0 rounded-full", shimmer)} />
+            <div className={cn("h-3 w-16 rounded-sm", shimmer)} />
           </div>
-          {/* Info pills */}
-          <div className="flex gap-2">
-            <div className={cn("h-6 w-14 rounded-full", shimmer)} />
-            <div className={cn("h-6 w-14 rounded-full", shimmer)} />
-            <div className={cn("h-6 w-16 rounded-full", shimmer)} />
-          </div>
-          {/* Feature pills */}
-          <div className="flex gap-2">
-            <div className={cn("h-6 w-16 rounded-full", shimmer)} />
-            <div className={cn("h-6 w-12 rounded-full", shimmer)} />
-          </div>
-          {/* Owner row */}
-          <div className="flex items-center gap-2 pt-1">
-            <div className={cn("h-[34px] w-[34px] rounded-xl", shimmer)} />
-            <div className={cn("h-3 w-20 rounded-md", shimmer)} />
-          </div>
-          {/* CTA button */}
-          <div className={cn("mt-2 h-[42px] w-full rounded-[8px]", shimmer)} />
+          <div className={cn("h-8 w-20 shrink-0 rounded-full", shimmer)} />
         </div>
       </div>
     </div>
   );
 }
 
-/** Matches ProfileGridCard molecule — 4:5 photo + match ring + CTA */
+/** Matches ProfileGridCard compact default — 3:4 photo + match ring + CTA */
 function ProfileGridCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-3 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
       <div className="relative">
-        <div className={cn("aspect-[4/5] w-full rounded-2xl", shimmer)} />
-        {/* Match ring */}
-        <div className="absolute right-2 top-2 flex h-[44px] w-[44px] items-center justify-center rounded-full border-2 border-line bg-surface p-1 shadow-xs" />
+        <div className={cn("aspect-[3/4] w-full", shimmer)} />
+        <div className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full border border-line bg-surface/95 p-0.5 shadow-xs" />
       </div>
-      <div className="mt-3 flex flex-col gap-1.5">
+      <div className="bg-surface p-2.5">
         <div className={cn("h-[15px] w-3/5 rounded-sm", shimmer)} />
-        <div className={cn("h-3 w-2/5 rounded-sm", shimmer)} />
-        <div className={cn("h-3 w-1/4 rounded-sm", shimmer)} />
-        <div className={cn("mt-2 h-[42px] w-full rounded-[8px]", shimmer)} />
+        <div className={cn("mt-0.5 h-3 w-2/5 rounded-sm", shimmer)} />
+        <div className={cn("mt-0.5 h-3 w-1/3 rounded-sm", shimmer)} />
+        <div className={cn("mt-2 h-9 w-full rounded-full", shimmer)} />
       </div>
     </div>
   );
 }
 
-/** Matches MenuItemRow molecule — icon container + label + chevron */
+/** Matches MenuItemRow — icon container + label + chevron */
 function MenuItemRowSkeleton() {
   return (
-    <div className="flex h-14 items-center gap-3 border-b border-line px-2 py-2">
+    <div className="flex h-14 items-center gap-3 border-b border-line px-2 py-2 last:border-b-0">
       <div className={cn("h-10 w-10 shrink-0 rounded-xl", shimmer)} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className={cn("h-[15px] w-2/5 rounded-sm", shimmer)} />
@@ -162,12 +190,12 @@ function MenuItemRowSkeleton() {
   );
 }
 
-/** Matches NotificationCard molecule — icon + title + description + timestamp + unread dot */
+/** Matches NotificationCard */
 function NotificationCardSkeleton() {
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
       <div className={cn("h-12 w-12 shrink-0 rounded-full", shimmer)} />
-      <div className="flex flex-1 flex-col gap-1.5 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className={cn("h-[15px] w-3/5 rounded-sm", shimmer)} />
         <div className={cn("h-3 w-full rounded-sm", shimmer)} />
         <div className={cn("h-3 w-4/5 rounded-sm", shimmer)} />
@@ -180,12 +208,12 @@ function NotificationCardSkeleton() {
   );
 }
 
-/** Matches ConversationRow molecule — avatar + name/badge + preview + timestamp */
+/** Matches ConversationRow */
 function ConversationRowSkeleton() {
   return (
     <div className="flex min-h-[72px] items-center gap-3 rounded-[8px] px-3 py-2">
       <div className={cn("h-[52px] w-[52px] shrink-0 rounded-xl", shimmer)} />
-      <div className="flex flex-1 flex-col gap-1.5 min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-center gap-2">
           <div className={cn("h-4 w-24 rounded-sm", shimmer)} />
           <div className={cn("h-4 w-10 rounded-full", shimmer)} />
@@ -199,13 +227,13 @@ function ConversationRowSkeleton() {
   );
 }
 
-/** Matches VisitCard molecule — thumbnail + title/badge + date + actions */
+/** Matches VisitCard */
 function VisitCardSkeleton() {
   return (
     <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
       <div className="flex gap-3">
         <div className={cn("h-14 w-14 shrink-0 rounded-xl", shimmer)} />
-        <div className="flex flex-1 flex-col gap-2 min-w-0">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex items-center gap-2">
             <div className={cn("h-4 w-28 rounded-sm", shimmer)} />
             <div className={cn("h-5 w-16 rounded-full", shimmer)} />
@@ -221,13 +249,13 @@ function VisitCardSkeleton() {
   );
 }
 
-/** Matches StatCard molecule — icon + label + value + description */
+/** Matches StatCard */
 function StatCardSkeleton() {
   return (
     <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
       <div className="flex items-start gap-4">
         <div className={cn("h-12 w-12 shrink-0 rounded-xl", shimmer)} />
-        <div className="flex flex-col gap-2 min-w-0">
+        <div className="flex min-w-0 flex-col gap-2">
           <div className={cn("h-3 w-16 rounded-sm", shimmer)} />
           <div className={cn("h-8 w-20 rounded-md", shimmer)} />
           <div className={cn("h-3 w-24 rounded-sm", shimmer)} />
@@ -237,7 +265,7 @@ function StatCardSkeleton() {
   );
 }
 
-/** Matches ChatMessageBubble — aligned left or right */
+/** Matches ChatMessageBubble — left or right */
 function ChatMessageSkeleton({ side = "left" }: { side?: "left" | "right" }) {
   const isRight = side === "right";
   return (
@@ -258,33 +286,20 @@ function ChatMessageSkeleton({ side = "left" }: { side?: "left" | "right" }) {
 }
 
 /**
- * Matches SwipeDeck card — responsive to mirror the real deck:
- *  - mobile (< md): collapsed full-bleed portrait card (with stacked background cards)
- *  - md+: expanded side-by-side card (photo pane + details pane), like SwipeDeck's
- *    expanded view which is the default on viewports ≥768px.
- * Followed by the SwipeActionBar row in both cases.
+ * Matches SwipeDeck card — mobile portrait stack, md+ side-by-side, + action bar
  */
 function SwipeCardSkeleton() {
   return (
     <div className="mx-auto flex w-full max-w-[480px] flex-col gap-5 md:max-w-3xl lg:max-w-4xl">
       <div className="relative h-[calc(100dvh-328px)] md:h-[calc(100dvh-268px)]">
-        {/* ── Mobile: collapsed full-bleed portrait card ── */}
         <div className="md:hidden">
-          {/* Background card 2 (furthest back) */}
-          <div className="absolute inset-x-4 top-4 h-full scale-90 opacity-30 rounded-2xl border border-line bg-surface shadow-sm translate-y-3" />
-
-          {/* Background card 1 (middle) */}
-          <div className="absolute inset-x-2 top-2 h-full scale-[0.95] opacity-50 rounded-2xl border border-line bg-surface shadow-sm translate-y-[6px]" />
-
-          {/* Top Card */}
+          <div className="absolute inset-x-4 top-4 h-full translate-y-3 scale-90 rounded-2xl border border-line bg-surface opacity-30 shadow-sm" />
+          <div className="absolute inset-x-2 top-2 h-full translate-y-[6px] scale-[0.95] rounded-2xl border border-line bg-surface opacity-50 shadow-sm" />
           <div className="absolute inset-0 overflow-hidden rounded-2xl border border-line bg-surface shadow-lg">
-            {/* Full-bleed image area */}
             <div className={cn("absolute inset-0", shimmer)} />
-
-            {/* Bottom overlay with gradient */}
             <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-5 pt-20">
               <div className={cn("h-8 w-3/5 rounded-md", shimmer)} />
-              <div className="flex items-center gap-1.5 mt-1">
+              <div className="mt-1 flex items-center gap-1.5">
                 <div className="h-4 w-4 rounded-sm bg-white/20" />
                 <div className={cn("h-4 w-1/3 rounded-sm", shimmer)} />
               </div>
@@ -297,11 +312,8 @@ function SwipeCardSkeleton() {
           </div>
         </div>
 
-        {/* ── md+: expanded side-by-side card ── */}
         <div className="absolute inset-0 hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-lg md:flex">
-          {/* Left: photo pane */}
           <div className={cn("relative h-full w-[40%] shrink-0 lg:w-[45%]", shimmer)}>
-            {/* Title block over photo */}
             <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-4 pt-20">
               <div className={cn("h-7 w-3/5 rounded-md", shimmer)} />
               <div className="flex items-center gap-1.5">
@@ -310,10 +322,7 @@ function SwipeCardSkeleton() {
               </div>
             </div>
           </div>
-
-          {/* Right: details pane */}
-          <div className="flex flex-1 flex-col px-5 py-4 space-y-6">
-            {/* Specs grid */}
+          <div className="flex flex-1 flex-col space-y-6 px-5 py-4">
             <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 border-b border-line/45 pb-5">
               {Array.from({ length: 4 }, (_, i) => (
                 <div key={i} className="flex flex-col gap-1.5">
@@ -322,16 +331,12 @@ function SwipeCardSkeleton() {
                 </div>
               ))}
             </div>
-
-            {/* About section */}
             <div className="space-y-2">
               <div className={cn("h-5 w-24 rounded-md", shimmer)} />
               <div className={cn("h-4 w-full rounded-sm", shimmer)} />
               <div className={cn("h-4 w-11/12 rounded-sm", shimmer)} />
               <div className={cn("h-4 w-4/5 rounded-sm", shimmer)} />
             </div>
-
-            {/* Chip rows */}
             <div className="space-y-2">
               <div className={cn("h-5 w-20 rounded-md", shimmer)} />
               <div className="flex flex-wrap gap-2">
@@ -345,17 +350,15 @@ function SwipeCardSkeleton() {
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="flex items-center justify-center gap-5">
-        <div className={cn("h-[60px] w-[60px] rounded-full bg-error/10 border-2 border-error/20", shimmer)} />
-        <div className={cn("h-[50px] w-[50px] rounded-full bg-warning/10 border-2 border-warning/20", shimmer)} />
-        <div className={cn("h-[60px] w-[60px] rounded-full bg-success/10 border-2 border-success/20", shimmer)} />
+        <div className={cn("h-[60px] w-[60px] rounded-full border-2 border-error/20 bg-error/10", shimmer)} />
+        <div className={cn("h-[50px] w-[50px] rounded-full border-2 border-warning/20 bg-warning/10", shimmer)} />
+        <div className={cn("h-[60px] w-[60px] rounded-full border-2 border-success/20 bg-success/10", shimmer)} />
       </div>
     </div>
   );
 }
 
-/** SearchBar placeholder */
 function SearchBarSkeleton() {
   return (
     <div className="flex h-12 items-center gap-2 rounded-[8px] border border-line bg-surface px-3">
@@ -365,7 +368,6 @@ function SearchBarSkeleton() {
   );
 }
 
-/** Horizontal row of filter chips */
 function FilterChipsSkeleton({ count = 5 }: { count?: number }) {
   return (
     <div className="flex gap-2 overflow-hidden">
@@ -383,12 +385,10 @@ function FilterChipsSkeleton({ count = 5 }: { count?: number }) {
   );
 }
 
-/** SearchResults two-column layout — filter sidebar + listing grid */
 function SearchResultsSkeleton() {
   return (
     <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-      {/* Filter sidebar (desktop only) */}
-      <aside className="hidden lg:flex flex-col gap-5 rounded-2xl border border-line bg-surface p-4">
+      <aside className="hidden flex-col gap-5 rounded-2xl border border-line bg-surface p-4 lg:flex">
         {Array.from({ length: 3 }, (_, s) => (
           <div key={s} className="flex flex-col gap-2">
             <div className={cn("h-4 w-20 rounded-sm", shimmer)} />
@@ -398,7 +398,6 @@ function SearchResultsSkeleton() {
           </div>
         ))}
       </aside>
-      {/* Results area */}
       <div className="flex flex-col gap-4">
         <div className={cn("h-3 w-24 rounded-sm", shimmer)} />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -411,11 +410,9 @@ function SearchResultsSkeleton() {
   );
 }
 
-/** ListingDetail two-column layout — hero image + thumbnails | details + cards + action bar */
 function ListingDetailSkeleton() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(280px,480px)_1fr]">
-      {/* Left: images */}
       <div className="flex flex-col gap-3">
         <div className={cn("aspect-[4/5] rounded-2xl", shimmer)} />
         <div className="grid grid-cols-4 gap-2">
@@ -424,7 +421,6 @@ function ListingDetailSkeleton() {
           ))}
         </div>
       </div>
-      {/* Right: details */}
       <div className="flex flex-col gap-5">
         <div className={cn("h-8 w-3/5 rounded-sm", shimmer)} />
         <div className={cn("h-7 w-1/4 rounded-md", shimmer)} />
@@ -437,7 +433,6 @@ function ListingDetailSkeleton() {
           <div className={cn("h-7 w-14 rounded-full", shimmer)} />
           <div className={cn("h-7 w-16 rounded-full", shimmer)} />
         </div>
-        {/* About card */}
         <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
           <div className={cn("h-5 w-20 rounded-sm", shimmer)} />
           <div className="mt-3 flex flex-col gap-2">
@@ -445,7 +440,6 @@ function ListingDetailSkeleton() {
             <div className={cn("h-4 w-3/5 rounded-sm", shimmer)} />
           </div>
         </div>
-        {/* Cost breakdown card */}
         <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
           <div className={cn("h-5 w-32 rounded-sm", shimmer)} />
           <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -454,7 +448,6 @@ function ListingDetailSkeleton() {
             ))}
           </div>
         </div>
-        {/* Action bar */}
         <div className="flex gap-3">
           <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
           <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
@@ -464,12 +457,10 @@ function ListingDetailSkeleton() {
   );
 }
 
-/** PublicProfile centered layout — avatar xl + details + compatibility + CTA */
 function PublicProfileSkeleton() {
   return (
     <div className="flex flex-col gap-5">
-      {/* Profile header card */}
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm text-center">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 text-center shadow-sm">
         <div className={cn("h-[120px] w-[120px] rounded-xl", shimmer)} />
         <div className={cn("h-7 w-24 rounded-sm", shimmer)} />
         <div className={cn("h-4 w-32 rounded-sm", shimmer)} />
@@ -478,8 +469,7 @@ function PublicProfileSkeleton() {
           <div className={cn("h-5 w-16 rounded-full", shimmer)} />
         </div>
       </div>
-      {/* Details card */}
-      <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm flex flex-col gap-3">
+      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="flex items-center justify-between">
             <div className={cn("h-4 w-1/4 rounded-sm", shimmer)} />
@@ -487,8 +477,7 @@ function PublicProfileSkeleton() {
           </div>
         ))}
       </div>
-      {/* Compatibility card */}
-      <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm flex flex-col gap-3">
+      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
         <div className={cn("h-5 w-40 rounded-sm", shimmer)} />
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="flex items-center justify-between">
@@ -497,53 +486,518 @@ function PublicProfileSkeleton() {
           </div>
         ))}
       </div>
-      {/* CTA button */}
       <div className={cn("h-[52px] w-full rounded-[8px]", shimmer)} />
+    </div>
+  );
+}
+
+/* ─── New page-level variants ─── */
+
+/** Matches BlogPostCard */
+function BlogCardSkeleton() {
+  return (
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line-low bg-surface shadow-sm">
+      <div className={cn("h-56 w-full", shimmer)} />
+      <div className="flex flex-1 flex-col p-6">
+        <div className={cn("h-6 w-4/5 rounded-sm", shimmer)} />
+        <div className={cn("mt-1 h-6 w-3/5 rounded-sm", shimmer)} />
+        <div className="mt-3 flex flex-col gap-2">
+          <div className={cn("h-4 w-full rounded-sm", shimmer)} />
+          <div className={cn("h-4 w-11/12 rounded-sm", shimmer)} />
+          <div className={cn("h-4 w-2/3 rounded-sm", shimmer)} />
+        </div>
+        <div className="mt-6 flex items-center justify-between border-t border-line-low pt-4">
+          <div className="flex gap-4">
+            <div className={cn("h-3.5 w-20 rounded-sm", shimmer)} />
+            <div className={cn("h-3.5 w-16 rounded-sm", shimmer)} />
+          </div>
+          <div className={cn("h-3.5 w-12 rounded-sm", shimmer)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Blog article loading layout */
+function BlogPostSkeleton() {
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+      <div className={cn("h-8 w-24 rounded-[8px]", shimmer)} />
+      <div className={cn("h-10 w-3/4 rounded-sm", shimmer)} />
+      <div className={cn("h-5 w-1/2 rounded-sm", shimmer)} />
+      <div className={cn("mt-2 h-72 w-full rounded-2xl", shimmer)} />
+      <div className="mt-2 flex flex-col gap-3">
+        <div className={cn("h-4 w-full rounded-sm", shimmer)} />
+        <div className={cn("h-4 w-full rounded-sm", shimmer)} />
+        <div className={cn("h-4 w-5/6 rounded-sm", shimmer)} />
+        <div className={cn("h-4 w-2/3 rounded-sm", shimmer)} />
+        <div className={cn("mt-2 h-4 w-full rounded-sm", shimmer)} />
+        <div className={cn("h-4 w-4/5 rounded-sm", shimmer)} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Home feed sections only (hero + real SearchBar/chips stay outside).
+ * Fixed-width carousel cards match loaded Home sections.
+ */
+function HomeFeedSkeleton() {
+  const sections: Array<{ key: string; card: "profile" | "listing" }> = [
+    { key: "recommended", card: "profile" },
+    { key: "listings", card: "listing" },
+    { key: "nearby", card: "profile" },
+  ];
+
+  return (
+    <div className="flex flex-col gap-6">
+      {sections.map((section) => (
+        <section key={section.key} className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className={cn("h-4 w-32 rounded-full", shimmer)} />
+            <div className={cn("h-3 w-14 rounded-full", shimmer)} />
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div
+                key={i}
+                className="w-[180px] shrink-0 sm:w-[200px] md:w-[220px] lg:w-auto"
+              >
+                {section.card === "listing" ? <ListingCardSkeleton /> : <ProfileGridCardSkeleton />}
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+/** Full-bleed map placeholder with FABs */
+function MapExploreSkeleton() {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-surface-soft">
+      <div className="map-grid-bg absolute inset-0 opacity-60" />
+      <div className={cn("absolute inset-0 opacity-40", shimmer)} />
+      {/* Soft pin dots */}
+      <div className="absolute left-[28%] top-[38%] h-3 w-3 rounded-full bg-accent/30" />
+      <div className="absolute left-[55%] top-[48%] h-3 w-3 rounded-full bg-accent/25" />
+      <div className="absolute left-[42%] top-[62%] h-3 w-3 rounded-full bg-accent/20" />
+      <div className="absolute bottom-6 right-6 flex flex-col gap-3">
+        <div className={cn("h-12 w-12 rounded-full border border-line bg-surface shadow-sm", shimmer)} />
+        <div className={cn("h-12 w-12 rounded-full border border-line bg-surface shadow-sm", shimmer)} />
+      </div>
+    </div>
+  );
+}
+
+/** Chat detail: header + messages + composer */
+function ChatThreadSkeleton() {
+  return (
+    <div className="flex h-full min-h-[50vh] flex-col">
+      <div className="flex items-center gap-3 border-b border-line px-3 py-3">
+        <div className={cn("h-[52px] w-[52px] shrink-0 rounded-xl", shimmer)} />
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <div className={cn("h-4 w-28 rounded-sm", shimmer)} />
+          <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
+        </div>
+        <div className="flex gap-2">
+          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <ChatMessageSkeleton side="left" />
+        <ChatMessageSkeleton side="right" />
+        <ChatMessageSkeleton side="left" />
+        <ChatMessageSkeleton side="right" />
+      </div>
+      <div className="flex items-center gap-2 border-t border-line px-3 py-3">
+        <div className={cn("h-5 w-5 rounded-sm", shimmer)} />
+        <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
+        <div className={cn("h-8 w-8 rounded-[8px]", shimmer)} />
+      </div>
+    </div>
+  );
+}
+
+/** Profile settings page */
+function ProfilePageSkeleton() {
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-line bg-surface p-6 text-center shadow-sm">
+        <div className={cn("h-[120px] w-[120px] rounded-xl", shimmer)} />
+        <div className={cn("h-7 w-24 rounded-sm", shimmer)} />
+        <div className={cn("h-4 w-32 rounded-sm", shimmer)} />
+        <div className="flex gap-2">
+          <div className={cn("h-5 w-16 rounded-full", shimmer)} />
+          <div className={cn("h-5 w-16 rounded-full", shimmer)} />
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <MenuItemRowSkeleton />
+      </div>
+      <div className={cn("h-3 w-14 rounded-sm", shimmer)} />
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <MenuItemRowSkeleton />
+        <MenuItemRowSkeleton />
+      </div>
+      <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <MenuItemRowSkeleton />
+      </div>
+      <div className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <div className="flex flex-col gap-1.5">
+          <div className={cn("h-5 w-16 rounded-sm", shimmer)} />
+          <div className={cn("h-3 w-32 rounded-sm", shimmer)} />
+        </div>
+        <div className={cn("h-8 w-14 rounded-full", shimmer)} />
+      </div>
+      <div className={cn("h-3 w-24 rounded-sm", shimmer)} />
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <MenuItemRowSkeleton />
+        <MenuItemRowSkeleton />
+      </div>
+      <div className={cn("h-3 w-16 rounded-sm", shimmer)} />
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <MenuItemRowSkeleton />
+        <MenuItemRowSkeleton />
+      </div>
+    </div>
+  );
+}
+
+/** Generic form page: optional header bones + field rows + CTAs */
+function FormSkeleton({ fields = 4 }: { fields?: number }) {
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-3">
+        <div className={cn("h-10 w-10 rounded-[8px]", shimmer)} />
+        <div className={cn("h-8 w-40 rounded-sm", shimmer)} />
+      </div>
+      <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        {Array.from({ length: fields }, (_, i) => (
+          <div key={i} className="flex flex-col gap-2">
+            <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
+            <div className={cn("h-12 w-full rounded-[8px]", shimmer)} />
+          </div>
+        ))}
+      </div>
+      <div className={cn("h-[52px] w-full rounded-[8px]", shimmer)} />
+      <div className={cn("h-[52px] w-full rounded-[8px]", shimmer)} />
+    </div>
+  );
+}
+
+/** Saved search list card (title, filter chips, actions) */
+function SavedSearchCardSkeleton() {
+  return (
+    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className={cn("h-4 w-28 rounded-sm", shimmer)} />
+            <div className={cn("h-5 w-16 rounded-full", shimmer)} />
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <div className={cn("h-6 w-14 rounded-full", shimmer)} />
+            <div className={cn("h-6 w-16 rounded-full", shimmer)} />
+            <div className={cn("h-6 w-12 rounded-full", shimmer)} />
+          </div>
+          <div className={cn("h-3 w-24 rounded-sm", shimmer)} />
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Alert list card (name, meta lines, actions — no filter chips) */
+function AlertCardSkeleton() {
+  return (
+    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className={cn("h-4 w-28 rounded-sm", shimmer)} />
+            <div className={cn("h-5 w-14 rounded-full", shimmer)} />
+          </div>
+          <div className={cn("h-3 w-24 rounded-sm", shimmer)} />
+          <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Payment method / blocked user list row */
+function PaymentMethodRowSkeleton() {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <div className={cn("h-9 w-9 shrink-0 rounded-full", shimmer)} />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <div className={cn("h-4 w-32 rounded-sm", shimmer)} />
+        <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
+      </div>
+      <div className={cn("h-8 w-20 shrink-0 rounded-full", shimmer)} />
+    </div>
+  );
+}
+
+/** Compatibility breakdown */
+function CompatibilitySkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 text-center shadow-sm">
+        <div className={cn("h-28 w-28 rounded-full", shimmer)} />
+        <div className={cn("h-5 w-24 rounded-full", shimmer)} />
+        <div className={cn("h-4 w-48 rounded-full", shimmer)} />
+      </div>
+      <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className={cn("h-5 w-24 rounded-full", shimmer)} />
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="flex flex-col gap-1.5">
+            <div className={cn("h-4 w-32 rounded-full", shimmer)} />
+            <div className={cn("h-2 w-full rounded-full", shimmer)} />
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className={cn("h-5 w-20 rounded-full", shimmer)} />
+        <div className={cn("h-4 w-full rounded-full", shimmer)} />
+        <div className={cn("h-4 w-4/5 rounded-full", shimmer)} />
+      </div>
+    </div>
+  );
+}
+
+/** Dashboard / analytics: stats + table */
+function DashboardPanelSkeleton() {
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <StatCardSkeleton key={i} />
+        ))}
+      </div>
+      <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <div className={cn("mb-4 h-5 w-32 rounded-sm", shimmer)} />
+        <div className="mb-3 flex gap-4 border-b border-line pb-2">
+          <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
+          <div className={cn("h-3 w-10 rounded-sm", shimmer)} />
+          <div className={cn("h-3 w-10 rounded-sm", shimmer)} />
+          <div className={cn("h-3 w-10 rounded-sm", shimmer)} />
+        </div>
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="flex items-center gap-4 border-b border-line py-3 last:border-b-0">
+            <div className={cn("h-4 w-24 rounded-sm", shimmer)} />
+            <div className={cn("ml-auto h-4 w-8 rounded-sm", shimmer)} />
+            <div className={cn("h-4 w-8 rounded-sm", shimmer)} />
+            <div className={cn("h-4 w-12 rounded-sm", shimmer)} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Admin moderation list row */
+function ModerationRowSkeleton() {
+  return (
+    <div className="flex gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <div className={cn("h-16 w-16 shrink-0 rounded-xl", shimmer)} />
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <div className={cn("h-5 w-3/5 rounded-sm", shimmer)} />
+            <div className={cn("h-3 w-2/5 rounded-sm", shimmer)} />
+          </div>
+          <div className={cn("h-5 w-16 shrink-0 rounded-full", shimmer)} />
+        </div>
+        <div className={cn("h-4 w-1/5 rounded-sm", shimmer)} />
+        <div className="flex gap-2 pt-1">
+          <div className={cn("h-8 w-18 rounded-[8px]", shimmer)} />
+          <div className={cn("h-8 w-16 rounded-[8px]", shimmer)} />
+          <div className={cn("h-8 w-16 rounded-[8px]", shimmer)} />
+        </div>
+      </div>
     </div>
   );
 }
 
 /* ─── Main Skeleton dispatcher ─── */
 
-export function Skeleton({ variant = "block", count = 1, className, side, ...props }: SkeletonProps) {
+function SkeletonRoot({
+  className,
+  children,
+  announce = true,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { children: ReactNode; announce?: boolean }) {
+  if (!announce) {
+    return (
+      <div aria-hidden="true" className={className} {...props}>
+        {children}
+      </div>
+    );
+  }
+  // Spread props first so a11y loading contract cannot be overridden accidentally.
+  return (
+    <div className={className} {...props} {...rootA11y}>
+      {children}
+    </div>
+  );
+}
+
+/** Variants that are leaf bones — size comes from className on the shimmer itself */
+const LEAF_VARIANTS = new Set<SkeletonVariant>(["block"]);
+
+export function Skeleton({
+  variant = "block",
+  count = 1,
+  className,
+  side,
+  layout = "vertical",
+  fields = 4,
+  ...props
+}: SkeletonProps) {
   const items = Array.from({ length: count }, (_, index) => index);
 
-  if (variant === "feed") {
+  // Leaf bone: className sizes the shimmer element directly (e.g. h-8 w-28)
+  if (LEAF_VARIANTS.has(variant)) {
+    if (count === 1) {
+      return <BlockSkeleton className={className} {...props} />;
+    }
     return (
-      <div aria-hidden="true" className={cn("flex flex-col gap-3", className)} {...props}>
+      <div aria-hidden="true" className={cn("flex flex-col gap-2", className)} {...props}>
         {items.map((item) => (
-          <ListingCardSkeleton key={item} />
+          <BlockSkeleton key={item} />
         ))}
       </div>
     );
   }
 
+  if (variant === "feed") {
+    return (
+      <SkeletonRoot className={cn("flex flex-col gap-3", className)} {...props}>
+        {items.map((item) => (
+          <ListingCardSkeleton key={item} />
+        ))}
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "homeFeed") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <HomeFeedSkeleton />
+      </SkeletonRoot>
+    );
+  }
+
   if (variant === "filterChips") {
     return (
-      <div aria-hidden="true" className={className} {...props}>
+      <SkeletonRoot className={className} {...props}>
         <FilterChipsSkeleton count={count} />
-      </div>
+      </SkeletonRoot>
     );
   }
 
   if (variant === "searchResults") {
     return (
-      <div aria-hidden="true" className={className} {...props}>
+      <SkeletonRoot className={className} {...props}>
         <SearchResultsSkeleton />
-      </div>
+      </SkeletonRoot>
     );
   }
 
   if (variant === "listingDetail") {
     return (
-      <div aria-hidden="true" className={className} {...props}>
+      <SkeletonRoot className={className} {...props}>
         <ListingDetailSkeleton />
-      </div>
+      </SkeletonRoot>
     );
   }
 
+  if (variant === "mapExplore") {
+    return (
+      <SkeletonRoot className={cn("h-full w-full", className)} {...props}>
+        <MapExploreSkeleton />
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "chatThread") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <ChatThreadSkeleton />
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "profilePage") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <ProfilePageSkeleton />
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "form") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <FormSkeleton fields={fields} />
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "blogPost") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <BlogPostSkeleton />
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "compatibility") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <CompatibilitySkeleton />
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "dashboardPanel") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <DashboardPanelSkeleton />
+      </SkeletonRoot>
+    );
+  }
+
+  if (variant === "publicProfile") {
+    return (
+      <SkeletonRoot className={className} {...props}>
+        <PublicProfileSkeleton />
+      </SkeletonRoot>
+    );
+  }
+
+  // Multi-item lists: caller className owns layout (grid / flex / gap).
+  // Default stack with gap only when no className is provided.
+  const multiClass =
+    count > 1 && !className
+      ? "flex flex-col gap-3"
+      : className;
+
   return (
-    <div aria-hidden="true" className={className} {...props}>
+    <SkeletonRoot className={multiClass} {...props}>
       {items.map((item) => {
         switch (variant) {
           case "card":
@@ -553,7 +1007,7 @@ export function Skeleton({ variant = "block", count = 1, className, side, ...pro
           case "profile":
             return <ProfileSkeleton key={item} />;
           case "listingCard":
-            return <ListingCardSkeleton key={item} />;
+            return <ListingCardSkeleton key={item} layout={layout} />;
           case "profileGridCard":
             return <ProfileGridCardSkeleton key={item} />;
           case "menuItemRow":
@@ -572,12 +1026,20 @@ export function Skeleton({ variant = "block", count = 1, className, side, ...pro
             return <SwipeCardSkeleton key={item} />;
           case "searchBar":
             return <SearchBarSkeleton key={item} />;
-          case "publicProfile":
-            return <PublicProfileSkeleton key={item} />;
+          case "blogCard":
+            return <BlogCardSkeleton key={item} />;
+          case "savedSearchCard":
+            return <SavedSearchCardSkeleton key={item} />;
+          case "alertCard":
+            return <AlertCardSkeleton key={item} />;
+          case "paymentMethodRow":
+            return <PaymentMethodRowSkeleton key={item} />;
+          case "moderationRow":
+            return <ModerationRowSkeleton key={item} />;
           default:
             return <BlockSkeleton key={item} />;
         }
       })}
-    </div>
+    </SkeletonRoot>
   );
 }

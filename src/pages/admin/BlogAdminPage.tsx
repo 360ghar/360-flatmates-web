@@ -99,11 +99,7 @@ export function BlogAdminPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-2xl" />
-          ))}
-        </div>
+        <Skeleton variant="moderationRow" count={4} />
       ) : error ? (
         <Card className="p-8 text-center">
           <p className="text-h3 text-ink-2 font-semibold">Could not load posts</p>

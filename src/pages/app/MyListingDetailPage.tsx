@@ -126,16 +126,25 @@ export function MyListingDetailPage() {
           <Skeleton className="h-9 w-9 rounded-[8px]" />
           <Skeleton className="h-8 w-16 rounded-[8px]" />
         </div>
+        {/* Loaded layout is ListingCard + status/manage cards — not public listingDetail */}
         <Skeleton variant="listingCard" />
-        <Card className="p-5">
-          <Skeleton className="h-5 w-28 rounded-full mb-3" />
+        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+          <Skeleton className="mb-3 h-5 w-28 rounded-full" />
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="flex flex-col gap-1 mb-2">
+            <div key={i} className="mb-2 flex flex-col gap-1">
               <Skeleton className="h-4 w-20 rounded-full" />
               <Skeleton className="h-4 w-32 rounded-full" />
             </div>
           ))}
-        </Card>
+        </div>
+        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+          <Skeleton className="mb-3 h-5 w-32 rounded-full" />
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Skeleton className="h-10 w-24 rounded-[8px]" />
+            <Skeleton className="h-10 w-24 rounded-[8px]" />
+            <Skeleton className="h-10 w-24 rounded-[8px]" />
+          </div>
+        </div>
       </div>
     );
   }

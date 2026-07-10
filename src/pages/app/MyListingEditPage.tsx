@@ -323,45 +323,28 @@ export function MyListingEditPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
-        {/* Header row */}
         <div className="flex items-center gap-3">
           <Skeleton className="h-10 w-10 rounded-[8px]" />
           <Skeleton className="h-8 w-36" />
         </div>
-
-        {/* Photos card */}
         <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
-          <div className="flex flex-col gap-4">
-            <Skeleton className="h-5 w-20" />
-            <div className="flex gap-2">
-              {Array.from({ length: 3 }, (_, i) => (
-                <Skeleton key={i} className="h-20 w-20 shrink-0 rounded-xl" />
-              ))}
-            </div>
-            <div aria-hidden="true" className="flex h-10 items-center justify-center rounded-[8px] border-2 border-dashed border-line bg-paper-2" />
+          <Skeleton className="mb-4 h-5 w-20" />
+          <div className="flex gap-2">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="h-20 w-20 shrink-0 rounded-xl" />
+            ))}
           </div>
         </div>
-
-        {/* Form cards with labeled inputs */}
-        {Array.from({ length: 3 }, (_, cardIdx) => (
-          <div key={cardIdx} className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
-            <div className="flex flex-col gap-4">
-              <Skeleton className="h-5 w-28" />
-              {Array.from({ length: 4 }, (_, rowIdx) => (
-                <div key={rowIdx} className="flex flex-col gap-1.5">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-12 w-full rounded-[8px]" />
-                </div>
-              ))}
+        <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="flex flex-col gap-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-12 w-full rounded-[8px]" />
             </div>
-          </div>
-        ))}
-
-        {/* Save/Cancel buttons */}
-        <div className="flex flex-col gap-2 pb-6">
-          <Skeleton className="h-[52px] w-full rounded-[8px]" />
-          <Skeleton className="h-[52px] w-full rounded-[8px]" />
+          ))}
         </div>
+        <Skeleton className="h-[52px] w-full rounded-[8px]" />
+        <Skeleton className="h-[52px] w-full rounded-[8px]" />
       </div>
     );
   }

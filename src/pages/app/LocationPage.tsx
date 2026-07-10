@@ -143,22 +143,18 @@ export function LocationPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-5 p-4 md:p-6 mx-auto max-w-lg">
-        {/* Title + description */}
         <div className="flex flex-col gap-2">
           <Skeleton className="h-7 w-3/4" />
           <Skeleton className="h-4 w-full" />
         </div>
-        {/* Input field with label */}
         <div className="flex flex-col gap-1.5">
           <Skeleton className="h-3 w-8" />
           <Skeleton variant="searchBar" />
         </div>
-        {/* Popular cities chips */}
         <div className="flex flex-col gap-2">
           <Skeleton className="h-3 w-20" />
           <Skeleton variant="filterChips" count={6} />
         </div>
-        {/* Two buttons */}
         <Skeleton className="h-[52px] w-full rounded-[8px]" />
         <Skeleton className="h-[52px] w-full rounded-[8px]" />
       </div>

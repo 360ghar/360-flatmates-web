@@ -131,33 +131,8 @@ export function AnalyticsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col gap-5 mt-5">
-          {/* StatCard grid */}
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} variant="statCard" />
-            ))}
-          </div>
-          {/* Table skeleton */}
-          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm overflow-hidden">
-            <div className="border-b border-line px-4 py-3">
-              <Skeleton className="h-5 w-32" />
-            </div>
-            <div className="border-b border-line bg-paper-2 px-4 py-2 flex gap-4">
-              <Skeleton className="h-3 w-12" />
-              <Skeleton className="h-3 w-10" />
-              <Skeleton className="h-3 w-10" />
-              <Skeleton className="h-3 w-10" />
-            </div>
-            {Array.from({ length: 4 }, (_, i) => (
-              <div key={i} className="border-b border-line-2 last:border-b-0 px-4 py-2 flex gap-4">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-4 w-8 ml-auto" />
-                <Skeleton className="h-4 w-8 ml-auto" />
-                <Skeleton className="h-4 w-8 ml-auto" />
-              </div>
-            ))}
-          </div>
+        <div className="mt-5">
+          <Skeleton variant="dashboardPanel" />
         </div>
       ) : error || !analytics ? (
         <Card className="mt-5 flex items-center justify-center p-8">

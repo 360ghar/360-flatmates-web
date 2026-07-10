@@ -87,15 +87,16 @@ export function ChooseRolePage() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-5 p-4 md:p-6 mx-auto max-w-lg">
-        {/* Title + description */}
         <div className="flex flex-col gap-2">
           <Skeleton className="h-7 w-3/4" />
           <Skeleton className="h-4 w-full" />
         </div>
-        {/* 3 selectable card placeholders */}
         <div className="flex flex-col gap-3">
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+            <div
+              key={i}
+              className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm"
+            >
               <Skeleton className="h-12 w-12 shrink-0 rounded-xl" />
               <div className="flex flex-1 flex-col gap-2">
                 <Skeleton className="h-4 w-1/3" />
@@ -104,7 +105,6 @@ export function ChooseRolePage() {
             </div>
           ))}
         </div>
-        {/* Continue button */}
         <Skeleton className="h-[52px] w-full rounded-[8px]" />
       </div>
     );

@@ -33,3 +33,6 @@ Thumbs.db
 
 # Claude Code
 .claude/
+
+# Temp font cache
+.tmp-inter-font/

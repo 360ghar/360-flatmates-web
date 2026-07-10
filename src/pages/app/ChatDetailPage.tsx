@@ -119,15 +119,26 @@ export function ChatDetailPage() {
           ...(retryTempId !== undefined ? { tempId: retryTempId } : {})
         },
         {
-          onError: () => {
-            // Cache was rolled back; preserve the body for retry.
-            if (retryTempId !== undefined) {
-              setFailedBodies((prev) => {
-                const next = new Map(prev);
-                next.set(retryTempId, body);
-                return next;
-              });
-            }
+          onError: (_err, _vars, context) => {
+            // useSendMessage keeps the failed optimistic bubble; record body
+            // for retry (first failure and subsequent retries).
+            const tempId = context?.tempId ?? retryTempId;
+            if (tempId === undefined) return;
+            setFailedBodies((prev) => {
+              const next = new Map(prev);
+              next.set(tempId, body);
+              return next;
+            });
+          },
+          onSuccess: (_data, _vars, context) => {
+            const tempId = context?.tempId ?? retryTempId;
+            if (tempId === undefined) return;
+            setFailedBodies((prev) => {
+              if (!prev.has(tempId)) return prev;
+              const next = new Map(prev);
+              next.delete(tempId);
+              return next;
+            });
           }
         }
       );
@@ -165,30 +176,8 @@ export function ChatDetailPage() {
 
   if (convLoading || messagesLoading) {
     return (
-      <div className="flex flex-col gap-3 p-4">
-        {/* Header bar: avatar + name + actions */}
-        <div className="flex items-center gap-3 border-b border-line pb-3">
-          <Skeleton className="h-[52px] w-[52px] shrink-0 rounded-xl" />
-          <div className="flex flex-1 flex-col gap-1.5 min-w-0">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-9 rounded-[8px]" />
-            <Skeleton className="h-9 w-9 rounded-[8px]" />
-          </div>
-        </div>
-        {/* Alternating chat message bubbles */}
-        <Skeleton variant="chatMessage" />
-        <div className="flex justify-end"><Skeleton variant="chatMessage" side="right" /></div>
-        <Skeleton variant="chatMessage" />
-        <div className="flex justify-end"><Skeleton variant="chatMessage" side="right" /></div>
-        {/* Input bar */}
-        <div className="mt-auto flex items-center gap-2 rounded-[8px] border border-line bg-surface p-3">
-          <Skeleton className="h-5 w-5" />
-          <Skeleton className="h-4 flex-1" />
-          <Skeleton className="h-8 w-8 rounded-[8px]" />
-        </div>
+      <div className="p-0 md:p-2">
+        <Skeleton variant="chatThread" />
       </div>
     );
   }

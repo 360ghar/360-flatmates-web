@@ -276,30 +276,7 @@ export function CompatibilityPage() {
         isLoading={isLoading}
         error={error}
         onRetry={() => refetch()}
-        loading={
-          <div className="flex flex-col gap-4">
-            <Card className="flex flex-col items-center gap-4 p-6 text-center">
-              <Skeleton className="h-28 w-28 rounded-full" />
-              <Skeleton className="h-5 w-24 rounded-full" />
-              <Skeleton className="h-4 w-48 rounded-full" />
-            </Card>
-            <Card className="flex flex-col gap-4 p-5">
-              <Skeleton className="h-5 w-24 rounded-full" />
-              {Array.from({ length: 4 }, (_, i) => (
-                <div key={i} className="flex flex-col gap-1.5">
-                  <Skeleton className="h-4 w-32 rounded-full" />
-                  <Skeleton className="h-2 w-full rounded-full" />
-                </div>
-              ))}
-            </Card>
-            <Card className="flex flex-col gap-3 p-5">
-              <Skeleton className="h-5 w-20 rounded-full" />
-              {Array.from({ length: 2 }, (_, i) => (
-                <Skeleton key={i} className="h-4 w-full rounded-full" />
-              ))}
-            </Card>
-          </div>
-        }
+        loading={<Skeleton variant="compatibility" />}
         empty={
           <ErrorState
             title="No compatibility data"

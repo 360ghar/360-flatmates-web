@@ -244,30 +244,7 @@ export function SavedSearchesPage() {
         isLoading={isLoading}
         error={error}
         isEmpty={(data) => data.length === 0}
-        loading={
-          <div className="flex flex-col gap-3" aria-hidden="true">
-            {Array.from({ length: 4 }, (_, i) => (
-              <div key={i} className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-4 w-28" />
-                    <Skeleton className="h-5 w-16 rounded-full" />
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <Skeleton className="h-6 w-14 rounded-full" />
-                    <Skeleton className="h-6 w-16 rounded-full" />
-                    <Skeleton className="h-6 w-12 rounded-full" />
-                  </div>
-                  <Skeleton className="mt-1 h-3 w-24" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-9 w-9 rounded-[8px]" />
-                  <Skeleton className="h-9 w-9 rounded-[8px]" />
-                </div>
-              </div>
-            ))}
-          </div>
-        }
+        loading={<Skeleton variant="savedSearchCard" count={4} />}
         errorView={
           <Card className="flex items-center justify-center p-8">
             <ErrorState

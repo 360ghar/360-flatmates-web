@@ -35,9 +35,12 @@ export interface CatalogAmenity {
   icon?: string;
 }
 
+/** Matches backend `DeviceRegister` (`POST /notifications/devices/register`). */
 export interface RegisterDevicePayload {
-  device_token: string;
-  platform?: DevicePlatform;
+  token: string;
+  platform: DevicePlatform;
+  app_version?: string;
+  locale?: string;
 }
 
 export interface ShareCardResponse {

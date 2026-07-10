@@ -87,7 +87,13 @@ export function NotificationsPage() {
         isLoading={isLoading}
         error={error}
         isEmpty={(data) => data.length === 0}
-        loading={<Skeleton variant="notificationCard" count={5} />}
+        loading={
+          <Skeleton
+            variant="notificationCard"
+            count={5}
+            className="flex flex-col gap-2"
+          />
+        }
         empty={
           <p className="py-8 text-center text-body-md text-ink-3">
             No notifications yet. You will see matches, messages, and updates here.

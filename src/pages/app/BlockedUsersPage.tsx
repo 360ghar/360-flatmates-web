@@ -37,22 +37,7 @@ export function BlockedUsersPage() {
         isLoading={isLoading}
         error={error}
         isEmpty={(data) => data.length === 0}
-        loading={
-          <div className="flex flex-col gap-3">
-            {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm">
-                <div className="flex items-center gap-3 min-w-0">
-                  <Skeleton className="h-[34px] w-[34px] shrink-0 rounded-full" />
-                  <div className="flex flex-col gap-1.5 min-w-0">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                </div>
-                <Skeleton className="h-8 w-20 shrink-0 rounded-full" />
-              </div>
-            ))}
-          </div>
-        }
+        loading={<Skeleton variant="paymentMethodRow" count={3} />}
         empty={
           <Card className="flex flex-col items-center gap-3 p-6 text-center">
             <p className="text-body-md text-ink-3">

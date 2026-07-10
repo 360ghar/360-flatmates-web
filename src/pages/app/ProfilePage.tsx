@@ -130,52 +130,8 @@ export function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center gap-4 p-4 md:p-6 max-w-2xl mx-auto">
-        {/* Profile header card: avatar + name + profession + badges */}
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 shadow-sm text-center w-full">
-          <Skeleton className="h-[120px] w-[120px] rounded-xl" />
-          <Skeleton className="h-7 w-24" />
-          <Skeleton className="h-4 w-32" />
-          <div className="flex gap-2">
-            <Skeleton className="h-5 w-16 rounded-full" />
-            <Skeleton className="h-5 w-16 rounded-full" />
-          </div>
-        </div>
-        {/* Menu section groups */}
-        <div className="flex flex-col gap-5 w-full">
-          {/* Profile section */}
-          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
-            <Skeleton variant="menuItemRow" />
-          </div>
-          {/* Activity section */}
-          <Skeleton className="h-3 w-14" />
-          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
-            <Skeleton variant="menuItemRow" count={2} />
-          </div>
-          {/* Preferences section */}
-          <Skeleton className="h-3 w-20" />
-          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
-            <Skeleton variant="menuItemRow" />
-          </div>
-          {/* Theme card with toggle placeholder */}
-          <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
-            <div className="flex flex-col gap-1">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-3 w-32" />
-            </div>
-            <Skeleton className="h-8 w-14 rounded-full" />
-          </div>
-          {/* Privacy & Safety section */}
-          <Skeleton className="h-3 w-24" />
-          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
-            <Skeleton variant="menuItemRow" count={2} />
-          </div>
-          {/* Account section with sign out / delete */}
-          <Skeleton className="h-3 w-16" />
-          <div className="rounded-2xl border border-line bg-surface p-0 shadow-sm divide-y divide-line">
-            <Skeleton variant="menuItemRow" count={2} />
-          </div>
-        </div>
+      <div className="p-4 md:p-6 max-w-2xl mx-auto">
+        <Skeleton variant="profilePage" />
       </div>
     );
   }

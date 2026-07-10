@@ -1,8 +1,14 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { useConversations, useMatches, useCreateConversation } from "@/hooks/queries";
+import {
+  useInfiniteConversations,
+  useMatches,
+  useCreateConversation
+} from "@/hooks/queries";
 import { conversationToConversationRowProps } from "@/lib/api/adapters";
 import type { ConversationSummary, MatchSummary } from "@/lib/api/types";
 import { uiStore } from "@/lib/stores/ui-store";
+import { Button } from "@/components/ui/Button";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
@@ -11,7 +17,19 @@ import { cn, getInitials } from "@/components/ui/component-utils";
 
 export function ChatsPage() {
   const navigate = useNavigate();
-  const { data: conversations, isLoading, error, refetch } = useConversations();
+  const {
+    data: conversationsPages,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteConversations();
+  const conversations = useMemo(() => {
+    if (!conversationsPages) return undefined;
+    return conversationsPages.pages.flatMap((page) => page.items ?? []);
+  }, [conversationsPages]);
   const { data: matches, isLoading: matchesLoading } = useMatches();
   const createConversation = useCreateConversation();
 
@@ -61,6 +79,9 @@ export function ChatsPage() {
               error={error}
               refetch={refetch}
               onNavigate={(id) => navigate(`/chats/${id}`)}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              onLoadMore={() => void fetchNextPage()}
             />
           </div>
         </section>
@@ -91,6 +112,9 @@ export function ChatsPage() {
               error={error}
               refetch={refetch}
               onNavigate={(id) => navigate(`/chats/${id}`)}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              onLoadMore={() => void fetchNextPage()}
             />
           </div>
         </section>
@@ -262,12 +286,18 @@ function ConversationsPanel({
   error,
   refetch,
   onNavigate,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore
 }: {
   conversations: ConversationSummary[] | undefined;
   isLoading: boolean;
   error: Error | null | undefined;
   refetch: () => void;
   onNavigate: (id: number) => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
 }) {
   return (
     <AsyncView
@@ -275,7 +305,13 @@ function ConversationsPanel({
       isLoading={isLoading}
       error={error}
       isEmpty={(data) => data.length === 0}
-      loading={<Skeleton variant="conversationRow" count={5} />}
+      loading={
+        <Skeleton
+          variant="conversationRow"
+          count={5}
+          className="flex flex-col gap-1"
+        />
+      }
       empty={
         <EmptyState
           title="No conversations yet"
@@ -293,6 +329,19 @@ function ConversationsPanel({
               onClick={() => onNavigate(conversation.id)}
             />
           ))}
+          {hasNextPage ? (
+            <div className="flex justify-center py-3">
+              <Button
+                type="button"
+                variant="secondary"
+                size="compact"
+                disabled={isFetchingNextPage}
+                onClick={onLoadMore}
+              >
+                {isFetchingNextPage ? "Loading…" : "Load more conversations"}
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
     </AsyncView>

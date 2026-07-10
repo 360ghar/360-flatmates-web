@@ -179,11 +179,11 @@ export function CityPage() {
             </div>
 
             {isLoading ? (
-              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} variant="listingCard" />
-                ))}
-              </div>
+              <Skeleton
+                variant="listingCard"
+                count={6}
+                className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3"
+              />
             ) : isError ? (
               <Card className="flex items-center justify-center p-8">
                 <ErrorState

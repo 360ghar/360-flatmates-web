@@ -45,7 +45,7 @@ it("renders skeletons while loading", () => {
     />
   );
   expect(screen.getByText("Property Details")).toBeInTheDocument();
-  expect(container.querySelectorAll(".animate-shimmer").length).toBeGreaterThan(0);
+  expect(container.querySelectorAll(".shimmer").length).toBeGreaterThan(0);
 });
 
 it("renders empty fallback when not loading and no property", () => {

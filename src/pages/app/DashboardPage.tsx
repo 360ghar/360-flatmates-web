@@ -69,30 +69,7 @@ export function DashboardPage() {
       <h1 className="text-h1 mb-5">Dashboard</h1>
 
       {isLoading ? (
-        <div className="flex flex-col gap-5">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} variant="statCard" />)}
-          </div>
-          <div className="rounded-2xl border border-line bg-surface shadow-sm overflow-hidden">
-            <div className="border-b border-line px-4 py-3">
-              <Skeleton className="h-5 w-32" />
-            </div>
-            <div className="border-b border-line bg-paper-2 px-4 py-2 flex gap-4">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-3 w-10" />
-              <Skeleton className="h-3 w-10" />
-              <Skeleton className="h-3 w-10" />
-            </div>
-            {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="border-b border-line-2 last:border-b-0 px-4 py-2 flex gap-4">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-8" />
-                <Skeleton className="h-4 w-8" />
-                <Skeleton className="h-4 w-12" />
-              </div>
-            ))}
-          </div>
-        </div>
+        <Skeleton variant="dashboardPanel" />
       ) : error ? (
         <Card className="flex items-center justify-center p-8">
           <ErrorState

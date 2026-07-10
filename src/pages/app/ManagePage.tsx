@@ -121,9 +121,11 @@ export function ManagePage() {
         error={error}
         isEmpty={(data) => data.length === 0}
         loading={
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Skeleton variant="listingCard" count={3} />
-          </div>
+          <Skeleton
+            variant="listingCard"
+            count={3}
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          />
         }
         empty={
           <Card className="flex flex-col items-center gap-3 p-8 text-center">

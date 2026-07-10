@@ -66,11 +66,11 @@ export async function getFcmToken(): Promise<string | null> {
 
 /**
  * Register the current device token with the backend.
- * Calls POST /notifications/devices/register with the token and platform.
+ * Calls POST /notifications/devices/register with `{ token, platform }`.
  */
 export async function registerDevice(token: string): Promise<void> {
   const payload: RegisterDevicePayload = {
-    device_token: token,
+    token,
     platform: "web"
   };
 
@@ -83,13 +83,13 @@ export async function registerDevice(token: string): Promise<void> {
 
 /**
  * Unregister a device token from the backend.
- * Calls POST /notifications/devices/unregister with the token.
+ * Calls DELETE /notifications/devices/unregister?token=...
  */
 export async function unregisterDevice(token: string): Promise<void> {
   await apiClient.request({
-    method: "POST",
+    method: "DELETE",
     path: "/notifications/devices/unregister",
-    body: { device_token: token }
+    query: { token }
   });
 }
 

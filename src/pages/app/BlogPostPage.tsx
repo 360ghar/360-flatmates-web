@@ -54,13 +54,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
   if (isLoading) {
     return (
       <div className="page-fade mx-auto max-w-3xl px-5 py-12">
-        <Skeleton className="h-8 w-24 mb-6" />
-        <Skeleton className="h-12 w-3/4 mb-4" />
-        <Skeleton className="h-6 w-1/2 mb-8" />
-        <Skeleton className="h-72 w-full mb-6 rounded-2xl" />
-        <Skeleton className="h-4 w-full mb-3" />
-        <Skeleton className="h-4 w-5/6 mb-3" />
-        <Skeleton className="h-4 w-2/3" />
+        <Skeleton variant="blogPost" />
       </div>
     );
   }

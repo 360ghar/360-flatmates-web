@@ -190,7 +190,7 @@ describe("fcm push utilities", () => {
       expect(mockRequest).toHaveBeenCalledWith({
         method: "POST",
         path: "/notifications/devices/register",
-        body: { device_token: "test-token-123", platform: "web" },
+        body: { token: "test-token-123", platform: "web" },
       });
     });
 
@@ -211,9 +211,9 @@ describe("fcm push utilities", () => {
       mockRequest.mockResolvedValue(undefined);
       await unregisterDevice("test-token-456");
       expect(mockRequest).toHaveBeenCalledWith({
-        method: "POST",
+        method: "DELETE",
         path: "/notifications/devices/unregister",
-        body: { device_token: "test-token-456" },
+        query: { token: "test-token-456" },
       });
     });
 
@@ -322,7 +322,7 @@ describe("fcm push utilities", () => {
       expect(mockRequest).toHaveBeenCalledWith({
         method: "POST",
         path: "/notifications/devices/register",
-        body: { device_token: "https://push.example.com/success-token", platform: "web" },
+        body: { token: "https://push.example.com/success-token", platform: "web" },
       });
     });
 

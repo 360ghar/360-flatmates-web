@@ -279,14 +279,8 @@ export function ExplorePage() {
 
   if (isLoading) {
     return (
-      <div className="-mx-5 -mt-6 -mb-6 flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] flex-col items-center justify-center gap-4 md:-mx-6">
-        {/* Map placeholder */}
-        <Skeleton className="h-full w-full rounded-none" />
-        {/* Floating button placeholders */}
-        <div className="absolute bottom-6 right-6 flex flex-col gap-3">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <Skeleton className="h-12 w-12 rounded-full" />
-        </div>
+      <div className="-mx-5 -mt-6 -mb-6 h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] md:-mx-6">
+        <Skeleton variant="mapExplore" className="h-full w-full" />
       </div>
     );
   }

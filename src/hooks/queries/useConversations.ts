@@ -197,13 +197,73 @@ export function useSendMessage() {
       return { tempId: id, conversationId, previous };
     },
 
-    onError: (_err, _vars, context) => {
-      // Audit F6 #14: restore the previous cache snapshot on error so the
-      // optimistic message is reverted. The page tracks failed bodies in a
-      // local map to support retry.
+    onError: (_err, { conversationId, payload, senderId }, context) => {
+      // Keep a failed optimistic bubble so the user can retry (first send and
+      // retries). Full rollback removed the only handle the UI had for retry.
       if (!context) return;
-      for (const [key, prev] of context.previous) {
-        queryClient.setQueryData(key, prev);
+      const filter = messagePageKey(conversationId);
+      const pages = queryClient.getQueriesData<
+        InfiniteData<MessageListResponse>
+      >(filter);
+      const failed: MessageOut = {
+        id: context.tempId,
+        conversation_id: conversationId,
+        sender_id: senderId,
+        body: payload.body,
+        attachment_url: payload.attachment_url,
+        message_type: payload.message_type ?? "text",
+        metadata: { __optimistic: true, __failed: true },
+        created_at: new Date().toISOString()
+      };
+      if (pages.length === 0) {
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
+          ["conversations", conversationId, "messages"],
+          {
+            pages: [
+              {
+                messages: [failed],
+                total: 1,
+                has_more: false
+              }
+            ],
+            pageParams: [undefined]
+          }
+        );
+        return;
+      }
+      for (const [key, data] of pages) {
+        if (!data) {
+          queryClient.setQueryData(key, {
+            pages: [
+              {
+                messages: [failed],
+                total: 1,
+                has_more: false
+              }
+            ],
+            pageParams: [undefined]
+          });
+          continue;
+        }
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(key, {
+          ...data,
+          pages: data.pages.map((page, index) => {
+            if (index !== data.pages.length - 1) {
+              return {
+                ...page,
+                messages: page.messages.filter((m) => m.id !== context.tempId)
+              };
+            }
+            const withoutTemp = page.messages.filter(
+              (m) => m.id !== context.tempId
+            );
+            return {
+              ...page,
+              messages: [...withoutTemp, failed],
+              total: withoutTemp.length + 1
+            };
+          })
+        });
       }
     },
 
@@ -283,13 +343,25 @@ export function useMarkConversationRead() {
         path: `/flatmates/conversations/${conversationId}/mark-read`
       }),
     onMutate: (conversationId) => {
+      const zeroUnread = (c: ConversationSummary) =>
+        c.id === conversationId ? { ...c, unread_count: 0 } : c;
+
       queryClient.setQueryData<ConversationSummary[]>(
         ["conversations"],
+        (old) => (old ? old.map(zeroUnread) : old)
+      );
+      // Keep infinite inbox rows in sync with the first-page cache.
+      queryClient.setQueriesData<InfiniteData<ConversationCursorPage>>(
+        { queryKey: ["conversations", "infinite"] },
         (old) => {
           if (!old) return old;
-          return old.map((c) =>
-            c.id === conversationId ? { ...c, unread_count: 0 } : c
-          );
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              items: page.items.map(zeroUnread)
+            }))
+          };
         }
       );
     },

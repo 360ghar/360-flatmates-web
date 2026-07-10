@@ -168,25 +168,9 @@ export function HomePage() {
         ))}
       </div>
 
-      {/* Feed sections */}
+      {/* Feed sections — search bar + chips above stay real; only feed data skeletons */}
       {anyLoading ? (
-        <div className="flex flex-col gap-6">
-          <Skeleton variant="searchBar" />
-          <Skeleton variant="filterChips" count={5} />
-          {["Recommended for You", "New Listings", "Nearby Flatmates"].map((section) => (
-            <section key={section} className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <Skeleton className="h-4 w-32 rounded-full" />
-                <Skeleton className="h-3 w-14 rounded-full" />
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                {section === "New Listings"
-                  ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} variant="listingCard" />)
-                  : Array.from({ length: 3 }, (_, i) => <Skeleton key={i} variant="profileGridCard" />)}
-              </div>
-            </section>
-          ))}
-        </div>
+        <Skeleton variant="homeFeed" />
       ) : bootstrapError ? (
         <AsyncView data={null} error={bootstrapError} onRetry={() => refetchBootstrap()}>
           {() => null}

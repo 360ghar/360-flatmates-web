@@ -538,27 +538,45 @@ There are no progressive elevation tiers — the system either has the one shado
 
 ## Loading / Skeleton screens
 
-Page and panel content loads use **layout-matched skeleton placeholders** (`FlatmatesSkeleton` in `lib/features/shared/presentation/skeleton/`), not spinners.
+Page and panel content loads use **layout-matched skeleton placeholders** via `<Skeleton>` in `src/components/ui/Skeleton.tsx`, not full-page spinners.
 
 ### Tokens
 
-| Token | Light | Dark | Role |
-|---|---|---|---|
-| Bone fill | `surfaceStrong` (`#f2f2f2`) | `darkSurfaceElevated` (`#2a2a2a`) | Placeholder shapes |
-| Shimmer highlight | `canvas` (`#ffffff`) | `#3a3a3a` | Sweep highlight over bones |
-| Soft surface | `surfaceSoft` | dark surface @ 60% | Group containers under bones |
-| Unread tint | `primarySoft` | primary @ 12% | Emphasized rows (no left stripe) |
-| Shimmer duration | `AppMotion.skeletonShimmer` (1200ms) | linear, repeating | Disabled when reduced motion is on |
+| Token | Implementation | Role |
+|---|---|---|
+| Bone fill | `.shimmer` → `surface-soft` → `surface` gradient | Placeholder shapes |
+| Shimmer duration | 1200ms linear infinite (`globals.css` `@keyframes shimmer`) | Sweep highlight |
+| Reduced motion | `motion-reduce:animate-none` on bones | Static bones when preferred |
+| Radius | `rounded-sm` text lines, `rounded-2xl` cards/photos, `rounded-full` chips/CTAs | Match real molecules |
+
+### Variants (web)
+
+| Variant | Mirrors |
+|---|---|
+| `listingCard` | `ListingCard` media card (`aspect-[20/19]`, owner + compact CTA) |
+| `profileGridCard` | `ProfileGridCard` compact (`aspect-[3/4]`) |
+| `blogCard` / `blogPost` | Blog grid card / article |
+| `homeFeed` | Home section carousels (fixed-width cards; no search/chips) |
+| `searchResults` / `searchBar` / `filterChips` | Search chrome + results |
+| `listingDetail` / `publicProfile` | Detail layouts |
+| `swipeCard` | Swipe deck + action bar |
+| `mapExplore` | Map area + FABs |
+| `conversationRow` / `chatMessage` / `chatThread` | Chats |
+| `notificationCard` / `visitCard` / `statCard` | List cards |
+| `menuItemRow` / `profilePage` / `form` | Profile & settings |
+| `savedSearchCard` / `alertCard` / `paymentMethodRow` | Settings lists |
+| `compatibility` / `dashboardPanel` / `moderationRow` | Feature pages / admin |
+| `block` / `card` / `listItem` / `feed` / `profile` | Legacy / leaf bones |
 
 ### Rules
 
-- Use **skeleton** for full-screen / full-panel content placeholders that mirror the eventual layout (discover feed, lists, chat, profile, map, filters, forms).
-- Use **`CircularProgressIndicator`** only for **in-action** progress: button submit, photo/video upload, pagination footers, inline search fields.
-- Prefer page-specific factories: `.discoverFeed()`, `.browseListings()`, `.flatDetails()`, `.swipeCard()`, `.conversationList()`, `.chatMessages()`, `.notificationList()`, `.visitList()`, `.manageListings()`, `.mapExplore()`, `.profile()`, `.searchFilters()`, `.settingsList()`, `.form()`, `.peerProfileSheet()`, `.legalContent()`.
-- Generic `.list()` defaults to multiple rows; `.card()` / `.feed()` are legacy helpers.
-- Bones use `AppRadius` tokens (xs for text lines, card for photos, pill for chips).
+- Use **skeleton** for full-panel content that mirrors the eventual layout.
+- Use button `loading` / small spinners only for **in-action** progress (submit, upload, pagination, inline search).
+- Keep **page chrome** (titles, back buttons, static filters) visible; skeleton only API-dependent sections.
+- Composite variants root with `role="status"`, `aria-busy="true"`, `aria-label="Loading"`. Leaf `block` bones stay `aria-hidden`.
+- Bones must match molecule geometry (image aspect, CTA placement, padding) — never reuse `listingCard` for blog/posts/people.
 - Respect **reduced motion**: static bones, no shimmer animation.
-- Skeleton roots expose `Semantics(label: 'Loading')`.
+- Multi-item `count` layouts: pass `className` for grid/flex (e.g. `className="grid gap-4 md:grid-cols-3"`).
 
 ### Known Gaps
 

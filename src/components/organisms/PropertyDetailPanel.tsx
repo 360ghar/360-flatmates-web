@@ -40,15 +40,15 @@ export function PropertyDetailPanel({
 
       {isPropertyLoading ? (
         <div className="p-4 lg:p-5 space-y-4">
-          <Skeleton className="w-full aspect-[16/10] rounded-xl animate-shimmer bg-gradient-to-r" />
-          <Skeleton className="h-8 w-1/2 animate-shimmer bg-gradient-to-r" />
-          <Skeleton className="h-6 w-3/4 animate-shimmer bg-gradient-to-r" />
+          <Skeleton className="w-full aspect-[16/10] rounded-xl" />
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-6 w-3/4" />
           <div className="grid grid-cols-3 gap-2">
-            <Skeleton className="h-12 animate-shimmer bg-gradient-to-r" />
-            <Skeleton className="h-12 animate-shimmer bg-gradient-to-r" />
-            <Skeleton className="h-12 animate-shimmer bg-gradient-to-r" />
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
           </div>
-          <Skeleton className="h-24 w-full animate-shimmer bg-gradient-to-r" />
+          <Skeleton className="h-24 w-full" />
         </div>
       ) : fullProperty ? (
         <div className="p-4 lg:p-5 space-y-5">
