@@ -10,6 +10,77 @@ const profile: SwipeProfile = {
   photoUrl: null,
   matchScore: 85,
   location: "Bangalore",
+  sleepSchedule: "night_owl",
+  cleanliness: "tidy",
+  foodHabits: "vegetarian",
+  smokingDrinking: "neither",
+  guestsPolicy: "occasional_ok",
+  workStyle: "hybrid",
+  genderPreference: "any",
+  hasPets: false,
+  nonNegotiables: ["no_smoking", "food_veg_only"],
+  compatibilityDimensions: [
+    {
+      name: "sleep_schedule",
+      label: "Sleep Schedule",
+      weight: 0.2,
+      user_value: "early_bird",
+      peer_value: "night_owl",
+      score: 0,
+      match: false,
+      summary: "Sleep Schedule: preference gap"
+    },
+    {
+      name: "cleanliness",
+      label: "Cleanliness",
+      weight: 0.2,
+      user_value: "tidy",
+      peer_value: "tidy",
+      score: 100,
+      match: true,
+      summary: "Cleanliness: strong match"
+    },
+    {
+      name: "food_habits",
+      label: "Food Habits",
+      weight: 0.15,
+      user_value: "vegetarian",
+      peer_value: "vegetarian",
+      score: 100,
+      match: true,
+      summary: "Food Habits: strong match"
+    },
+    {
+      name: "smoking_drinking",
+      label: "Smoking/Drinking",
+      weight: 0.2,
+      user_value: "neither",
+      peer_value: "neither",
+      score: 100,
+      match: true,
+      summary: "Smoking/Drinking: strong match"
+    },
+    {
+      name: "guests_policy",
+      label: "Guests Policy",
+      weight: 0.15,
+      user_value: "occasional_ok",
+      peer_value: "occasional_ok",
+      score: 100,
+      match: true,
+      summary: "Guests Policy: strong match"
+    },
+    {
+      name: "work_style",
+      label: "Work Style",
+      weight: 0.1,
+      user_value: "hybrid",
+      peer_value: "hybrid",
+      score: 100,
+      match: true,
+      summary: "Work Style: strong match"
+    }
+  ]
 };
 
 const profile2: SwipeProfile = {
@@ -35,6 +106,26 @@ it("renders current profile name", () => {
   // Name renders with age suffix ("Alice, 28") in h2 elements
   const names = screen.getAllByText(/Alice/);
   expect(names.length).toBeGreaterThanOrEqual(1);
+});
+
+it("shows lifestyle grid, deal-breakers, and full compatibility in expanded card", () => {
+  // Desktop starts expanded (jsdom width is not mobile)
+  render(<SwipeDeck profiles={manyProfiles} />);
+  expect(screen.getByText("Lifestyle")).toBeInTheDocument();
+  expect(screen.getByText("Deal-breakers")).toBeInTheDocument();
+  expect(screen.getByText("Non-negotiables they set")).toBeInTheDocument();
+  expect(screen.getByText("No Smoking")).toBeInTheDocument();
+  expect(screen.getByText("Veg Only")).toBeInTheDocument();
+  expect(screen.getByText("Compatibility")).toBeInTheDocument();
+  expect(screen.getAllByText("Great match").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getByText(/aligned/)).toBeInTheDocument();
+  // Lifestyle grid + dimension rows both use these labels
+  expect(screen.getAllByText("Sleep Schedule").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getAllByText("Cleanliness").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getAllByText("Food Habits").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getAllByText("Smoking/Drinking").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getAllByText("Guests Policy").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getAllByText("Work Style").length).toBeGreaterThanOrEqual(1);
 });
 
 it("renders empty state when no profiles", () => {
@@ -145,8 +236,8 @@ it("does not call onNearEnd when plenty of cards remain", () => {
 
 it("shows progress ring with match score", () => {
   render(<SwipeDeck profiles={[profile]} />);
-  // ProgressRing renders score as "85%" text
-  expect(screen.getByText("85%")).toBeInTheDocument();
+  // ProgressRing may appear more than once (hero + summary strip)
+  expect(screen.getAllByText("85%").length).toBeGreaterThanOrEqual(1);
 });
 
 it("disables action buttons when isAnimating is true", () => {

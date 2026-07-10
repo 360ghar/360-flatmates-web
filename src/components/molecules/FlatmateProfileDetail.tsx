@@ -54,9 +54,7 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
 
   const nonNegotiables = profile.non_negotiables ?? [];
   const showPreferences =
-    Boolean(genderPrefLabel) ||
-    profile.has_pets !== undefined ||
-    nonNegotiables.length > 0;
+    Boolean(genderPrefLabel) || profile.has_pets !== undefined;
 
   // Listing summary: only when the peer actually has listing context.
   const photos = profile.image_urls ?? [];
@@ -168,6 +166,15 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
                   {profile.has_pets ? "Has pets" : "No pets"}
                 </Chip>
               ) : null}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Deal-breakers */}
+        {nonNegotiables.length > 0 ? (
+          <section>
+            <h3 className="text-h4 text-ink mb-2">Deal-breakers</h3>
+            <div className="flex flex-wrap gap-2">
               {nonNegotiables.map((nn) => {
                 const label =
                   NON_NEGOTIABLE_OPTIONS.find((o) => o.value === nn)?.label ??

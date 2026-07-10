@@ -3,35 +3,66 @@ import { useNavigate } from "react-router";
 import {
   useBatchRemoveSwipes,
   useSwipeDeck,
-  useSwipeAction
+  useSwipeAction,
+  useBootstrap
 } from "@/hooks/queries";
 import { useKeyboardSwipe } from "@/hooks/useKeyboardSwipe";
 import { useStore } from "zustand";
 import { swipeStore } from "@/lib/stores/swipe-store";
 import { uiStore } from "@/lib/stores/ui-store";
 import { ApiClientError } from "@/lib/api/errors";
-import type { FlatmatesPeer } from "@/lib/api/types";
+import type { FlatmatesPeer, FlatmatesProfile } from "@/lib/api/types";
 import { Button } from "@/components/ui/Button";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { SwipeDeck, type SwipeProfile } from "@/components/organisms/SwipeDeck";
 import { formatLocation, formatMoveInTimeline } from "@/lib/utils/format";
+import {
+  calculateCompatibility,
+  type CompatibilityProfile
+} from "@/lib/compatibility";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Sparkles, Star, Trash2 } from "lucide-react";
 
 const SWIPE_HINT_DISMISSED_KEY = "360-flatmates-swipe-hint-dismissed";
 
-function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
+function toCompatibilityProfile(
+  source: FlatmatesProfile | FlatmatesPeer | null | undefined,
+  id?: number
+): CompatibilityProfile {
+  return {
+    id: id ?? source?.id,
+    sleep_schedule: source?.sleep_schedule,
+    cleanliness: source?.cleanliness,
+    food_habits: source?.food_habits,
+    smoking_drinking: source?.smoking_drinking,
+    guests_policy: source?.guests_policy,
+    work_style: source?.work_style
+  };
+}
+
+function peerToSwipeProfile(
+  peer: FlatmatesPeer,
+  me?: FlatmatesProfile | null
+): SwipeProfile {
+  const compat =
+    me != null
+      ? calculateCompatibility(
+          toCompatibilityProfile(me, me.id),
+          toCompatibilityProfile(peer, peer.id)
+        )
+      : null;
+
   return {
     id: String(peer.id),
     name: peer.full_name,
     age: peer.age,
-    photoUrl: peer.profile_image_url,
+    photoUrl: peer.profile_image_url ?? peer.main_image_url,
     mode: peer.mode,
     verified: false,
     location: formatLocation(peer.locality, peer.city) || undefined,
-    matchScore: peer.match_percentage ?? 0,
+    matchScore: peer.match_percentage ?? compat?.overall_percentage ?? 0,
     topMatches: peer.top_matches ?? [],
     moveInLabel: peer.move_in_timeline
       ? formatMoveInTimeline(peer.move_in_timeline)
@@ -51,7 +82,27 @@ function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
     genderPreference: peer.gender_preference,
     nonNegotiables: peer.non_negotiables,
     hasPets: peer.has_pets,
-    partyHabit: peer.party_habit
+    partyHabit: peer.party_habit,
+    compatibilityDimensions: compat?.dimensions,
+    propertyTitle: peer.property_title,
+    imageUrls: peer.image_urls,
+    monthlyRent: peer.monthly_rent,
+    securityDeposit: peer.security_deposit,
+    maintenance: peer.maintenance ?? peer.maintenance_charges,
+    roomType: peer.room_type,
+    flatConfig: peer.flat_config,
+    floor: peer.floor ?? (peer.floor_number != null ? String(peer.floor_number) : null),
+    societyName: peer.society_name,
+    flatAmenities: peer.flat_amenities,
+    societyAmenities: peer.society_amenities,
+    amenities: peer.amenities,
+    features: peer.features,
+    furnishing: peer.furnishing,
+    availableFrom: peer.available_from,
+    areaSqft: peer.area_sqft,
+    bedrooms: peer.bedrooms,
+    totalFloors: peer.total_floors,
+    videoTourUrl: peer.video_tour_url
   };
 }
 
@@ -62,6 +113,7 @@ function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
 export function SwipePage() {
   const navigate = useNavigate();
   const { data: profiles, isLoading, error, refetch } = useSwipeDeck();
+  const { data: bootstrap } = useBootstrap();
   const swipeAction = useSwipeAction();
   const [matchProfile, setMatchProfile] = useState<SwipeProfile | null>(null);
 
@@ -72,9 +124,11 @@ export function SwipePage() {
   const clearStoreDirection = useStore(swipeStore, (s) => s.clearDirection);
   const setCardQueue = useStore(swipeStore, (s) => s.setCardQueue);
 
+  const me = bootstrap?.profile ?? null;
+
   const swipeProfiles: SwipeProfile[] = useMemo(
-    () => (profiles ?? []).map(peerToSwipeProfile),
-    [profiles]
+    () => (profiles ?? []).map((peer) => peerToSwipeProfile(peer, me)),
+    [profiles, me]
   );
 
   /* ----- Sync profiles into the store's cardQueue for any consumer ----- */

@@ -11,6 +11,7 @@ export type SearchViewMode = "grid" | "list" | "map";
 export const DEFAULT_SEARCH_FILTERS = {
   search_type: "listings",
   radius: 5,
+  property_type: ["flatmate"],
   purpose: "rent",
   sort_by: "newest",
   semantic_search: false,
@@ -43,7 +44,14 @@ function isDefaultFilter(
   key: keyof SearchFilters,
   value: SearchFilters[keyof SearchFilters]
 ): boolean {
-  return DEFAULT_SEARCH_FILTERS[key as keyof typeof DEFAULT_SEARCH_FILTERS] === value;
+  const defaultValue = DEFAULT_SEARCH_FILTERS[key as keyof typeof DEFAULT_SEARCH_FILTERS];
+  if (Array.isArray(defaultValue) || Array.isArray(value)) {
+    return arraysEqual(
+      defaultValue as readonly unknown[] | undefined,
+      value as readonly unknown[] | undefined
+    );
+  }
+  return defaultValue === value;
 }
 
 /**
@@ -146,12 +154,25 @@ export function createSearchStore(initialState: SearchStoreInitialState = {}) {
       }),
       {
         name: SEARCH_STORE_KEY,
+        version: 2,
         storage: createSafeJsonStorage(),
         partialize: (state) => ({
           filters: state.filters,
           recentSearches: state.recentSearches,
           viewMode: state.viewMode
-        })
+        }),
+        migrate: (persistedState, version) => {
+          const state = persistedState as { filters?: SearchFilters } | null;
+          // v1 -> v2: ensure the flatmates default property_type is present
+          // so existing users with a persisted filter set still see flatmate
+          // listings (not buy apartments / all property types).
+          if (version < 2 && state?.filters) {
+            if (!state.filters.property_type || state.filters.property_type.length === 0) {
+              state.filters.property_type = [...DEFAULT_SEARCH_FILTERS.property_type];
+            }
+          }
+          return state ?? {};
+        }
       }
     )
   );

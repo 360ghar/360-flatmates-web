@@ -35,15 +35,16 @@ import { EmptyState } from "../ui/StateViews";
 import { NetworkImage } from "../ui/NetworkImage";
 import { ProgressRing } from "../ui/ProgressRing";
 import { TrustBadge } from "../ui/TrustBadge";
-import { Chip } from "../ui/Chip";
 import { SwipeActionBar } from "../molecules/SwipeActionBar";
 import { cn, focusRing } from "../ui/component-utils";
 import {
   formatBudgetRange,
   formatLifestyleLabel,
-  formatMoveInTimeline
+  formatMoveInTimeline,
+  humanizeSnakeCase
 } from "@/lib/utils/format";
 import { NON_NEGOTIABLE_OPTIONS } from "@/lib/data";
+import type { CompatibilityDimensionResult } from "@/lib/compatibility/types";
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -77,6 +78,28 @@ export interface SwipeProfile {
   nonNegotiables?: string[];
   hasPets?: boolean;
   partyHabit?: string;
+  /** Full 6-dimension breakdown (client-computed or from API). */
+  compatibilityDimensions?: CompatibilityDimensionResult[];
+  /* Listing context when the peer has an active flatmate/PG listing */
+  propertyTitle?: string;
+  imageUrls?: string[];
+  monthlyRent?: number | null;
+  securityDeposit?: number | null;
+  maintenance?: number | null;
+  roomType?: string | null;
+  flatConfig?: string | null;
+  floor?: string | null;
+  societyName?: string | null;
+  flatAmenities?: string[];
+  societyAmenities?: string[];
+  amenities?: string[];
+  features?: string[];
+  furnishing?: string[];
+  availableFrom?: string | null;
+  areaSqft?: number | null;
+  bedrooms?: number | null;
+  totalFloors?: number | null;
+  videoTourUrl?: string | null;
   details?: ReactNode;
 }
 
@@ -128,14 +151,61 @@ const EXPANDED_SWIPE_VELOCITY_X = 600;
 /* -------------------------------------------------------------------------- */
 
 const LIFESTYLE_ITEMS = [
-  { key: "sleepSchedule" as const, icon: Moon, label: "Sleep Schedule" },
-  { key: "cleanliness" as const, icon: Sparkles, label: "Cleanliness" },
-  { key: "foodHabits" as const, icon: Utensils, label: "Food Habits" },
-  { key: "smokingDrinking" as const, icon: Wind, label: "Smoking / Drinking" },
-  { key: "guestsPolicy" as const, icon: Users, label: "Guests Policy" },
-  { key: "workStyle" as const, icon: Home, label: "Work Style" },
-  { key: "partyHabit" as const, icon: PartyPopper, label: "Party Habit" }
+  { key: "sleepSchedule" as const, dimKey: "sleep_schedule", icon: Moon, label: "Sleep Schedule" },
+  { key: "cleanliness" as const, dimKey: "cleanliness", icon: Sparkles, label: "Cleanliness" },
+  { key: "foodHabits" as const, dimKey: "food_habits", icon: Utensils, label: "Food Habits" },
+  { key: "smokingDrinking" as const, dimKey: "smoking_drinking", icon: Wind, label: "Smoking / Drinking" },
+  { key: "guestsPolicy" as const, dimKey: "guests_policy", icon: Users, label: "Guests Policy" },
+  { key: "workStyle" as const, dimKey: "work_style", icon: Home, label: "Work Style" },
+  { key: "partyHabit" as const, dimKey: "party_habit", icon: PartyPopper, label: "Party Habit" }
 ] as const;
+
+const DIMENSION_ICONS: Record<string, typeof Moon> = {
+  sleep_schedule: Moon,
+  cleanliness: Sparkles,
+  food_habits: Utensils,
+  smoking_drinking: Wind,
+  guests_policy: Users,
+  work_style: Home
+};
+
+function dimensionBarColor(match: boolean, score: number): string {
+  if (match || score >= 70) return "bg-success";
+  if (score >= 40) return "bg-warning";
+  return "bg-error";
+}
+
+function dimensionScoreText(match: boolean, score: number): string {
+  if (match || score >= 70) return "text-success";
+  if (score >= 40) return "text-warning";
+  return "text-error";
+}
+
+function matchToneLabel(score: number): string {
+  if (score >= 70) return "Great match";
+  if (score >= 40) return "Workable";
+  return "Preference gaps";
+}
+
+function dimensionBuckets(dims: CompatibilityDimensionResult[]) {
+  let aligned = 0;
+  let workable = 0;
+  let gaps = 0;
+  for (const d of dims) {
+    if (d.score >= 70) aligned++;
+    else if (d.score >= 40) workable++;
+    else gaps++;
+  }
+  return { aligned, workable, gaps };
+}
+
+function profilePhotos(profile: SwipeProfile): string[] {
+  const urls = [
+    ...(profile.imageUrls ?? []),
+    ...(profile.photoUrl ? [profile.photoUrl] : [])
+  ].filter((u): u is string => Boolean(u && u.trim()));
+  return Array.from(new Set(urls));
+}
 
 /* -------------------------------------------------------------------------- */
 /*  Animation variants                                                        */
@@ -461,6 +531,385 @@ export function SwipeDeck({
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Expanded profile body (shared content hierarchy)                          */
+/* -------------------------------------------------------------------------- */
+
+function SwipeProfileExpandedBody({ profile }: { profile: SwipeProfile }) {
+  const listingAmenities = [
+    ...(profile.flatAmenities ?? []),
+    ...(profile.societyAmenities ?? []),
+    ...(profile.amenities ?? []),
+    ...(profile.features ?? []),
+    ...(profile.furnishing ?? [])
+  ].filter(Boolean);
+  const uniqueAmenities = Array.from(new Set(listingAmenities));
+  const hasListing =
+    Boolean(profile.propertyTitle) ||
+    profile.monthlyRent != null ||
+    (profile.imageUrls && profile.imageUrls.length > 0) ||
+    Boolean(profile.roomType) ||
+    Boolean(profile.flatConfig) ||
+    Boolean(profile.societyName) ||
+    Boolean(profile.availableFrom);
+  const dims = profile.compatibilityDimensions ?? [];
+  const buckets = dimensionBuckets(dims);
+  const tone = matchToneLabel(profile.matchScore);
+  const lifestyleCells = LIFESTYLE_ITEMS.filter((item) => profile[item.key]);
+
+  const floorLabel =
+    profile.floor != null
+      ? profile.totalFloors != null
+        ? `Floor ${profile.floor} of ${profile.totalFloors}`
+        : `Floor ${profile.floor}`
+      : null;
+
+  return (
+    <>
+      {/* Quick facts strip */}
+      <div className="flex flex-wrap gap-2 border-b border-line/45 pb-5">
+        {profile.gender ? (
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-paper-2 px-3 py-2 text-label-md font-semibold text-ink">
+            <UserCircle aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
+            {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
+          </span>
+        ) : null}
+        {profile.profession ? (
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-paper-2 px-3 py-2 text-label-md font-semibold text-ink max-w-[180px] truncate">
+            <Briefcase aria-hidden="true" className="h-3.5 w-3.5 text-ink-3 shrink-0" />
+            {profile.profession}
+          </span>
+        ) : null}
+        {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-accent-soft px-3 py-2 text-label-md font-semibold text-accent">
+            {formatBudgetRange(profile.budgetMin, profile.budgetMax)}
+          </span>
+        ) : null}
+        {profile.moveInTimeline ? (
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-teal-soft px-3 py-2 text-label-md font-semibold text-teal-mid">
+            <Clock aria-hidden="true" className="h-3.5 w-3.5" />
+            {formatMoveInTimeline(profile.moveInTimeline)}
+          </span>
+        ) : null}
+        {profile.availableFrom ? (
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-paper-2 px-3 py-2 text-label-md font-semibold text-ink">
+            <Clock aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
+            From {profile.availableFrom.slice(0, 10)}
+          </span>
+        ) : null}
+      </div>
+
+      {/* About */}
+      {profile.bio ? (
+        <section>
+          <h3 className="text-h4 text-ink mb-2">About</h3>
+          <p className="text-body-md text-ink-2 leading-relaxed max-w-[65ch]">
+            {profile.bio}
+          </p>
+        </section>
+      ) : null}
+
+      {/* Lifestyle grid */}
+      {lifestyleCells.length > 0 ? (
+        <section>
+          <h3 className="text-h4 text-ink mb-2">Lifestyle</h3>
+          <div className="grid grid-cols-2 gap-2 rounded-xl border border-line/45 bg-paper-2 p-3">
+            {lifestyleCells.map((item) => {
+              const value = profile[item.key]!;
+              const Icon = item.icon;
+              const raw = formatLifestyleLabel(item.dimKey, value);
+              const label = raw.charAt(0).toUpperCase() + raw.slice(1);
+              return (
+                <div key={item.key} className="flex items-center gap-2 min-w-0">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-caption text-ink-3 truncate">{item.label}</p>
+                    <p className="text-label-md font-semibold text-ink truncate">
+                      {label}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Preferences */}
+      {profile.genderPreference || profile.hasPets !== undefined ? (
+        <section>
+          <h3 className="text-h4 text-ink mb-2">Preferences</h3>
+          <div className="rounded-xl border border-line/45 bg-paper-2 p-3 space-y-2">
+            {profile.genderPreference ? (
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-caption text-ink-3">
+                  <UserCircle aria-hidden="true" className="h-4 w-4" />
+                  Gender preference
+                </span>
+                <span className="text-label-md font-semibold text-ink">
+                  {profile.genderPreference === "any"
+                    ? "Any gender"
+                    : profile.genderPreference === "male"
+                      ? "Male only"
+                      : "Female only"}
+                </span>
+              </div>
+            ) : null}
+            {profile.hasPets !== undefined ? (
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-caption text-ink-3">
+                  <PawPrint aria-hidden="true" className="h-4 w-4" />
+                  Pets
+                </span>
+                <span className="text-label-md font-semibold text-ink">
+                  {profile.hasPets ? "Has pets" : "No pets"}
+                </span>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Deal-breakers */}
+      {profile.nonNegotiables && profile.nonNegotiables.length > 0 ? (
+        <section>
+          <h3 className="text-h4 text-ink mb-1">Deal-breakers</h3>
+          <p className="text-caption text-ink-3 mb-2">Non-negotiables they set</p>
+          <div className="flex flex-wrap gap-2 rounded-xl border border-warning/25 bg-warning-soft p-3">
+            {profile.nonNegotiables.map((nn) => {
+              const label =
+                NON_NEGOTIABLE_OPTIONS.find((o) => o.value === nn)?.label ??
+                humanizeSnakeCase(nn);
+              return (
+                <span
+                  key={nn}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-warning/25 bg-surface/70 px-2.5 py-1 text-caption font-semibold text-warning"
+                >
+                  <ShieldAlert aria-hidden="true" className="h-3.5 w-3.5" />
+                  {label}
+                </span>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Compatibility summary + dimensions */}
+      {dims.length > 0 ? (
+        <section>
+          <h3 className="text-h4 text-ink mb-3">Compatibility</h3>
+          <div className="rounded-xl border border-line/45 bg-paper-2 p-3 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-surface p-1 shadow-xs">
+                <ProgressRing
+                  size="lg"
+                  value={profile.matchScore}
+                  label="Compatibility score"
+                />
+              </div>
+              <div>
+                <p
+                  className={cn(
+                    "text-body-md font-bold",
+                    dimensionScoreText(profile.matchScore >= 50, profile.matchScore)
+                  )}
+                >
+                  {tone}
+                </p>
+                <p className="text-caption text-ink-3">
+                  {[
+                    buckets.aligned > 0 ? `${buckets.aligned} aligned` : null,
+                    buckets.workable > 0 ? `${buckets.workable} workable` : null,
+                    buckets.gaps > 0 ? `${buckets.gaps} gaps` : null
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+            </div>
+            <div className="h-px bg-line/45" />
+            <div className="flex flex-col gap-3.5">
+              {dims.map((dim) => {
+                const Icon = DIMENSION_ICONS[dim.name] ?? Sparkles;
+                const peerLabel = dim.peer_value
+                  ? formatLifestyleLabel(dim.name, dim.peer_value)
+                  : "—";
+                const userLabel = dim.user_value
+                  ? formatLifestyleLabel(dim.name, dim.user_value)
+                  : "—";
+                const glyph =
+                  dim.score >= 70 ? "✓" : dim.score >= 40 ? "~" : "!";
+                return (
+                  <div key={dim.name} className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Icon
+                          aria-hidden="true"
+                          className="h-4 w-4 shrink-0 text-ink-3"
+                        />
+                        <span className="text-label-md font-semibold text-ink truncate">
+                          {dim.label}
+                        </span>
+                      </div>
+                      <span
+                        className={cn(
+                          "text-label-md tabular-nums font-bold shrink-0",
+                          dimensionScoreText(dim.match, dim.score)
+                        )}
+                      >
+                        <span aria-hidden="true" className="mr-1">
+                          {glyph}
+                        </span>
+                        {Math.round(dim.score)}%
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pl-6">
+                      <span className="rounded-full bg-accent-soft px-2 py-0.5 text-caption font-semibold text-accent">
+                        {peerLabel}
+                      </span>
+                      <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-caption text-ink-2">
+                        You: {userLabel}
+                      </span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-surface ml-6">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all duration-300",
+                          dimensionBarColor(dim.match, dim.score)
+                        )}
+                        style={{
+                          width: `${Math.min(100, Math.max(0, dim.score))}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : profile.topMatches && profile.topMatches.length > 0 ? (
+        <section>
+          <h3 className="text-h4 text-ink mb-2">Top matches</h3>
+          <div className="flex flex-wrap gap-2">
+            {profile.topMatches.map((match) => (
+              <span
+                key={match}
+                className="rounded-full bg-success-soft px-2.5 py-1 text-caption font-semibold text-success"
+              >
+                {match}
+              </span>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* The Place */}
+      {hasListing ? (
+        <section>
+          <h3 className="text-h4 text-ink mb-2">The Place</h3>
+          {profile.propertyTitle ? (
+            <p className="text-body-md font-semibold text-ink mb-2">
+              {profile.propertyTitle}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {profile.flatConfig ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+                <Home aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
+                {profile.flatConfig}
+              </span>
+            ) : null}
+            {profile.roomType ? (
+              <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+                {humanizeSnakeCase(profile.roomType)}
+              </span>
+            ) : null}
+            {floorLabel ? (
+              <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+                {floorLabel}
+              </span>
+            ) : null}
+            {profile.bedrooms != null ? (
+              <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+                {profile.bedrooms} BR
+              </span>
+            ) : null}
+            {profile.areaSqft != null ? (
+              <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+                {Math.round(profile.areaSqft)} sqft
+              </span>
+            ) : null}
+            {profile.societyName || profile.location ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+                <MapPin aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
+                {profile.societyName ?? profile.location}
+              </span>
+            ) : null}
+            {profile.availableFrom ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+                <Clock aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
+                Available {profile.availableFrom.slice(0, 10)}
+              </span>
+            ) : null}
+          </div>
+          {profile.monthlyRent != null ||
+          profile.securityDeposit != null ||
+          profile.maintenance != null ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {profile.monthlyRent != null ? (
+                <div className="rounded-xl bg-accent-soft px-3 py-2 text-label-md font-semibold text-accent">
+                  ₹{Math.round(profile.monthlyRent).toLocaleString("en-IN")}/mo
+                </div>
+              ) : null}
+              {profile.securityDeposit != null ? (
+                <div className="rounded-xl bg-paper-2 px-3 py-2 text-label-md text-ink-2">
+                  Deposit ₹
+                  {Math.round(profile.securityDeposit).toLocaleString("en-IN")}
+                </div>
+              ) : null}
+              {profile.maintenance != null ? (
+                <div className="rounded-xl bg-paper-2 px-3 py-2 text-label-md text-ink-2">
+                  Maint. ₹
+                  {Math.round(profile.maintenance).toLocaleString("en-IN")}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+          {uniqueAmenities.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {uniqueAmenities.slice(0, 12).map((a) => (
+                <span
+                  key={a}
+                  className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption text-ink-2"
+                >
+                  {humanizeSnakeCase(a)}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {profile.videoTourUrl ? (
+            <a
+              href={profile.videoTourUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex text-label-md font-semibold text-accent hover:underline"
+            >
+              Watch video tour
+            </a>
+          ) : null}
+        </section>
+      ) : null}
+
+      {profile.moveInLabel && !profile.moveInTimeline ? (
+        <p className="text-body-md text-ink-3">{profile.moveInLabel}</p>
+      ) : null}
+    </>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  SwipeableCard — top card with drag / gesture support                      */
 /* -------------------------------------------------------------------------- */
 
@@ -534,6 +983,12 @@ function SwipeableCard({
   );
 
   /* ----- Check if profile has any expanded content ----- */
+  const hasListing =
+    Boolean(profile.propertyTitle) ||
+    profile.monthlyRent != null ||
+    (profile.imageUrls && profile.imageUrls.length > 0) ||
+    Boolean(profile.roomType) ||
+    Boolean(profile.flatConfig);
   const hasExpandedContent = !!(
     profile.bio ||
     profile.profession ||
@@ -546,9 +1001,12 @@ function SwipeableCard({
     profile.smokingDrinking ||
     profile.guestsPolicy ||
     profile.workStyle ||
+    profile.partyHabit ||
     profile.genderPreference ||
     (profile.nonNegotiables && profile.nonNegotiables.length > 0) ||
-    profile.hasPets !== undefined
+    profile.hasPets !== undefined ||
+    (profile.compatibilityDimensions && profile.compatibilityDimensions.length > 0) ||
+    hasListing
   );
 
   return (
@@ -624,17 +1082,12 @@ function SwipeableCard({
           <div className="flex h-full flex-col md:flex-row overflow-y-auto md:overflow-hidden" aria-expanded="true">
             {/* Left/Top: Photo */}
             <div className="relative h-[220px] shrink-0 md:h-full md:w-[40%] lg:w-[45%]">
-              <NetworkImage
-                alt={profile.name}
-                src={profile.photoUrl}
-                width={800}
-                wrapperClassName="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60 md:bg-gradient-to-t" />
-              <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+              <ProfilePhotoCarousel profile={profile} />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60 md:bg-gradient-to-t" />
+              <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2">
                 {profile.mode ? <Badge mode={profile.mode} variant="mode" /> : null}
               </div>
-              <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
+              <div className="pointer-events-none absolute right-4 top-4 flex flex-col items-end gap-2">
                 <div className="rounded-full bg-surface/90 backdrop-blur-xs p-1 shadow-xs">
                   <ProgressRing size="lg" value={profile.matchScore} label="Compatibility score" />
                 </div>
@@ -676,159 +1129,7 @@ function SwipeableCard({
                 aria-label="Profile details"
                 className="swipe-card-scroll flex-1 px-5 py-4 space-y-6 md:pb-6 scrollbar-thin"
               >
-                {/* Basic Specifications Grid */}
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 border-b border-line/45 pb-5">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-caption text-ink-3">Gender</span>
-                    <span className="text-body-md font-semibold text-ink">
-                      {profile.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : "Not specified"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-caption text-ink-3">Profession</span>
-                    <span className="text-body-md font-semibold text-ink line-clamp-1">
-                      {profile.profession || "Not specified"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-caption text-ink-3">Budget</span>
-                    <span className="text-body-md font-semibold text-ink">
-                      {profile.budgetMin !== undefined || profile.budgetMax !== undefined
-                        ? formatBudgetRange(profile.budgetMin, profile.budgetMax)
-                        : "Any budget"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-caption text-ink-3">Move-In Timeline</span>
-                    <span className="text-body-md font-semibold text-ink">
-                      {profile.moveInTimeline ? formatMoveInTimeline(profile.moveInTimeline) : "Flexible"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* About section */}
-                {profile.bio || profile.profession ? (
-                  <section>
-                    <h3 className="text-h4 text-ink mb-2">About</h3>
-                    {profile.profession ? (
-                      <p className="flex items-center gap-2 text-body-md text-ink-2 mb-2">
-                        <Briefcase aria-hidden="true" className="h-4 w-4 text-ink-3" />
-                        {profile.profession}
-                      </p>
-                    ) : null}
-                    {profile.bio ? (
-                      <p className="text-body-md text-ink-2 leading-relaxed max-w-[65ch]">
-                        {profile.bio}
-                      </p>
-                    ) : null}
-                  </section>
-                ) : null}
-
-                {/* Budget & Move-in section */}
-                {profile.budgetMin !== undefined ||
-                profile.budgetMax !== undefined ||
-                profile.moveInTimeline ? (
-                  <section>
-                    <h3 className="text-h4 text-ink mb-2">Budget & Move-in</h3>
-                    <div className="flex flex-wrap gap-3">
-                      {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
-                        <div className="flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2">
-                          <span className="text-label-md text-accent font-semibold">
-                            {formatBudgetRange(profile.budgetMin, profile.budgetMax)}
-                          </span>
-                        </div>
-                      ) : null}
-                      {profile.moveInTimeline ? (
-                        <div className="flex items-center gap-2 rounded-xl bg-teal-soft px-3 py-2">
-                          <Clock aria-hidden="true" className="h-4 w-4 text-teal-mid" />
-                          <span className="text-label-md text-teal-mid font-semibold">
-                            {formatMoveInTimeline(profile.moveInTimeline)}
-                          </span>
-                        </div>
-                      ) : null}
-                    </div>
-                  </section>
-                ) : null}
-
-                {/* Lifestyle section */}
-                {LIFESTYLE_ITEMS.some((item) => profile[item.key]) ? (
-                  <section>
-                    <h3 className="text-h4 text-ink mb-2">Lifestyle</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {LIFESTYLE_ITEMS.map((item) => {
-                        const value = profile[item.key];
-                        if (!value) return null;
-                        const Icon = item.icon;
-                        const rawLabel = formatLifestyleLabel(item.key, value);
-                        const label = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1);
-                        return (
-                          <Chip key={item.key} variant="info" className="bg-paper-2">
-                            <Icon
-                              aria-hidden="true"
-                              className="h-3.5 w-3.5 text-ink-3"
-                            />
-                            {label}
-                          </Chip>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ) : null}
-
-                {/* Preferences section */}
-                {profile.genderPreference ||
-                (profile.nonNegotiables && profile.nonNegotiables.length > 0) ||
-                profile.hasPets !== undefined ? (
-                  <section>
-                    <h3 className="text-h4 text-ink mb-2">Preferences</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {profile.genderPreference ? (
-                        <Chip variant="info" className="bg-paper-2">
-                          <UserCircle
-                            aria-hidden="true"
-                            className="h-3.5 w-3.5 text-ink-3"
-                          />
-                          {profile.genderPreference === "any"
-                            ? "Any gender"
-                            : profile.genderPreference === "male"
-                              ? "Male only"
-                              : "Female only"}
-                        </Chip>
-                      ) : null}
-                      {profile.hasPets !== undefined ? (
-                        <Chip variant="info" className="bg-paper-2">
-                          <PawPrint
-                            aria-hidden="true"
-                            className="h-3.5 w-3.5 text-ink-3"
-                          />
-                          {profile.hasPets ? "Has pets" : "No pets"}
-                        </Chip>
-                      ) : null}
-                      {profile.nonNegotiables?.map((nn) => {
-                        const label =
-                          NON_NEGOTIABLE_OPTIONS.find((o) => o.value === nn)?.label ?? nn;
-                        return (
-                          <Chip key={nn} variant="info" className="bg-warning-soft text-warning">
-                            <ShieldAlert
-                              aria-hidden="true"
-                              className="h-3.5 w-3.5 text-warning"
-                            />
-                            {label}
-                          </Chip>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ) : null}
-
-                {/* Move-in label */}
-                {profile.moveInLabel && !profile.moveInTimeline ? (
-                  <p className="text-body-md text-ink-3">
-                    {profile.moveInLabel}
-                  </p>
-                ) : null}
-
-                {/* Spacer */}
+                <SwipeProfileExpandedBody profile={profile} />
                 <div className="h-4" />
               </div>
             </div>
@@ -845,7 +1146,7 @@ function SwipeableCard({
             <div className="relative h-full">
               <NetworkImage
                 alt={profile.name}
-                src={profile.photoUrl}
+                src={profilePhotos(profile)[0] ?? profile.photoUrl}
                 width={800}
                 wrapperClassName="h-full w-full"
               />
@@ -871,36 +1172,7 @@ function SwipeableCard({
                   </p>
                 ) : null}
                 
-                {/* Key metadata badges for rich quick view */}
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  {profile.gender ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
-                      {profile.gender === "male" ? "♂️ Male" : profile.gender === "female" ? "♀️ Female" : `👤 ${profile.gender}`}
-                    </span>
-                  ) : null}
-                  {profile.profession ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white line-clamp-1 max-w-[150px]">
-                      💼 {profile.profession}
-                    </span>
-                  ) : null}
-                  {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-accent/70 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
-                      💰 {formatBudgetRange(profile.budgetMin, profile.budgetMax).replace("Any budget", "Flex")}
-                    </span>
-                  ) : null}
-                </div>
-                {profile.topMatches && profile.topMatches.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {profile.topMatches.slice(0, 3).map((match) => (
-                      <Chip className="bg-paper/80" key={match} variant="info">
-                        {match}
-                      </Chip>
-                    ))}
-                  </div>
-                ) : null}
-                {profile.moveInLabel ? (
-                  <p className="mt-3 text-caption text-white/80">{profile.moveInLabel}</p>
-                ) : null}
+                <CollapsedProfileBadges profile={profile} />
               </div>
 
               {/* "See more" affordance */}
@@ -984,7 +1256,7 @@ function SwipeCard({
       <div className="relative h-full">
         <NetworkImage
           alt={profile.name}
-          src={profile.photoUrl}
+          src={profilePhotos(profile)[0] ?? profile.photoUrl}
           width={800}
           wrapperClassName="h-full w-full"
         />
@@ -1010,38 +1282,147 @@ function SwipeCard({
             </p>
           ) : null}
           
-          {/* Key metadata badges for rich quick view */}
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {profile.gender ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
-                {profile.gender === "male" ? "♂️ Male" : profile.gender === "female" ? "♀️ Female" : `👤 ${profile.gender}`}
-              </span>
-            ) : null}
-            {profile.profession ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white line-clamp-1 max-w-[150px]">
-                💼 {profile.profession}
-              </span>
-            ) : null}
-            {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-accent/70 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
-                💰 {formatBudgetRange(profile.budgetMin, profile.budgetMax).replace("Any budget", "Flex")}
-              </span>
-            ) : null}
-          </div>
-          {profile.topMatches && profile.topMatches.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {profile.topMatches.slice(0, 3).map((match) => (
-                <Chip className="bg-paper/80" key={match} variant="info">
-                  {match}
-                </Chip>
-              ))}
-            </div>
-          ) : null}
-          {profile.moveInLabel ? (
-            <p className="mt-3 text-caption text-white/80">{profile.moveInLabel}</p>
-          ) : null}
+          <CollapsedProfileBadges profile={profile} />
         </div>
       </div>
     </button>
+  );
+}
+
+function CollapsedProfileBadges({ profile }: { profile: SwipeProfile }) {
+  const lifestylePreview = LIFESTYLE_ITEMS.filter((item) => profile[item.key])
+    .slice(0, 2)
+    .map((item) => {
+      const value = profile[item.key]!;
+      const raw = formatLifestyleLabel(item.dimKey, value);
+      return raw.charAt(0).toUpperCase() + raw.slice(1);
+    });
+  const dealCount = profile.nonNegotiables?.length ?? 0;
+  const tone =
+    profile.matchScore > 0 ? matchToneLabel(profile.matchScore) : null;
+
+  return (
+    <>
+      {tone ? (
+        <p className="mt-1 text-caption font-semibold text-white/90">{tone}</p>
+      ) : null}
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
+        {profile.gender ? (
+          <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+            {profile.gender === "male"
+              ? "Male"
+              : profile.gender === "female"
+                ? "Female"
+                : profile.gender}
+          </span>
+        ) : null}
+        {profile.profession ? (
+          <span className="inline-flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white line-clamp-1 max-w-[150px]">
+            {profile.profession}
+          </span>
+        ) : null}
+        {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
+          <span className="inline-flex items-center gap-1 rounded-md bg-accent/70 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+            {formatBudgetRange(profile.budgetMin, profile.budgetMax).replace(
+              "Any budget",
+              "Flex"
+            )}
+          </span>
+        ) : null}
+        {dealCount > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded-md bg-warning/80 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+            <ShieldAlert aria-hidden="true" className="h-3 w-3" />
+            {dealCount} deal-breaker{dealCount === 1 ? "" : "s"}
+          </span>
+        ) : null}
+      </div>
+      {profile.topMatches && profile.topMatches.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {profile.topMatches.slice(0, 3).map((match) => (
+            <span
+              key={match}
+              className="rounded-full bg-paper/80 px-2.5 py-1 text-caption font-semibold text-ink"
+            >
+              {match}
+            </span>
+          ))}
+        </div>
+      ) : lifestylePreview.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {lifestylePreview.map((label) => (
+            <span
+              key={label}
+              className="rounded-full bg-paper/80 px-2.5 py-1 text-caption font-semibold text-ink"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {profile.moveInLabel ? (
+        <p className="mt-3 text-caption text-white/80">{profile.moveInLabel}</p>
+      ) : null}
+    </>
+  );
+}
+
+/** Simple photo carousel for swipe hero (non-interactive dots + tap zones). */
+function ProfilePhotoCarousel({
+  profile,
+  className
+}: {
+  profile: SwipeProfile;
+  className?: string;
+}) {
+  const photos = profilePhotos(profile);
+  const [index, setIndex] = useState(0);
+  const safeIndex = photos.length > 0 ? Math.min(index, photos.length - 1) : 0;
+  const src = photos[safeIndex] ?? profile.photoUrl;
+
+  return (
+    <div className={cn("relative h-full w-full", className)}>
+      <NetworkImage
+        alt={profile.name}
+        src={src}
+        width={800}
+        wrapperClassName="h-full w-full object-cover"
+      />
+      {photos.length > 1 ? (
+        <>
+          <button
+            type="button"
+            aria-label="Previous photo"
+            className="absolute inset-y-0 left-0 w-1/3 z-[1]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIndex((i) => (i - 1 + photos.length) % photos.length);
+            }}
+          />
+          <button
+            type="button"
+            aria-label="Next photo"
+            className="absolute inset-y-0 right-0 w-1/3 z-[1]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIndex((i) => (i + 1) % photos.length);
+            }}
+          />
+          <div className="absolute bottom-20 left-0 right-0 z-[1] flex justify-center gap-1.5 pointer-events-none">
+            {photos.map((_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  i === safeIndex ? "bg-white" : "bg-white/40"
+                )}
+              />
+            ))}
+          </div>
+          <span className="absolute top-3 left-1/2 -translate-x-1/2 z-[1] rounded-full bg-black/35 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-xs">
+            {safeIndex + 1}/{photos.length}
+          </span>
+        </>
+      ) : null}
+    </div>
   );
 }

@@ -71,7 +71,10 @@ export function DiscoverPage() {
   const filters: SearchFilters = useMemo(
     () => {
       const base: SearchFilters = {
+        property_type: ["flatmate"],
+        purpose: "rent",
         city: cities?.find((c) => c.id === params.city)?.name,
+        sort_by: "newest",
         limit: 20,
       };
       const quickFilter = params.filter ? QUICK_FILTER_MAP[params.filter] : undefined;

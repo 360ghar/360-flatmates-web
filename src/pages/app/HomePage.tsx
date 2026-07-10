@@ -57,8 +57,8 @@ export function HomePage() {
   // filter, so we let them run with an empty filter set and rely on the
   // empty-state messaging when there are no results.
   const newListingsFilters = profile?.city
-    ? { city: profile.city, sort_by: "newest" as const, limit: 8 }
-    : { sort_by: "newest" as const, limit: 8 };
+    ? { property_type: ["flatmate" as const], purpose: "rent" as const, city: profile.city, sort_by: "newest" as const, limit: 8 }
+    : { property_type: ["flatmate" as const], purpose: "rent" as const, sort_by: "newest" as const, limit: 8 };
   const { data: newListingsData, isLoading: propertiesLoading, error: propertiesError } = useWebSearch(
     newListingsFilters
   );
@@ -68,7 +68,7 @@ export function HomePage() {
   const { data: swipeDeckProfiles, isLoading: swipeLoading, error: swipeError } = useSwipeDeck(swipeFilters);
 
   const listings = (newListingsData?.results ?? []).filter(
-    (r): r is Property => "monthly_rent" in r
+    (r): r is Property => "monthly_rent" in r && r.owner_id !== profile?.id
   );
   const nearbyPeers = recommendedPeers ?? [];
   const recommended = swipeDeckProfiles ?? [];
