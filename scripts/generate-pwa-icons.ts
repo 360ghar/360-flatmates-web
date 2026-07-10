@@ -23,7 +23,7 @@ async function generateIcons() {
     .toFile(resolve(root, "public", "favicon-512.webp"));
   console.log("Generated favicon-512.webp");
 
-  // 3. Maskable 192x192 (scale down logo and place on terracotta #C96442 background)
+  // 3. Maskable 192x192 (scale down logo and place on Rausch #ff385c background)
   const pad192 = Math.round(192 * 0.15); // 15% padding
   const size192 = 192 - pad192 * 2;
   const logo192 = await sharp(svgBuffer)
@@ -35,7 +35,7 @@ async function generateIcons() {
       width: 192,
       height: 192,
       channels: 4,
-      background: "#C96442"
+      background: "#ff385c"
     }
   })
     .composite([{ input: logo192, gravity: "center" }])
@@ -55,7 +55,7 @@ async function generateIcons() {
       width: 512,
       height: 512,
       channels: 4,
-      background: "#C96442"
+      background: "#ff385c"
     }
   })
     .composite([{ input: logo512, gravity: "center" }])

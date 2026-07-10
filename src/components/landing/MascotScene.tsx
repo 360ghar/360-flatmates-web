@@ -4,7 +4,13 @@ const HERO_ASSET = "/brand/flatmate-hero-companion.webp";
 
 export function MascotScene() {
   return (
-    <div className="relative min-h-[420px] overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender shadow-hard">
+    <div
+      className={
+        "relative min-h-[280px] h-[min(420px,calc(100dvh-16rem))] overflow-hidden " +
+        "rounded-[var(--radius-promo)] border border-line-low bg-lavender shadow-sm " +
+        "lg:h-[min(520px,calc(100dvh-12rem))] lg:min-h-[360px]"
+      }
+    >
       <div className="absolute inset-0 map-grid-bg opacity-35" aria-hidden="true" />
       <div className="absolute left-6 top-6 rounded-2xl border border-line bg-surface px-4 py-3 shadow-sm">
         <p className="text-label-md text-ink-3">Vibe match</p>
@@ -20,7 +26,7 @@ export function MascotScene() {
       <img
         src={HERO_ASSET}
         alt="Two flatmates exchanging keys beside moving boxes"
-        className="absolute bottom-0 left-1/2 h-[86%] max-w-none -translate-x-1/2 object-contain sm:h-[92%]"
+        className="absolute bottom-0 left-1/2 h-[80%] max-w-none -translate-x-1/2 object-contain sm:h-[86%] lg:h-[90%]"
         width={1568}
         height={1003}
         loading="eager"

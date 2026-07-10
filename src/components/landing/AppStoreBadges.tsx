@@ -74,7 +74,7 @@ export function AppStoreBadges({ variant = "light" }: AppStoreBadgesProps) {
   const isDark = useIsDark();
 
   const base =
-    "inline-flex items-center gap-2.5 rounded-[10px] px-4 py-2.5 transition-all duration-200 hover:-translate-y-px active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2";
+    "inline-flex items-center gap-2.5 rounded-[8px] px-4 py-2.5 transition-all duration-200 hover:-translate-y-px active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2";
 
   // "dark" variant: always on a dark section background (e.g. BottomCTA) — white glass pill.
   // Does not need to adapt to app theme; it lives on a permanently dark surface.
@@ -89,15 +89,15 @@ export function AppStoreBadges({ variant = "light" }: AppStoreBadgesProps) {
   // result is immune to CSS-cascade ordering (Tailwind v4 dark: uses OS media
   // query, not [data-theme="dark"], so class-based dark: utilities don't fire
   // when OS ≠ app theme).
-  //   Light mode → dark charcoal pill (#1f1a14 bg, #ffffff text)
-  //   Dark mode  → white pill         (#ffffff bg, #1f1a14 text)
+  //   Light mode → dark charcoal pill (#222222 bg, #ffffff text)
+  //   Dark mode  → white pill         (#ffffff bg, #222222 text)
   const lightVariantProps = isDark
     ? {
         // Dark mode: white pill → use dark outline so it's visible against white bg
-        className: base + " focus-visible:outline-[#1f1a14]",
+        className: base + " focus-visible:outline-[#222222]",
         style: {
           backgroundColor: "#ffffff",
-          color: "#1f1a14",
+          color: "#222222",
           border: "1px solid rgba(0,0,0,0.10)",
         } satisfies React.CSSProperties,
       }
@@ -105,9 +105,9 @@ export function AppStoreBadges({ variant = "light" }: AppStoreBadgesProps) {
         // Light mode: dark pill → use white outline so it's visible against dark bg
         className: base + " focus-visible:outline-white",
         style: {
-          backgroundColor: "#1f1a14",
+          backgroundColor: "#222222",
           color: "#ffffff",
-          border: "1px solid rgba(31,26,20,0.10)",
+          border: "1px solid rgba(34,34,34,0.10)",
         } satisfies React.CSSProperties,
       };
 

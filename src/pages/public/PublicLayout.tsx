@@ -58,7 +58,7 @@ export function PublicLayout() {
       <OfflineBanner visible={offline} />
       <header
         className={cn(
-          "sticky z-[var(--z-sticky)] border-b border-line-low bg-surface/88 pt-[env(safe-area-inset-top)] backdrop-blur-xl",
+          "sticky z-[var(--z-sticky)] border-b border-line-low bg-surface/92 pt-[env(safe-area-inset-top)] backdrop-blur-xl",
           offline ? "top-10" : "top-0",
         )}
       >
@@ -66,28 +66,28 @@ export function PublicLayout() {
           <Link to="/" aria-label="360 Flatmates home" className="shrink-0">
             <Logo compact />
           </Link>
-          <nav className="hidden items-center gap-8 md:flex" aria-label="Primary navigation">
+          <nav className="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className="text-label-lg text-ink-3 hover:text-accent transition-colors duration-300"
+                className="text-body-md font-semibold text-ink-2 hover:text-ink transition-colors duration-200"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-6">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
             <ThemeToggle size="sm" className="hidden sm:block" />
             <Link
               to="/login"
-              className="hidden text-label-lg text-ink-2 hover:text-accent transition-colors duration-300 sm:block"
+              className="hidden text-body-md font-semibold text-ink-2 hover:text-ink transition-colors duration-200 sm:block"
             >
               Sign in
             </Link>
             <Link
               to="/discover"
-              className={buttonClasses("primary", "compact") + " hidden h-10 px-5 shadow-cta sm:inline-flex"}
+              className={buttonClasses("primary", "compact") + " hidden h-10 rounded-full px-5 sm:inline-flex"}
             >
               Start matching
             </Link>
@@ -124,7 +124,7 @@ export function PublicLayout() {
               key={link.href}
               to={link.href}
               onClick={() => setDrawerOpen(false)}
-              className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="rounded-[8px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
             >
               {link.label}
             </Link>
@@ -133,14 +133,14 @@ export function PublicLayout() {
             <Link
               to="/login"
               onClick={() => setDrawerOpen(false)}
-              className="rounded-[9px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="rounded-[8px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
             >
               Sign in
             </Link>
             <Link
               to="/discover"
               onClick={() => setDrawerOpen(false)}
-              className={buttonClasses("primary", "compact") + " h-10 shadow-cta text-center"}
+              className={buttonClasses("primary", "compact") + " h-10 text-center"}
             >
               Start matching
             </Link>

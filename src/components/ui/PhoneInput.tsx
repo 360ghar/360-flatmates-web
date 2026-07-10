@@ -56,7 +56,7 @@ export function PhoneInput({
       )}
       <div
         className={cn(
-          "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+          "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[8px] border border-line bg-surface px-3 focus-within:border-accent focus-within:border-2",
           interactiveMotion,
           error && "border-error",
           disabled && "bg-paper-4"

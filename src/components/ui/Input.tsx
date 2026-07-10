@@ -109,7 +109,7 @@ export interface InputProps
   Omit<InputHTMLAttributes<HTMLInputElement>, "size"> { }
 
 const controlClasses =
-  "w-full border border-line bg-surface text-body-md text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:bg-paper-4 disabled:text-ink-4";
+  "w-full border border-line bg-surface text-body-md text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:bg-surface-soft disabled:text-ink-4";
 
 export function Input({
   label,
@@ -127,10 +127,10 @@ export function Input({
       {({ controlId, helperId, errorId }) => (
         <div
           className={cn(
-            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[8px] border border-line bg-surface px-3 focus-within:border-ink focus-within:border-2 focus-within:shadow-focus",
             interactiveMotion,
-            error && "border-error",
-            props.disabled && "bg-paper-4"
+            error && "border-error focus-within:border-error",
+            props.disabled && "bg-surface-soft"
           )}
         >
           {leadingIcon ? (
@@ -177,9 +177,9 @@ export function TextArea({
           className={cn(
             controlClasses,
             focusRing,
-            "min-h-[120px] max-h-[240px] resize-y rounded-[9px] px-3 py-3 outline-none focus:scale-[1.01] focus:border-accent/50 focus:shadow-focus",
+            "min-h-[120px] max-h-[240px] resize-y rounded-[8px] px-3 py-3 outline-none focus:border-ink focus:border-2 focus:shadow-focus",
             interactiveMotion,
-            error && "border-error",
+            error && "border-error focus:border-error",
             className
           )}
           {...props}
@@ -223,10 +223,10 @@ export function SelectField({
       {({ controlId, helperId, errorId }) => (
         <div
           className={cn(
-            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[9px] border border-line bg-surface px-3 focus-within:scale-[1.01] focus-within:border-accent/50 focus-within:shadow-focus",
+            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[8px] border border-line bg-surface px-3 focus-within:border-ink focus-within:border-2 focus-within:shadow-focus",
             interactiveMotion,
-            error && "border-error",
-            props.disabled && "bg-paper-4"
+            error && "border-error focus-within:border-error",
+            props.disabled && "bg-surface-soft"
           )}
         >
           {leadingIcon ? (

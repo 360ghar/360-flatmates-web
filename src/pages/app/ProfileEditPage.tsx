@@ -234,7 +234,7 @@ export function ProfileEditPage() {
       <div className="flex flex-col gap-5 page-fade max-w-lg mx-auto">
         {/* Header row */}
         <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-[9px]" />
+          <Skeleton className="h-10 w-10 rounded-[8px]" />
           <Skeleton className="h-8 w-32" />
         </div>
 
@@ -246,7 +246,7 @@ export function ProfileEditPage() {
               {Array.from({ length: 4 }, (_, rowIdx) => (
                 <div key={rowIdx} className="flex flex-col gap-1.5">
                   <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-12 w-full rounded-[9px]" />
+                  <Skeleton className="h-12 w-full rounded-[8px]" />
                 </div>
               ))}
             </div>
@@ -255,8 +255,8 @@ export function ProfileEditPage() {
 
         {/* Save/Cancel buttons */}
         <div className="flex flex-col gap-2 pb-6">
-          <Skeleton className="h-[52px] w-full rounded-[10px]" />
-          <Skeleton className="h-[52px] w-full rounded-[10px]" />
+          <Skeleton className="h-[52px] w-full rounded-[8px]" />
+          <Skeleton className="h-[52px] w-full rounded-[8px]" />
         </div>
       </div>
     );

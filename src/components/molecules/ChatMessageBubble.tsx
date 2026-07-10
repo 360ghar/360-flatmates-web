@@ -49,8 +49,8 @@ export function ChatMessageBubble({
           className={cn(
             "rounded-2xl px-3 py-2 text-body-md font-medium",
             mine
-              ? "rounded-bl bg-accent text-white"
-              : "rounded-br bg-paper-3 text-ink"
+              ? "rounded-bl bg-accent text-white shadow-sm"
+              : "rounded-br border border-line bg-surface text-ink shadow-xs"
           )}
         >
           {message.text}

@@ -91,7 +91,7 @@ export const toneClasses: Record<
     dot: "bg-accent"
   },
   neutral: {
-    soft: "bg-paper-2",
+    soft: "bg-surface-soft",
     text: "text-ink-2",
     inkText: "text-ink-2",
     border: "border-line",

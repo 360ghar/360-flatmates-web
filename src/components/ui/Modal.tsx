@@ -127,7 +127,7 @@ export function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-paper/88 p-0 backdrop-blur-[9px] md:items-center md:p-6">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-black/50 p-0 backdrop-blur-[9px] md:items-center md:p-6">
       <button
         aria-label={closeLabel}
         tabIndex={-1}
@@ -143,7 +143,7 @@ export function Modal({
         aria-describedby={description ? descriptionId : undefined}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl border border-line bg-surface-elevated p-6 text-ink shadow-lg animate-fade-slide-up md:rounded-lg",
+          "relative max-h-[92vh] w-full overflow-y-auto rounded-t-[20px] border border-line bg-surface-elevated p-6 text-ink shadow-lg animate-fade-slide-up md:rounded-[16px]",
           size === "default" ? "md:max-w-[480px]" : "md:max-w-[600px]",
           className
         )}
@@ -203,7 +203,7 @@ export function Drawer({
   }
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] bg-paper/88 backdrop-blur-[9px]">
+    <div className="fixed inset-0 z-[var(--z-modal)] bg-black/50 backdrop-blur-[9px]">
       <button
         aria-label="Close drawer"
         tabIndex={-1}

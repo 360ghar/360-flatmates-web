@@ -1,11 +1,10 @@
 import { useStore } from "zustand";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Sun, Moon, Monitor, Palette, Bell, Star } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Monitor, Bell, Star } from "lucide-react";
 import {
   uiStore,
   type ThemePreference,
-  type PalettePreference,
   THEME_OPTIONS,
 } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
@@ -18,51 +17,10 @@ const THEME_ICONS: Record<ThemePreference, React.ReactNode> = {
   dark: <Moon aria-hidden="true" className="h-6 w-6" />,
   system: <Monitor aria-hidden="true" className="h-6 w-6" />,
 };
-// The default app theme is light (see uiStore initial state). System tracks
-// the OS but the static default — and the colour palette tokens used
-// everywhere — is the light variant.
 const THEME_DESCRIPTIONS: Record<ThemePreference, string> = {
-  light: "Warm off-white paper background with dark text. The app default.",
-  dark: "Warm charcoal background with light text",
+  light: "Clean white canvas with dark text. The app default.",
+  dark: "Dark charcoal background with light text.",
   system: "Light or dark based on your device setting. Defaults to light.",
-};
-
-const PALETTE_OPTIONS: Array<{ value: PalettePreference; label: string; description: string }> = [
-  { value: "violet", label: "Flatmates Violet", description: "Default violet accent with yellow action highlights" },
-  { value: "ember", label: "Ember", description: "Golden, sunset-toned accent" },
-  { value: "monsoon_teal", label: "Monsoon Teal", description: "Cool, refreshing teal accent" },
-];
-
-// All palette swatches use the live --color-accent CSS variable so the swatch
-// updates as soon as the user picks a new palette.
-const PALETTE_ICONS: Record<PalettePreference, React.ReactNode> = {
-  violet: (
-    <div className="flex h-6 w-6 items-center justify-center">
-      <span
-        className="h-5 w-5 rounded-full"
-        style={{ background: "var(--color-accent)" }}
-        aria-hidden="true"
-      />
-    </div>
-  ),
-  ember: (
-    <div className="flex h-6 w-6 items-center justify-center">
-      <span
-        className="h-5 w-5 rounded-full"
-        style={{ background: "var(--color-accent)" }}
-        aria-hidden="true"
-      />
-    </div>
-  ),
-  monsoon_teal: (
-    <div className="flex h-6 w-6 items-center justify-center">
-      <span
-        className="h-5 w-5 rounded-full"
-        style={{ background: "var(--color-accent)" }}
-        aria-hidden="true"
-      />
-    </div>
-  ),
 };
 
 const PREVIEW_SWATCHES = [
@@ -101,8 +59,6 @@ export function AppearancePage() {
   const navigate = useNavigate();
   const theme = useStore(uiStore, (s) => s.theme);
   const setTheme = useStore(uiStore, (s) => s.setTheme);
-  const palette = useStore(uiStore, (s) => s.palette);
-  const setPalette = useStore(uiStore, (s) => s.setPalette);
   const resolvedTheme = useResolvedTheme(theme);
 
   return (
@@ -129,14 +85,6 @@ export function AppearancePage() {
         iconMap={THEME_ICONS}
         selected={theme}
         onSelect={setTheme}
-      />
-
-      <h2 className="text-label-md text-ink-3 px-1">Accent Color</h2>
-      <SelectableCardGrid<PalettePreference>
-        options={PALETTE_OPTIONS}
-        iconMap={PALETTE_ICONS}
-        selected={palette}
-        onSelect={setPalette}
       />
 
       <h2 className="text-label-md text-ink-3 mt-2 px-1">Theme Preview</h2>
@@ -177,13 +125,6 @@ export function AppearancePage() {
             </div>
           </div>
         </Card>
-      </div>
-
-      <div className="flex items-center gap-2 px-1 pb-4">
-        <Palette aria-hidden="true" className="h-4 w-4 text-ink-3" />
-        <p className="text-caption text-ink-3">
-          Current accent: {PALETTE_OPTIONS.find((o) => o.value === palette)?.label}
-        </p>
       </div>
     </div>
   );

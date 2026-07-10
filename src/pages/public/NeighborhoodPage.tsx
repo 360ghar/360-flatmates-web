@@ -134,7 +134,7 @@ export function NeighborhoodPage() {
             <div className="mt-6 flex gap-4">
               <Link
                 to="/discover"
-                className={buttonClasses("primary", "tall") + " shadow-cta"}
+                className={buttonClasses("primary", "tall") + ""}
               >
                 Browse Listings
               </Link>
@@ -253,7 +253,7 @@ export function NeighborhoodPage() {
             <div className="mt-8 flex justify-center gap-4">
               <Link
                 to="/signup"
-                className={buttonClasses("primary", "tall") + " shadow-cta"}
+                className={buttonClasses("primary", "tall") + ""}
               >
                 Get Started Free
               </Link>

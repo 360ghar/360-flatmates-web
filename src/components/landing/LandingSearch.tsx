@@ -20,12 +20,12 @@ export function LandingSearch() {
     <div className="w-full max-w-3xl">
       <form
         onSubmit={submit}
-        className="rounded-[22px] border-[1.5px] border-ink bg-surface p-2 shadow-lg"
+        className="rounded-[32px] border border-line bg-surface p-2 shadow-lg sm:rounded-full"
         role="search"
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <label className="flex min-h-14 flex-1 items-center gap-3 rounded-[16px] bg-paper px-4 text-body-md text-ink-2">
-            <MapPin className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+          <label className="flex min-h-12 flex-1 items-center gap-3 rounded-full bg-transparent px-4 text-body-md text-ink-2">
+            <MapPin className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
             <span className="sr-only">Search location</span>
             <input
               value={query}
@@ -37,26 +37,26 @@ export function LandingSearch() {
           </label>
           <Button
             type="submit"
-            variant="highlight"
+            variant="primary"
             size="tall"
-            className="min-h-14 rounded-[16px] px-5 normal-case tracking-normal"
+            className="min-h-12 rounded-full px-6 normal-case tracking-normal shadow-cta sm:min-w-[7.5rem]"
             leadingIcon={<Search className="h-5 w-5" aria-hidden="true" />}
           >
             Search
           </Button>
         </div>
-        <div className="mt-2 grid gap-2 rounded-[16px] bg-ink px-4 py-3 text-white sm:grid-cols-3">
-          <span className="flex items-center gap-2 text-caption text-white/82">
-            <ShieldCheck className="h-4 w-4 text-action" aria-hidden="true" />
-            Verified rooms
-          </span>
-          <span className="flex items-center gap-2 text-caption text-white/82">
-            <Sparkles className="h-4 w-4 text-action" aria-hidden="true" />
-            Compatibility first
-          </span>
-          <span className="text-caption text-white/82">Visit scheduling built in</span>
-        </div>
       </form>
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-caption text-ink-3 sm:justify-start">
+        <span className="flex items-center gap-1.5">
+          <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+          Verified rooms
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+          Compatibility first
+        </span>
+        <span>Visit scheduling built in</span>
+      </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="text-body-md text-ink-3">Popular:</span>

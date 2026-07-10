@@ -26,7 +26,7 @@ export function NotFoundPage() {
         action={
           <Link
             to="/"
-            className={`inline-flex h-12 items-center justify-center rounded-[10px] bg-accent px-6 text-label-lg text-white shadow-cta ${focusRing}`}
+            className={`inline-flex h-12 items-center justify-center rounded-[8px] bg-accent px-6 text-label-lg text-white ${focusRing}`}
           >
             Go Home
           </Link>

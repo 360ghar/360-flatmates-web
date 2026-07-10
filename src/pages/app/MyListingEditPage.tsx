@@ -325,7 +325,7 @@ export function MyListingEditPage() {
       <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
         {/* Header row */}
         <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-[9px]" />
+          <Skeleton className="h-10 w-10 rounded-[8px]" />
           <Skeleton className="h-8 w-36" />
         </div>
 
@@ -338,7 +338,7 @@ export function MyListingEditPage() {
                 <Skeleton key={i} className="h-20 w-20 shrink-0 rounded-xl" />
               ))}
             </div>
-            <div aria-hidden="true" className="flex h-10 items-center justify-center rounded-[9px] border-2 border-dashed border-line bg-paper-2" />
+            <div aria-hidden="true" className="flex h-10 items-center justify-center rounded-[8px] border-2 border-dashed border-line bg-paper-2" />
           </div>
         </div>
 
@@ -350,7 +350,7 @@ export function MyListingEditPage() {
               {Array.from({ length: 4 }, (_, rowIdx) => (
                 <div key={rowIdx} className="flex flex-col gap-1.5">
                   <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-12 w-full rounded-[9px]" />
+                  <Skeleton className="h-12 w-full rounded-[8px]" />
                 </div>
               ))}
             </div>
@@ -359,8 +359,8 @@ export function MyListingEditPage() {
 
         {/* Save/Cancel buttons */}
         <div className="flex flex-col gap-2 pb-6">
-          <Skeleton className="h-[52px] w-full rounded-[10px]" />
-          <Skeleton className="h-[52px] w-full rounded-[10px]" />
+          <Skeleton className="h-[52px] w-full rounded-[8px]" />
+          <Skeleton className="h-[52px] w-full rounded-[8px]" />
         </div>
       </div>
     );
@@ -548,7 +548,7 @@ export function MyListingEditPage() {
               </div>
             </div>
           ) : null}
-          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[9px] border-2 border-dashed border-line bg-paper-2 px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
+          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[8px] border-2 border-dashed border-line bg-paper-2 px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
             <input
               type="file"
               accept="image/*"

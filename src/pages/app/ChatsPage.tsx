@@ -44,25 +44,34 @@ export function ChatsPage() {
       {/* ── Mobile: vertical layout (matches bar + conversations) ── */}
       <div className="flex flex-col md:hidden">
         <MatchesBar matches={matches} matchesLoading={matchesLoading} onStartChat={handleStartConversation} />
-        <div className="border-t border-line my-4" />
-        <section aria-labelledby="mobile-conversations-heading">
-          <h2 id="mobile-conversations-heading" className="text-h3 mb-3">Conversations</h2>
-          <ConversationsPanel
-            conversations={conversations}
-            isLoading={isLoading}
-            error={error}
-            refetch={refetch}
-            onNavigate={(id) => navigate(`/chats/${id}`)}
-          />
+        <div className="my-4 border-t border-line" />
+        <section
+          aria-labelledby="mobile-conversations-heading"
+          className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm"
+        >
+          <div className="border-b border-line bg-surface-soft/80 px-4 py-3">
+            <h2 id="mobile-conversations-heading" className="text-h3">
+              Conversations
+            </h2>
+          </div>
+          <div className="p-2">
+            <ConversationsPanel
+              conversations={conversations}
+              isLoading={isLoading}
+              error={error}
+              refetch={refetch}
+              onNavigate={(id) => navigate(`/chats/${id}`)}
+            />
+          </div>
         </section>
       </div>
 
-      {/* ── Tablet / Desktop: side-by-side split layout ── */}
-      <div className="hidden md:flex md:gap-0 md:rounded-2xl md:border md:border-line md:bg-surface md:overflow-hidden md:min-h-[60vh]">
-        {/* Left panel: Matches */}
-        <aside className="w-72 lg:w-80 border-r border-line flex flex-col shrink-0">
-          <div className="p-4 pb-2">
-            <h2 className="text-h3">Your Matches</h2>
+      {/* ── Tablet / Desktop: depth shell + split ── */}
+      <div className="hidden min-h-[65vh] overflow-hidden rounded-2xl border border-line bg-surface shadow-md md:flex">
+        <aside className="flex w-72 shrink-0 flex-col border-r border-line bg-surface-soft/40 lg:w-80">
+          <div className="border-b border-line px-4 py-3">
+            <h2 className="text-h3">Your matches</h2>
+            <p className="mt-0.5 text-caption text-ink-3">Start a new conversation</p>
           </div>
           <MatchesList
             matches={matches}
@@ -71,18 +80,19 @@ export function ChatsPage() {
           />
         </aside>
 
-        {/* Right panel: Conversations */}
-        <section className="flex-1 flex flex-col min-w-0">
-          <div className="p-4 pb-2">
+        <section className="flex min-w-0 flex-1 flex-col bg-surface">
+          <div className="border-b border-line px-4 py-3">
             <h2 className="text-h3">Conversations</h2>
           </div>
-          <ConversationsPanel
-            conversations={conversations}
-            isLoading={isLoading}
-            error={error}
-            refetch={refetch}
-            onNavigate={(id) => navigate(`/chats/${id}`)}
-          />
+          <div className="flex-1 p-2">
+            <ConversationsPanel
+              conversations={conversations}
+              isLoading={isLoading}
+              error={error}
+              refetch={refetch}
+              onNavigate={(id) => navigate(`/chats/${id}`)}
+            />
+          </div>
         </section>
       </div>
     </div>
@@ -138,7 +148,7 @@ function MatchesBar({
               key={match.id}
               type="button"
               className={cn(
-                "flex flex-col items-center shrink-0 rounded-[9px] p-1.5 gap-1 w-16",
+                "flex flex-col items-center shrink-0 rounded-[8px] p-1.5 gap-1 w-16",
                 "hover:bg-accent-soft transition-colors duration-150 ease-out",
                 "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
               )}
@@ -211,7 +221,7 @@ function MatchesList({
             key={match.id}
             type="button"
             className={cn(
-              "flex items-center gap-3 rounded-[9px] p-2 text-left",
+              "flex items-center gap-3 rounded-[8px] p-2 text-left",
               "hover:bg-accent-soft transition-colors duration-150 ease-out",
               "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
             )}

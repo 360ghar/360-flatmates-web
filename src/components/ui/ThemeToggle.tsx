@@ -34,7 +34,7 @@ export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
   return (
     <div
       className={cn(
-        "relative flex items-center gap-1 rounded-[9px] bg-paper-2 p-1",
+        "relative flex items-center gap-1 rounded-[8px] bg-paper-2 p-1",
         className
       )}
       role="radiogroup"

@@ -109,7 +109,7 @@ export function AdminLayout() {
                 aria-label={item.label}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2 rounded-[9px] px-3 py-2 text-label-md text-ink-3 hover:bg-paper-3 hover:text-ink",
+                  "flex items-center gap-2 rounded-[8px] px-3 py-2 text-label-md text-ink-3 hover:bg-paper-3 hover:text-ink",
                   active && "bg-accent-soft text-accent",
                   focusRing
                 )}
@@ -137,7 +137,7 @@ function AdminNavLink({ item, active }: { item: AdminNavItem; active: boolean })
       title={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-[9px] px-3 py-2.5 text-body-md font-semibold hover:bg-paper-3 hover:text-ink",
+        "flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-body-md font-semibold hover:bg-paper-3 hover:text-ink",
         active ? "bg-accent-soft text-accent" : "text-ink-3",
         focusRing
       )}

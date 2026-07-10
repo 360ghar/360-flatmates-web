@@ -98,7 +98,7 @@ export function ManagePage() {
               id="manage-sort"
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="h-9 rounded-[9px] border border-line bg-surface px-3 text-body-md text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="h-9 rounded-[8px] border border-line bg-surface px-3 text-body-md text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

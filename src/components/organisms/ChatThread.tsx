@@ -263,8 +263,8 @@ export function ChatThread({
   }
 
   return (
-    <section className={cn("flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] md:min-h-[640px] flex-col bg-paper", className)} {...props}>
-      <header className="flex min-h-14 items-center gap-3 border-b border-line bg-surface px-4">
+    <section className={cn("flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] md:min-h-[640px] flex-col overflow-hidden rounded-none border-line bg-surface md:rounded-2xl md:border md:shadow-md", className)} {...props}>
+      <header className="flex min-h-14 items-center gap-3 border-b border-line bg-surface px-4 shadow-xs">
         <Avatar name={participant.name} size="sm" src={participant.avatarUrl} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -294,7 +294,7 @@ export function ChatThread({
             {showMenu ? (
               <div
                 role="menu"
-                className="absolute right-0 top-full z-[var(--z-raised)] mt-1 w-44 overflow-hidden rounded-[9px] border border-line bg-surface-elevated py-1 shadow-md"
+                className="absolute right-0 top-full z-[var(--z-raised)] mt-1 w-44 overflow-hidden rounded-[8px] border border-line bg-surface-elevated py-1 shadow-md"
               >
                 {onReport ? (
                   <button
@@ -335,7 +335,7 @@ export function ChatThread({
           </div>
         ) : null}
       </header>
-      <div className="flex flex-col gap-3 border-b border-line bg-paper px-4 py-3">
+      <div className="flex flex-col gap-3 border-b border-line bg-surface-soft/60 px-4 py-3">
         {matchContext ? <MatchContextCard item={matchContext} /> : null}
         {qna.map((item) => (
           <QnACard key={item.question} {...item} />
@@ -350,7 +350,10 @@ export function ChatThread({
         aria-busy={loadingMore}
         tabIndex={0}
         onScroll={handleScroll}
-        className={cn("flex-1 space-y-3 overflow-y-auto px-4 py-4 outline-none", focusRing)}
+        className={cn(
+          "flex-1 space-y-3 overflow-y-auto bg-paper-2/50 px-4 py-4 outline-none",
+          focusRing
+        )}
       >
         {loadingMore ? (
           <div className="flex justify-center py-2" aria-hidden="true">
@@ -381,7 +384,7 @@ export function ChatThread({
           })
         )}
       </div>
-      <footer ref={footerRef} className="border-t border-line bg-paper/88 p-3 backdrop-blur-[9px]">
+      <footer ref={footerRef} className="border-t border-line bg-surface/95 p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] backdrop-blur-xl">
         <input
           ref={fileInputRef}
           type="file"
@@ -411,7 +414,7 @@ export function ChatThread({
                   <button
                     key={emoji}
                     type="button"
-                    className={cn("flex aspect-square min-h-10 w-full items-center justify-center rounded-[9px] text-xl leading-none hover:bg-lavender", focusRing)}
+                    className={cn("flex aspect-square min-h-10 w-full items-center justify-center rounded-[8px] text-xl leading-none hover:bg-lavender", focusRing)}
                     onClick={() => insertEmoji(emoji)}
                   >
                     {emoji}
@@ -489,7 +492,7 @@ export function ChatThread({
             <input
               id="visit-date"
               type="date"
-              className="h-12 w-full rounded-[9px] border border-line bg-surface px-3 text-body-md text-ink focus:border-accent focus:shadow-focus focus:outline-none"
+              className="h-12 w-full rounded-[8px] border border-line bg-surface px-3 text-body-md text-ink focus:border-accent focus:focus:outline-none"
               value={visitDate}
               min={new Date().toISOString().split("T")[0]}
               onChange={(e) => setVisitDate(e.target.value)}
@@ -505,7 +508,7 @@ export function ChatThread({
               placeholder="Any special requests or notes..."
               value={visitNotes}
               onChange={(e) => setVisitNotes(e.target.value)}
-              className="w-full rounded-[9px] border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:shadow-focus focus:outline-none resize-y"
+              className="w-full rounded-[8px] border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:focus:outline-none resize-y"
             />
           </div>
         </div>
@@ -580,7 +583,7 @@ export function ChatThread({
               placeholder="Add any context that helps us review this..."
               value={reportNotes}
               onChange={(e) => setReportNotes(e.target.value)}
-              className="w-full resize-y rounded-[9px] border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:shadow-focus focus:outline-none"
+              className="w-full resize-y rounded-[8px] border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:focus:outline-none"
             />
           </div>
         </div>

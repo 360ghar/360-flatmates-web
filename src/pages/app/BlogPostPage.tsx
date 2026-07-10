@@ -124,7 +124,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
           </div>
         ) : null}
 
-        <h1 className="text-h1 text-ink font-serif font-normal">{post.title}</h1>
+        <h1 className="text-h1 text-ink font-sans font-normal">{post.title}</h1>
 
         {post.excerpt ? (
           <p className="mt-4 text-body-lg text-ink-2 leading-relaxed">
@@ -174,7 +174,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
 
         {post.sources && post.sources.length > 0 ? (
           <section className="mt-12 border-t border-line pt-6">
-            <h2 className="text-h3 text-ink font-serif">Sources</h2>
+            <h2 className="text-h3 text-ink font-sans">Sources</h2>
             <ul className="mt-3 flex flex-col gap-1.5 text-body-md">
               {post.sources.map((source) => (
                 <li key={source.url}>

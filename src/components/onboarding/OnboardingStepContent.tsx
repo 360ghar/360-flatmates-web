@@ -396,7 +396,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
               </div>
               <button
                 type="button"
-                className="flex h-12 items-center gap-1.5 rounded-[9px] border border-line bg-surface px-3 text-label-md text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-12 items-center gap-1.5 rounded-[8px] border border-line bg-surface px-3 text-label-md text-accent transition-colors hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={handleUseMyLocation}
                 disabled={geoLoading}
                 aria-label="Use my current location"

@@ -35,12 +35,12 @@ try {
 
   const rootEl = document.getElementById("root")!;
   rootEl.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;font-family:Inter,system-ui,sans-serif;color:#1F1A14;background:#F4F3EE">
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;font-family:Inter,system-ui,sans-serif;color:#222222;background:#ffffff">
       <div style="max-width:480px;text-align:center">
         <h1 style="font-size:20px;font-weight:600;margin:0 0 12px">Configuration Error</h1>
-        <p style="font-size:14px;color:#756F65;margin:0 0 20px;white-space:pre-line">${message}</p>
-        <p style="font-size:13px;color:#B5AFA3;margin:0 0 16px">Set the required environment variables and redeploy.</p>
-        <p style="font-size:13px;margin:0"><a href="/maintenance" style="color:#C96442;text-decoration:underline">Go to maintenance page</a></p>
+        <p style="font-size:14px;color:#6a6a6a;margin:0 0 20px;white-space:pre-line">${message}</p>
+        <p style="font-size:13px;color:#929292;margin:0 0 16px">Set the required environment variables and redeploy.</p>
+        <p style="font-size:13px;margin:0"><a href="/maintenance" style="color:#ff385c;text-decoration:underline">Go to maintenance page</a></p>
       </div>
     </div>
   `;

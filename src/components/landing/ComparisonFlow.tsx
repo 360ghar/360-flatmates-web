@@ -41,7 +41,7 @@ export function ComparisonFlow() {
 
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
           <RevealSection>
-            <article className="min-h-[360px] rounded-[var(--radius-promo)] border border-line-low bg-paper p-6 shadow-hard-paper md:p-8">
+            <article className="min-h-[360px] rounded-[var(--radius-promo)] border border-line-low bg-paper p-6 md:p-8">
               <div className="mb-6 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-h2 text-ink">The old way</h3>
@@ -77,13 +77,13 @@ export function ComparisonFlow() {
           </RevealSection>
 
           <RevealSection staggerIndex={2}>
-            <article className="min-h-[360px] rounded-[var(--radius-promo)] border border-accent/10 bg-lavender p-6 shadow-hard-accent md:p-8">
+            <article className="min-h-[360px] rounded-[var(--radius-promo)] border border-accent/10 bg-lavender p-6 md:p-8">
               <div className="mb-6 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-h2 text-ink">The Flatmates way</h3>
                   <p className="mt-1 text-body-md text-ink-2">One compatibility-led path from search to visit.</p>
                 </div>
-                <span className="rounded-full bg-action px-3 py-1 text-caption font-semibold text-action-ink">Clear</span>
+                <span className="rounded-full bg-accent px-3 py-1 text-caption font-semibold text-white">Clear</span>
               </div>
               <div className="flex min-h-[230px] flex-col justify-center gap-5 rounded-2xl bg-surface/72 p-5">
                 <div className="grid items-center justify-items-center gap-3 sm:grid-cols-[auto_minmax(24px,1fr)_auto_minmax(24px,1fr)_auto] sm:gap-4">
@@ -92,7 +92,7 @@ export function ComparisonFlow() {
                   </div>
                   <div className="h-8 w-px bg-ink-4 sm:h-px sm:w-full" />
                   <div className="rounded-full border-[1.5px] border-ink bg-surface px-5 py-3 text-center shadow-sm sm:px-7">
-                    <span className="font-serif text-3xl text-ink">360</span>
+                    <span className="font-sans text-3xl text-ink">360</span>
                     <span className="ml-1 text-h3 text-accent">Flatmates</span>
                   </div>
                   <div className="h-8 w-px bg-ink-4 sm:h-px sm:w-full" />

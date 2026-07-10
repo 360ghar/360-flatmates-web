@@ -37,7 +37,7 @@ npm run generate:pwa-icons  # Generate PWA standard & maskable PNG icons from fa
 - **TypeScript** in strict mode; no `any` types
 - **Tailwind CSS v4** with custom design tokens defined as CSS custom properties via `@theme` in `globals.css`
 - Use Tailwind semantic utilities (`bg-accent`, `text-ink`, `shadow-sm`) over raw values
-- **Fonts**: Fraunces (headlines), Inter (body), JetBrains Mono (eyebrow/tabular), Instrument Serif (italic emphasis) — loaded via `<link>` in `index.html`
+- **Fonts**: Inter (all UI — headlines, body, eyebrow, tabular) — loaded via `<link>` in `index.html`
 - **Components**: PascalCase files co-located with tests (`Button.tsx` + `Button.test.tsx` or `__tests__/Button.test.tsx`)
 - **Hooks**: camelCase prefixed with `use` (`useCompatibility.ts`)
 - **Dark mode**: default is light; toggled via `[data-theme="dark"]` on `<html>`; never hardcode light-only colors; toggle available on public header, app top bar, profile page, and `/settings/appearance`
@@ -116,7 +116,7 @@ Every page that fetches data must handle all three async states: **loading**, **
   - Use `isLoading` (not `isFetching`) for initial-load skeleton decisions
   - Stale time and refetch intervals are configured per-query in the hook
 - **Client-only state** (UI toggles, form drafts, preferences): Zustand stores in `src/lib/stores/`
-  - `uiStore` for theme, toasts, modals
+  - `uiStore` for theme, toasts, modals, sidebar
   - `searchStore` for filter state
   - `swipeStore` for animation direction
   - `mapStore` for viewport state
@@ -129,7 +129,7 @@ Every page that fetches data must handle all three async states: **loading**, **
 - **Wiki** (`.wiki/`): 58-page codebase wiki auto-published to GitHub Wiki on push to main via `.github/workflows/publish-wiki.yml`.
   - Update wiki pages when architecture, features, systems, or primitives change significantly.
   - Run `npm run wiki:render-video` to re-render the video overview after major changes.
-  - The video source lives in `.wiki/video/source/` and uses HyperFrames with project branding (terracotta `#C96442`, Fraunces/Inter typography).
+  - The video source lives in `.wiki/video/source/` and uses HyperFrames with project branding (Rausch `#ff385c`, Inter typography).
 - **CLAUDE.md** and **AGENTS.md** must be updated whenever project structure, conventions, architecture, key commands, or design-system references change.
 - **DESIGN.md** is the single source of truth for UI tokens. Visual changes must update it in the same commit.
 - Before finalizing any change, verify these files still accurately describe the codebase.

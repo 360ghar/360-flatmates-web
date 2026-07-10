@@ -9,7 +9,7 @@ export function HowItWorks() {
     >
       <div className="mx-auto max-w-7xl px-5 md:px-12">
         <RevealSection className="mx-auto mb-16 max-w-2xl text-center">
-          <h2 id="how-it-works-heading" className="text-display mx-auto max-w-xl text-ink md:text-5xl">
+          <h2 id="how-it-works-heading" className="text-display mx-auto max-w-xl text-ink">
             From first search to first visit.
           </h2>
           <p className="mx-auto mt-5 max-w-[56ch] text-body-lg text-ink-2">

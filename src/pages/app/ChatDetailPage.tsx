@@ -174,8 +174,8 @@ export function ChatDetailPage() {
             <Skeleton className="h-3 w-20" />
           </div>
           <div className="flex gap-2">
-            <Skeleton className="h-9 w-9 rounded-[9px]" />
-            <Skeleton className="h-9 w-9 rounded-[9px]" />
+            <Skeleton className="h-9 w-9 rounded-[8px]" />
+            <Skeleton className="h-9 w-9 rounded-[8px]" />
           </div>
         </div>
         {/* Alternating chat message bubbles */}
@@ -184,10 +184,10 @@ export function ChatDetailPage() {
         <Skeleton variant="chatMessage" />
         <div className="flex justify-end"><Skeleton variant="chatMessage" side="right" /></div>
         {/* Input bar */}
-        <div className="mt-auto flex items-center gap-2 rounded-[9px] border border-line bg-surface p-3">
+        <div className="mt-auto flex items-center gap-2 rounded-[8px] border border-line bg-surface p-3">
           <Skeleton className="h-5 w-5" />
           <Skeleton className="h-4 flex-1" />
-          <Skeleton className="h-8 w-8 rounded-[9px]" />
+          <Skeleton className="h-8 w-8 rounded-[8px]" />
         </div>
       </div>
     );

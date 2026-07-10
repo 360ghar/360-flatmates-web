@@ -1,7 +1,15 @@
 import type { HTMLAttributes } from "react";
 import { cn, focusRing, interactiveMotion } from "./component-utils";
 
-export type CardVariant = "default" | "compact" | "elevated" | "flat" | "stacked" | "promo" | "illustration";
+export type CardVariant =
+  | "default"
+  | "compact"
+  | "elevated"
+  | "flat"
+  | "media"
+  | "stacked"
+  | "promo"
+  | "illustration";
 export type CardElement = "article" | "section" | "div" | "li" | "button";
 
 export interface CardProps extends HTMLAttributes<HTMLElement> {
@@ -16,11 +24,14 @@ export interface CardProps extends HTMLAttributes<HTMLElement> {
 // `flat` is a plain surface panel with no border and no shadow.
 // `stacked` uses an accent top border for a card-with-tab appearance.
 const variantClasses: Record<CardVariant, string> = {
-  default: "rounded-2xl p-4 bg-surface shadow-sm",
-  compact: "rounded-xl p-3 bg-surface shadow-xs",
-  elevated: "rounded-2xl p-4 bg-surface-elevated shadow-md",
-  flat: "rounded-2xl p-4 bg-surface border-0 shadow-none",
-  stacked: "rounded-2xl p-4 bg-surface border-t-2 border-t-accent shadow-sm",
+  /* ~14px cards (Airbnb soft property cards); border for rest state, shadow for lift */
+  default: "rounded-[var(--radius-card)] p-4 bg-surface shadow-sm",
+  compact: "rounded-[var(--radius-compact)] p-3 bg-surface shadow-xs",
+  elevated: "rounded-[var(--radius-card)] p-4 bg-surface-elevated shadow-md",
+  flat: "rounded-[var(--radius-card)] p-4 bg-surface border-0 shadow-none",
+  /* Photo-first marketplace cards: padding owned by children, soft elevation */
+  media: "rounded-[var(--radius-card)] p-0 bg-surface shadow-sm overflow-hidden",
+  stacked: "rounded-[var(--radius-card)] p-4 bg-surface border-t-2 border-t-accent shadow-sm",
   promo: "rounded-[var(--radius-promo)] p-5 bg-lavender shadow-none",
   illustration: "rounded-[var(--radius-promo)] p-5 bg-surface shadow-xs"
 };
@@ -45,7 +56,9 @@ export function Card({
         selected && "border-[1.5px] border-accent bg-accent-soft",
         interactive &&
         cn(
-          "cursor-pointer active:scale-[0.97] hover:-translate-y-px hover:border-accent/40 hover:shadow-hover",
+          "cursor-pointer active:scale-[0.97] hover:-translate-y-px hover:shadow-hover",
+          // media cards already own shadow; border hover still helps non-media
+          variant !== "media" && "hover:border-accent/40",
           interactiveMotion,
           focusRing
         ),

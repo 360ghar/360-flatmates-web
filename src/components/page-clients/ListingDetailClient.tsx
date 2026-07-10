@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router";
+import { useParams, Link, useNavigate, useLocation } from "react-router";
 import { MapPin, Share } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,7 @@ import { PriceText } from "@/components/ui/PriceText";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, ErrorState, EmptyState } from "@/components/ui/StateViews";
+import { cn } from "@/components/ui/component-utils";
 import { ShareSheet } from "@/components/organisms/ShareSheet";
 
 export default function ListingDetailClient() {
@@ -22,9 +23,12 @@ export default function ListingDetailClient() {
   const propertyId = Number(params.id);
 
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user } = useAuth();
   const { data: property, isLoading, error, refetch } = useProperty(propertyId);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  // App shell has a ~76px bottom nav; public /discover/:id does not.
+  const hasAppBottomNav = pathname.startsWith("/listing/");
 
   const ownerId = property?.owner_id;
 
@@ -87,12 +91,24 @@ export default function ListingDetailClient() {
           />
         }
       >
-        {(data) => (
-          <div className="space-y-6">
-            {/* Elegant Image Gallery Section */}
-            <div className="grid gap-3 md:grid-cols-3">
-              {/* Main large image */}
-              <div className="relative md:col-span-2 aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        {(data) => {
+          const extraPhotos = (property?.image_urls ?? []).filter(
+            (url) => url && url !== data.imageUrl
+          ).slice(0, 2);
+          const hasGallery = extraPhotos.length > 0;
+
+          return (
+          <div className="space-y-8 pb-24 lg:pb-0">
+            {/* Photo gallery — no empty placeholders */}
+            <div className={hasGallery ? "grid gap-2 md:grid-cols-3 md:grid-rows-2 md:h-[420px]" : ""}>
+              <div
+                className={cn(
+                  "relative overflow-hidden rounded-2xl border border-line bg-surface-soft shadow-md",
+                  hasGallery
+                    ? "aspect-[4/3] md:col-span-2 md:row-span-2 md:aspect-auto md:h-full"
+                    : "aspect-[16/10] w-full"
+                )}
+              >
                 <NetworkImage
                   alt={data.title}
                   src={data.imageUrl}
@@ -100,26 +116,26 @@ export default function ListingDetailClient() {
                   className="hover:scale-[1.02] transition-transform duration-700 ease-out"
                 />
                 {data.compatibilityScore !== undefined && (
-                  <div className="absolute top-4 left-4 rounded-full bg-surface/95 px-3.5 py-1.5 shadow-md border border-line-low flex items-center gap-2 animate-scale-in">
-                    <span className="text-[10px] uppercase font-mono tracking-wider text-ink-2 font-bold">Compatibility</span>
-                    <ProgressRing value={data.compatibilityScore} size="sm" showValue={true} label="Compatibility score" />
+                  <div className="absolute top-4 left-4 flex items-center gap-2 rounded-full border border-white/50 bg-surface/95 px-3 py-1.5 shadow-md backdrop-blur-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-2">Match</span>
+                    <ProgressRing value={data.compatibilityScore} size="sm" showValue label="Compatibility score" />
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={() => setIsShareOpen(true)}
-                  className="absolute top-4 right-4 rounded-full bg-surface/95 p-2.5 shadow-md border border-line-low text-ink hover:text-accent transition-colors"
+                  className="absolute top-4 right-4 rounded-full border border-white/50 bg-surface/95 p-2.5 text-ink shadow-md backdrop-blur-sm hover:text-accent"
                   aria-label="Share this listing"
                 >
                   <Share className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
-
-              {/* Small images grid column */}
-              <div className="grid grid-rows-2 gap-3">
-                {property?.image_urls && property.image_urls.length > 1 ? (
-                  property.image_urls.slice(1, 3).map((url, index) => (
-                    <div key={`${url}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-paper-2 shadow-xs">
+              {hasGallery
+                ? extraPhotos.map((url, index) => (
+                    <div
+                      key={`${url}-${index}`}
+                      className="relative hidden min-h-0 overflow-hidden rounded-2xl border border-line bg-surface-soft shadow-sm md:block md:h-full"
+                    >
                       <NetworkImage
                         alt=""
                         src={url}
@@ -128,126 +144,129 @@ export default function ListingDetailClient() {
                       />
                     </div>
                   ))
-                ) : (
-                  <>
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-paper-2/50 flex items-center justify-center text-ink-4">
-                      <span className="text-caption font-medium">No additional photos</span>
-                    </div>
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-line bg-paper-2/50 flex items-center justify-center text-ink-4">
-                      <span className="text-caption font-medium">No additional photos</span>
-                    </div>
-                  </>
-                )}
-              </div>
+                : null}
             </div>
 
-            {/* Two column detail layout */}
-            <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
-              {/* Left Column: Details, description, cost breakdown */}
-              <div className="space-y-6">
-                <div className="border-b border-line pb-5">
-                  <h1 className="text-display font-serif font-normal text-3xl leading-tight text-ink">{data.title}</h1>
-                  
-                  <div className="flex items-center gap-1.5 mt-3 text-body-lg text-ink-2">
-                    <MapPin className="h-5 w-5 text-accent shrink-0" />
-                    <span>{data.locality}{data.city ? `, ${data.city}` : ""}</span>
+            <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm md:p-6">
+                  <PriceText
+                    value={data.price}
+                    variant="card"
+                    className="text-2xl font-semibold text-ink md:text-3xl"
+                  />
+                  <h1 className="mt-2 text-h1 leading-tight text-ink">{data.title}</h1>
+                  <div className="mt-2 flex items-center gap-1.5 text-body-md text-ink-3">
+                    <MapPin className="h-4 w-4 shrink-0 text-ink-4" />
+                    <span>
+                      {data.locality}
+                      {data.city ? `, ${data.city}` : ""}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {data.beds !== undefined && (
+                      <Chip variant="info" className="cursor-default border-0 bg-blue-soft px-3 py-1.5 font-semibold text-blue-ink">
+                        {data.beds} Bed
+                      </Chip>
+                    )}
+                    {data.baths !== undefined && (
+                      <Chip variant="info" className="cursor-default border-0 bg-teal-soft px-3 py-1.5 font-medium text-teal-ink">
+                        {data.baths} Bath
+                      </Chip>
+                    )}
+                    {data.areaSqFt !== undefined && (
+                      <Chip variant="info" className="cursor-default border-0 bg-purple-soft px-3 py-1.5 font-medium text-purple-ink">
+                        {data.areaSqFt} sq ft
+                      </Chip>
+                    )}
+                    {property?.sharing_type && (
+                      <Chip variant="info" className="cursor-default border-0 bg-accent-soft px-3 py-1.5 font-semibold capitalize text-accent">
+                        {property.sharing_type.replace("_", " ")}
+                      </Chip>
+                    )}
+                    {property?.gender_preference && (
+                      <Chip variant="info" className="cursor-default border border-line bg-surface-soft px-3 py-1.5 font-medium capitalize text-ink-2">
+                        {property.gender_preference === "any" ? "Open to both" : property.gender_preference}
+                      </Chip>
+                    )}
+                    {property?.available_from && (
+                      <Chip variant="info" className="cursor-default border border-line bg-surface-soft px-3 py-1.5 font-medium text-ink-2">
+                        From{" "}
+                        {new Date(property.available_from).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </Chip>
+                    )}
+                    {data.features?.slice(0, 6).map((item) => (
+                      <Chip key={item} variant="info" className="cursor-default border border-line bg-surface px-3 py-1.5 text-ink-2">
+                        {item}
+                      </Chip>
+                    ))}
                   </div>
                 </div>
 
-                {/* Property info chips */}
-                <div className="flex flex-wrap gap-2.5">
-                  {data.beds !== undefined && (
-                    <Chip variant="info" className="bg-accent-soft/40 border-[0.5px] border-accent/20 px-3.5 py-1.5 text-accent font-semibold">
-                      {data.beds} Bedrooms
-                    </Chip>
-                  )}
-                  {data.baths !== undefined && (
-                    <Chip variant="info" className="bg-paper-2 border-[0.5px] border-line px-3.5 py-1.5 text-ink-2 font-medium">
-                      {data.baths} Bathrooms
-                    </Chip>
-                  )}
-                  {data.areaSqFt !== undefined && (
-                    <Chip variant="info" className="bg-paper-2 border-[0.5px] border-line px-3.5 py-1.5 text-ink-2 font-medium">
-                      {data.areaSqFt} Sq Ft
-                    </Chip>
-                  )}
-                  {property?.sharing_type && (
-                    <Chip variant="info" className="bg-accent-soft/30 border-[0.5px] border-accent/15 px-3.5 py-1.5 text-accent font-semibold capitalize">
-                      {property.sharing_type.replace("_", " ")}
-                    </Chip>
-                  )}
-                  {property?.gender_preference && (
-                    <Chip variant="info" className="bg-paper-2 border-[0.5px] border-line px-3.5 py-1.5 text-ink-2 font-medium capitalize">
-                      Preference: {property.gender_preference === "any" ? "Open to Both" : property.gender_preference}
-                    </Chip>
-                  )}
-                  {property?.available_from && (
-                    <Chip variant="info" className="bg-paper-2 border-[0.5px] border-line px-3.5 py-1.5 text-ink-2 font-medium">
-                      Available: {new Date(property.available_from).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    </Chip>
-                  )}
-                  {data.features?.map((item) => (
-                    <Chip key={item} variant="info" className="bg-paper border-[0.5px] border-line px-3.5 py-1.5 text-ink-2 font-medium">
-                      {item}
-                    </Chip>
-                  ))}
-                </div>
-
-                {/* Description */}
                 {property?.description ? (
-                  <div className="space-y-3">
-                    <h2 className="text-h2 text-ink">About this flat</h2>
-                    <p className="max-w-[65ch] text-body-lg text-ink-2 leading-relaxed whitespace-pre-line">
+                  <Card className="border-line p-5 shadow-sm md:p-6">
+                    <h2 className="text-h3 font-semibold text-ink">About this flat</h2>
+                    <p className="mt-3 max-w-[65ch] whitespace-pre-line text-body-lg leading-relaxed text-ink-2">
                       {property.description}
                     </p>
-                  </div>
+                  </Card>
                 ) : null}
 
-                {/* Cost breakdown */}
-                <Card className="p-6 bg-paper-2/30 border-line">
-                  <h2 className="text-h3 font-serif font-normal text-xl text-ink">Cost breakdown</h2>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                    <div className="rounded-xl border border-line bg-surface p-4 text-center">
-                      <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Monthly Rent</p>
+                <Card className="border-line p-5 shadow-sm md:p-6">
+                  <h2 className="text-h3 font-semibold text-ink">Cost breakdown</h2>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
+                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Monthly rent</p>
                       <PriceText
                         value={data.price}
                         variant="inline"
                         suffix=""
-                        className="block text-h2 font-serif font-normal text-accent mt-1"
+                        className="mt-1 block text-h2 font-semibold text-accent"
                       />
                     </div>
-                    <div className="rounded-xl border border-line bg-surface p-4 text-center">
-                      <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Security Deposit</p>
-                      <p className="text-h2 font-serif font-normal text-ink mt-1">
+                    <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
+                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Deposit</p>
+                      <p className="mt-1 text-h2 font-semibold text-ink">
                         {property?.security_deposit ? formatCurrencyINR(property.security_deposit) : "TBD"}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-line bg-surface p-4 text-center">
-                      <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Maintenance</p>
-                      <p className="text-h2 font-serif font-normal text-ink mt-1">
-                        {property?.maintenance_charges ? `${formatCurrencyINR(property.maintenance_charges)}` : "None"}
+                    <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
+                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Maintenance</p>
+                      <p className="mt-1 text-h2 font-semibold text-ink">
+                        {property?.maintenance_charges
+                          ? formatCurrencyINR(property.maintenance_charges)
+                          : "None"}
                       </p>
                     </div>
                   </div>
                 </Card>
 
-                {/* Society & Vibe details */}
-                {property?.society_type || (property?.society_amenities && property.society_amenities.length > 0) || (property?.society_vibe_tags && property.society_vibe_tags.length > 0) ? (
-                  <Card className="p-6 bg-paper-2/30 border-line">
-                    <h2 className="text-h3 font-serif font-normal text-xl text-ink">Society & Vibe</h2>
-                    <div className="mt-4 grid gap-5 md:grid-cols-2">
+                {property?.society_type ||
+                (property?.society_amenities && property.society_amenities.length > 0) ||
+                (property?.society_vibe_tags && property.society_vibe_tags.length > 0) ? (
+                  <Card className="border-line p-5 shadow-sm md:p-6">
+                    <h2 className="text-h3 font-semibold text-ink">Society & vibe</h2>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
                       {property?.society_type && (
-                        <div className="rounded-xl border border-line bg-surface p-4">
-                          <p className="text-caption text-ink-3 uppercase tracking-wider font-mono">Society Type</p>
-                          <p className="text-body-lg text-ink font-medium mt-1 capitalize">{property.society_type.replace("_", " ")}</p>
+                        <div className="rounded-xl border border-line bg-surface-soft p-4">
+                          <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Society type</p>
+                          <p className="mt-1 text-body-lg font-medium capitalize text-ink">
+                            {property.society_type.replace("_", " ")}
+                          </p>
                         </div>
                       )}
                       {property?.society_amenities && property.society_amenities.length > 0 && (
-                        <div className="md:col-span-2 rounded-xl border border-line bg-surface p-4">
-                          <p className="text-caption text-ink-3 uppercase tracking-wider font-mono mb-2">Society Amenities</p>
+                        <div className="rounded-xl border border-line bg-surface-soft p-4 md:col-span-2">
+                          <p className="mb-2 text-caption font-medium uppercase tracking-wide text-ink-3">
+                            Amenities
+                          </p>
                           <div className="flex flex-wrap gap-1.5">
-                            {property.society_amenities.map(a => (
-                              <Chip key={a} className="bg-paper text-ink-2 border-[0.5px] border-line px-3 py-1">
+                            {property.society_amenities.map((a) => (
+                              <Chip key={a} variant="info" className="cursor-default border border-line bg-surface px-3 py-1 text-ink-2">
                                 {a}
                               </Chip>
                             ))}
@@ -255,11 +274,15 @@ export default function ListingDetailClient() {
                         </div>
                       )}
                       {property?.society_vibe_tags && property.society_vibe_tags.length > 0 && (
-                        <div className="md:col-span-2 rounded-xl border border-line bg-surface p-4">
-                          <p className="text-caption text-ink-3 uppercase tracking-wider font-mono mb-2">Society Vibe</p>
+                        <div className="rounded-xl border border-line bg-surface-soft p-4 md:col-span-2">
+                          <p className="mb-2 text-caption font-medium uppercase tracking-wide text-ink-3">Vibe</p>
                           <div className="flex flex-wrap gap-1.5">
-                            {property.society_vibe_tags.map(t => (
-                              <Chip key={t} className="bg-accent-soft/30 text-accent border-[0.5px] border-accent/15 px-3 py-1">
+                            {property.society_vibe_tags.map((t) => (
+                              <Chip
+                                key={t}
+                                variant="info"
+                                className="cursor-default border border-accent/15 bg-accent-soft px-3 py-1 text-accent"
+                              >
                                 #{t}
                               </Chip>
                             ))}
@@ -271,51 +294,72 @@ export default function ListingDetailClient() {
                 ) : null}
               </div>
 
-              {/* Right Column: Sticky Host Card & Contact Actions */}
-              <div className="space-y-6">
-                <Card className="p-5 sticky top-24 border border-line bg-surface shadow-sm">
-                  {/* Host Section */}
+              {/* Sticky booking / host column */}
+              <div className="space-y-4">
+                <Card className="sticky top-24 border-line p-5 shadow-md">
+                  <div className="mb-4 flex items-end justify-between gap-3 border-b border-line pb-4">
+                    <div>
+                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Monthly</p>
+                      <PriceText
+                        value={data.price}
+                        variant="card"
+                        className="text-2xl font-semibold text-ink"
+                      />
+                    </div>
+                  </div>
                   <button
                     type="button"
-                    className="flex items-center gap-3 border-b border-line pb-4 mb-4 w-full text-left hover:opacity-80 transition-opacity"
-                    onClick={() => {
-                      if (user && ownerId) {
-                        navigate(`/profile/${ownerId}`);
-                      } else if (ownerId) {
-                        navigate(`/login?redirect=${encodeURIComponent(`/profile/${ownerId}`)}`);
-                      } else {
-                        navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
-                      }
-                    }}
+                    className="mb-4 flex w-full items-center gap-3 rounded-xl border border-line bg-surface-soft p-3 text-left transition-colors hover:border-accent/30"
+                    onClick={handleContactOwner}
                   >
-                    <div className="relative">
-                      <Avatar name={data.owner?.name ?? "Host"} size="lg" src={data.owner?.avatarUrl} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-h3 font-semibold text-ink leading-tight mt-0.5">
+                    <Avatar name={data.owner?.name ?? "Host"} size="lg" src={data.owner?.avatarUrl} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-caption text-ink-3">Hosted by</p>
+                      <h3 className="truncate text-h3 font-semibold text-ink">
                         {data.owner?.name ?? "Landlord"}
                       </h3>
                     </div>
-                    <span className="text-ink-3 text-sm">→</span>
+                    <span className="text-ink-3">→</span>
                   </button>
-
-                  {/* Engagement signal — only when real data exists */}
                   {data.interestCount !== undefined ? (
-                    <div className="space-y-3 mb-5">
-                      <div className="flex items-center gap-2 text-body-md text-ink-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                        <span>{data.interestCount} flatmates interested</span>
-                      </div>
-                    </div>
+                    <p className="mb-4 flex items-center gap-2 text-body-md text-ink-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                      {data.interestCount} flatmates interested
+                    </p>
                   ) : null}
-
-                  {/* Actions inside the host card */}
-                  <div className="flex flex-col gap-3">
-                    <Button fullWidth className="py-2.5 font-semibold" onClick={handleContactOwner}>
-                      Contact Owner
+                  <div className="flex flex-col gap-2.5">
+                    <Button fullWidth className="rounded-full font-semibold" onClick={handleContactOwner}>
+                      Contact owner
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="secondary"
+                      className="rounded-full"
+                      onClick={() => setIsShareOpen(true)}
+                    >
+                      Share listing
                     </Button>
                   </div>
                 </Card>
+              </div>
+            </div>
+
+            {/* Mobile sticky CTA — clear AppShell bottom nav when on /listing/* */}
+            <div
+              className={cn(
+                "fixed inset-x-0 z-[var(--z-sticky)] border-t border-line bg-surface/95 p-3 backdrop-blur-xl lg:hidden",
+                hasAppBottomNav
+                  ? "bottom-[calc(76px+env(safe-area-inset-bottom))]"
+                  : "bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+              )}
+            >
+              <div className="mx-auto flex max-w-7xl items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <PriceText value={data.price} variant="card" className="font-semibold text-ink" />
+                </div>
+                <Button className="shrink-0 rounded-full px-5" onClick={handleContactOwner}>
+                  Contact
+                </Button>
               </div>
             </div>
 
@@ -327,7 +371,8 @@ export default function ListingDetailClient() {
             />
           )}
         </div>
-      )}
+          );
+        }}
       </AsyncView>
     </main>
   );

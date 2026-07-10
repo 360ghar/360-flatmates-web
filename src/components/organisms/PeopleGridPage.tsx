@@ -116,7 +116,13 @@ export function PeopleGridPage<T>({
         isLoading={query.isLoading}
         error={query.error}
         isEmpty={(data) => data.length === 0}
-        loading={<Skeleton variant="profileGridCard" count={6} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" />}
+        loading={
+          <Skeleton
+            variant="profileGridCard"
+            count={10}
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5"
+          />
+        }
         empty={
           <EmptyState
             title={emptyTitle}
@@ -127,7 +133,7 @@ export function PeopleGridPage<T>({
       >
         {(data) => (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
               {data.map((item, i) => {
                 const peerId = getPeerId(item);
                 const profile = getProfileProps(item);
@@ -139,6 +145,7 @@ export function PeopleGridPage<T>({
                   >
                     <ProfileGridCard
                       profile={profile}
+                      density="compact"
                       ctaLabel={ctaLabel}
                       onOpen={(id) => navigate(`/profile/${id}`)}
                       onMatch={onCta ? () => onCta(item) : undefined}

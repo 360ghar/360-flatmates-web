@@ -96,13 +96,13 @@ export function SearchBar({
     <div className="relative w-full">
       <div
         className={cn(
-          "group flex h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3 text-ink shadow-xs focus-within:border-accent/50 focus-within:shadow-focus hover:border-accent/30",
+          "group flex h-12 items-center gap-2 rounded-full border border-line bg-surface px-4 text-ink shadow-sm focus-within:border-ink focus-within:shadow-md hover:shadow-md",
           interactiveMotion,
-          disabled && "bg-paper-4 text-ink-3",
+          disabled && "bg-surface-soft text-ink-3",
           className
         )}
       >
-        <span className="text-ink-3 group-focus-within:text-accent">
+        <span className="text-ink-3 group-focus-within:text-ink">
           {leadingIcon ?? <Search aria-hidden="true" className="h-5 w-5" />}
         </span>
         <input
@@ -127,7 +127,7 @@ export function SearchBar({
           <button
             type="button"
             aria-label="Clear search"
-            className={cn("rounded-[9px] p-1 text-ink-3 hover:bg-paper-2 hover:text-ink", focusRing)}
+            className={cn("rounded-full p-1 text-ink-3 hover:bg-surface-soft hover:text-ink", focusRing)}
             onClick={onClear}
           >
             <X aria-hidden="true" className="h-4 w-4" />
@@ -152,7 +152,7 @@ export function SearchBar({
                 role="option"
                 aria-selected={index === activeIndex}
                 className={cn(
-                  "rounded-[9px] px-3 py-2 text-left text-body-md text-ink hover:bg-accent-soft",
+                  "rounded-[8px] px-3 py-2 text-left text-body-md text-ink hover:bg-accent-soft",
                   index === activeIndex && "bg-accent-soft"
                 )}
                 key={query}
@@ -166,7 +166,7 @@ export function SearchBar({
           {onClearHistory ? (
             <button
               type="button"
-              className="mt-1 rounded-[9px] px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="mt-1 rounded-[8px] px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               onClick={onClearHistory}
             >
               Clear history

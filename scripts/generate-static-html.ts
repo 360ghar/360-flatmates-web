@@ -159,7 +159,7 @@ function generatePage(shell: ShellTemplate, route: RouteContent): string {
         <h1>${esc(route.h1)}</h1>
         ${route.bodyHtml}
         <p style="margin-top:24px"><a class="cta" href="/discover">Browse Verified Rooms</a></p>
-        <p style="margin-top:16px;font-size:12px;color:#756f65">Enable JavaScript for the full interactive experience.</p>
+        <p style="margin-top:16px;font-size:12px;color:#6a6a6a">Enable JavaScript for the full interactive experience.</p>
       </div>
     </noscript>
     <main id="main">

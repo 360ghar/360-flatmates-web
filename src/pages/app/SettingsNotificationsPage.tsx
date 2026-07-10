@@ -122,7 +122,7 @@ export function SettingsNotificationsPage() {
     return (
       <div className="flex flex-col gap-5 page-fade">
         <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-[9px]" />
+          <Skeleton className="h-10 w-10 rounded-[8px]" />
           <Skeleton className="h-8 w-48" />
         </div>
         <div className="rounded-2xl border border-line bg-surface">

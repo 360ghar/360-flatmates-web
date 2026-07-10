@@ -32,8 +32,8 @@ export function TestimonialsSection() {
               }
             >
               <div className="relative">
-                <span className="absolute -left-1 -top-6 select-none font-serif-italic text-7xl font-light text-accent/20" aria-hidden="true">&ldquo;</span>
-                <p className={index === 0 ? "relative z-10 max-w-2xl font-serif-italic text-3xl italic leading-snug text-ink md:text-4xl" : "relative z-10 text-body-lg leading-relaxed text-ink"}>
+                <span className="absolute -left-1 -top-6 select-none font-sans text-7xl font-light text-accent/20" aria-hidden="true">&ldquo;</span>
+                <p className={index === 0 ? "relative z-10 max-w-2xl font-sans text-3xl italic leading-snug text-ink md:text-4xl" : "relative z-10 text-body-lg leading-relaxed text-ink"}>
                   {testimonial.quote}
                 </p>
               </div>

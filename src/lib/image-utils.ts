@@ -193,10 +193,10 @@ let blurPlaceholdersCache: Record<BlurPlaceholderKey, string> | null = null;
 export function getBlurPlaceholders(): Record<BlurPlaceholderKey, string> {
   if (!blurPlaceholdersCache) {
     blurPlaceholdersCache = {
-      warm: generateBlurPlaceholder("#E8DCC8"),
-      neutral: generateBlurPlaceholder("#D4D0C8"),
-      avatar: generateBlurPlaceholder("#C8BFAA"),
-      city: generateBlurPlaceholder("#B8B0A0"),
+      warm: generateBlurPlaceholder("#f2f2f2"),
+      neutral: generateBlurPlaceholder("#e6e6e6"),
+      avatar: generateBlurPlaceholder("#dddddd"),
+      city: generateBlurPlaceholder("#cccccc"),
     };
   }
   return blurPlaceholdersCache;

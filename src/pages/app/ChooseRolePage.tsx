@@ -105,7 +105,7 @@ export function ChooseRolePage() {
           ))}
         </div>
         {/* Continue button */}
-        <Skeleton className="h-[52px] w-full rounded-[10px]" />
+        <Skeleton className="h-[52px] w-full rounded-[8px]" />
       </div>
     );
   }

@@ -123,7 +123,7 @@ function ListingCardSkeleton() {
             <div className={cn("h-3 w-20 rounded-md", shimmer)} />
           </div>
           {/* CTA button */}
-          <div className={cn("mt-2 h-[42px] w-full rounded-[10px]", shimmer)} />
+          <div className={cn("mt-2 h-[42px] w-full rounded-[8px]", shimmer)} />
         </div>
       </div>
     </div>
@@ -143,7 +143,7 @@ function ProfileGridCardSkeleton() {
         <div className={cn("h-[15px] w-3/5 rounded-sm", shimmer)} />
         <div className={cn("h-3 w-2/5 rounded-sm", shimmer)} />
         <div className={cn("h-3 w-1/4 rounded-sm", shimmer)} />
-        <div className={cn("mt-2 h-[42px] w-full rounded-[10px]", shimmer)} />
+        <div className={cn("mt-2 h-[42px] w-full rounded-[8px]", shimmer)} />
       </div>
     </div>
   );
@@ -183,7 +183,7 @@ function NotificationCardSkeleton() {
 /** Matches ConversationRow molecule — avatar + name/badge + preview + timestamp */
 function ConversationRowSkeleton() {
   return (
-    <div className="flex min-h-[72px] items-center gap-3 rounded-[9px] px-3 py-2">
+    <div className="flex min-h-[72px] items-center gap-3 rounded-[8px] px-3 py-2">
       <div className={cn("h-[52px] w-[52px] shrink-0 rounded-xl", shimmer)} />
       <div className="flex flex-1 flex-col gap-1.5 min-w-0">
         <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ function SwipeCardSkeleton() {
 /** SearchBar placeholder */
 function SearchBarSkeleton() {
   return (
-    <div className="flex h-12 items-center gap-2 rounded-[9px] border border-line bg-surface px-3">
+    <div className="flex h-12 items-center gap-2 rounded-[8px] border border-line bg-surface px-3">
       <div className={cn("h-5 w-5 rounded-sm", shimmer)} />
       <div className={cn("h-3.5 flex-1 rounded-sm", shimmer)} />
     </div>
@@ -456,8 +456,8 @@ function ListingDetailSkeleton() {
         </div>
         {/* Action bar */}
         <div className="flex gap-3">
-          <div className={cn("h-10 flex-1 rounded-[10px]", shimmer)} />
-          <div className={cn("h-10 flex-1 rounded-[10px]", shimmer)} />
+          <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
+          <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
         </div>
       </div>
     </div>
@@ -498,7 +498,7 @@ function PublicProfileSkeleton() {
         ))}
       </div>
       {/* CTA button */}
-      <div className={cn("h-[52px] w-full rounded-[10px]", shimmer)} />
+      <div className={cn("h-[52px] w-full rounded-[8px]", shimmer)} />
     </div>
   );
 }

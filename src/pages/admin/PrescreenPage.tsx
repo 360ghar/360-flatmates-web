@@ -181,8 +181,8 @@ export function PrescreenPage() {
               </div>
               {/* Action bar skeleton */}
               <div className="flex gap-3 pt-2">
-                <Skeleton className="h-10 flex-1 rounded-[10px]" />
-                <Skeleton className="h-10 flex-1 rounded-[10px]" />
+                <Skeleton className="h-10 flex-1 rounded-[8px]" />
+                <Skeleton className="h-10 flex-1 rounded-[8px]" />
               </div>
             </div>
           }

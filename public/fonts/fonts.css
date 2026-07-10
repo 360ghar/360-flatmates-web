@@ -1,20 +1,13 @@
 /* ── 360 Flatmates Font Definitions ──
-   Self-hosted Google Fonts (replaces next/font/google).
-   Uses font-display: swap to match the previous next/font behavior.
-   Google Fonts serves variable TTF; we reference as truetype for
-   broad browser compatibility.
+   Self-hosted fonts. Inter Variable (rsms/inter v4.1) is the production UI face.
+   Uses font-display: swap for progressive rendering.
+
+   IMPORTANT: Inter-Variable.ttf must be a real variable font with a `wght`
+   axis (100–900). A static single-master Thin/Light file named "variable"
+   will make every font-weight look thin site-wide.
 */
 
-/* ── Fraunces (variable) — Display / Headlines ── */
-@font-face {
-  font-family: "Fraunces";
-  src: url("./Fraunces-Variable.ttf") format("truetype");
-  font-weight: 300 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ── Inter (variable) — Body / UI ── */
+/* ── Inter (variable) — Body / UI / Headlines ── */
 @font-face {
   font-family: "Inter";
   src: url("./Inter-Variable.ttf") format("truetype");
@@ -23,7 +16,24 @@
   font-display: swap;
 }
 
-/* ── JetBrains Mono (variable) — Mono / Eyebrow ── */
+@font-face {
+  font-family: "Inter";
+  src: url("./Inter-Italic-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ── Fraunces — unused in product UI (all type maps to Inter). Kept for assets. ── */
+@font-face {
+  font-family: "Fraunces";
+  src: url("./Fraunces-Variable.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── JetBrains Mono — unused in product UI (mono maps to Inter). ── */
 @font-face {
   font-family: "JetBrains Mono";
   src: url("./JetBrainsMono-Variable.ttf") format("truetype");
@@ -32,7 +42,7 @@
   font-display: swap;
 }
 
-/* ── Instrument Serif (italic) — Italic Serif ── */
+/* ── Instrument Serif (italic) — optional accent; product uses Inter italic. ── */
 @font-face {
   font-family: "Instrument Serif";
   src: url("./InstrumentSerif-Italic.ttf") format("truetype");

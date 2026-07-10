@@ -508,7 +508,7 @@ export function LoginPage() {
   return (
     <>
       <SeoHelmet title="Sign In or Sign Up" description="Sign in to your 360 Flatmates account (or create one) to access compatible flatmate matches, verified listings, and in-app chat." canonicalUrl={`${SITE_URL}/login`} noindex />
-      <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Sign in or sign up</h1>
+      <h1 className="text-display text-3xl md:text-4xl text-ink tracking-tight">Sign in or sign up</h1>
       <p className="mt-2 text-body-md text-ink-2">
         Enter your email or phone to find your <span className="text-serif-italic text-accent italic font-normal text-[18px]">vibe match</span>. We&apos;ll create an account if you&apos;re new.
       </p>
@@ -722,7 +722,7 @@ export function LoginPage() {
           <button
             type="button"
             onClick={handleUseDifferentIdentifier}
-            className="mt-3 block w-full rounded-[9px] py-2 text-center text-caption text-ink-3 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-3 block w-full rounded-[8px] py-2 text-center text-caption text-ink-3 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
             disabled={submitting}
             aria-label="Use a different identifier"
           >

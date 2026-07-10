@@ -97,15 +97,13 @@ test("listing builder submits into moderation review", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Under Review" })).toBeVisible();
 });
 
-test("settings apply theme and palette tokens", async ({ page }) => {
+test("settings apply theme tokens", async ({ page }) => {
   await seedDevAuth(page);
   await page.goto("/settings/appearance");
 
   await expect(page.locator("#main").getByRole("heading", { name: "Appearance" })).toBeVisible();
   await page.getByRole("button", { name: /^Dark/i }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.getByRole("button", { name: /^Monsoon Teal/i }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-palette", "monsoon_teal");
 });
 
 test("admin moderation list links into prescreen and reports workflows", async ({ page }) => {

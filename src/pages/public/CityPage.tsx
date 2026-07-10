@@ -140,7 +140,7 @@ export function CityPage() {
             <h1 className="text-display text-white text-5xl md:text-6xl">{city.name}</h1>
             <p className="mt-4 max-w-xl text-body-lg text-white/90">{CITY_DESCRIPTIONS[city.slug]}</p>
             <div className="mt-6 flex gap-4">
-              <Link to="/discover" className={buttonClasses("primary", "tall") + " shadow-cta"}>
+              <Link to="/discover" className={buttonClasses("primary", "tall") + ""}>
                 Browse All Listings
               </Link>
               <Link to="/signup" className="text-label-lg text-white hover:text-accent transition-colors border-b border-white/50 hover:border-accent pb-1">
@@ -252,7 +252,7 @@ export function CityPage() {
             <h2 className="text-display">Ready to find your flatmate in {city.name}?</h2>
             <p className="mt-4 text-body-lg text-ink-2">Join thousands of professionals who found their perfect living match.</p>
             <div className="mt-8 flex justify-center gap-4">
-              <Link to="/signup" className={buttonClasses("primary", "tall") + " shadow-cta"}>
+              <Link to="/signup" className={buttonClasses("primary", "tall") + ""}>
                 Get Started Free
               </Link>
               <Link to="/discover" className="text-label-lg text-ink-2 hover:text-accent transition-colors border-b border-ink-4 hover:border-accent pb-1">

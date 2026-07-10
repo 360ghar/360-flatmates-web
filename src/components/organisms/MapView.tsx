@@ -318,9 +318,10 @@ export function MapView({
 
   const isDark = theme === "dark" || (theme === "system" && systemDark);
 
+  // Voyager = colored roads/parks/water (Google-like). dark_all keeps pin contrast at night.
   const tileUrl = isDark
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
   // Memoize icons to avoid re-creation on every render
   const pinIconMap = useMemo(() => {

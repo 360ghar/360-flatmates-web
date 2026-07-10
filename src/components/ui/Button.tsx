@@ -43,28 +43,33 @@ interface ButtonAsAnchorProps
 export type ButtonProps = ButtonAsButtonProps | ButtonAsAnchorProps;
 
 const variantClasses: Record<ButtonVariant, string> = {
+  /* Rausch primary — brand voltage for main CTAs.
+     Disabled uses primary-disabled (theme-aware) + muted ink text for contrast
+     in both light (soft pink fill) and dark (deep muted fill). */
   primary:
-    "bg-accent text-white shadow-cta hover:-translate-y-px hover:bg-accent/95 hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none",
+    "bg-accent text-white shadow-cta hover:-translate-y-px hover:bg-primary-active hover:shadow-hover disabled:bg-primary-disabled disabled:text-ink-2 disabled:shadow-none disabled:translate-y-0",
+  /* Ink secondary fill — Airbnb black button, distinct from Rausch */
   highlight:
-    "bg-action text-action-ink shadow-sm hover:-translate-y-px hover:bg-action-hover hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none",
+    "bg-action text-action-ink shadow-sm hover:-translate-y-px hover:bg-action-hover hover:shadow-hover disabled:bg-surface-soft disabled:text-ink-3 disabled:shadow-none disabled:translate-y-0",
   secondary:
-    "border-[1.5px] border-accent bg-transparent text-accent hover:bg-accent-soft disabled:border-line disabled:bg-transparent disabled:text-ink-3",
+    "border-[1.5px] border-ink bg-transparent text-ink hover:bg-surface-soft disabled:border-line disabled:bg-transparent disabled:text-ink-3",
   tertiary:
-    "bg-transparent text-accent shadow-none hover:bg-accent-soft hover:underline disabled:bg-transparent disabled:text-ink-3",
+    "bg-transparent text-ink shadow-none hover:bg-surface-soft hover:underline disabled:bg-transparent disabled:text-ink-3",
   icon:
-    "bg-transparent text-accent hover:bg-accent-soft disabled:bg-paper-4 disabled:text-ink-3",
+    "bg-transparent text-ink hover:bg-surface-soft disabled:bg-surface-soft disabled:text-ink-3",
   google:
-    "bg-google-bg text-google-text border border-google-border shadow-sm hover:bg-google-hover hover:shadow-md disabled:bg-paper-4 disabled:text-ink-3 disabled:border-transparent",
+    "bg-google-bg text-google-text border border-google-border shadow-sm hover:bg-google-hover hover:shadow-md disabled:bg-surface-soft disabled:text-ink-3 disabled:border-transparent",
   destructive:
-    "bg-error text-white shadow-cta hover:-translate-y-px hover:bg-error/95 hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none",
+    "bg-error text-white shadow-sm hover:-translate-y-px hover:bg-error/95 hover:shadow-hover disabled:bg-primary-disabled disabled:text-ink-2 disabled:shadow-none disabled:translate-y-0",
   inverted:
-    "bg-surface-elevated text-accent shadow-cta hover:-translate-y-px hover:bg-surface hover:shadow-hover disabled:bg-paper-4 disabled:text-ink-3 disabled:shadow-none"
+    "bg-surface-elevated text-accent shadow-sm hover:-translate-y-px hover:bg-surface hover:shadow-hover disabled:bg-surface-soft disabled:text-ink-3 disabled:shadow-none disabled:translate-y-0"
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  compact: "min-h-[var(--touch-min)] px-4 py-2 text-label-md",
-  default: "min-h-[var(--control-h-lg)] px-6 py-4 text-label-lg",
-  tall: "min-h-[var(--control-h-xl)] px-6 py-4 text-label-lg",
+  /* Sentence-case body labels (Airbnb) — not uppercase label-lg */
+  compact: "min-h-[var(--touch-min)] px-4 py-2 text-body-md font-medium normal-case tracking-normal",
+  default: "min-h-[var(--control-h-lg)] px-6 py-3.5 text-body-md font-medium normal-case tracking-normal",
+  tall: "min-h-[var(--control-h-xl)] px-6 py-4 text-body-lg font-medium normal-case tracking-normal",
   icon: "h-10 w-10 p-2"
 };
 
@@ -79,7 +84,7 @@ const sizeClasses: Record<ButtonSize, string> = {
 // buttons grow along the main axis of `flex-col` containers (stretching them
 // vertically in stacked forms), a regression for the many auth/form layouts.
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold active:scale-[0.97]";
+  "inline-flex items-center justify-center gap-2 rounded-[8px] font-medium active:scale-[0.97]";
 
 /** Shared classes for Link elements that should look like a Button. */
 export function buttonClasses(

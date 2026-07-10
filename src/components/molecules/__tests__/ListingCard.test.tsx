@@ -37,4 +37,14 @@ describe("ListingCard", () => {
     expect(onOpen).toHaveBeenCalledTimes(1);
     expect(onOpen).toHaveBeenCalledWith("listing-1");
   });
+
+  it("uses media Card variant for elevated photo-first layout", () => {
+    const { container } = render(<ListingCard listing={listing} onOpen={vi.fn()} />);
+    const article = container.querySelector("article");
+    expect(article).toBeTruthy();
+    expect(article!.className).toMatch(/p-0/);
+    expect(article!.className).toMatch(/shadow-sm/);
+    expect(article!.className).toMatch(/bg-surface/);
+    expect(article!.className).not.toMatch(/bg-transparent/);
+  });
 });

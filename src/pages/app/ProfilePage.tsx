@@ -287,20 +287,25 @@ export function ProfilePage() {
 
       {/* Header card: profile-dependent */}
       {hasProfile ? (
-        <Card className="flex flex-col items-center gap-4 p-6 text-center">
-          <div className="flex flex-col items-center gap-2">
-            <Avatar
-              name={profile.full_name}
-              size="xl"
-              src={photoPreview ?? profile.profile_image_url ?? null}
-              editable
-              onEdit={() => {
-                if (!photoUploading) handlePhotoUpload();
-              }}
-            />
-            {photoUploading && (
-              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin text-ink-2" />
-            )}
+        <Card variant="media" className="relative border-line shadow-md">
+          <div className="h-20 bg-gradient-to-br from-accent-soft via-lavender to-surface-soft sm:h-24" aria-hidden="true" />
+          <div className="-mt-12 flex flex-col items-center gap-3 px-5 pb-6 text-center sm:-mt-14">
+            <div className="relative rounded-2xl ring-4 ring-surface shadow-md">
+              <Avatar
+                name={profile.full_name}
+                size="xl"
+                src={photoPreview ?? profile.profile_image_url ?? null}
+                editable
+                onEdit={() => {
+                  if (!photoUploading) handlePhotoUpload();
+                }}
+              />
+              {photoUploading && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surface/60">
+                  <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin text-accent" />
+                </div>
+              )}
+            </div>
             {profile.profile_image_url && (
               <Button
                 size="compact"
@@ -312,39 +317,82 @@ export function ProfilePage() {
                 Remove photo
               </Button>
             )}
-          </div>
-          <div>
-            <h1 className="text-h1">{profile.full_name}</h1>
-            {profile.profession && (
-              <p className="text-body-md text-ink-2 mt-1">{profile.profession}</p>
-            )}
-            <div className="flex items-center justify-center gap-2 mt-2">
-              {profile.mode && <Badge mode={profile.mode} variant="mode" />}
-              <TrustBadge variant="verified" />
-            </div>
-          </div>
-
-          {!profile.onboarding_completed && (
-            <div className="w-full mt-2 bg-accent-soft/30 border border-accent/10 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <ProgressRing size="lg" value={onboardingProgress} label="Profile completion" />
-                <div>
-                  <h3 className="text-body-md font-semibold text-ink">Complete your profile</h3>
-                  <p className="text-caption text-ink-3 mt-0.5">
-                    Your profile is {Math.round(onboardingProgress)}% complete. Complete it to find compatible matches.
-                  </p>
-                </div>
+            <div>
+              <h1 className="text-h1">{profile.full_name}</h1>
+              {profile.profession && (
+                <p className="mt-1 text-body-md text-ink-2">{profile.profession}</p>
+              )}
+              {(profile.city || profile.locality) && (
+                <p className="mt-1 text-caption text-ink-3">
+                  {[profile.locality, profile.city].filter(Boolean).join(", ")}
+                </p>
+              )}
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                {profile.mode && <Badge mode={profile.mode} variant="mode" />}
+                <TrustBadge variant="verified" />
               </div>
-              <Button
-                size="compact"
-                variant="primary"
-                onClick={() => navigate("/onboarding")}
-                className="w-full sm:w-auto shrink-0"
-              >
-                Complete Profile
-              </Button>
             </div>
-          )}
+
+            {/* Lifestyle strip when dimensions exist */}
+            {(profile.sleep_schedule ||
+              profile.cleanliness ||
+              profile.food_habits ||
+              profile.work_style) && (
+              <div className="mt-1 flex w-full flex-wrap justify-center gap-1.5">
+                {profile.sleep_schedule && (
+                  <span className="rounded-full bg-purple-soft px-2.5 py-1 text-caption font-medium text-purple-ink">
+                    {profile.sleep_schedule.replace(/_/g, " ")}
+                  </span>
+                )}
+                {profile.cleanliness && (
+                  <span className="rounded-full bg-blue-soft px-2.5 py-1 text-caption font-medium text-blue-ink">
+                    {profile.cleanliness.replace(/_/g, " ")}
+                  </span>
+                )}
+                {profile.food_habits && (
+                  <span className="rounded-full bg-green-soft px-2.5 py-1 text-caption font-medium text-green-ink">
+                    {profile.food_habits.replace(/_/g, " ")}
+                  </span>
+                )}
+                {profile.work_style && (
+                  <span className="rounded-full bg-teal-soft px-2.5 py-1 text-caption font-medium text-teal-ink">
+                    {profile.work_style.replace(/_/g, " ")}
+                  </span>
+                )}
+              </div>
+            )}
+
+            <Button
+              size="compact"
+              className="mt-1 rounded-full px-5"
+              onClick={() => navigate("/profile/edit")}
+              leadingIcon={<Pencil aria-hidden="true" className="h-4 w-4" />}
+            >
+              Edit profile
+            </Button>
+
+            {!profile.onboarding_completed && (
+              <div className="mt-2 flex w-full flex-col items-center justify-between gap-4 rounded-2xl border border-accent/15 bg-accent-soft/40 p-4 text-center sm:flex-row sm:p-5 sm:text-left">
+                <div className="flex flex-col items-center gap-4 sm:flex-row">
+                  <ProgressRing size="lg" value={onboardingProgress} label="Profile completion" />
+                  <div>
+                    <h3 className="text-body-md font-semibold text-ink">Complete your profile</h3>
+                    <p className="mt-0.5 text-caption text-ink-3">
+                      {Math.round(onboardingProgress)}% done — finish to get better matches.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="compact"
+                  variant="primary"
+                  onClick={() => navigate("/onboarding")}
+                  className="w-full shrink-0 rounded-full sm:w-auto"
+                >
+                  Continue
+                </Button>
+              </div>
+            )}
+          </div>
         </Card>
       ) : (
         <Card className="flex flex-col items-center gap-3 p-6 text-center">
@@ -356,24 +404,13 @@ export function ProfilePage() {
         </Card>
       )}
 
-      {/* Profile section: profile-dependent */}
-      {hasProfile && (
-        <Card className="divide-y divide-line p-0">
-          <MenuItemRow
-            icon={Pencil}
-            label="Edit Profile"
-            description="Update your name, bio, and preferences"
-            onClick={() => navigate("/profile/edit")}
-            isLast
-          />
-        </Card>
-      )}
-
       {/* Activity section: profile-dependent */}
       {hasProfile && (
-        <>
-          <h2 className="text-label-md text-ink-3 mt-2 px-1">Activity</h2>
-          <Card className="divide-y divide-line p-0">
+        <section>
+          <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+            Activity
+          </h2>
+          <Card variant="media" className="divide-y divide-line border-line shadow-sm">
             <MenuItemRow
               icon={Heart}
               label="Likes"
@@ -388,12 +425,15 @@ export function ProfilePage() {
               isLast
             />
           </Card>
-        </>
+        </section>
       )}
 
       {/* Preferences: always visible */}
-      <h2 className="text-label-md text-ink-3 mt-2 px-1">Preferences</h2>
-      <Card className="divide-y divide-line p-0">
+      <section>
+      <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+        Preferences
+      </h2>
+      <Card variant="media" className="divide-y divide-line border-line shadow-sm">
         <MenuItemRow
           icon={Bell}
           label="Notifications"
@@ -429,18 +469,21 @@ export function ProfilePage() {
         ) : null}
       </Card>
 
-      {/* Inline theme toggle */}
-      <Card className="flex items-center justify-between gap-4 p-5">
+      </section>
+
+      <Card className="flex items-center justify-between gap-4 border-line p-5 shadow-sm">
         <div>
           <h2 className="text-h3">Theme</h2>
-          <p className="text-caption text-ink-3 mt-0.5">Switch between light and dark mode</p>
+          <p className="mt-0.5 text-caption text-ink-3">Light, dark, or system</p>
         </div>
         <ThemeToggle size="md" />
       </Card>
 
-      {/* Privacy & Safety */}
-      <h2 className="text-label-md text-ink-3 mt-2 px-1">Privacy & Safety</h2>
-      <Card className="divide-y divide-line p-0">
+      <section>
+      <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+        Privacy & safety
+      </h2>
+      <Card variant="media" className="divide-y divide-line border-line shadow-sm">
         <MenuItemRow
           icon={Shield}
           label="Blocked Users"
@@ -453,10 +496,13 @@ export function ProfilePage() {
           onClick={() => navigate("/settings/report-problem")}
         />
       </Card>
+      </section>
 
-      {/* Account */}
-      <h2 className="text-label-md text-ink-3 mt-2 px-1">Account</h2>
-      <Card className="divide-y divide-line p-0">
+      <section>
+      <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+        Account
+      </h2>
+      <Card variant="media" className="divide-y divide-line border-line shadow-sm">
         <MenuItemRow
           icon={LogOut}
           label="Sign Out"
@@ -471,6 +517,7 @@ export function ProfilePage() {
           onClick={() => setShowDeleteDialog(true)}
         />
       </Card>
+      </section>
 
       {/* Sign Out Confirmation */}
       <Modal

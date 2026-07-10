@@ -10,8 +10,8 @@ import { getAuthState } from "@/lib/api/auth";
 import { refreshAccessToken } from "@/lib/auth/refresh";
 import { authStore } from "@/lib/stores/auth-store";
 import { useStore } from "zustand";
-import { normalizePalettePreference, uiStore } from "@/lib/stores/ui-store";
-import type { PalettePreference, ThemePreference } from "@/lib/stores/ui-store";
+import { uiStore } from "@/lib/stores/ui-store";
+import type { ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { onboardingStore } from "@/lib/stores/onboarding-store";
 import { Toast, ToastViewport } from "@/components/ui/Toast";
@@ -88,23 +88,13 @@ function ProviderInternals({
       }
     };
 
-    const applyPalette = (palette: PalettePreference) => {
-      document.documentElement.dataset.palette = normalizePalettePreference(palette);
-    };
-
     applyTheme(uiStore.getState().theme);
-    applyPalette(uiStore.getState().palette);
 
     let prevTheme = uiStore.getState().theme;
-    let prevPalette = uiStore.getState().palette;
     const unsub = uiStore.subscribe((state) => {
       if (state.theme !== prevTheme) {
         prevTheme = state.theme;
         applyTheme(state.theme);
-      }
-      if (state.palette !== prevPalette) {
-        prevPalette = state.palette;
-        applyPalette(state.palette);
       }
     });
 

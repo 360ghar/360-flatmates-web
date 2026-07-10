@@ -305,7 +305,7 @@ export function ComparisonPage() {
           <p className="mt-3 text-body-lg text-ink-2">
             Join thousands who've found compatible flatmates through our platform.
           </p>
-          <Link to="/signup" className={buttonClasses("primary", "tall") + " mt-6 shadow-cta"}>
+          <Link to="/signup" className={buttonClasses("primary", "tall") + " mt-6"}>
             {comparison.ctaText}
           </Link>
         </div>

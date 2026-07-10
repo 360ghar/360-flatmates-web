@@ -262,9 +262,9 @@ export function ModerationReportsPage() {
                     </div>
                     <Skeleton className="h-3 w-1/3" />
                     <div className="flex gap-2">
-                      <Skeleton className="h-8 w-20 rounded-[10px]" />
-                      <Skeleton className="h-8 w-16 rounded-[10px]" />
-                      <Skeleton className="h-8 w-20 rounded-[10px]" />
+                      <Skeleton className="h-8 w-20 rounded-[8px]" />
+                      <Skeleton className="h-8 w-16 rounded-[8px]" />
+                      <Skeleton className="h-8 w-20 rounded-[8px]" />
                     </div>
                   </div>
                 </div>
@@ -366,11 +366,11 @@ export function ModerationReportsPage() {
               </p>
               <p className="mt-1 text-ink-2">
                 To confirm, type{" "}
-                <span className="font-mono font-semibold text-ink">
+                <span className="font-sans font-semibold text-ink">
                   {selectedReport.reported_name}
                 </span>{" "}
                 or{" "}
-                <span className="font-mono font-semibold text-ink">SUSPEND</span>{" "}
+                <span className="font-sans font-semibold text-ink">SUSPEND</span>{" "}
                 below.
               </p>
             </div>

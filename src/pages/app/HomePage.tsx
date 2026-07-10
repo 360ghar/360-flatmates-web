@@ -99,13 +99,16 @@ export function HomePage() {
 
   return (
     <div className="flex flex-col gap-6 page-fade">
-      <div className="relative overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-6 shadow-hard-paper md:grid md:grid-cols-2 md:items-center md:gap-6 md:p-8">
-        <div className="absolute inset-0 map-grid-bg opacity-20" aria-hidden="true" />
+      <div className="relative overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-6 md:grid md:grid-cols-2 md:items-center md:gap-6 md:p-8">
+        <div className="absolute inset-0 map-grid-bg opacity-30" aria-hidden="true" />
 
         <div className="relative z-[1]">
-          <p className="text-label-md font-semibold text-accent">Dashboard</p>
-          <h1 className="mt-2 text-display text-3xl md:text-4xl text-ink font-normal leading-tight">
-            Welcome back, <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">{profile?.full_name?.trim().split(/\s+/)[0] || "Friend"}</span>
+          <p className="text-eyebrow">Dashboard</p>
+          <h1 className="mt-2 text-h1 text-ink leading-tight">
+            Welcome back,{" "}
+            <span className="text-serif-italic text-accent">
+              {profile?.full_name?.trim().split(/\s+/)[0] || "Friend"}
+            </span>
           </h1>
           <p className="mt-3 text-body-md text-ink-2 max-w-[65ch]">
             Your recommendations, listings, and nearby flatmates are ready to review.
@@ -176,7 +179,7 @@ export function HomePage() {
                 <Skeleton className="h-4 w-32 rounded-full" />
                 <Skeleton className="h-3 w-14 rounded-full" />
               </div>
-              <div className="flex gap-4 overflow-hidden lg:grid lg:grid-cols-2 xl:grid-cols-3">
+              <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {section === "New Listings"
                   ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} variant="listingCard" />)
                   : Array.from({ length: 3 }, (_, i) => <Skeleton key={i} variant="profileGridCard" />)}

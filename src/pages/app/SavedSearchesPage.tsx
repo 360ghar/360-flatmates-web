@@ -261,8 +261,8 @@ export function SavedSearchesPage() {
                   <Skeleton className="mt-1 h-3 w-24" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Skeleton className="h-9 w-9 rounded-[9px]" />
-                  <Skeleton className="h-9 w-9 rounded-[9px]" />
+                  <Skeleton className="h-9 w-9 rounded-[8px]" />
+                  <Skeleton className="h-9 w-9 rounded-[8px]" />
                 </div>
               </div>
             ))}

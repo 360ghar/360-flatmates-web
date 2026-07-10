@@ -108,7 +108,7 @@ export function AddPhonePage() {
         className="mb-6"
       />
 
-      <h1 className="text-display text-3xl md:text-4xl text-ink font-normal tracking-tight">Add your phone</h1>
+      <h1 className="text-display text-3xl md:text-4xl text-ink tracking-tight">Add your phone</h1>
       <p className="mt-2 text-body-md text-ink-2">
         Add a verified phone so flatmates can reach you. You can always do this <span className="text-serif-italic text-accent italic font-normal text-[18px]">later</span>.
       </p>
@@ -199,7 +199,7 @@ export function AddPhonePage() {
       <button
         type="button"
         onClick={handleSkip}
-        className={`mt-6 w-full rounded-[9px] py-2 text-center text-body-md text-ink-3 hover:text-accent transition-colors ${focusRing}`}
+        className={`mt-6 w-full rounded-[8px] py-2 text-center text-body-md text-ink-3 hover:text-accent transition-colors ${focusRing}`}
       >
         Skip for now
       </button>

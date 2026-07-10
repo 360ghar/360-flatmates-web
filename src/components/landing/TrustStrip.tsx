@@ -36,7 +36,7 @@ export function TrustStrip() {
       className="bg-paper px-5 py-5 md:px-12"
       aria-label="Platform trust signals"
     >
-      <div className="mx-auto max-w-7xl rounded-[var(--radius-promo)] border border-line-low bg-surface p-3 shadow-hard-paper">
+      <div className="mx-auto max-w-7xl rounded-[var(--radius-promo)] border border-line-low bg-surface p-3">
         <div className="grid gap-2 lg:grid-cols-[1.15fr_2.85fr] lg:items-center">
           <div className="rounded-2xl bg-paper px-5 py-4">
             <p className="text-body-lg font-semibold text-ink">Built for real shared living decisions.</p>

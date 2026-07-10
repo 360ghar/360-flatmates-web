@@ -477,7 +477,7 @@ export function PostPage() {
             <label className="flex flex-col gap-1.5">
               <span className="text-label-md text-ink-2">Description</span>
               <textarea
-                className="min-h-[100px] w-full resize-y rounded-[9px] border border-line bg-surface px-3 py-2.5 text-body-md text-ink placeholder:text-ink-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="min-h-[100px] w-full resize-y rounded-[8px] border border-line bg-surface px-3 py-2.5 text-body-md text-ink placeholder:text-ink-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 placeholder="Describe your listing..."
                 value={form.description ?? ""}
                 onChange={(e) => patchForm({ description: e.target.value })}
@@ -664,7 +664,7 @@ export function PostPage() {
                     <button
                       type="button"
                       onClick={() => retryImage(img.id)}
-                      className="absolute bottom-2 right-2 min-h-9 rounded-[9px] bg-surface px-3 py-1.5 text-caption font-semibold text-accent shadow-sm hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className="absolute bottom-2 right-2 min-h-9 rounded-[8px] bg-surface px-3 py-1.5 text-caption font-semibold text-accent shadow-sm hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     >
                       Retry
                     </button>

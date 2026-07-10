@@ -228,9 +228,9 @@ export function ModerationListingsPage() {
                       </div>
                       <Skeleton className="h-4 w-1/5" />
                       <div className="flex gap-2">
-                        <Skeleton className="h-8 w-18 rounded-[10px]" />
-                        <Skeleton className="h-8 w-16 rounded-[10px]" />
-                        <Skeleton className="h-8 w-16 rounded-[10px]" />
+                        <Skeleton className="h-8 w-18 rounded-[8px]" />
+                        <Skeleton className="h-8 w-16 rounded-[8px]" />
+                        <Skeleton className="h-8 w-16 rounded-[8px]" />
                       </div>
                     </div>
                   </div>

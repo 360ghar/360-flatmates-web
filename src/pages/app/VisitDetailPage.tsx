@@ -154,8 +154,8 @@ export function VisitDetailPage() {
         </div>
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Skeleton className="h-[52px] flex-1 rounded-[10px]" />
-          <Skeleton className="h-[52px] flex-1 rounded-[10px]" />
+          <Skeleton className="h-[52px] flex-1 rounded-[8px]" />
+          <Skeleton className="h-[52px] flex-1 rounded-[8px]" />
         </div>
       </div>
     );
@@ -420,7 +420,7 @@ export function VisitDetailPage() {
             id="reschedule-date"
             type="date"
             className={cn(
-              "h-12 w-full rounded-[9px] border bg-surface px-3 text-body-md text-ink focus:shadow-focus focus:outline-none",
+              "h-12 w-full rounded-[8px] border bg-surface px-3 text-body-md text-ink focus:focus:outline-none",
               rescheduleInvalid ? "border-error focus:border-error" : "border-line focus:border-accent"
             )}
             value={newDate}

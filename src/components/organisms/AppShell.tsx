@@ -298,7 +298,7 @@ export function AppShell({
           <PrefetchLink
             to="/profile"
             className={cn(
-              "mb-3 flex items-center gap-3 rounded-[12px] p-2 hover:bg-lavender",
+              "mb-3 flex items-center gap-3 rounded-[12px] p-2 hover:bg-surface-soft",
               focusRing,
               collapsed && "justify-center"
             )}
@@ -388,13 +388,13 @@ export function AppShell({
             to="/search"
             aria-label="Search"
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-[12px] text-ink-3 hover:bg-lavender hover:text-ink md:hidden",
+              "flex h-10 w-10 items-center justify-center rounded-[12px] text-ink-3 hover:bg-surface-soft hover:text-ink md:hidden",
               focusRing
             )}
           >
             <Search aria-hidden="true" className="h-5 w-5" />
           </PrefetchLink>
-          <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-10 w-10 items-center justify-center rounded-[12px] text-ink-3 hover:bg-lavender hover:text-ink", focusRing)}>
+          <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-10 w-10 items-center justify-center rounded-[12px] text-ink-3 hover:bg-surface-soft hover:text-ink", focusRing)}>
             <span className="relative">
               <Bell aria-hidden="true" className="h-5 w-5" />
               {unreadCount > 0 ? (
@@ -421,7 +421,7 @@ export function AppShell({
                 aria-haspopup="dialog"
                 aria-expanded={moreOpen}
                 className={cn(
-                  "flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-[12px] px-1 py-1 text-ink-3 hover:bg-lavender hover:text-ink",
+                  "flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-[12px] px-1 py-1 text-ink-3 hover:bg-surface-soft hover:text-ink",
                   focusRing,
                   moreOpen && "bg-accent-soft text-accent"
                 )}
@@ -449,7 +449,7 @@ export function AppShell({
               to={item.href}
               onClick={() => setMoreOpen(false)}
               className={cn(
-                "flex min-h-[44px] items-center gap-3 rounded-[12px] px-3 py-2.5 text-body-md text-ink-2 hover:bg-lavender hover:text-ink",
+                "flex min-h-[44px] items-center gap-3 rounded-[12px] px-3 py-2.5 text-body-md text-ink-2 hover:bg-surface-soft hover:text-ink",
                 focusRing,
                 isActive(item.href) && "bg-accent-soft text-accent"
               )}
@@ -490,7 +490,7 @@ function ShellNavLink({
       aria-current={active ? "page" : undefined}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "relative flex items-center gap-3 rounded-[12px] text-ink-3 hover:bg-lavender hover:text-ink",
+        "relative flex items-center gap-3 rounded-[12px] text-ink-3 hover:bg-surface-soft hover:text-ink",
         focusRing,
         active && "bg-accent-soft text-accent",
         collapsed

@@ -435,7 +435,7 @@ function HintRow({
         <span>{label}</span>
       </span>
       {kbd ? (
-        <kbd className="rounded-md border border-line bg-paper-2 px-2 py-0.5 font-mono text-caption text-ink-2">
+        <kbd className="rounded-md border border-line bg-paper-2 px-2 py-0.5 font-sans text-caption text-ink-2">
           {kbd}
         </kbd>
       ) : null}
@@ -554,7 +554,7 @@ function MatchCelebration({
           </div>
 
           <div>
-            <h2 className="text-display text-4xl text-ink font-normal leading-none">
+            <h2 className="text-display text-4xl text-ink leading-none">
               It&apos;s a <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">Match!</span>
             </h2>
             <p className="mt-3 text-body-md text-ink-2 px-4 leading-relaxed">

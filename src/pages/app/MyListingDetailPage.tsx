@@ -123,8 +123,8 @@ export function MyListingDetailPage() {
     return (
       <div className="flex flex-col gap-5 page-fade">
         <div className="flex items-center justify-between">
-          <Skeleton className="h-9 w-9 rounded-[9px]" />
-          <Skeleton className="h-8 w-16 rounded-[10px]" />
+          <Skeleton className="h-9 w-9 rounded-[8px]" />
+          <Skeleton className="h-8 w-16 rounded-[8px]" />
         </div>
         <Skeleton variant="listingCard" />
         <Card className="p-5">

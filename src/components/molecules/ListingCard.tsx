@@ -1,9 +1,8 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { Bath, BedDouble, MapPin, Maximize2, Users } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
-import { Chip } from "../ui/Chip";
 import { NetworkImage } from "../ui/NetworkImage";
 import { PriceText } from "../ui/PriceText";
 import { ProgressRing } from "../ui/ProgressRing";
@@ -39,6 +38,36 @@ export interface ListingCardProps extends Omit<HTMLAttributes<HTMLElement>, "tit
   layout?: "vertical" | "horizontal";
 }
 
+/** Colored meta chips — mobile discover_listing_card palette */
+function MetaChip({
+  icon,
+  label,
+  tone,
+}: {
+  icon: ReactNode;
+  label: string;
+  tone: "blue" | "teal" | "purple" | "green" | "orange";
+}) {
+  const tones: Record<typeof tone, string> = {
+    blue: "bg-blue-soft text-blue-ink",
+    teal: "bg-teal-soft text-teal-ink",
+    purple: "bg-purple-soft text-purple-ink",
+    green: "bg-green-soft text-green-ink",
+    orange: "bg-orange-soft text-orange-ink",
+  };
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-medium",
+        tones[tone]
+      )}
+    >
+      {icon}
+      {label}
+    </span>
+  );
+}
+
 export function ListingCard({
   listing,
   ctaLabel = "Contact",
@@ -50,119 +79,133 @@ export function ListingCard({
 }: ListingCardProps) {
   const location = formatLocation(listing.locality, listing.city);
   const extraFeatures = listing.features ? Math.max(0, listing.features.length - 2) : 0;
-
   const isHorizontal = layout === "horizontal";
 
   return (
     <Card
       as="article"
+      variant="media"
       interactive={Boolean(onOpen)}
       className={cn(
+        // media variant: p-0 + surface + shadow (no class fight with cn())
+        "group hover:shadow-hover",
         isHorizontal
-          ? "group grid gap-4 p-4 lg:grid-cols-[180px_minmax(0,1fr)] border border-line bg-surface hover:shadow-md hover:border-accent/20 transition-all duration-300"
-          : "group flex flex-col gap-4 p-4 border border-line bg-surface hover:shadow-md hover:border-accent/20 transition-all duration-300",
+          ? "grid gap-0 lg:grid-cols-[200px_minmax(0,1fr)]"
+          : "flex flex-col gap-0",
         className
       )}
       onClick={() => onOpen?.(listing.id)}
       {...props}
     >
-      {/* Image section */}
+      {/* Image — full-bleed top */}
       <div
         className={cn(
           isHorizontal
-            ? "relative aspect-[16/10] overflow-hidden rounded-xl md:aspect-[0.9] bg-paper-2 shrink-0"
-            : "relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-paper-2 shrink-0"
+            ? "relative aspect-[4/3] overflow-hidden bg-surface-soft shrink-0 lg:aspect-auto lg:min-h-full lg:rounded-none"
+            : "relative aspect-[20/19] w-full overflow-hidden bg-surface-soft shrink-0"
         )}
       >
         <NetworkImage
           alt={listing.title}
           src={listing.imageUrl}
           width={600}
-          wrapperClassName="h-full w-full rounded-xl"
-          className="group-hover:scale-105 transition-transform duration-700 ease-out"
+          wrapperClassName="h-full w-full rounded-none"
+          className="group-hover:scale-[1.03] transition-transform duration-500 ease-out"
         />
-        {/* Subtle bottom gradient for depth */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
 
-        {/* Compatibility ring */}
         {listing.compatibilityScore !== undefined ? (
-          <div className="absolute bottom-2 right-2 rounded-full bg-surface/95 px-2 py-0.5 shadow-xs backdrop-blur-sm border border-line-low flex items-center gap-1.5">
-            <span className="text-[9px] uppercase font-mono tracking-wider text-ink-3">Score</span>
-            <ProgressRing value={listing.compatibilityScore} size="sm" showValue={true} label="Compatibility score" />
+          <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full border border-white/40 bg-surface/95 px-2 py-0.5 shadow-sm backdrop-blur-sm">
+            <span className="text-[9px] font-sans uppercase tracking-wider text-ink-3">Score</span>
+            <ProgressRing
+              value={listing.compatibilityScore}
+              size="sm"
+              showValue={true}
+              label="Compatibility score"
+            />
           </div>
         ) : null}
       </div>
 
-      {/* Content section */}
-      <div className="flex min-w-0 flex-col gap-2.5 flex-1">
-        {/* Price + Title */}
+      {/* Meta band on surface */}
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col gap-2 bg-surface",
+          isHorizontal ? "p-3.5" : "p-3.5 pt-3"
+        )}
+      >
         <div className="min-w-0">
-          <PriceText value={listing.price} variant="card" className="text-ink font-serif font-normal text-lg" />
-          <h3 className="mt-0.5 line-clamp-1 text-body-md font-sans font-semibold text-ink group-hover:text-accent transition-colors duration-300">
+          <PriceText
+            value={listing.price}
+            variant="card"
+            className="text-ink font-sans text-base font-semibold tabular-nums"
+          />
+          <h3 className="mt-0.5 line-clamp-1 text-body-md font-semibold text-ink">
             {listing.title}
           </h3>
+          <p className="mt-1 flex items-center gap-1 text-caption text-ink-3">
+            <MapPin aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-ink-4" />
+            <span className="truncate">{location}</span>
+          </p>
         </div>
 
-        {/* Location */}
-        <p className="flex items-center gap-1.5 text-body-md text-ink-2">
-          <MapPin aria-hidden="true" className="h-4 w-4 shrink-0 text-accent" />
-          <span className="truncate">{location}</span>
-        </p>
-
-        {/* Info pills: beds, baths, area */}
         <div className="flex flex-wrap gap-1.5">
           {listing.beds !== undefined ? (
-            <Chip aria-label={`${listing.beds} beds`} variant="info" className="bg-paper-2/60 border-0">
-              <BedDouble aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
-              <span className="text-ink">{listing.beds} Bed</span>
-            </Chip>
+            <MetaChip
+              tone="blue"
+              icon={<BedDouble aria-hidden="true" className="h-3 w-3" />}
+              label={`${listing.beds} Bed`}
+            />
           ) : null}
           {listing.baths !== undefined ? (
-            <Chip aria-label={`${listing.baths} baths`} variant="info" className="bg-paper-2/60 border-0">
-              <Bath aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
-              <span className="text-ink">{listing.baths} Bath</span>
-            </Chip>
+            <MetaChip
+              tone="teal"
+              icon={<Bath aria-hidden="true" className="h-3 w-3" />}
+              label={`${listing.baths} Bath`}
+            />
           ) : null}
           {listing.areaSqFt !== undefined ? (
-            <Chip aria-label={`${listing.areaSqFt} square feet`} variant="info" className="bg-paper-2/60 border-0">
-              <Maximize2 aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
-              <span className="text-ink">{listing.areaSqFt} sq ft</span>
-            </Chip>
+            <MetaChip
+              tone="purple"
+              icon={<Maximize2 aria-hidden="true" className="h-3 w-3" />}
+              label={`${listing.areaSqFt} sq ft`}
+            />
           ) : null}
         </div>
 
-        {/* Feature chips: max 2 visible + "+N more" */}
         {listing.features && listing.features.length > 0 ? (
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {listing.features.slice(0, 2).map((feature) => (
-              <Chip key={feature} variant="info" className="bg-paper/40 border-[0.5px] border-line">
+              <span
+                key={feature}
+                className="rounded-full border border-line bg-surface-soft px-2 py-0.5 text-caption text-ink-2"
+              >
                 {feature}
-              </Chip>
+              </span>
             ))}
-            {extraFeatures > 0 && (
-              <span className="text-label-md text-ink-3 font-normal">+{extraFeatures} more</span>
-            )}
+            {extraFeatures > 0 ? (
+              <span className="text-caption text-ink-3">+{extraFeatures} more</span>
+            ) : null}
           </div>
         ) : null}
 
-        {/* Description */}
         {listing.description ? (
-          <p className="line-clamp-2 text-body-md text-ink-2 leading-relaxed mt-0.5">{listing.description}</p>
+          <p className="line-clamp-2 text-caption leading-relaxed text-ink-3">
+            {listing.description}
+          </p>
         ) : null}
 
-        {/* Owner row + CTA */}
-        <div className="mt-auto flex items-center justify-between gap-3 pt-2 border-t border-line-low">
+        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
           {listing.owner ? (
             <div className="flex min-w-0 items-center gap-2">
-              <div className="relative shrink-0">
-                <Avatar name={listing.owner.name} size="compact" src={listing.owner.avatarUrl} />
-                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-surface" />
-              </div>
+              <Avatar name={listing.owner.name} size="compact" src={listing.owner.avatarUrl} />
               <div className="min-w-0">
-                <p className="truncate text-caption font-semibold text-ink leading-tight">{listing.owner.name}</p>
+                <p className="truncate text-caption font-medium leading-tight text-ink-2">
+                  {listing.owner.name}
+                </p>
                 {listing.interestCount !== undefined ? (
-                  <p className="flex items-center gap-1 text-caption text-ink-3 mt-0.5">
-                    <Users aria-hidden="true" className="h-3.5 w-3.5" />
+                  <p className="mt-0.5 flex items-center gap-1 text-caption text-ink-3">
+                    <Users aria-hidden="true" className="h-3 w-3" />
                     <span>{listing.interestCount} interested</span>
                   </p>
                 ) : null}
@@ -173,16 +216,14 @@ export function ListingCard({
           )}
           <Button
             size="compact"
+            variant="primary"
             onClick={(event) => {
-              // Only intercept the click when a dedicated contact handler
-              // exists. Otherwise fall through to the card-level onOpen
-              // (e.g. navigate to detail) so the CTA is never a no-op.
               if (onContact) {
                 event.stopPropagation();
                 onContact(listing.id);
               }
             }}
-            className="group-hover:bg-accent group-hover:text-white transition-all duration-300 shrink-0"
+            className="shrink-0 rounded-full px-3"
           >
             {ctaLabel}
           </Button>

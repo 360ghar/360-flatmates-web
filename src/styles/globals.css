@@ -1,68 +1,101 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #6e57e8;
-  --color-primary-soft: rgba(110, 87, 232, 0.12);
-  --color-primary-container: #e9e5ff;
-  --color-action: #ffe85a;
-  --color-action-hover: #f7d73f;
-  --color-action-ink: #241d06;
-  --color-lavender: #e9e5ff;
-  --color-lavender-2: #dcd4ff;
-  /* Pastel section backgrounds, calmer than the categorical -soft tiers.
-     Used for alternating section rhythm on public/marketing surfaces;
-     body bg stays --color-paper. */
-  --color-peach: #f6e1d8;
-  --color-sky: #e1ebf3;
-  --color-mint: #e4ede0;
-  --color-map-line: rgba(32, 29, 27, 0.07);
-  --color-accent: #6e57e8;
-  --color-accent-soft: rgba(110, 87, 232, 0.12);
-  --color-accent-container: #e9e5ff;
-  --color-accent-50: #f7f5ff;
-  --color-accent-100: #eeeaff;
-  --color-accent-200: #dfd8ff;
-  --color-accent-300: #c4b8ff;
-  --color-accent-400: #9b87ff;
-  --color-accent-500: #6e57e8;
-  --color-accent-600: #5f46d8;
-  --color-accent-700: #4f37bd;
-  --color-accent-800: #412d98;
-  --color-accent-900: #372875;
-  --color-accent-950: #21164d;
-  --color-paper: #f7f5ec;
-  --color-paper-2: #eeeadf;
-  --color-paper-3: #e2ddd0;
-  --color-paper-4: #d3cbbb;
-  --color-surface: #fffefa;
+  /* ── Brand & Accent (Airbnb Rausch) ── */
+  --color-primary: #ff385c;
+  --color-primary-soft: rgba(255, 56, 92, 0.12);
+  --color-primary-container: #ffd1da;
+  --color-primary-active: #e00b41;
+  --color-primary-disabled: #ffd1da;
+  --color-accent: #ff385c;
+  --color-accent-soft: rgba(255, 56, 92, 0.12);
+  --color-accent-container: #ffd1da;
+  /* Airbnb-derived Rausch ramp */
+  --color-accent-50: #fff1f3;
+  --color-accent-100: #ffe0e5;
+  --color-accent-200: #ffc6cf;
+  --color-accent-300: #ff9ba9;
+  --color-accent-400: #ff6b7e;
+  --color-accent-500: #ff385c;
+  --color-accent-600: #e00b41;
+  --color-accent-700: #c80036;
+  --color-accent-800: #a30030;
+  --color-accent-900: #82002b;
+  --color-accent-950: #5e0020;
+  /* Sub-brand accents */
+  --color-luxe: #460479;
+  --color-plus: #92174d;
+  /* Legal / link */
+  --color-legal-link: #428bff;
+
+  /* ── Surfaces (Airbnb white canvas) ── */
+  --color-paper: #ffffff;
+  --color-paper-2: #f7f7f7;
+  --color-paper-3: #f2f2f2;
+  --color-paper-4: #ebebeb;
+  --color-surface: #ffffff;
   --color-surface-elevated: #ffffff;
-  --color-ink: #201d1b;
-  --color-ink-2: #47413c;
-  --color-ink-3: #746c62;
-  --color-ink-4: #b8afa0;
-  --color-line: rgba(32, 29, 27, 0.10);
-  --color-line-2: rgba(32, 29, 27, 0.05);
-  --color-line-low: rgba(32, 29, 27, 0.05);
-  --color-success: #638f4c;
-  --color-success-soft: rgba(99, 143, 76, 0.13);
-  --color-error: #b64a38;
-  --color-error-soft: rgba(182, 74, 56, 0.10);
-  --color-warning: #a97822;
-  --color-warning-soft: rgba(169, 120, 34, 0.12);
-  --color-blue-soft: #dfeaf7;
-  --color-blue-mid: #5d84b7;
-  --color-purple-soft: #e9e5ff;
-  --color-purple-mid: #6e57e8;
-  --color-green-soft: #e1ead7;
-  --color-green-mid: #6f9463;
+  --color-surface-soft: #f7f7f7;
+  --color-surface-strong: #f2f2f2;
+
+  /* ── Text (Airbnb ink ramp) ── */
+  --color-ink: #222222;
+  --color-ink-2: #3f3f3f;
+  --color-ink-3: #6a6a6a;
+  --color-ink-4: #929292;
+
+  /* ── Lines & Borders ── */
+  --color-line: #dddddd;
+  --color-line-2: #ebebeb;
+  --color-line-low: #ebebeb;
+  --color-border-strong: #c1c1c1;
+
+  /* ── Status colors (Airbnb-compatible) ── */
+  --color-success: #008a05;
+  --color-success-soft: rgba(0, 138, 5, 0.12);
+  --color-error: #c13515;
+  --color-error-soft: rgba(193, 53, 21, 0.10);
+  --color-warning: #b32505;
+  --color-warning-soft: rgba(179, 37, 5, 0.10);
+
+  /* ── Categorical colors (muted Airbnb-compatible) ── */
+  --color-blue-soft: #e7f0ff;
+  --color-blue-mid: #428bff;
+  --color-purple-soft: #f0eaff;
+  --color-purple-mid: #7b61ff;
+  --color-green-soft: #e8f5e0;
+  --color-green-mid: #008a05;
   --color-yellow-soft: #fff4b8;
   --color-yellow-mid: #b3921c;
-  --color-orange-soft: #f7ddc6;
-  --color-orange-mid: #c77a46;
-  --color-teal-soft: #d7e9e5;
-  --color-teal-mid: #559aa2;
-  --color-pink-soft: #f4dee9;
-  --color-pink-mid: #bc7898;
+  --color-orange-soft: #fff0e0;
+  --color-orange-mid: #d9742e;
+  --color-teal-soft: #e0f0ee;
+  --color-teal-mid: #0e8a8a;
+  --color-pink-soft: #ffe0e8;
+  --color-pink-mid: #ff385c;
+  /* Categorical "ink" tier — accessible text on the matching soft background */
+  --color-blue-ink: #1a4d8f;
+  --color-purple-ink: #4a2db3;
+  --color-green-ink: #145a14;
+  --color-yellow-ink: #574711;
+  --color-orange-ink: #7a3e0e;
+  --color-teal-ink: #0a5050;
+  --color-pink-ink: #a01030;
+
+  /* Secondary emphasis + section rhythm.
+     action = Airbnb ink-filled secondary CTA (distinct from Rausch primary).
+     lavender/peach/sky/mint = soft tinted bands for alternating sections —
+     not flat identical greys, not the old violet/cream system. */
+  --color-action: #222222;
+  --color-action-hover: #000000;
+  --color-action-ink: #ffffff;
+  --color-lavender: #fff1f3;
+  --color-lavender-2: #ffe0e5;
+  --color-peach: #faf6f3;
+  --color-sky: #f5f7fa;
+  --color-mint: #f3f8f5;
+  --color-map-line: rgba(34, 34, 34, 0.07);
+
   /* Google "Sign in with Google" brand palette (Material 3).
      Light = white pill with subtle grey border; dark = near-black pill.
      Used by the `google` Button variant. */
@@ -70,14 +103,7 @@
   --color-google-text: #3c4043;
   --color-google-border: #dadce0;
   --color-google-hover: #f8f9fa;
-  /* Categorical "ink" tier — accessible text on the matching soft background */
-  --color-blue-ink: #28496d;
-  --color-purple-ink: #4630a7;
-  --color-green-ink: #314f2d;
-  --color-yellow-ink: #574711;
-  --color-orange-ink: #5f371b;
-  --color-teal-ink: #184a50;
-  --color-pink-ink: #65354d;
+
   /* Semantic role aliases — intent-named layer mapped onto the palette.
      These re-resolve automatically in dark mode because they hold var() refs. */
   --color-content: var(--color-ink);
@@ -89,48 +115,46 @@
   --color-surface-raised: var(--color-surface-elevated);
   --color-interactive: var(--color-primary);
   --color-focus: var(--color-primary);
+
   /* Motion easing — generates ease-standard / ease-emphasized / ease-spring utilities */
   --ease-standard: cubic-bezier(0, 0, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --font-display: var(--font-fraunces);
+
+  /* ── Fonts — Inter for everything (Airbnb Cereal replacement) ── */
+  --font-display: var(--font-inter);
   --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains);
-  --font-serif: var(--font-fraunces);
-  --font-serif-italic: var(--font-instrument-serif);
-  --shadow-xs: 0 1px 2px rgba(32, 29, 27, 0.04);
-  --shadow-sm: 0 2px 6px rgba(32, 29, 27, 0.06);
-  --shadow-md: 0 6px 18px rgba(32, 29, 27, 0.08);
-  --shadow-lg: 0 18px 60px rgba(32, 29, 27, 0.12), 0 4px 16px rgba(32, 29, 27, 0.06);
-  --shadow-cta: 0 2px 10px rgba(110, 87, 232, 0.18);
-  --shadow-hover: 0 4px 16px rgba(110, 87, 232, 0.10);
-  --shadow-focus: 0 2px 12px rgba(110, 87, 232, 0.14);
-  /* Hard offset shadows are defined as plain utility classes further down
-     (search "Neo-brutalist hard shadows"), not as @theme tokens. Tailwind v4
-     inlines @theme shadow values into utilities, which makes the
-     [data-theme="dark"] override inert; plain classes keep dark mode correct. */
+  --font-mono: var(--font-inter);
+  --font-serif: var(--font-inter);
+  --font-serif-italic: var(--font-inter);
+
+  /* ── Shadows — Airbnb float ladder (flat default → progressive elevation) ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-cta: 0 2px 12px rgba(255, 56, 92, 0.28);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(255, 56, 92, 0.22);
+
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1440px;
   --animate-drawer-in: drawer-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-bottom-sheet-in: bottom-sheet-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-slide-up: slide-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-spin-slow: spin-slow 8s linear infinite;
   --animate-fade-slide-up: fade-slide-up 300ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 :root {
   color-scheme: light;
-  --font-fraunces: Fraunces, Georgia, serif;
-  --font-inter: Inter, system-ui, sans-serif;
-  --font-jetbrains: "JetBrains Mono", ui-monospace, monospace;
-  --font-instrument-serif: "Instrument Serif", Georgia, serif;
-  --radius-card: 16px;
-  --radius-compact: 12px;
-  --radius-button: 10px;
-  --radius-control: 9px;
-  --radius-promo: 28px;
-  --radius-panel: 24px;
+  --font-inter: Inter, -apple-system, system-ui, "Helvetica Neue", sans-serif;
+  --radius-card: 14px;
+  --radius-compact: 8px;
+  --radius-button: 8px;
+  --radius-control: 8px;
+  --radius-promo: 32px;
+  --radius-panel: 20px;
   --frost-blur: 9px;
   /* Motion durations (CSS-var layer; use via duration-[var(--duration-fast)] or in keyframes) */
   --duration-fast: 120ms;
@@ -154,6 +178,7 @@
   --control-h-lg: 52px;
   --control-h-xl: 56px;
   --touch-min: 44px;
+  /* Subtle grid for decorative hero / promo bands only (body stays white canvas) */
   --map-grid-bg:
     linear-gradient(var(--color-map-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-map-line) 1px, transparent 1px),
@@ -163,83 +188,77 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-primary: #9b87ff;
-  --color-primary-soft: rgba(155, 135, 255, 0.18);
-  --color-primary-container: rgba(155, 135, 255, 0.24);
-  --color-action: #ffe85a;
-  --color-action-hover: #fff18a;
-  --color-action-ink: #241d06;
-  --color-lavender: #2d2649;
-  --color-lavender-2: #39305d;
-  --color-peach: #382722;
-  --color-sky: #202b34;
-  --color-mint: #212a22;
-  --color-map-line: rgba(247, 245, 236, 0.08);
-  --color-paper: #17151f;
-  --color-paper-2: #201d2d;
-  --color-paper-3: #2c263d;
-  --color-paper-4: #39334a;
-  --color-surface: #242130;
-  --color-surface-elevated: #302b40;
-  --color-ink: #f7f5ec;
-  --color-ink-2: #e7e1d2;
-  --color-ink-3: #b9b0a0;
-  --color-ink-4: #746c62;
-  --color-line: rgba(247, 245, 236, 0.16);
-  --color-line-2: rgba(247, 245, 236, 0.08);
-  --color-line-low: rgba(247, 245, 236, 0.08);
-  --color-accent: #9b87ff;
-  --color-accent-soft: rgba(155, 135, 255, 0.18);
-  --color-accent-container: rgba(155, 135, 255, 0.24);
-  --color-accent-50: #21164d;
-  --color-accent-100: #2b1f63;
-  --color-accent-200: rgba(155, 135, 255, 0.18);
-  --color-accent-300: rgba(155, 135, 255, 0.30);
-  --color-accent-400: rgba(155, 135, 255, 0.46);
-  --color-accent-500: #9b87ff;
-  --color-accent-600: #b3a5ff;
-  --color-accent-700: #c4b8ff;
-  --color-accent-800: #dfd8ff;
-  --color-accent-900: #eeeaff;
-  --color-accent-950: #f7f5ff;
-  --color-blue-soft: #253447;
-  --color-purple-soft: #33283f;
-  --color-green-soft: #273521;
-  --color-yellow-soft: #43361c;
-  --color-orange-soft: #432a1c;
-  --color-teal-soft: #203b38;
-  --color-pink-soft: #432833;
-  --color-blue-ink: #b8cde4;
-  --color-purple-ink: #cdbce8;
-  --color-green-ink: #bcd9ac;
-  --color-yellow-ink: #e6cf8e;
-  --color-orange-ink: #f0c19a;
-  --color-teal-ink: #a9d2cf;
-  --color-pink-ink: #e8b8c6;
+  --color-primary: #ff5572;
+  --color-primary-soft: rgba(255, 85, 114, 0.18);
+  --color-primary-container: rgba(255, 85, 114, 0.24);
+  /* Dark-legible CTA states — must not inherit light #ffd1da / white-on-pink */
+  --color-primary-active: #ff7088;
+  --color-primary-disabled: #3d1822;
+  --color-accent: #ff5572;
+  --color-accent-soft: rgba(255, 85, 114, 0.18);
+  --color-accent-container: rgba(255, 85, 114, 0.24);
+  --color-accent-50: #2a0a12;
+  --color-accent-100: #3a0d18;
+  --color-accent-200: rgba(255, 85, 114, 0.18);
+  --color-accent-300: rgba(255, 85, 114, 0.30);
+  --color-accent-400: rgba(255, 85, 114, 0.46);
+  --color-accent-500: #ff5572;
+  --color-accent-600: #ff7088;
+  --color-accent-700: #ff8a9d;
+  --color-accent-800: #ffaab8;
+  --color-accent-900: #ffc6d0;
+  --color-accent-950: #ffe0e6;
+  --color-paper: #1a1a1a;
+  --color-paper-2: #242424;
+  --color-paper-3: #2e2e2e;
+  --color-paper-4: #3a3a3a;
+  --color-surface: #2a2a2a;
+  --color-surface-elevated: #333333;
+  --color-surface-soft: #242424;
+  --color-surface-strong: #2e2e2e;
+  --color-ink: #ffffff;
+  --color-ink-2: #e0e0e0;
+  --color-ink-3: #a0a0a0;
+  --color-ink-4: #6e6e6e;
+  --color-line: rgba(255, 255, 255, 0.15);
+  --color-line-2: rgba(255, 255, 255, 0.08);
+  --color-line-low: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.25);
+  --color-map-line: rgba(255, 255, 255, 0.08);
+  --color-action: #ffffff;
+  --color-action-hover: #e0e0e0;
+  --color-action-ink: #222222;
+  --color-lavender: #2a1218;
+  --color-lavender-2: #3a1820;
+  --color-peach: #2a221c;
+  --color-sky: #1c2228;
+  --color-mint: #1a2420;
+  --color-blue-soft: #1a2438;
+  --color-purple-soft: #241e30;
+  --color-green-soft: #1a2818;
+  --color-yellow-soft: #2e2410;
+  --color-orange-soft: #2e1c10;
+  --color-teal-soft: #102828;
+  --color-pink-soft: #2e1018;
+  --color-blue-ink: #a0c0e8;
+  --color-purple-ink: #c4b0e8;
+  --color-green-ink: #a8d0a0;
+  --color-yellow-ink: #e6d08e;
+  --color-orange-ink: #f0bc8a;
+  --color-teal-ink: #8ec8c4;
+  --color-pink-ink: #e8a8b8;
   /* Google brand palette — dark mode override */
   --color-google-bg: #131314;
   --color-google-text: #e3e3e3;
   --color-google-border: #8e918f;
   --color-google-hover: #1e1f20;
-  --shadow-xs: 0 1px 2px rgba(31, 26, 20, 0.02);
-  --shadow-sm: 0 1px 2px rgba(31, 26, 20, 0.04);
-  --shadow-md: 0 4px 12px rgba(31, 26, 20, 0.05);
-  --shadow-lg: 0 12px 40px rgba(31, 26, 20, 0.08), 0 2px 8px rgba(31, 26, 20, 0.04);
-  --shadow-cta: 0 2px 8px rgba(155, 135, 255, 0.12);
-  --shadow-hover: 0 2px 8px rgba(155, 135, 255, 0.08);
-  --shadow-focus: 0 2px 10px rgba(155, 135, 255, 0.14);
-}
-
-[data-palette="ember"] {
-  --color-accent: #d17847;
-  --color-accent-soft: rgba(209, 120, 71, 0.1);
-  --color-accent-container: #fce0c8;
-}
-
-[data-palette="monsoon_teal"] {
-  --color-accent: #5a9da8;
-  --color-accent-soft: rgba(90, 157, 168, 0.12);
-  --color-accent-container: #cfe4df;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.48), 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-cta: 0 2px 14px rgba(255, 85, 114, 0.35);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-focus: 0 0 0 3px rgba(255, 85, 114, 0.28);
 }
 
 * {
@@ -255,23 +274,12 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--map-grid-bg);
-  background-size: var(--map-grid-bg-size);
+  background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 14px;
   letter-spacing: 0;
   position: relative;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 50;
-  opacity: 0.6;
 }
 
 .hairline {
@@ -300,7 +308,7 @@ svg {
 }
 
 ::selection {
-  background: var(--color-accent-container);
+  background: rgba(255, 56, 92, 0.20);
   color: var(--color-ink);
 }
 
@@ -309,61 +317,63 @@ svg {
   outline-offset: 2px;
 }
 
+/* ── Typography (Airbnb-inspired scale on Inter) ──
+   Display sizes restore the old visual impact of Fraunces while using
+   Inter 600 — modest weight, large size, tight tracking. Pages that
+   force font-normal on display titles should prefer this base weight. */
+
 .text-display {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: clamp(1.75rem, 4vw, 2.75rem);
-  font-weight: 400;
-  line-height: 1;
+  font-weight: 600;
+  line-height: 1.12;
   letter-spacing: -0.02em;
-  font-variation-settings: "opsz" 144, "SOFT" 50, "WONK" 0;
 }
 
 .text-hero-display {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: clamp(2.5rem, 6vw, 4.25rem);
-  font-weight: 400;
-  line-height: 1.03;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1.06;
   letter-spacing: -0.025em;
   text-wrap: balance;
-  font-variation-settings: "opsz" 144, "SOFT" 45, "WONK" 0;
 }
 
 .text-h1 {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  font-variation-settings: "opsz" 112, "SOFT" 40, "WONK" 0;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.125rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
 }
 
 .text-h2 {
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
-  font-weight: 400;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+  font-weight: 600;
   line-height: 1.2;
-  font-variation-settings: "opsz" 96, "SOFT" 30, "WONK" 0;
+  letter-spacing: -0.01em;
 }
 
 .text-h3 {
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.25;
-  letter-spacing: -0.012em;
+  letter-spacing: 0;
 }
 
 .text-h4 {
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.3;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .text-h5 {
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.35;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
 }
 
 .text-h6 {
@@ -375,14 +385,14 @@ svg {
 
 .text-body-lg {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.5;
 }
 
 .text-body-md {
   font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.45;
+  font-weight: 400;
+  line-height: 1.43;
 }
 
 .text-label-lg {
@@ -407,19 +417,20 @@ svg {
 }
 
 .text-eyebrow {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   line-height: 1.4;
   text-transform: uppercase;
   color: var(--color-accent);
 }
 
 .text-serif-italic {
-  font-family: var(--font-instrument-serif), Georgia, serif;
+  /* Accent name / highlight word — Inter italic, slightly heavier for presence */
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-style: italic;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .tabular {
@@ -435,7 +446,7 @@ svg {
 }
 
 .shimmer {
-  background: linear-gradient(90deg, var(--color-paper-2), var(--color-surface), var(--color-paper-2));
+  background: linear-gradient(90deg, var(--color-surface-soft), var(--color-surface), var(--color-surface-soft));
   background-size: 220% 100%;
   animation: shimmer 1200ms linear infinite;
 }
@@ -452,8 +463,8 @@ svg {
 
 .promo-panel {
   border-radius: var(--radius-promo);
-  border: 1px solid var(--color-line-low);
-  background: color-mix(in srgb, var(--color-surface) 82%, var(--color-lavender));
+  border: 1px solid var(--color-line-2);
+  background: color-mix(in srgb, var(--color-surface) 72%, var(--color-lavender));
 }
 
 .content-grid {
@@ -573,16 +584,6 @@ svg {
   to {
     transform: translateY(0);
     opacity: 1;
-  }
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
   }
 }
 
@@ -770,10 +771,6 @@ svg {
     transform: none;
   }
 
-  .animate-spin-slow {
-    animation: none;
-  }
-
   .animate-float-subtle,
   .animate-counter-up,
   .animate-fade-in-up,
@@ -792,10 +789,6 @@ svg {
     opacity: 1;
   }
 
-  .card-glow::after {
-    transition: none;
-  }
-
   .faq-item-content {
     transition: none;
   }
@@ -811,8 +804,8 @@ svg {
 
 @media (prefers-contrast: more) {
   :root {
-    --color-line: rgba(31, 26, 20, 0.2);
-    --color-ink-3: #5f584e;
+    --color-line: rgba(34, 34, 34, 0.2);
+    --color-ink-3: #4a4a4a;
   }
 }
 
@@ -888,11 +881,11 @@ svg {
 
   0%,
   100% {
-    box-shadow: 0 2px 12px rgba(110, 87, 232, 0.12);
+    box-shadow: 0 2px 12px rgba(255, 56, 92, 0.12);
   }
 
   50% {
-    box-shadow: 0 8px 32px rgba(110, 87, 232, 0.20);
+    box-shadow: 0 8px 32px rgba(255, 56, 92, 0.20);
   }
 }
 
@@ -984,7 +977,7 @@ svg {
 .bento-card {
   border-radius: var(--radius-card);
   background: var(--color-surface);
-  border: 1px solid var(--color-line-low);
+  border: 1px solid var(--color-line-2);
   padding: 1rem;
   transition: all 300ms cubic-bezier(0, 0, 0.2, 1);
 }
@@ -1009,83 +1002,13 @@ svg {
   border-radius: 9999px;
   background: var(--color-accent-soft);
   color: var(--color-accent);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-inter), system-ui, sans-serif;
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 0.25rem 0.75rem;
   line-height: 1.4;
-}
-
-/* ── Neo-brutalist hard shadows ── */
-/* Zero-blur colored offset drops for the playful, confident register on
-   public/marketing surfaces. Plain classes (not @theme tokens) so the
-   [data-theme="dark"] overrides actually apply. Pair with solid fills only;
-   never combine a hard shadow with a 1px border + blur shadow (ghost-card). */
-.shadow-hard-sm {
-  box-shadow: 0 3px 0 0 var(--color-ink);
-}
-
-.shadow-hard {
-  box-shadow: 0 6px 0 0 var(--color-ink);
-}
-
-.shadow-hard-lg {
-  box-shadow: 0 8px 0 0 var(--color-ink);
-}
-
-.shadow-hard-accent {
-  box-shadow: 0 6px 0 0 var(--color-accent);
-}
-
-.shadow-hard-action {
-  box-shadow: 0 6px 0 0 var(--color-action-ink);
-}
-
-.shadow-hard-paper {
-  box-shadow: 0 6px 0 0 var(--color-paper-3);
-}
-
-/* On dark surfaces, ink/paper-based hard shadows become dark drops so they
-   read as depth instead of a bright edge. Accent/action keep their color. */
-[data-theme="dark"] .shadow-hard-sm {
-  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.40);
-}
-
-[data-theme="dark"] .shadow-hard {
-  box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.45);
-}
-
-[data-theme="dark"] .shadow-hard-lg {
-  box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.50);
-}
-
-[data-theme="dark"] .shadow-hard-paper {
-  box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.35);
-}
-
-/* ── Card Glow Hover Effect ── */
-
-.card-glow {
-  position: relative;
-}
-
-.card-glow::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(110, 87, 232, 0.15), transparent 60%);
-  opacity: 0;
-  transition: opacity 300ms ease-out;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.card-glow:hover::after,
-.card-glow:focus-within::after {
-  opacity: 1;
 }
 
 /* ── FAQ Accordion Styles ── */
@@ -1110,23 +1033,6 @@ svg {
 
 .faq-item[open] .faq-chevron {
   transform: rotate(180deg);
-}
-
-/* ── Noise/Grain Texture Utility ── */
-
-.noise-texture::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-  border-radius: inherit;
-}
-
-.noise-texture>* {
-  position: relative;
-  z-index: 1;
 }
 
 /* ── Scroll Progress Indicator ── */
@@ -1182,42 +1088,4 @@ svg {
 
 .swipe-card-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--color-ink-3);
-}
-
-/* ── Nudge gradient background (with dark mode) ── */
-.bg-nudge {
-  background: linear-gradient(135deg, rgba(110, 87, 232, 0.10), rgba(255, 232, 90, 0.10));
-}
-
-[data-theme="dark"] .bg-nudge {
-  background: linear-gradient(135deg, rgba(155, 135, 255, 0.12), rgba(255, 232, 90, 0.07));
-}
-
-/* ── Hero atmospheric glow (with dark mode) ── */
-/* Painted on a ::before pseudo-element so the animation can use compositor-only transform.
-   The element already has position:absolute from Tailwind; overflow:hidden clips the
-   oversized ::before pseudo-element. */
-.hero-glow {
-  overflow: hidden;
-}
-.hero-glow::before {
-  content: "";
-  position: absolute;
-  inset: -50%;
-  background:
-    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(110, 87, 232, 0.10), transparent),
-    radial-gradient(ellipse 50% 40% at 70% 80%, rgba(255, 232, 90, 0.12), transparent),
-    radial-gradient(ellipse 40% 30% at 15% 50%, rgba(99, 143, 76, 0.08), transparent);
-  background-size: 200% 200%;
-  background-position: center;
-  will-change: transform;
-}
-
-[data-theme="dark"] .hero-glow::before {
-  background:
-    radial-gradient(ellipse 60% 50% at 30% 20%, rgba(155, 135, 255, 0.14), transparent),
-    radial-gradient(ellipse 50% 40% at 70% 80%, rgba(255, 232, 90, 0.08), transparent),
-    radial-gradient(ellipse 40% 30% at 15% 50%, rgba(99, 143, 76, 0.10), transparent);
-  background-size: 200% 200%;
-  background-position: center;
 }

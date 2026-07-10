@@ -18,7 +18,7 @@ function FeatureCard({ feature }: { feature: BentoFeatureItem }) {
 
   if (feature.variant === "image") {
     return (
-      <div className="bento-card card-glow group relative h-full min-h-[240px] overflow-hidden border border-line-low">
+      <div className="bento-card group relative h-full min-h-[240px] overflow-hidden border border-line-low">
         <NetworkImage
           src={`https://images.unsplash.com/photo-${feature.image}`}
           alt=""
@@ -40,7 +40,7 @@ function FeatureCard({ feature }: { feature: BentoFeatureItem }) {
   }
 
   return (
-    <div className="bento-card card-glow group relative flex h-full min-h-[200px] flex-col overflow-hidden border border-line-low p-6 transition-all duration-300 hover:border-accent/15">
+    <div className="bento-card group relative flex h-full min-h-[200px] flex-col overflow-hidden border border-line-low p-6 transition-all duration-300 hover:border-accent/15">
       {/* Gradient cells paint their tint on an absolute layer, because .bento-card
           sets `background` (shorthand), which would otherwise wipe a bg-gradient utility. */}
       {feature.variant === "gradient" && feature.gradient && (

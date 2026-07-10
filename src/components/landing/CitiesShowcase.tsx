@@ -37,14 +37,14 @@ export function CitiesShowcase() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/58 via-transparent to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-80" />
 
-              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/65 bg-surface/92 p-5 text-ink shadow-sm backdrop-blur-[9px] transition-all duration-300 group-hover:border-action/80">
+              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/70 bg-surface/94 p-5 text-ink shadow-md backdrop-blur-[9px] transition-all duration-300 group-hover:shadow-hover">
                 <div>
-                  <h3 className="text-display mb-1.5 text-3xl text-ink md:text-4xl">{city.name}</h3>
-                  <p className="text-label-md text-ink-3" suppressHydrationWarning>
-                    {numberFormatter.format(city.listings)} ACTIVE LISTINGS
+                  <h3 className="mb-1.5 text-h1 text-ink">{city.name}</h3>
+                  <p className="text-caption font-semibold uppercase tracking-wide text-ink-3" suppressHydrationWarning>
+                    {numberFormatter.format(city.listings)} active listings
                   </p>
                 </div>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-action text-action-ink shadow-sm transition-transform duration-300 group-hover:rotate-45">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-action text-action-ink shadow-sm transition-transform duration-300 group-hover:rotate-45 group-hover:bg-accent">
                   <ArrowUpRight className="h-5 w-5" />
                 </div>
               </div>

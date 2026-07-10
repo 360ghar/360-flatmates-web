@@ -373,7 +373,7 @@ function LegacyBlogPostPage() {
         <article className="mx-auto max-w-3xl px-5 py-16 md:px-6">
           <div className="text-center mb-12">
             <span className="text-eyebrow text-accent uppercase tracking-widest">{post.category}</span>
-            <h1 className="mt-4 text-display text-4xl md:text-5xl text-ink font-normal leading-tight tracking-tight">
+            <h1 className="mt-4 text-display text-4xl md:text-5xl text-ink leading-tight tracking-tight">
               {post.title}
             </h1>
             <div className="mt-6 flex justify-center items-center gap-2 text-label-md text-ink-3">
@@ -403,17 +403,17 @@ function LegacyBlogPostPage() {
             {renderContent(post.content)}
           </div>
 
-          <div className="relative mx-auto mt-20 max-w-2xl overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-8 text-center shadow-hard-paper">
+          <div className="relative mx-auto mt-20 max-w-2xl overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-8 text-center">
             <div className="absolute inset-0 map-grid-bg opacity-25" aria-hidden="true" />
             <div className="relative">
-              <h2 className="text-display text-3xl text-ink font-normal">Find your compatible flatmate</h2>
+              <h2 className="text-display text-3xl text-ink">Find your compatible flatmate</h2>
               <p className="mt-4 text-body-lg text-ink-2 leading-relaxed">
                 Use 6-dimension matching to connect with roommates who share your living style, schedules, and values.
               </p>
               <div className="mt-8">
               <Link
                 to="/signup"
-                className={buttonClasses("primary", "tall") + " shadow-cta"}
+                className={buttonClasses("primary", "tall") + ""}
               >
                 Start matching
               </Link>

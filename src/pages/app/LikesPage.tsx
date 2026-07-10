@@ -20,13 +20,13 @@ export function LikesPage() {
     <div className="flex flex-col gap-5 page-fade">
       <h1 className="text-h1">Likes & Matches</h1>
 
-      <div className="flex gap-1 rounded-[9px] bg-paper-2 p-1">
+      <div className="flex gap-1 rounded-full border border-line bg-surface-soft p-1 shadow-xs">
         <button
           type="button"
           onClick={() => setTab("likes")}
           className={cn(
-            "flex-1 rounded-[7px] px-4 py-2 text-body-md font-semibold transition-colors",
-            tab === "likes" ? "bg-paper text-ink shadow-sm" : "text-ink-3 hover:text-ink"
+            "flex-1 rounded-full px-4 py-2 text-body-md font-semibold transition-colors",
+            tab === "likes" ? "bg-surface text-ink shadow-sm" : "text-ink-3 hover:text-ink"
           )}
         >
           Likes
@@ -35,8 +35,8 @@ export function LikesPage() {
           type="button"
           onClick={() => setTab("matches")}
           className={cn(
-            "flex-1 rounded-[7px] px-4 py-2 text-body-md font-semibold transition-colors",
-            tab === "matches" ? "bg-paper text-ink shadow-sm" : "text-ink-3 hover:text-ink"
+            "flex-1 rounded-full px-4 py-2 text-body-md font-semibold transition-colors",
+            tab === "matches" ? "bg-surface text-ink shadow-sm" : "text-ink-3 hover:text-ink"
           )}
         >
           Matches

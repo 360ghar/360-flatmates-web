@@ -34,7 +34,7 @@ export function PropertyDetailSheet({ pin, onClose, onNavigate }: PropertyDetail
             <button
               type="button"
               aria-label="Close"
-              className={cn("shrink-0 rounded-[9px] p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink", focusRing)}
+              className={cn("shrink-0 rounded-[8px] p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink", focusRing)}
               onClick={onClose}
             >
               <X aria-hidden="true" className="h-4 w-4" />
