@@ -2,7 +2,7 @@ import type { DevicePlatform, ShareCardFormat } from "@/lib/data";
 
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | readonly JsonValue[];
-export type JsonObject = { readonly [key: string]: JsonValue };
+export type JsonObject = Record<string, unknown>;
 
 export interface CatalogEntry {
   key: string;

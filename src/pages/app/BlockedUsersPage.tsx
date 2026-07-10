@@ -98,11 +98,13 @@ export function BlockedUsersPage() {
                   size="compact"
                   onClick={() =>
                     setConfirmTarget({
-                      id: block.blocked_user_id,
+                      id: block.blocked_user.id,
                       name: block.blocked_user.full_name
                     })
                   }
-                  loading={unblockUser.isPending && pendingId === block.blocked_user_id}
+                  loading={
+                    unblockUser.isPending && pendingId === block.blocked_user.id
+                  }
                 >
                   Unblock
                 </Button>

@@ -172,6 +172,32 @@ describe("HttpApiClient.request", () => {
     }
   });
 
+  it("reads nested error.message / error.code envelope", async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve(
+        jsonResponse(
+          {
+            error: {
+              code: "NOT_FOUND",
+              message: "Resource not found"
+            }
+          },
+          404
+        )
+      )
+    );
+    try {
+      await createTestClient().request({ path: "/test" });
+      expect.unreachable("Should have thrown");
+    } catch (error) {
+      const apiError = error as ApiClientError;
+      expect(apiError.status).toBe(404);
+      expect(apiError.appError.type).toBe("not_found");
+      expect(apiError.appError.message).toBe("Resource not found");
+      expect(apiError.errorCode).toBe("NOT_FOUND");
+    }
+  });
+
   it("throws with validation fields on 422", async () => {
     mockFetch.mockImplementation(() =>
       Promise.resolve(

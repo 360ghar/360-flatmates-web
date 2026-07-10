@@ -19,6 +19,7 @@ const MaintenancePage = lazy(() => import("./pages/public/MaintenancePage").then
 const ErrorPage = lazy(() => import("./pages/public/ErrorPage").then((m) => ({ default: m.ErrorPage })));
 const DiscoverPage = lazy(() => import("./pages/public/DiscoverPage").then((m) => ({ default: m.DiscoverPage })));
 const ListingDetailPage = lazy(() => import("./pages/public/ListingDetailPage").then((m) => ({ default: m.ListingDetailPage })));
+const SharePage = lazy(() => import("./pages/public/SharePage").then((m) => ({ default: m.SharePage })));
 const SearchPage = lazy(() => import("./pages/public/SearchPage").then((m) => ({ default: m.SearchPage })));
 const SemanticSearchPage = lazy(() => import("./pages/public/SemanticSearchPage").then((m) => ({ default: m.SemanticSearchPage })));
 const CityPage = lazy(() => import("./pages/public/CityPage").then((m) => ({ default: m.CityPage })));
@@ -71,7 +72,6 @@ const SavedSearchesPage = lazy(() => import("./pages/app/SavedSearchesPage").the
 const PaymentsPage = lazy(() => import("./pages/app/PaymentsPage").then((m) => ({ default: m.PaymentsPage })));
 const AddPaymentMethodPage = lazy(() => import("./pages/app/AddPaymentMethodPage").then((m) => ({ default: m.AddPaymentMethodPage })));
 // Admin pages
-const AdminStatsPage = lazy(() => import("./pages/admin/AdminStatsPage").then((m) => ({ default: m.AdminStatsPage })));
 const ModerationListingsPage = lazy(() => import("./pages/admin/ModerationListingsPage").then((m) => ({ default: m.ModerationListingsPage })));
 const ModerationReportsPage = lazy(() => import("./pages/admin/ModerationReportsPage").then((m) => ({ default: m.ModerationReportsPage })));
 const PrescreenPage = lazy(() => import("./pages/admin/PrescreenPage").then((m) => ({ default: m.PrescreenPage })));
@@ -92,6 +92,7 @@ export function App() {
               <Route index element={<RouteBoundary><LandingPage /></RouteBoundary>} />
               <Route path="discover" element={<RouteBoundary><DiscoverPage /></RouteBoundary>} />
               <Route path="discover/:id" element={<RouteBoundary><ListingDetailPage /></RouteBoundary>} />
+              <Route path="share/:id" element={<RouteBoundary><SharePage /></RouteBoundary>} />
               <Route path="search" element={<RouteBoundary><SearchPage /></RouteBoundary>} />
               <Route path="search/semantic" element={<RouteBoundary><SemanticSearchPage /></RouteBoundary>} />
               <Route path="cities/:slug" element={<RouteBoundary><CityPage /></RouteBoundary>} />
@@ -175,7 +176,7 @@ export function App() {
             {/* ── Admin routes ── */}
             <Route element={<AdminGuard />}>
               <Route path="admin" element={<AdminLayout />}>
-                <Route path="stats" element={<RouteBoundary><AdminStatsPage /></RouteBoundary>} />
+                <Route index element={<Navigate to="/admin/moderation/listings" replace />} />
                 <Route path="moderation/listings" element={<RouteBoundary><ModerationListingsPage /></RouteBoundary>} />
                 <Route path="moderation/reports" element={<RouteBoundary><ModerationReportsPage /></RouteBoundary>} />
                 <Route path="moderation/prescreen" element={<RouteBoundary><ModerationListingsPage /></RouteBoundary>} />

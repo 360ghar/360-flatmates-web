@@ -43,7 +43,7 @@ export function propertyToListingCardProps(property: Property): ListingCardData 
         : undefined,
     interestCount: property.interest_count,
     description: property.description,
-    compatibilityScore: undefined // populated separately from compatibility API
+    compatibilityScore: property.compatibility_score ?? undefined
   };
 }
 

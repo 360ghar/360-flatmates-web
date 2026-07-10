@@ -13,6 +13,7 @@ graph TD
     L["PublicLayout"] --> L0["/ (LandingPage)"]
     L --> D["/discover (DiscoverPage)"]
     D --> D1["/discover/:id (ListingDetailPage)"]
+    D1 --> S["/share/:id (SharePage)"]
     L --> C["/cities/:slug (CityPage)"]
     C --> N["/cities/:slug/:neighborhood (NeighborhoodPage)"]
     L --> B["/blog (BlogPage)"]
@@ -21,7 +22,7 @@ graph TD
     L --> A["/about, /terms, /privacy, /stats, /maintenance, /error"]
 ```
 
-Every node in this tree is a prerender target. The build step enumerates the static routes (landing, discover, cities, neighborhoods, blog index and posts, comparison pages, about, terms, privacy, stats) and writes a complete `dist/<route>/index.html` for each, so the deployed site serves real HTML instead of an empty SPA shell. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
+Every node in this tree is a prerender target. The build step enumerates the static routes (landing, discover, share, cities, neighborhoods, blog index and posts, comparison pages, about, terms, privacy, stats) and writes a complete `dist/<route>/index.html` for each, so the deployed site serves real HTML instead of an empty SPA shell. The `/share/:id` route is generated alongside each listing detail page and uses a meta refresh to redirect to `/discover/:id` while preserving social-preview tags. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
 
 ## The landing page
 
@@ -59,7 +60,7 @@ The key UX difference from authenticated search: contact and like actions hit th
 
 `ListingDetailPage` (`src/pages/public/ListingDetailPage.tsx`) is served at both `/discover/:id` (public) and `/listing/:id` (authenticated, same component). It is a thin wrapper: it reads the property via `useProperty`, computes SEO metadata and a `Residence` JSON-LD schema from the property fields, and delegates the entire body to `ListingDetailClient` (`src/components/page-clients/ListingDetailClient.tsx`).
 
-The client renders an image gallery (a large primary image plus two smaller images), a two-column layout with details on the left and a sticky host card on the right, and a cost breakdown card (rent, deposit, maintenance). Society and vibe details (society type, society amenities, society vibe tags) render in their own card when present. Contact and favorite actions route to the host profile when authenticated, or to the login redirect flow when not. The whole thing is wrapped in `AsyncView` so loading shows a `listingDetail` skeleton, errors show an inline retry, and a missing listing shows an `EmptyState` with a "Browse listings" fallback.
+The client renders an image gallery (a large primary image plus two smaller images), a two-column layout with details on the left and a sticky host card on the right, and a cost breakdown card (rent, deposit, maintenance). Society and vibe details (society type, society amenities, society vibe tags) render in their own card when present. When a `compatibility_score` is present, a `ProgressRing` surfaces it on the image. A share button opens `ShareSheet`, which renders a `ShareListingCard` in one of three formats (WhatsApp square, Instagram story, original) and lets the user copy the `/share/:id` link, download the card as a PNG, or use the native `Web Share` API. Contact and favorite actions route to the host profile when authenticated, or to the login redirect flow when not. The whole thing is wrapped in `AsyncView` so loading shows a `listingDetail` skeleton, errors show an inline retry, and a missing listing shows an `EmptyState` with a "Browse listings" fallback.
 
 ## City and neighborhood SEO pages
 
@@ -109,6 +110,10 @@ For the page-by-page spec of every public surface (copy, layout, CTAs, SEO inten
 | `src/components/landing/FeatureBento.tsx` | Five-cell asymmetric feature bento |
 | `src/components/landing/CompatibilitySection.tsx` | 6-dimension compatibility section with animated ring |
 | `src/components/landing/landing-data.ts` | All landing copy and data (features, dimensions, steps, stats, testimonials, FAQs) |
+| `src/pages/public/SharePage.tsx` | Public share redirect page with SEO tags |
+| `src/components/organisms/ShareSheet.tsx` | Share modal and format selector |
+| `src/components/molecules/ShareListingCard.tsx` | Renderable / exportable listing card |
+| `src/hooks/useShareListing.ts` | Image generation, download, and Web Share helpers |
 | `src/lib/seo/config.ts` | `SUPPORTED_CITIES`, site URL, social handles |
 | `src/lib/seo/neighborhoods.ts` | `CITY_NEIGHBORHOODS` source of truth, `getNeighborhoodsForCity` |
 | `src/lib/schemas/search-params.ts` | `nuqs` parsers for `/discover` URL state |

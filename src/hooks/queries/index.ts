@@ -85,8 +85,7 @@ export {
   useAdminModerate,
   useAdminReports,
   useInfiniteAdminReports,
-  useAdminReportAction,
-  useAdminStats
+  useAdminReportAction
 } from "./useAdmin";
 
 export {
@@ -127,10 +126,6 @@ export {
 export {
   useMapView
 } from "./useMapView";
-
-export {
-  useShareCard
-} from "./useShareCard";
 
 export {
   useReverseGeocode

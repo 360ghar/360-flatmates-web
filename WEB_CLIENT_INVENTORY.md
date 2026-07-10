@@ -57,10 +57,9 @@ All `useQuery` / `useInfiniteQuery` hooks live in `src/hooks/queries/`. The `api
 - `useInfiniteAdminListings(filters?)` — `useInfiniteQuery` — `GET /flatmates/moderation/listings?limit=20&cursor=` — declares `AdminListingCursorPage`, `getNextPageParam` reads `has_more ? next_cursor : undefined` (lines 158-179). **Cursor-driven ✓.** Used by `ModerationListingsPage`.
 - `useAdminReports(filters?)` — `useQuery` — `GET /flatmates/moderation/reports` — declares `AdminReportCursorPage` (lines 182-192). Cursor-shaped ✓.
 - `useInfiniteAdminReports(filters?)` — `useInfiniteQuery` — `GET /flatmates/moderation/reports?limit=20&cursor=` (lines 195-216). **Cursor-driven ✓.** Used by `ModerationReportsPage`.
-- `useAdminStats` — `GET /flatmates/moderation/stats` (line 222).
-- `useAdminReportAction` — `PUT /flatmates/moderation/reports/{id}` (line 240).
+- `useAdminReportAction` — `PUT /flatmates/moderation/reports/{id}` (line 212).
 
-**Migration note:** Both admin queues are correctly dual-implemented (single-fetch + infinite) with `optimisticRemove` working on both shapes (lines 116-145 and 268-294). Lowest migration risk in the inventory.
+**Migration note:** Both admin queues are correctly dual-implemented (single-fetch + infinite) with `optimisticRemove` working on both shapes. Lowest migration risk in the inventory.
 
 ### A6. `useProperties.ts` (`src/hooks/queries/useProperties.ts`)
 - `myPropertiesOptions` / `useMyProperties` — `useQuery` — `GET /properties/me` — declares `PropertyCursorPage` and unwraps to `response.items` (lines 18-25). Cursor-shaped ✓.
@@ -234,7 +233,6 @@ All e2e tests live in `e2e/`. They are mostly auth-redirect / page-structure smo
 | `ModerationListingsPage.tsx` | `ModerationListingsPage` | **Infinite** via `useInfiniteAdminListings` (line 49). | Cursor-driven ✓. Flattens pages at line 63. |
 | `ModerationReportsPage.tsx` | `ModerationReportsPage` | **Infinite** via `useInfiniteAdminReports` (line 48). | Cursor-driven ✓. Flattens pages at line 67. |
 | `PrescreenPage.tsx` | `PrescreenPage` | n/a (single-listing detail) | |
-| `AdminStatsPage.tsx` | `AdminStatsPage` | n/a (stats) | |
 | `AdminLayout.tsx` | `AdminLayout` | n/a | |
 
 ### E3. `src/pages/public/*`

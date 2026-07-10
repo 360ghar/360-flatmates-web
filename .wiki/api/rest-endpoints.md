@@ -105,5 +105,5 @@ The spec marks operations as `security: []` (public) or `security: [{ BearerAuth
 | `src/lib/api/search.types.ts` | `SearchFilters`, `WebSearchResponse`, `SavedSearch`, `SearchAlert`, map and swipe types |
 | `src/lib/api/match.types.ts` | `MatchSummary`, `IncomingLikeSummary`, `CompatibilityBreakdown` |
 | `src/lib/api/notification.types.ts` | `FlatmatesNotification`, mark-read payloads, filters |
-| `src/lib/api/admin.types.ts` | Moderation and report admin shapes, `AdminStats`, `DashboardStats` |
+| `src/lib/api/admin.types.ts` | Moderation and report admin shapes, `DashboardStats` |
 | `src/hooks/queries/` | One TanStack Query hook file per domain; the only callers of `apiClient.request` |

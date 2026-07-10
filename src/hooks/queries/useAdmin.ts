@@ -3,7 +3,6 @@ import { apiClient } from "@/lib/api";
 import type {
   AdminListingCursorPage,
   AdminReportCursorPage,
-  AdminStats,
   AdminListingFilters,
   AdminReportFilters,
   FlatmateListingAdmin,
@@ -139,7 +138,6 @@ export function useAdminModerate() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "listings"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
     }
   });
 }
@@ -211,22 +209,6 @@ export function useInfiniteAdminReports(
   });
 }
 
-export function useAdminStats() {
-  return useQuery({
-    queryKey: ["admin", "stats"],
-    queryFn: ({ signal }) =>
-      apiClient.request<AdminStats>({
-        method: "GET",
-        path: "/flatmates/moderation/stats",
-        signal
-      }),
-    // Platform stats are expensive to compute and don't change every keystroke —
-    // cache for 60s and poll in the background so the cards stay fresh.
-    staleTime: 60_000,
-    refetchInterval: 60_000
-  });
-}
-
 export function useAdminReportAction() {
   const queryClient = useQueryClient();
 
@@ -275,7 +257,6 @@ export function useAdminReportAction() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
     }
   });
 }

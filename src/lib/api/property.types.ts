@@ -98,6 +98,7 @@ export interface Property {
   user_has_scheduled_visit?: boolean;
   user_scheduled_visit_count?: number;
   user_next_visit_date?: string;
+  compatibility_score?: number | null;
   owner?: PropertyOwner;
 }
 

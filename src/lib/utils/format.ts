@@ -120,7 +120,7 @@ export function humanizeSnakeCase(value: string): string {
 
 export function formatLifestyleLabel(
   dimensionKey: string,
-  value?: string
+  value?: string | null
 ): string {
   if (!value) return "";
   const dim = LIFESTYLE_DIMENSIONS.find((d) => d.key === dimensionKey);

@@ -3,7 +3,6 @@ import { Outlet } from "react-router";
 import { Link, useLocation, useNavigate } from "react-router";
 import type { ReactNode } from "react";
 import {
-  BarChart3,
   Eye,
   Flag,
   Shield
@@ -23,11 +22,6 @@ interface AdminNavItem {
 }
 
 const adminNavItems: AdminNavItem[] = [
-  {
-    label: "Stats",
-    href: "/admin/stats",
-    icon: <BarChart3 aria-hidden="true" className="h-5 w-5" />
-  },
   {
     label: "Listing Queue",
     href: "/admin/moderation/listings",

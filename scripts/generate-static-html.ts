@@ -130,7 +130,7 @@ function readShellTemplate(): ShellTemplate {
 
 function generatePage(shell: ShellTemplate, route: RouteContent): string {
   const fullTitle = `${route.title} | ${SITE_NAME}`;
-  const canonical = route.path === "/" ? SITE_URL : `${SITE_URL}${route.path}`;
+  const canonical = route.canonicalUrl ?? (route.path === "/" ? SITE_URL : `${SITE_URL}${route.path}`);
   const ogImage = route.ogImage ?? `${SITE_URL}/og-image.webp`;
 
   const metaTags = [
@@ -175,6 +175,7 @@ function generatePage(shell: ShellTemplate, route: RouteContent): string {
     shell.headPreMeta,
     metaTags,
     jsonLdHtml,
+    route.headExtra ?? "",
     shell.bodyOpen,
     bodyContent,
     shell.tail,
@@ -284,6 +285,79 @@ function generateListingPage(shell: ShellTemplate, listing: ListingData): { rout
   return { route, html: generatePage(shell, routeContent) };
 }
 
+// ── Share page generation ────────────────────────────────────────────────
+
+function generateSharePage(shell: ShellTemplate, listing: ListingData): { route: string; html: string } {
+  const route = `/share/${listing.id}`;
+  const discoverRoute = `/discover/${listing.id}`;
+  const url = `${SITE_URL}${discoverRoute}`;
+
+  const title = listing.title ?? `Listing #${listing.id}`;
+  const description = listing
+    ? [
+        title,
+        listing.locality && listing.city ? `${listing.locality}, ${listing.city}` : listing.city,
+        listing.monthly_rent ? `₹${listing.monthly_rent.toLocaleString("en-IN")}/mo` : undefined,
+        listing.bedrooms ? `${listing.bedrooms} BHK` : undefined,
+        listing.area_sqft ? `${listing.area_sqft} sq ft` : undefined,
+      ]
+        .filter(Boolean)
+        .join(", ") + ". Verified listing on 360 Flatmates."
+    : "View verified room and flatmate listings on 360 Flatmates.";
+
+  let bodyHtml = `<p>${esc(description)}</p>\n`;
+  bodyHtml += `<p><a href="${discoverRoute}">View listing</a></p>\n`;
+
+  const residenceSchema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Residence",
+    name: title,
+    description,
+    url,
+    offers: {
+      "@type": "Offer",
+      priceSpecification: listing.monthly_rent
+        ? { "@type": "UnitPriceSpecification", price: listing.monthly_rent, priceCurrency: "INR", unitText: "month" }
+        : undefined,
+      availability: "https://schema.org/InStock",
+    },
+  };
+  if (listing.main_image_url) residenceSchema.image = listing.main_image_url;
+  if (listing.locality || listing.city) {
+    residenceSchema.address = {
+      "@type": "PostalAddress",
+      ...(listing.locality ? { addressLocality: listing.locality } : {}),
+      ...(listing.city ? { addressRegion: listing.city } : {}),
+      addressCountry: "IN",
+    };
+  }
+  if (listing.bedrooms) residenceSchema.numberOfRooms = listing.bedrooms;
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Discover", item: `${SITE_URL}/discover` },
+      { "@type": "ListItem", position: 3, name: title, item: url },
+    ],
+  };
+
+  const routeContent: RouteContent = {
+    path: route,
+    title,
+    description,
+    h1: title,
+    bodyHtml,
+    jsonLd: [residenceSchema, breadcrumbLd],
+    ogImage: listing.main_image_url,
+    canonicalUrl: url,
+    headExtra: `<meta http-equiv="refresh" content="0; url=${discoverRoute}" />`,
+  };
+
+  return { route, html: generatePage(shell, routeContent) };
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -304,6 +378,7 @@ async function main(): Promise<void> {
   //    listing call entirely and the SPA fallback handles deep listing links
   //    client-side at runtime.
   const listingRoutes: { route: string; html: string }[] = [];
+  const shareRoutes: { route: string; html: string }[] = [];
   if (!GENERATE_LISTINGS) {
     console.log("[static-html] Listing generation disabled via PRERENDER_LISTINGS=0.");
   } else if (!shouldFetchListingData()) {
@@ -344,7 +419,7 @@ async function main(): Promise<void> {
 
           const data = (await res.json()) as { property?: ListingData } & ListingData;
           const property = data.property ?? data;
-          listingRoutes.push(generateListingPage(shell, {
+          const listingData: ListingData = {
             id: l.id,
             title: property.title ?? l.title,
             description: property.description,
@@ -355,7 +430,9 @@ async function main(): Promise<void> {
             area_sqft: property.area_sqft,
             main_image_url: property.main_image_url ?? l.images?.[0],
             features: property.features,
-          }));
+          };
+          listingRoutes.push(generateListingPage(shell, listingData));
+          shareRoutes.push(generateSharePage(shell, listingData));
           fetched++;
         } catch {
           failed++;
@@ -375,6 +452,7 @@ async function main(): Promise<void> {
   const allRoutes = [
     ...staticRoutes.map((r) => ({ route: r.path, html: generatePage(shell, r) })),
     ...listingRoutes,
+    ...shareRoutes,
   ];
 
   // Write non-home routes first, home last (so dist/index.html is overwritten last)

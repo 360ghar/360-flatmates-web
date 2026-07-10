@@ -88,21 +88,39 @@ async function readErrorBody(response: Response): Promise<{
     }
 
     const record = payload as Record<string, unknown>;
+    // Backend standardized envelope: `{ error: { code, message, details? } }`.
+    const nestedError =
+      typeof record.error === "object" && record.error !== null
+        ? (record.error as Record<string, unknown>)
+        : null;
     const detail = record.detail;
     const message =
-      typeof detail === "string"
-        ? detail
-        : typeof record.message === "string"
-          ? record.message
-          : fallback;
+      nestedError && typeof nestedError.message === "string"
+        ? nestedError.message
+        : typeof detail === "string"
+          ? detail
+          : typeof record.message === "string"
+            ? record.message
+            : fallback;
 
     const fields =
       typeof record.fields === "object" && record.fields !== null
         ? normalizeValidationFields(record.fields as Record<string, unknown>)
-        : {};
+        : nestedError &&
+            typeof nestedError.details === "object" &&
+            nestedError.details !== null &&
+            "fields" in (nestedError.details as Record<string, unknown>)
+          ? normalizeValidationFields(
+              (nestedError.details as { fields: Record<string, unknown> }).fields
+            )
+          : {};
 
     const errorCode =
-      typeof record.error_code === "string" ? record.error_code : undefined;
+      nestedError && typeof nestedError.code === "string"
+        ? nestedError.code
+        : typeof record.error_code === "string"
+          ? record.error_code
+          : undefined;
 
     return { message, fields, errorCode };
   } catch {

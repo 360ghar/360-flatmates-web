@@ -17,7 +17,6 @@ import * as useNotifications from "@/hooks/queries/useNotifications";
 import * as useDashboard from "@/hooks/queries/useDashboard";
 import * as useMatches from "@/hooks/queries/useMatches";
 import * as useMapView from "@/hooks/queries/useMapView";
-import * as useShareCard from "@/hooks/queries/useShareCard";
 
 // ── Type helpers ──────────────────────────────────────────────────────────
 
@@ -172,7 +171,6 @@ const modules = [
   { mod: useDashboard, name: "useDashboard" },
   { mod: useMatches, name: "useMatches" },
   { mod: useMapView, name: "useMapView" },
-  { mod: useShareCard, name: "useShareCard" },
 ];
 
 const allObservations = modules.flatMap(({ mod, name }) =>
@@ -197,7 +195,6 @@ const expectedScopes: Record<string, string[]> = {
   useDashboard: ["dashboard"],
   useMatches: ["matches", "incoming-likes", "outgoing-likes"],
   useMapView: ["map"],
-  useShareCard: ["share-card"],
 };
 
 // ── Tests ─────────────────────────────────────────────────────────────────

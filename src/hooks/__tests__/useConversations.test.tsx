@@ -137,7 +137,7 @@ describe("useConversations hooks", () => {
       expect(call.query).toEqual({ limit: 50 });
     });
 
-    it("includes before param when pageParam is provided", async () => {
+    it("omits before_id on the first page", async () => {
       mockRequest.mockResolvedValue({ messages: [], total: 0, has_more: false });
 
       const queryClient = new QueryClient({
@@ -150,12 +150,53 @@ describe("useConversations hooks", () => {
       );
 
       // The infinite query starts without a pageParam (initialPageParam: undefined),
-      // so the first request should not include `before`.
+      // so the first request should not include `before_id`.
       renderHook(() => useMessages(5), { wrapper });
 
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
       expect(call.query).toEqual({ limit: 50 });
+      expect(call.query.before_id).toBeUndefined();
+    });
+
+    it("sends before_id when loading older messages", async () => {
+      mockRequest
+        .mockResolvedValueOnce({
+          messages: [
+            {
+              id: 10,
+              body: "older",
+              sender_id: 1,
+              conversation_id: 5,
+              message_type: "text"
+            },
+            {
+              id: 20,
+              body: "newer",
+              sender_id: 1,
+              conversation_id: 5,
+              message_type: "text"
+            }
+          ],
+          total: 2,
+          has_more: true
+        })
+        .mockResolvedValueOnce({
+          messages: [],
+          total: 0,
+          has_more: false
+        });
+
+      const { result } = renderHook(() => useMessages(5), {
+        wrapper: createWrapper()
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await result.current.fetchNextPage();
+      await waitFor(() => expect(mockRequest).toHaveBeenCalledTimes(2));
+
+      const second = mockRequest.mock.calls[1][0];
+      expect(second.query).toEqual({ limit: 50, before_id: 10 });
     });
   });
 

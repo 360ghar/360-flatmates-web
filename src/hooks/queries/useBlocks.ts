@@ -1,13 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { FlatmatesPeer } from "@/lib/api/types";
+import type { CursorPage, FlatmatesPeer } from "@/lib/api/types";
 
+/**
+ * Block row from `GET /flatmates/blocks` (CursorPage envelope).
+ * Wire shape: `{ id, blocked_user: FlatmatesPeer, created_at }`.
+ */
 export interface BlockedUser {
   id: number;
-  blocker_user_id: number;
-  blocked_user_id: number;
   created_at: string;
   blocked_user: FlatmatesPeer;
+}
+
+/** Convenience: blocked user id from nested peer (not a top-level field). */
+export function blockedUserIdOf(block: BlockedUser): number {
+  return block.blocked_user.id;
 }
 
 const BLOCKS_QUERY_KEY = ["blocks"] as const;
@@ -15,19 +22,20 @@ const BLOCKS_QUERY_KEY = ["blocks"] as const;
 export function useBlockedUsers() {
   return useQuery({
     queryKey: BLOCKS_QUERY_KEY,
-    queryFn: () =>
-      apiClient.request<BlockedUser[]>({
+    queryFn: async ({ signal }) => {
+      const response = await apiClient.request<CursorPage<BlockedUser>>({
         method: "GET",
-        path: "/flatmates/blocks"
-      })
+        path: "/flatmates/blocks",
+        signal
+      });
+      // Backend returns CursorPage; unwrap items for the list UI.
+      return Array.isArray(response?.items) ? response.items : [];
+    }
   });
 }
 
 /**
- * Block a user. The wire is not yet finalised by the backend (see B-1), but
- * this hook centralises the path, body, and cache invalidation that callers
- * (e.g. ChatDetailPage) were inlining. When the backend contract is confirmed,
- * update only the path/body here.
+ * Block a user. Centralises path, body, and cache invalidation.
  */
 export function useBlockUser() {
   const queryClient = useQueryClient();
@@ -63,7 +71,7 @@ export function useUnblockUser() {
       if (previous) {
         queryClient.setQueryData<BlockedUser[]>(
           BLOCKS_QUERY_KEY,
-          previous.filter((b) => b.blocked_user_id !== blockedUserId)
+          previous.filter((b) => blockedUserIdOf(b) !== blockedUserId)
         );
       }
       return { previous };

@@ -51,7 +51,7 @@ export interface FlatmatesProfile {
   full_name: string;
   email?: string;
   phone?: string;
-  profile_image_url?: string;
+  profile_image_url?: string | null;
   mode: FlatmatesMode;
   profile_status?: FlatmatesProfileStatus;
   onboarding_completed: boolean;
@@ -105,6 +105,7 @@ export interface FlatmatesPeer {
   has_pets?: boolean;
   party_habit?: string;
   match_percentage?: number;
+  top_matches?: string[];
   phone_number?: string;
   /** Listing context — present only when the peer has an active flatmate/PG listing. */
   property_id?: number;

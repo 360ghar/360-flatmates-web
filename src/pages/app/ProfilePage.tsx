@@ -251,10 +251,7 @@ export function ProfilePage() {
   };
 
   const handleRemovePhoto = () => {
-    // The wire currently types profile_image_url as string | undefined, but we
-    // optimistically attempt to clear it with null and fall back to a friendly
-    // toast if the backend rejects. See audit item A-14.
-    const payload = { profile_image_url: null } as unknown as FlatmatesProfileUpdate;
+    const payload: FlatmatesProfileUpdate = { profile_image_url: null };
     updateProfile.mutate(payload, {
       onSuccess: () => {
         // Clear any local blob preview and release the object URL.
@@ -268,11 +265,11 @@ export function ProfilePage() {
           title: "Photo removed",
         });
       },
-      onError: () => {
+      onError: (err) => {
         uiStore.getState().pushToast({
           type: "error",
-          title: "Photo removal is not yet supported",
-          description: "Please try again later or contact support.",
+          title: "Could not remove photo",
+          description: err instanceof Error ? err.message : "Please try again later or contact support.",
         });
       }
     });

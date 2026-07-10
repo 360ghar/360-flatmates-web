@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import { MapPin } from "lucide-react";
+import { MapPin, Share } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useProperty } from "@/hooks/queries/useProperties";
@@ -14,6 +15,7 @@ import { PriceText } from "@/components/ui/PriceText";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, ErrorState, EmptyState } from "@/components/ui/StateViews";
+import { ShareSheet } from "@/components/organisms/ShareSheet";
 
 export default function ListingDetailClient() {
   const params = useParams<{ id: string }>();
@@ -22,12 +24,15 @@ export default function ListingDetailClient() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: property, isLoading, error, refetch } = useProperty(propertyId);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+
+  const ownerId = property?.owner_id;
 
   const handleContactOwner = () => {
-    if (user && property?.owner?.id) {
-      navigate(`/profile/${property.owner.id}`);
-    } else if (property?.owner?.id) {
-      navigate(`/login?redirect=${encodeURIComponent(`/profile/${property.owner.id}`)}`);
+    if (user && ownerId) {
+      navigate(`/profile/${ownerId}`);
+    } else if (ownerId) {
+      navigate(`/login?redirect=${encodeURIComponent(`/profile/${ownerId}`)}`);
     } else {
       navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
     }
@@ -100,6 +105,14 @@ export default function ListingDetailClient() {
                     <ProgressRing value={data.compatibilityScore} size="sm" showValue={true} label="Compatibility score" />
                   </div>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setIsShareOpen(true)}
+                  className="absolute top-4 right-4 rounded-full bg-surface/95 p-2.5 shadow-md border border-line-low text-ink hover:text-accent transition-colors"
+                  aria-label="Share this listing"
+                >
+                  <Share className="h-5 w-5" aria-hidden="true" />
+                </button>
               </div>
 
               {/* Small images grid column */}
@@ -266,10 +279,10 @@ export default function ListingDetailClient() {
                     type="button"
                     className="flex items-center gap-3 border-b border-line pb-4 mb-4 w-full text-left hover:opacity-80 transition-opacity"
                     onClick={() => {
-                      if (user && property?.owner?.id) {
-                        navigate(`/profile/${property.owner.id}`);
-                      } else if (property?.owner?.id) {
-                        navigate(`/login?redirect=${encodeURIComponent(`/profile/${property.owner.id}`)}`);
+                      if (user && ownerId) {
+                        navigate(`/profile/${ownerId}`);
+                      } else if (ownerId) {
+                        navigate(`/login?redirect=${encodeURIComponent(`/profile/${ownerId}`)}`);
                       } else {
                         navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
                       }
@@ -305,8 +318,16 @@ export default function ListingDetailClient() {
                 </Card>
               </div>
             </div>
-          </div>
-        )}
+
+          {property && (
+            <ShareSheet
+              property={property}
+              open={isShareOpen}
+              onClose={() => setIsShareOpen(false)}
+            />
+          )}
+        </div>
+      )}
       </AsyncView>
     </main>
   );

@@ -9,7 +9,6 @@ import {
 } from "@tanstack/react-query";
 import { useRef } from "react";
 import { apiClient } from "@/lib/api";
-import type { QueryValue } from "@/lib/api/client";
 import type {
   ConversationSummary,
   ConversationCursorPage,
@@ -18,29 +17,6 @@ import type {
   MessageCreate,
   MessageListResponse
 } from "@/lib/api/types";
-
-/**
- * Extract a numeric `before` keyset value from a server-issued opaque cursor.
- *
- * When the backend does not emit `next_cursor` we keep using the derived
- * keyset value. The cursor is sometimes a base64-encoded `before=<id>` blob;
- * when it is, this helper returns the embedded id so we can still pass
- * `before=` as a fallback to older server implementations.
- */
-function decodeCursorBefore(cursor: string | null | undefined): number | undefined {
-  if (!cursor) return undefined;
-  // Plain numeric cursor.
-  if (/^\d+$/.test(cursor)) return Number(cursor);
-  // Base64-encoded `before=<id>` payload.
-  try {
-    const decoded = atob(cursor);
-    const match = /before=(\d+)/.exec(decoded);
-    if (match) return Number(match[1]);
-  } catch {
-    // Not base64 — fall through.
-  }
-  return undefined;
-}
 
 export const conversationsOptions = queryOptions({
   queryKey: ["conversations"],
@@ -102,31 +78,22 @@ export function useConversation(id: number) {
 const MESSAGES_PAGE_SIZE = 50;
 
 /**
- * Infinite messages query (audit F6 #1 + #21).
+ * Infinite messages query.
  *
- * Cursor-based pagination against `GET /flatmates/conversations/{id}/messages`.
- * The backend accepts both opaque `cursor=` (preferred) and a derived keyset
- * `before=<message_id>`. We pass both, with `cursor` taking precedence, so the
- * client works against either implementation: when the server returns an
- * opaque cursor in the next page, we forward it as-is; otherwise we fall back
- * to using the oldest message id of the current page (keyset pagination).
+ * Keyset pagination against `GET /flatmates/conversations/{id}/messages`.
+ * Backend expects `before_id` (int message id) and returns
+ * `{ messages, total, has_more }` — not a CursorPage envelope.
+ * Pass the oldest currently loaded message id as `before_id` for the next page.
  */
 export function messagesInfiniteOptions(conversationId: number) {
   return infiniteQueryOptions({
     queryKey: ["conversations", conversationId, "messages"],
     queryFn: ({ pageParam, signal }) => {
-      // pageParam may be a number (keyset: oldest message id) or a string
-      // (opaque cursor emitted by the server). Forward as the matching
-      // query param; the server uses the most-specific one it understands.
-      const query: Record<string, QueryValue> = { limit: MESSAGES_PAGE_SIZE };
-      if (typeof pageParam === "string") {
-        query.cursor = pageParam;
-        // Also forward the derived keyset as a fallback for implementations
-        // that only honour `before`.
-        const before = decodeCursorBefore(pageParam);
-        if (before !== undefined) query.before = before;
-      } else if (typeof pageParam === "number") {
-        query.before = pageParam;
+      const query: { limit: number; before_id?: number } = {
+        limit: MESSAGES_PAGE_SIZE
+      };
+      if (typeof pageParam === "number") {
+        query.before_id = pageParam;
       }
       return apiClient.request<MessageListResponse>({
         method: "GET",
@@ -135,13 +102,11 @@ export function messagesInfiniteOptions(conversationId: number) {
         signal
       });
     },
-    initialPageParam: undefined as number | string | undefined,
+    initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage) => {
       if (!lastPage.has_more || lastPage.messages.length === 0) return undefined;
-      // Prefer the opaque cursor if the server supplied one; otherwise fall
-      // back to the keyset value (oldest message id) which the original
-      // implementation relied on.
-      return lastPage.next_cursor ?? lastPage.messages[0]?.id;
+      // Messages are chronological; index 0 is the oldest on the page.
+      return lastPage.messages[0]?.id;
     },
     enabled: conversationId > 0
   });

@@ -74,15 +74,6 @@ export interface ReportActionPayload {
   notes?: string;
 }
 
-export interface AdminStats {
-  total_users: number;
-  total_listings: number;
-  pending_moderation: number;
-  total_matches: number;
-  total_visits: number;
-  active_conversations: number;
-}
-
 export interface DashboardStats {
   total_listings: number;
   active_listings: number;

@@ -18,7 +18,10 @@ import { getLastAuthMethod, maskIdentifier } from "@/lib/lastAuthMethod";
 import { PASSWORD_REGEX } from "@/lib/schemas/common";
 import { resolveRedirect, normalizePhone } from "@/lib/redirect";
 import { PASSWORD_POLICY_HELPER_TEXT, PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
-import { UNVERIFIED_ACCOUNT_MESSAGE } from "@/lib/authErrors";
+import {
+  UNVERIFIED_ACCOUNT_MESSAGE,
+  IDENTIFIER_STATUS_UNAVAILABLE_MESSAGE,
+} from "@/lib/authErrors";
 
 /**
  * Lightweight format gate so a malformed identifier never reaches the
@@ -228,7 +231,16 @@ export function LoginPage() {
 
     setSubmitting(true);
     try {
-      const status = await checkIdentifierStatus(resolvedIdentifier, controller.signal);
+      let status;
+      try {
+        status = await checkIdentifierStatus(resolvedIdentifier, controller.signal);
+      } catch {
+        if (controller.signal.aborted) return;
+        // Do not proceed as signup when identifier-status is unreachable —
+        // that would risk silent account creation for existing users.
+        setError(IDENTIFIER_STATUS_UNAVAILABLE_MESSAGE);
+        return;
+      }
       if (controller.signal.aborted) return;
       if (status.next_step === "password") {
         setStep("password");

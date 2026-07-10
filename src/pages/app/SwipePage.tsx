@@ -32,7 +32,7 @@ function peerToSwipeProfile(peer: FlatmatesPeer): SwipeProfile {
     verified: false,
     location: formatLocation(peer.locality, peer.city) || undefined,
     matchScore: peer.match_percentage ?? 0,
-    topMatches: [],
+    topMatches: peer.top_matches ?? [],
     moveInLabel: peer.move_in_timeline
       ? formatMoveInTimeline(peer.move_in_timeline)
       : undefined,

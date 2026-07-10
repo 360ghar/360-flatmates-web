@@ -17,7 +17,11 @@ import { uiStore } from "@/lib/stores/ui-store";
 import { normalizePhone } from "@/lib/redirect";
 import { PASSWORD_POLICY_HELPER_TEXT, PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
 import { checkIdentifierStatus } from "@/lib/api/auth";
-import { mapSupabaseAuthError, NO_ACCOUNT_FOUND_MESSAGE } from "@/lib/authErrors";
+import {
+  mapSupabaseAuthError,
+  NO_ACCOUNT_FOUND_MESSAGE,
+  IDENTIFIER_STATUS_UNAVAILABLE_MESSAGE,
+} from "@/lib/authErrors";
 
 /**
  * Password reset — 6-digit OTP for BOTH channels (decision 1).
@@ -103,7 +107,46 @@ export function ForgotPasswordPage() {
     setSubmitting(true);
     const target = channel === "phone" ? normalizePhone(input) : input.trim();
     try {
-      const status = await checkIdentifierStatus(target);
+      let status;
+      try {
+        status = await checkIdentifierStatus(target);
+      } catch (err: unknown) {
+        // Prefer the dedicated copy for network/5xx so users don't see a
+        // generic Supabase mapping when the status endpoint itself is down.
+        // Do NOT treat every error without a status as network (would hide
+        // real 4xx / validation messages).
+        const statusCode =
+          err && typeof err === "object" && "status" in err
+            ? Number((err as { status?: number }).status)
+            : undefined;
+        const appType =
+          err &&
+          typeof err === "object" &&
+          "appError" in err &&
+          err.appError &&
+          typeof err.appError === "object" &&
+          "type" in (err.appError as object)
+            ? String((err.appError as { type?: string }).type)
+            : undefined;
+        const msg = err instanceof Error ? err.message.toLowerCase() : "";
+        const isNetworkOrServer =
+          appType === "network" ||
+          appType === "timeout" ||
+          appType === "server" ||
+          (statusCode !== undefined &&
+            (statusCode === 0 || statusCode >= 500)) ||
+          msg.includes("network") ||
+          msg.includes("failed to fetch") ||
+          msg.includes("timeout") ||
+          msg.includes("econnrefused") ||
+          msg.includes("unavailable");
+        setError(
+          isNetworkOrServer
+            ? IDENTIFIER_STATUS_UNAVAILABLE_MESSAGE
+            : mapSupabaseAuthError(err, "forgot_password")
+        );
+        return;
+      }
       if (!status.exists) {
         setError(NO_ACCOUNT_FOUND_MESSAGE);
         return;

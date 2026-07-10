@@ -41,7 +41,7 @@ Food habits, smoking and drinking, and work style do not sit on a simple ordinal
 - **`scoreSmokingDrinking`**: exact match is 100. A `both_fine` partner tolerates any preference for 70. Two non-smokers (`neither`, `drink_occasionally`) score 80. Any other mismatch (one smokes, the other does not) drops to 30.
 - **`scoreWorkStyle`**: exact match is 100, anything else is 70. Work style is the lowest-weight, most forgiving dimension, since a hybrid worker and an office worker can coexist.
 
-The `DIMENSION_SCORERS` object maps each `LifestyleDimensionKey` to its scorer, which is how `scoreDimension` in `src/lib/compatibility/engine.ts` dispatches.
+The `DIMENSION_SCORERS` object maps each `LifestyleDimensionKey` to its scorer, which is how `scoreDimension` in `src/lib/compatibility/engine.ts` dispatches. The backend mirrors this engine in `app/services/flatmates/compatibility.py` so `match_percentage` on `FlatmatesPeer` results, `compatibility_score` on `Property` results, and the `GET /flatmates/profiles/{user_id}/compatibility` breakdown are all consistent with the client-side engine.
 
 ## The weighted overall score
 
@@ -69,14 +69,14 @@ Color is never the only signal. Every score is paired with its numeric value, an
 
 ## Ranking peers
 
-`rankPeersByCompatibility(user, peers)` takes a compatibility profile and a list of `FlatmatesPeer` objects, computes `overall_percentage` for each, and sorts the list in descending order. The return type annotates each peer with a `match_percentage` field, which is what the swipe deck and search results read to decide display order and ring fill. This runs entirely client-side: the backend may return peers in any order, and the engine re-sorts them by weighted fit before they reach the UI.
+The `/flatmates/profiles` endpoint now returns `match_percentage` and `top_matches` on each `FlatmatesPeer`, computed by the backend engine in `app/services/flatmates/compatibility.py`. The swipe deck and profile grids read these fields directly to render the compatibility ring and top-match chips. `rankPeersByCompatibility(user, peers)` in `src/lib/compatibility/engine.ts` remains available as a client-side fallback but is not currently used in the main UI.
 
 ## Visualizing the score
 
 The score is rendered two ways, both driven by the same `color` bucket:
 
 - **`ProgressRing`** (`src/components/ui/ProgressRing.tsx`) draws an animated SVG ring with a `stroke-dashoffset` that eases from empty to the percentage on mount (an 800ms spring curve, disabled under reduced motion). The ring's fill color comes from `toneForValue`, which maps the percentage to `text-success`, `text-warning`, or `text-error`. It exposes `role="progressbar"` with `aria-valuenow` for screen readers, and comes in four sizes (`sm`, `md`, `lg`, `xl`).
-- **`CompatibilityPage`** (`src/pages/app/CompatibilityPage.tsx`) is the dedicated detail view. It shows the `xl` ring, a badge with the color tone and status, a per-dimension breakdown bar (each bar colored by the same three-way bucket), and the human summary lines. It fetches the breakdown via the `useCompatibility(peerId)` hook, which calls `GET /flatmates/web/compatibility/{peerId}`.
+- **`CompatibilityPage`** (`src/pages/app/CompatibilityPage.tsx`) is the dedicated detail view. It shows the `xl` ring, a badge with the color tone and status, a per-dimension breakdown bar (each bar colored by the same three-way bucket), and the human summary lines. It fetches the breakdown via the `useCompatibility(peerId)` hook, which calls `GET /flatmates/profiles/{user_id}/compatibility`.
 
 ```mermaid
 graph TD

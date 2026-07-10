@@ -11,7 +11,7 @@ The route tree is declared once in `src/App.tsx` and is the canonical map of eve
 | `PublicLayout` | `src/pages/public/PublicLayout.tsx` | Marketing, discover, cities, blog, comparison, legal | Sticky header with logo, nav, theme toggle, sign-in/join; footer; scroll progress bar; mobile drawer |
 | `AuthLayout` | `src/pages/auth/AuthLayout.tsx` | Login, forgot-password, auth callback, add-phone | Centered card on `bg-paper` with decorative accent blurs, logo, and a "Back to home" link |
 | `AppLayout` | `src/pages/app/AppLayout.tsx` | The authenticated app (under `AuthGuard` + `GateGuard`) | `AppShell` with mode-aware sidebar/bottom nav, PWA install banner; reads `useMyProfile` for the user chip |
-| `AdminLayout` | `src/pages/admin/AdminLayout.tsx` | Admin stats and moderation (under `AdminGuard`) | Fixed 240px sidebar on `xl`, top bar with compact nav on smaller screens |
+| `AdminLayout` | `src/pages/admin/AdminLayout.tsx` | Admin moderation (under `AdminGuard`) | Fixed 240px sidebar on `xl`, top bar with compact nav on smaller screens |
 
 `AppLayout` is the only layout that reads server state (the current user's profile) to drive the navigation mode (Room Poster, Co-Hunter, Open to Both). While `useMyProfile` loads it renders nothing rather than a mode-mismatched shell.
 
@@ -68,7 +68,7 @@ graph TD
     Auth --> Login["/login, /signup, /forgot-password, /auth/callback"]
     AuthFlow --> AddPhone["/add-phone"]
     App --> Home["/home, /search, /swipe, /chats, /visits, /profile, ..."]
-    Admin --> Mod["/admin/stats, /admin/moderation/*"]
+    Admin --> Mod["/admin/moderation/*"]
 
     GateGuard -. profile_completion .-> Complete["/complete-profile"]
     GateGuard -. app_onboarding .-> Onb["/onboarding"]

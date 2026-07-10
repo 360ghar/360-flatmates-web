@@ -175,30 +175,48 @@ export function MyListingEditPage() {
       selectedPhotoIndexes.includes(i)
     );
     if (selected.length === 0) return;
-    batchDeleteMedia.mutate(
-      { media_ids: selected },
+
+    const remaining = (imageUrls ?? []).filter(
+      (_, i) => !selectedPhotoIndexes.includes(i)
+    );
+
+    // Update the listing first so the UI is never out of sync with the
+    // property record, then best-effort delete the underlying storage files.
+    updateProperty.mutate(
+      { image_urls: remaining },
       {
-        onSuccess: (result) => {
-          const remaining = (imageUrls ?? []).filter(
-            (_, i) => !selectedPhotoIndexes.includes(i)
-          );
-          updateProperty.mutate({ image_urls: remaining });
-          uiStore.getState().pushToast({
-            type: result.failed.length === 0 ? "success" : "warning",
-            title: `Deleted ${result.deleted.length} photo${result.deleted.length === 1 ? "" : "s"}`,
-            description:
-              result.failed.length > 0
-                ? `${result.failed.length} could not be removed`
-                : undefined
-          });
+        onSuccess: () => {
           setSelectedPhotoIndexes([]);
           setMultiSelect(false);
+          batchDeleteMedia.mutate(
+            { media_ids: selected },
+            {
+              onSuccess: (result) => {
+                uiStore.getState().pushToast({
+                  type: result.failed.length === 0 ? "success" : "warning",
+                  title: `Deleted ${result.deleted.length} photo${result.deleted.length === 1 ? "" : "s"}`,
+                  description:
+                    result.failed.length > 0
+                      ? `${result.failed.length} could not be removed`
+                      : undefined
+                });
+              },
+              onError: () => {
+                uiStore.getState().pushToast({
+                  type: "warning",
+                  title: "Photos removed from listing",
+                  description: "Some files could not be deleted from storage."
+                });
+              }
+            }
+          );
         },
-        onError: () =>
+        onError: () => {
           uiStore.getState().pushToast({
             type: "error",
-            title: "Could not delete photos"
-          })
+            title: "Could not remove photos from listing"
+          });
+        }
       }
     );
   };
@@ -217,8 +235,38 @@ export function MyListingEditPage() {
    * present the same UI. A full unification (shared <PhotoGrid> component) is
    * TODO — see the F5 fix log. */
   function removeImageAt(index: number) {
-    const next = (imageUrls ?? []).filter((_, i) => i !== index);
-    updateProperty.mutate({ image_urls: next });
+    const urls = imageUrls ?? [];
+    const url = urls[index];
+    const next = urls.filter((_, i) => i !== index);
+    if (!url) {
+      updateProperty.mutate({ image_urls: next });
+      return;
+    }
+    updateProperty.mutate(
+      { image_urls: next },
+      {
+        onSuccess: () => {
+          batchDeleteMedia.mutate(
+            { media_ids: [url] },
+            {
+              onError: () => {
+                uiStore.getState().pushToast({
+                  type: "warning",
+                  title: "Photo removed from listing",
+                  description: "The file could not be deleted from storage."
+                });
+              }
+            }
+          );
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not remove photo"
+          });
+        }
+      }
+    );
   }
 
   function setImageAsMain(index: number) {
@@ -440,7 +488,7 @@ export function MyListingEditPage() {
                       <button
                         type="button"
                         onClick={() => removeImageAt(index)}
-                        disabled={updateProperty.isPending}
+                        disabled={updateProperty.isPending || batchDeleteMedia.isPending}
                         className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/60 text-paper opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-40"
                         aria-label={`Remove photo ${index + 1}`}
                       >
@@ -489,10 +537,11 @@ export function MyListingEditPage() {
                   onClick={handleDeleteSelectedPhotos}
                   disabled={
                     selectedPhotoIndexes.length === 0 ||
+                    updateProperty.isPending ||
                     batchDeleteMedia.isPending
                   }
                 >
-                  {batchDeleteMedia.isPending
+                  {updateProperty.isPending || batchDeleteMedia.isPending
                     ? "Deleting…"
                     : `Delete ${selectedPhotoIndexes.length || ""}`.trim()}
                 </Button>

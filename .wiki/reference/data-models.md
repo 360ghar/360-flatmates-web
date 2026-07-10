@@ -153,5 +153,5 @@ The hand-written types in `src/lib/api/*.types.ts` are re-exported from `src/lib
 | `src/lib/api/search.types.ts` | `SearchFilters`, `WebSearchResponse`, saved searches, map view, swipe deck |
 | `src/lib/api/match.types.ts` | `MatchSummary`, `IncomingLikeSummary`, `CompatibilityBreakdown` |
 | `src/lib/api/notification.types.ts` | `FlatmatesNotification`, mark-read payloads |
-| `src/lib/api/admin.types.ts` | Admin moderation, reports, dashboard and admin stats |
+| `src/lib/api/admin.types.ts` | Admin moderation, reports, and dashboard |
 | `docs/flatmates-openapi.yaml` | Canonical API contract (source of truth) |

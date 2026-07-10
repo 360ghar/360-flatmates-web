@@ -10,7 +10,7 @@ src/
                 # Full-page components (LegalPage, PeopleGridPage) live in organisms/, not molecules/
   hooks/        # Custom React hooks + TanStack Query hooks (queries/)
   lib/          # Utilities, API client, stores, schemas, compatibility engine, Supabase config
-                # API types split into domain files under lib/api/types/ (common, user, property, conversation, visit, search, match, notification, admin)
+                # API types split into domain files under lib/api/*.types.ts (common, user, property, conversation, visit, search, match, notification, admin)
                 # lib/api/types.ts re-exports all domain types for backward compatibility
   pages/        # React Router pages organized by domain (app/, auth/, admin/, public/)
 docs/            # OpenAPI spec (flatmates-openapi.yaml)

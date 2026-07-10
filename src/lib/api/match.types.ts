@@ -30,10 +30,11 @@ export type IncomingLikeCursorPage = CursorPage<IncomingLikeSummary>;
 export interface CompatibilityDimension {
   name: LifestyleDimensionKey;
   weight: number;
-  user_value?: string;
-  peer_value?: string;
+  user_value: string | null;
+  peer_value: string | null;
   score: number;
   match: boolean;
+  summary: string;
 }
 
 export interface CompatibilityBreakdown {

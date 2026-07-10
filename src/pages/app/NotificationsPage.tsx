@@ -1,13 +1,36 @@
 import { useNavigate } from "react-router";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/queries";
 import { notificationToNotificationCardProps } from "@/lib/api/adapters";
+import type { FlatmatesNotification } from "@/lib/api/types";
 import { formatRelativeTime } from "@/lib/utils";
 import { resolveRedirect } from "@/lib/redirect";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView } from "@/components/ui/StateViews";
-import { NotificationCard } from "@/components/molecules/NotificationCard";
+import { NotificationCard, type NotificationCardData } from "@/components/molecules/NotificationCard";
+
+function getNotificationActionLabel(
+  type: NotificationCardData["type"],
+  route?: string | null
+): string | undefined {
+  if (!route) return undefined;
+  switch (type) {
+    case "new_match":
+      return "View match";
+    case "new_message":
+      return "Reply";
+    case "listing_approved":
+      return "View listing";
+    case "listing_rejected":
+      return "Edit listing";
+    case "visit_scheduled":
+    case "visit_confirmed":
+      return "View visit";
+    default:
+      return "View";
+  }
+}
 
 export function NotificationsPage() {
   const navigate = useNavigate();
@@ -17,6 +40,18 @@ export function NotificationsPage() {
 
   const items = notifications ?? [];
   const hasUnread = items.some((n) => !n.is_read);
+
+  const handleNotificationAction = (notification: FlatmatesNotification) => {
+    if (!notification.is_read) {
+      markRead.mutate({
+        notificationId: notification.id,
+        payload: { is_read: true }
+      });
+    }
+    if (notification.route) {
+      navigate(resolveRedirect(notification.route));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4 page-fade">
@@ -72,6 +107,8 @@ export function NotificationsPage() {
                     ...cardProps,
                     timestamp: formatRelativeTime(notification.created_at)
                   }}
+                  actionLabel={getNotificationActionLabel(cardProps.type, notification.route)}
+                  onAction={() => handleNotificationAction(notification)}
                   interactive
                   onClick={() => {
                     if (!notification.is_read) {

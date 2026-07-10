@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-360 Flatmates is a two-sided marketplace, so every listing sits behind a moderation gate before it reaches seekers, and every user-submitted report lands in a queue for review. The admin surface is a separate layout behind a role guard, with three tools: a platform stats overview, a listing review queue, and a report review queue. The listing queue also has a detailed prescreen view for context-rich review. This page covers the admin role gate, the three queues, the prescreen flow, and the moderation state machine. For the guard implementation, see [Routing and guards](../systems/routing-guards.md). For the listings being moderated, see [Listing management](listing-management.md). For the product context, see [plans/prd.md](../../plans/prd.md).
+360 Flatmates is a two-sided marketplace, so every listing sits behind a moderation gate before it reaches seekers, and every user-submitted report lands in a queue for review. The admin surface is a separate layout behind a role guard, with two tools: a listing review queue and a report review queue. The listing queue also has a detailed prescreen view for context-rich review. This page covers the admin role gate, the two queues, the prescreen flow, and the moderation state machine. For the guard implementation, see [Routing and guards](../systems/routing-guards.md). For the listings being moderated, see [Listing management](listing-management.md). For the product context, see [plans/prd.md](../../plans/prd.md).
 
 ## The admin role gate
 
@@ -21,32 +21,16 @@ A non-admin signed-in user is silently bounced to `/home`, not to an error page.
 
 ## The admin layout
 
-`AdminLayout` (`src/pages/admin/AdminLayout.tsx`) is a fixed-sidebar layout that wraps all admin routes via `<Outlet />`. On `xl` and wider, a 240px left sidebar holds the logo, an "Admin" label, and three nav items. Below `xl`, the sidebar collapses and the three nav items move into a sticky top header as icon-only links (labels appear on `md` and up).
+`AdminLayout` (`src/pages/admin/AdminLayout.tsx`) is a fixed-sidebar layout that wraps all admin routes via `<Outlet />`. On `xl` and wider, a 240px left sidebar holds the logo, an "Admin" label, and two nav items. Below `xl`, the sidebar collapses and the two nav items move into a sticky top header as icon-only links (labels appear on `md` and up).
 
-The three nav items:
+The two nav items:
 
 | Label | Route | Icon | Active when |
 | --- | --- | --- | --- |
-| Stats | `/admin/stats` | `BarChart3` | pathname matches or starts with `/admin/stats/` |
 | Listing Queue | `/admin/moderation/listings` | `Shield` | pathname matches or starts with `/admin/moderation/prescreen` (so the prescreen detail keeps the tab active) |
 | Reports | `/admin/moderation/reports` | `Flag` | pathname matches or starts with `/admin/moderation/reports/` |
 
 The `isNavActive` helper special-cases the listing queue so that the prescreen detail page (which lives at `/admin/moderation/prescreen/:id`) keeps the "Listing Queue" tab highlighted. Active items get `bg-accent-soft text-accent`.
-
-## Platform stats
-
-`AdminStatsPage` (`src/pages/admin/AdminStatsPage.tsx`) is the admin landing view. It fetches `AdminStats` via `useAdminStats()` and renders six `StatCard` components in a 3-column grid, each with an icon:
-
-| Card | Field | Icon | Description |
-| --- | --- | --- | --- |
-| Total Users | `total_users` | `Users` | |
-| Total Listings | `total_listings` | `Building2` | |
-| Pending Moderation | `pending_moderation` | `ShieldCheck` | "Listings awaiting review" |
-| Total Matches | `total_matches` | `Heart` | |
-| Total Visits | `total_visits` | `CalendarCheck` | |
-| Active Conversations | `active_conversations` | `MessageCircle` | |
-
-Loading renders a header skeleton plus six `statCard` skeletons. Error renders an inline `ErrorState` with retry inside a card. The page title "Platform Stats" is always visible, per the async-state rules.
 
 ## Listing moderation queue
 
@@ -138,9 +122,9 @@ Both moderation mutations use optimistic updates so the actioned item disappears
 
 1. `onMutate`: cancels all `["admin", "listings"]` queries, snapshots their cached data, and removes the moderated listing from each cached response (decrementing `total`).
 2. `onError`: rolls back all snapshots.
-3. `onSettled`: invalidates `["admin", "listings"]` and `["admin", "stats"]` so the queue refetches and the pending-moderation count on the stats page refreshes.
+3. `onSettled`: invalidates `["admin", "listings"]` so the queue refetches.
 
-`useAdminReportAction` follows the identical pattern against `["admin", "reports"]`, also invalidating `["admin", "stats"]` on settle.
+`useAdminReportAction` follows the identical pattern against `["admin", "reports"]`.
 
 The read hooks:
 
@@ -148,7 +132,6 @@ The read hooks:
 | --- | --- | --- |
 | `useAdminListings(filters)` | `["admin", "listings", filters]` | `GET /flatmates/moderation/listings` |
 | `useAdminReports(filters)` | `["admin", "reports", filters]` | `GET /flatmates/moderation/reports` |
-| `useAdminStats()` | `["admin", "stats"]` | `GET /flatmates/moderation/stats` |
 
 ## Cross-references
 
@@ -160,12 +143,11 @@ The read hooks:
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/admin/AdminLayout.tsx` | Fixed sidebar layout, three nav items, active-state logic |
-| `src/pages/admin/AdminStatsPage.tsx` | Platform stats overview with six stat cards |
+| `src/pages/admin/AdminLayout.tsx` | Fixed sidebar layout, two nav items, active-state logic |
 | `src/pages/admin/ModerationListingsPage.tsx` | Pending listings queue, approve, reject, search |
 | `src/pages/admin/ModerationReportsPage.tsx` | Open reports queue, dismiss, warn, suspend |
 | `src/pages/admin/PrescreenPage.tsx` | Single-listing detailed review with sticky action bar |
 | `src/pages/guards.tsx` | `AdminGuard` (checks `app_metadata.role === "admin"`) |
 | `src/hooks/queries/useAdmin.ts` | All admin query and mutation hooks with optimistic updates |
-| `src/lib/api/admin.types.ts` | `FlatmateListingAdmin`, `ReportAdmin`, `AdminStats`, payload types |
+| `src/lib/api/admin.types.ts` | `FlatmateListingAdmin`, `ReportAdmin`, payload types |
 | `src/lib/data/domain.ts` | `ModerationAction`, `ReportAction`, `ReportStatus`, `PropertyModerationStatus` enums |

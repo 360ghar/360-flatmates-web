@@ -137,6 +137,8 @@ export interface RouteContent {
   bodyHtml: string;
   jsonLd: object[];
   ogImage?: string;
+  headExtra?: string;
+  canonicalUrl?: string;
 }
 
 // ── Blog post content to HTML ────────────────────────────────────────────

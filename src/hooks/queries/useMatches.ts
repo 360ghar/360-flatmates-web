@@ -67,7 +67,7 @@ export function outgoingLikesInfiniteOptions() {
     queryFn: async ({ pageParam, signal }) => {
       const response = await apiClient.request<IncomingLikeCursorPage>({
         method: "GET",
-        path: "/flatmates/likes/outgoing",
+        path: "/flatmates/outgoing-likes",
         query: { limit: OUTGOING_LIKES_PAGE_SIZE, cursor: pageParam },
         signal
       });

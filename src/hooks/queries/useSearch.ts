@@ -31,7 +31,6 @@ export function webSearchOptions(filters: SearchFilters) {
       const response = await apiClient.request<PropertySearchCursorPage>({
         method: "GET",
         path: "/properties",
-        auth: false,
         signal,
         query: {
           q: filters.q,
@@ -94,7 +93,6 @@ export function infiniteWebSearchOptions(
       const response = await apiClient.request<PropertySearchCursorPage>({
         method: "GET",
         path: "/properties",
-        auth: false,
         signal,
         query: {
           q: filters.q,
