@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { MapPin, Share } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useCreateConversation } from "@/hooks/queries/useConversations";
+import { myProfileOptions } from "@/hooks/queries/useProfiles";
 import { useProperty } from "@/hooks/queries/useProperties";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
+import { uiStore } from "@/lib/stores/ui-store";
 import { formatCurrencyINR } from "@/lib/utils/format";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button, buttonClasses } from "@/components/ui/Button";
@@ -26,13 +30,20 @@ export default function ListingDetailClient() {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const { data: property, isLoading, error, refetch } = useProperty(propertyId);
+  // Only resolve "me" when signed in — public listing pages must not 401-fetch profile.
+  const { data: myProfile, isLoading: isProfileLoading } = useQuery({
+    ...myProfileOptions,
+    enabled: Boolean(user)
+  });
+  const createConversation = useCreateConversation();
   const [isShareOpen, setIsShareOpen] = useState(false);
   // App shell has a ~76px bottom nav; public /discover/:id does not.
   const hasAppBottomNav = pathname.startsWith("/listing/");
 
-  const ownerId = property?.owner_id;
+  const ownerId = property?.owner?.id ?? property?.owner_id;
+  const isOwnListing = Boolean(ownerId && myProfile?.id === ownerId);
 
-  const handleContactOwner = () => {
+  const handleOpenOwnerProfile = useCallback(() => {
     if (user && ownerId) {
       navigate(`/profile/${ownerId}`);
     } else if (ownerId) {
@@ -40,7 +51,60 @@ export default function ListingDetailClient() {
     } else {
       navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
     }
-  };
+  }, [navigate, ownerId, propertyId, user]);
+
+  const handleContactOwner = useCallback(() => {
+    if (!ownerId) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Owner unavailable",
+        description: "We could not find the owner for this listing. Please try another listing."
+      });
+      return;
+    }
+
+    if (!user) {
+      navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
+      return;
+    }
+
+    if (isOwnListing) {
+      uiStore.getState().pushToast({
+        type: "info",
+        title: "This is your listing",
+        description: "You cannot start a conversation with yourself."
+      });
+      return;
+    }
+
+    createConversation.mutate(
+      {
+        peer_user_id: ownerId,
+        context_property_id: propertyId,
+        initial_message: `Hi, I am interested in ${property?.title ?? "this listing"}.`
+      },
+      {
+        onSuccess: (conversation) => {
+          navigate(`/chats/${conversation.id}`);
+        },
+        onError: () => {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Could not contact owner",
+            description: "Something went wrong while starting the chat. Please try again."
+          });
+        }
+      }
+    );
+  }, [
+    createConversation,
+    isOwnListing,
+    navigate,
+    ownerId,
+    property?.title,
+    propertyId,
+    user
+  ]);
 
   // Guard against invalid IDs before rendering content
   if (!params.id || isNaN(propertyId) || propertyId <= 0) {
@@ -310,7 +374,7 @@ export default function ListingDetailClient() {
                   <button
                     type="button"
                     className="mb-4 flex w-full items-center gap-3 rounded-xl border border-line bg-surface-soft p-3 text-left transition-colors hover:border-accent/30"
-                    onClick={handleContactOwner}
+                    onClick={handleOpenOwnerProfile}
                   >
                     <Avatar name={data.owner?.name ?? "Host"} size="lg" src={data.owner?.avatarUrl} />
                     <div className="min-w-0 flex-1">
@@ -328,8 +392,14 @@ export default function ListingDetailClient() {
                     </p>
                   ) : null}
                   <div className="flex flex-col gap-2.5">
-                    <Button fullWidth className="rounded-full font-semibold" onClick={handleContactOwner}>
-                      Contact owner
+                    <Button
+                      fullWidth
+                      className="rounded-full font-semibold"
+                      disabled={isOwnListing}
+                      loading={isProfileLoading || createConversation.isPending}
+                      onClick={handleContactOwner}
+                    >
+                      {isOwnListing ? "Your listing" : "Contact owner"}
                     </Button>
                     <Button
                       fullWidth
@@ -357,8 +427,13 @@ export default function ListingDetailClient() {
                 <div className="min-w-0 flex-1">
                   <PriceText value={data.price} variant="card" className="font-semibold text-ink" />
                 </div>
-                <Button className="shrink-0 rounded-full px-5" onClick={handleContactOwner}>
-                  Contact
+                <Button
+                  className="shrink-0 rounded-full px-5"
+                  disabled={isOwnListing}
+                  loading={isProfileLoading || createConversation.isPending}
+                  onClick={handleContactOwner}
+                >
+                  {isOwnListing ? "Yours" : "Contact"}
                 </Button>
               </div>
             </div>

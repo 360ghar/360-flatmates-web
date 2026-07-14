@@ -13,6 +13,7 @@ import {
   parseAsString,
   parseAsInteger,
   parseAsArrayOf,
+  createParser,
 } from "nuqs";
 
 // ── Search page params ─────────────────────────────────────────
@@ -23,6 +24,28 @@ import {
 // matches the wire protocol. For backwards-compat, callers that still receive
 // a deep link with `page=` should treat it as a hint to reset to the first
 // page (handled in SearchPage / DiscoverPage useEffects).
+
+/** Strict lat parser: empty/invalid/out-of-bounds → null (never 0,0 from ""). */
+const parseAsLatitude = createParser({
+  parse: (v) => {
+    if (v.trim() === "") return null;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < -90 || n > 90) return null;
+    return Number(n.toFixed(4));
+  },
+  serialize: (v) => v.toString(),
+});
+
+/** Strict lng parser: empty/invalid/out-of-bounds → null (never 0,0 from ""). */
+const parseAsLongitude = createParser({
+  parse: (v) => {
+    if (v.trim() === "") return null;
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < -180 || n > 180) return null;
+    return Number(n.toFixed(4));
+  },
+  serialize: (v) => v.toString(),
+});
 
 export const searchPageParams = {
   q: parseAsString.withDefault(""),
@@ -35,10 +58,12 @@ export const searchPageParams = {
 };
 
 // ── Discover page params ───────────────────────────────────────
-// URL: /discover?city=2&filter=Nearby&cursor=<opaque>
+// URL: /discover?city=2&filter=Nearby&latitude=12.97&longitude=77.59&cursor=<opaque>
 
 export const discoverPageParams = {
   city: parseAsInteger.withDefault(0),
   filter: parseAsString.withDefault("Nearby"),
   cursor: parseAsString.withDefault(""),
+  latitude: parseAsLatitude,
+  longitude: parseAsLongitude,
 };

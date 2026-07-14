@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
@@ -9,12 +9,15 @@ import { useWebSearch } from "@/hooks/queries/useSearch";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
 import type { SearchFilters } from "@/lib/api/types";
 import { discoverPageParams } from "@/lib/schemas/search-params";
+import { uiStore } from "@/lib/stores/ui-store";
 import { ListingCard, type ListingCardData } from "@/components/molecules/ListingCard";
 import { Chip } from "@/components/ui/Chip";
 import { SelectField, type SelectOption } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView } from "@/components/ui/StateViews";
 import { PageHeader } from "@/components/ui/Layout";
+
+const GEO_TIMEOUT_MS = 10_000;
 
 const QUICK_FILTERS = [
   "Nearby",
@@ -54,6 +57,9 @@ export function DiscoverPage() {
     shallow: true,
   });
 
+  // Tracks the latest filter selection so late geolocation callbacks are ignored.
+  const latestFilterRef = useRef<string | null>(params.filter);
+
   // One-time migration from the legacy `?page=N` URL shape to the cursor
   // form. Drop the param silently so old links still land on a sensible view.
   useEffect(() => {
@@ -65,6 +71,58 @@ export function DiscoverPage() {
       window.history.replaceState({}, "", url.toString());
     }
   }, []);
+
+  /**
+   * Request browser geolocation and persist coords into the URL.
+   * @param toastOnError - true for explicit chip clicks; false for silent first-load.
+   */
+  const requestNearbyLocation = useCallback(
+    (toastOnError: boolean) => {
+      latestFilterRef.current = "Nearby";
+      if (!("geolocation" in navigator)) {
+        if (toastOnError) {
+          uiStore.getState().pushToast({
+            type: "error",
+            title: "Geolocation not supported",
+            description: "Your browser cannot provide a location for Nearby search.",
+          });
+        }
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (latestFilterRef.current !== "Nearby") return;
+          setParams({
+            filter: "Nearby",
+            latitude: Number(pos.coords.latitude.toFixed(4)),
+            longitude: Number(pos.coords.longitude.toFixed(4)),
+            cursor: "",
+          });
+        },
+        () => {
+          if (latestFilterRef.current !== "Nearby") return;
+          if (toastOnError) {
+            uiStore.getState().pushToast({
+              type: "error",
+              title: "Location access denied",
+              description: "Please enable location to see nearby listings.",
+            });
+          }
+        },
+        { enableHighAccuracy: false, timeout: GEO_TIMEOUT_MS, maximumAge: 60_000 }
+      );
+    },
+    [setParams]
+  );
+
+  // Default filter is "Nearby" — request coords on first load when missing so
+  // we never search with radius alone (backend needs lat/lng for spatial query).
+  useEffect(() => {
+    if (params.filter !== "Nearby") return;
+    if (params.latitude != null && params.longitude != null) return;
+    requestNearbyLocation(false);
+  }, [params.filter, params.latitude, params.longitude, requestNearbyLocation]);
 
   const { data: cities, isLoading: citiesLoading } = useCities();
 
@@ -79,11 +137,20 @@ export function DiscoverPage() {
       };
       const quickFilter = params.filter ? QUICK_FILTER_MAP[params.filter] : undefined;
       if (quickFilter) {
-        Object.assign(base, quickFilter);
+        // Nearby without coordinates is a no-op — radius alone is not spatial.
+        if (params.filter === "Nearby") {
+          if (params.latitude != null && params.longitude != null) {
+            Object.assign(base, quickFilter);
+            base.lat = params.latitude;
+            base.lng = params.longitude;
+          }
+        } else {
+          Object.assign(base, quickFilter);
+        }
       }
       return base;
     },
-    [cities, params.city, params.filter]
+    [cities, params.city, params.filter, params.latitude, params.longitude]
   );
 
   const {
@@ -108,7 +175,35 @@ export function DiscoverPage() {
   const totalResults = searchResults?.total ?? listings.length;
   const hasActiveFilters = params.city !== 0 || Boolean(params.filter);
 
-  const handleClearFilters = () => setParams(null);
+  const handleClearFilters = () => {
+    latestFilterRef.current = null;
+    setParams(null);
+  };
+
+  const handleQuickFilter = (item: string) => {
+    const isNearbyClick = item === "Nearby";
+    const needsLocation =
+      isNearbyClick &&
+      (params.filter !== "Nearby" ||
+        params.latitude == null ||
+        params.longitude == null);
+
+    if (needsLocation) {
+      // Explicit chip click: surface permission/timeout errors via toast.
+      requestNearbyLocation(true);
+      return;
+    }
+
+    const nextFilter = params.filter === item ? "" : item;
+    latestFilterRef.current = nextFilter;
+    setParams({
+      filter: nextFilter,
+      // Drop coords when deselecting Nearby or switching away from it.
+      latitude: nextFilter === "Nearby" ? params.latitude : null,
+      longitude: nextFilter === "Nearby" ? params.longitude : null,
+      cursor: "",
+    });
+  };
 
   return (
     <>
@@ -153,9 +248,7 @@ export function DiscoverPage() {
               key={item}
               variant="choice"
               selected={params.filter === item}
-              onClick={() =>
-                setParams({ filter: params.filter === item ? "" : item, cursor: "" })
-              }
+              onClick={() => handleQuickFilter(item)}
               aria-label={`Filter by ${item}`}
               className="snap-start"
             >

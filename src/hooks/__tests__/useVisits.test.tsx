@@ -11,8 +11,10 @@ vi.mock("@/lib/api", () => ({
 import {
   useVisits,
   useCreateVisit,
-  useCancelVisit
+  useCancelVisit,
+  useUpdateVisit
 } from "@/hooks/queries/useVisits";
+import type { Visit, VisitUpdate } from "@/lib/api/types";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -209,6 +211,124 @@ describe("useVisits hooks", () => {
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("POST");
       expect(call.path).toBe("/visits/10/cancel");
+    });
+  });
+
+  describe("useUpdateVisit(id) routing", () => {
+    it("calls PUT /flatmates/visits/{id} for flatmate_meet and does not seed Visit cache", async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      const cached: Partial<Visit> = {
+        id: 10,
+        visit_context: "flatmate_meet",
+        status: "requested"
+      };
+      queryClient.setQueryData(["visits", 10], cached);
+
+      mockRequest.mockResolvedValue({ id: 10, status: "confirmed", updated: true });
+
+      const setSpy = vi.spyOn(queryClient, "setQueryData");
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useUpdateVisit(10), { wrapper });
+      const payload: VisitUpdate = { status: "confirmed" };
+      result.current.mutate(payload);
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: "PUT",
+          path: "/flatmates/visits/10",
+          body: payload
+        })
+      );
+      // Flatmate ack must not overwrite the detail cache as a Visit.
+      expect(setSpy).not.toHaveBeenCalledWith(
+        ["visits", 10],
+        expect.objectContaining({ updated: true })
+      );
+    });
+
+    it("calls PUT /visits/{id} for property_tour and seeds Visit cache", async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      const cached: Partial<Visit> = {
+        id: 20,
+        visit_context: "property_tour",
+        status: "requested"
+      };
+      queryClient.setQueryData(["visits", 20], cached);
+
+      const updated: Visit = {
+        id: 20,
+        property_id: 1,
+        visit_context: "property_tour",
+        scheduled_date: "2026-06-01",
+        status: "confirmed"
+      } as Visit;
+      mockRequest.mockResolvedValue(updated);
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useUpdateVisit(20), { wrapper });
+      const payload: VisitUpdate = { status: "confirmed" };
+      result.current.mutate(payload);
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: "PUT",
+          path: "/visits/20",
+          body: payload
+        })
+      );
+      expect(queryClient.getQueryData(["visits", 20])).toEqual(updated);
+    });
+
+    it("fetches visit on cold cache then routes flatmate_meet correctly", async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      const fetched: Visit = {
+        id: 30,
+        property_id: 1,
+        visit_context: "flatmate_meet",
+        scheduled_date: "2026-06-01",
+        status: "requested"
+      } as Visit;
+
+      mockRequest
+        .mockResolvedValueOnce(fetched)
+        .mockResolvedValueOnce({ id: 30, status: "confirmed", updated: true });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useUpdateVisit(30), { wrapper });
+      result.current.mutate({ status: "confirmed" });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockRequest).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ method: "GET", path: "/visits/30" })
+      );
+      expect(mockRequest).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ method: "PUT", path: "/flatmates/visits/30" })
+      );
     });
   });
 });

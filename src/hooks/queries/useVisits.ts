@@ -148,41 +148,76 @@ export function useCreateVisit() {
   });
 }
 
+/** Ack shape from `PUT /flatmates/visits/{id}` (not a full Visit resource). */
+interface FlatmateVisitUpdateAck {
+  id: number;
+  status: Visit["status"];
+  updated: boolean;
+}
+
+type UpdateVisitResult =
+  | { kind: "property_tour"; visit: Visit }
+  | { kind: "flatmate_meet" };
+
 export function useUpdateVisit(id: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: VisitUpdate) => {
+    mutationFn: async (payload: VisitUpdate): Promise<UpdateVisitResult> => {
       // Guard against bad IDs (mirrors `useVisit`).
       if (!Number.isFinite(id) || id <= 0) {
         return Promise.reject(new Error("Invalid visit id"));
+      }
+
+      // Prefer detail cache; on cold cache fetch once so we route by visit_context
+      // correctly (flatmate meets must not hit PUT /visits/{id}).
+      let current = queryClient.getQueryData<Visit>(["visits", id]);
+      if (!current) {
+        current = await apiClient.request<Visit>({
+          method: "GET",
+          path: `/visits/${id}`
+        });
+        queryClient.setQueryData(["visits", id], current);
       }
 
       // Client-side status transition guard. Only enforced when the payload
       // includes a status change; non-status updates (date, notes, feedback)
       // are still allowed regardless of current state.
       if (payload.status !== undefined) {
-        const current = queryClient.getQueryData<Visit>(["visits", id])?.status;
-        if (!canTransitionVisitStatus(current, payload.status)) {
+        if (!canTransitionVisitStatus(current.status, payload.status)) {
           return Promise.reject(
             new Error(
-              `Invalid visit status transition: ${current ?? "unknown"} → ${payload.status}`
+              `Invalid visit status transition: ${current.status} → ${payload.status}`
             )
           );
         }
       }
 
-      return apiClient.request<Visit>({
+      // Flatmate meets use a scoped endpoint that returns a minimal ack, not a
+      // full Visit — never seed the detail cache with that payload.
+      const isFlatmateMeet = current.visit_context === "flatmate_meet";
+      if (isFlatmateMeet) {
+        await apiClient.request<FlatmateVisitUpdateAck>({
+          method: "PUT",
+          path: `/flatmates/visits/${id}`,
+          body: payload
+        });
+        return { kind: "flatmate_meet" };
+      }
+
+      const visit = await apiClient.request<Visit>({
         method: "PUT",
         path: `/visits/${id}`,
         body: payload
       });
+      return { kind: "property_tour", visit };
     },
-    onSuccess: (updated) => {
-      // Seed the detail cache with the server response, then invalidate the
-      // whole "visits" namespace so the list and calendar reflect the new
-      // status/date as well as the detail view.
-      queryClient.setQueryData(["visits", id], updated);
+    onSuccess: (result) => {
+      // Seed the detail cache only for full Visit responses, then invalidate
+      // the whole "visits" namespace so list/calendar/detail stay consistent.
+      if (result.kind === "property_tour") {
+        queryClient.setQueryData(["visits", id], result.visit);
+      }
       queryClient.invalidateQueries({ queryKey: ["visits"] });
     }
   });

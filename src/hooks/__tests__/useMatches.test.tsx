@@ -10,7 +10,8 @@ vi.mock("@/lib/api", () => ({
 
 import {
   useMatches,
-  useUnmatchMutation
+  useUnmatchMutation,
+  outgoingLikesInfiniteOptions
 } from "@/hooks/queries/useMatches";
 import type { MatchSummary } from "@/lib/api/types";
 
@@ -121,6 +122,36 @@ describe("useMatches hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["matches"] });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["conversations"] });
+    });
+  });
+
+  describe("outgoingLikesInfiniteOptions", () => {
+    it("requests GET /flatmates/outgoing-likes", async () => {
+      mockRequest.mockResolvedValue({
+        items: [],
+        next_cursor: null,
+        has_more: false,
+        limit: 20
+      });
+
+      const options = outgoingLikesInfiniteOptions();
+      const queryFn = options.queryFn;
+      expect(queryFn).toBeDefined();
+
+      await queryFn!({
+        pageParam: undefined,
+        signal: new AbortController().signal,
+        queryKey: options.queryKey,
+        direction: "forward",
+        meta: undefined
+      });
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: "GET",
+          path: "/flatmates/outgoing-likes"
+        })
+      );
     });
   });
 });

@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
-  useBatchRemoveSwipes,
   useSwipeDeck,
   useSwipeAction,
   useBootstrap
@@ -23,7 +22,7 @@ import {
   type CompatibilityProfile
 } from "@/lib/compatibility";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Sparkles, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Sparkles, Star } from "lucide-react";
 
 const SWIPE_HINT_DISMISSED_KEY = "360-flatmates-swipe-hint-dismissed";
 
@@ -234,47 +233,8 @@ export function SwipePage() {
   });
 
   /* ----- Rendering ----- */
-  /* ----- Multi-select for batch-unswipe ----- */
-  const [multiSelect, setMultiSelect] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const batchRemove = useBatchRemoveSwipes();
-
-  const handleSelectToggle = useCallback((profileId: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(profileId)
-        ? prev.filter((id) => id !== profileId)
-        : [...prev, profileId]
-    );
-  }, []);
-
-  const handleMultiSelectAction = useCallback(
-    (ids: string[]) => {
-      const numericIds = ids
-        .map((id) => Number(id))
-        .filter((id) => Number.isFinite(id) && id > 0);
-      if (numericIds.length === 0) return;
-      batchRemove.mutate(
-        { property_ids: numericIds },
-        {
-          onSuccess: (result) => {
-            uiStore.getState().pushToast({
-              type: "success",
-              title: `Removed ${result.removed_count ?? numericIds.length} swipes`
-            });
-            setSelectedIds([]);
-            setMultiSelect(false);
-            refetch();
-          },
-          onError: () =>
-            uiStore.getState().pushToast({
-              type: "error",
-              title: "Could not remove swipes"
-            })
-        }
-      );
-    },
-    [batchRemove, refetch]
-  );
+  // Multi-select batch-unswipe is intentionally omitted for the flatmate deck:
+  // POST /swipes/batch-remove only accepts property_ids, not user IDs.
 
   if (isLoading) {
     return (
@@ -294,25 +254,6 @@ export function SwipePage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-3">
-        <span className="text-eyebrow text-ink-3 uppercase tracking-widest">
-          {multiSelect ? "Multi-select" : "Swipe through profiles"}
-        </span>
-        <Button
-          variant={multiSelect ? "primary" : "secondary"}
-          size="compact"
-          onClick={() => {
-            setMultiSelect((prev) => {
-              if (prev) setSelectedIds([]);
-              return !prev;
-            });
-          }}
-          aria-pressed={multiSelect}
-        >
-          <Trash2 aria-hidden="true" className="mr-1 h-3.5 w-3.5" />
-          {multiSelect ? "Exit select" : "Select to remove"}
-        </Button>
-      </div>
       <div className="flex justify-center py-2 md:py-4">
         <SwipeDeck
           profiles={swipeProfiles}
@@ -323,10 +264,6 @@ export function SwipePage() {
           onEmptyAction={() => navigate("/explore")}
           onNearEnd={handleNearEnd}
           isAnimating={storeAnimating}
-          multiSelect={multiSelect}
-          selectedIds={selectedIds}
-          onSelectToggle={handleSelectToggle}
-          onMultiSelectAction={handleMultiSelectAction}
         />
       </div>
 
