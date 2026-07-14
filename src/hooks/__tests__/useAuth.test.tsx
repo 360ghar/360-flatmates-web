@@ -259,7 +259,7 @@ describe("useAuth", () => {
     });
   });
 
-  it("signInWithGoogle sends Supabase the flatmates callback URL", async () => {
+  it("signInWithGoogle sends Supabase a clean origin callback (no ?next=)", async () => {
     vi.stubEnv("VITE_AUTH_REDIRECT_URL", "");
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
@@ -270,12 +270,15 @@ describe("useAuth", () => {
     expect(mockSignInWithOAuth).toHaveBeenCalledWith({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=%2Fswipe`
-      }
+        // Query params on redirectTo break Supabase allowlist matching and
+        // silently fall back to Site URL (360ghar.com). Destination is stashed.
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
+    expect(sessionStorage.getItem("oauth:next")).toBe("/swipe");
   });
 
-  it("signInWithApple sends Supabase the flatmates callback URL", async () => {
+  it("signInWithApple sends Supabase a clean origin callback (no ?next=)", async () => {
     vi.stubEnv("VITE_AUTH_REDIRECT_URL", "");
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
@@ -286,9 +289,10 @@ describe("useAuth", () => {
     expect(mockSignInWithOAuth).toHaveBeenCalledWith({
       provider: "apple",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=%2Fhome`
-      }
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
+    expect(sessionStorage.getItem("oauth:next")).toBe("/home");
   });
 
   it("addPhone calls updateUser with phone", async () => {

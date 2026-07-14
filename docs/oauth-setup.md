@@ -5,36 +5,57 @@ Google/Apple OAuth sign-in on `flatmates.360ghar.com` redirects to `360ghar.com`
 instead of back to the flatmates app (issue #14).
 
 ## Root Cause
-The client code correctly requests a redirect to
-`https://flatmates.360ghar.com/auth/callback` (built from `window.location.origin`
-in `src/lib/auth/oauth-redirect.ts`). However, Supabase only honors redirect URLs
-that are in the project's **Redirect URLs allowlist**. If the flatmates callback URL
-is missing from the allowlist, Supabase falls back to the configured **Site URL**
-(`https://360ghar.com`), causing the wrong-domain redirect.
+Two layers:
 
-## Fix (Supabase Dashboard — no code change required)
+1. **Client** must pass `redirectTo` as the **current origin** callback only:
+   `https://flatmates.360ghar.com/auth/callback`  
+   built from `window.location.origin` in `src/lib/auth/oauth-redirect.ts`.
+   Do **not** put `?next=…` on this URL — Supabase allowlist matching often
+   rejects query strings and **silently** falls back to Site URL.
 
-1. Go to your Supabase project dashboard.
-2. Navigate to **Authentication → URL Configuration**.
-3. Set **Site URL** to `https://flatmates.360ghar.com`.
-4. Under **Redirect URLs**, add ALL deployment callback URLs:
-   - `https://flatmates.360ghar.com/auth/callback`
-   - `https://360ghar.com/auth/callback` (if the main site also uses OAuth)
-   - `http://localhost:5173/auth/callback` (for local development)
-5. Click **Save**.
-6. For Google OAuth specifically, also verify in **Authentication → Providers → Google**
-   that the authorized redirect URIs in the Google Cloud Console include the Supabase
-   callback (`https://<project>.supabase.co/auth/v1/callback`).
+2. **Supabase dashboard** must allowlist each deployment. Missing/mismatched
+   entries → same silent fallback to Site URL (`https://360ghar.com`).
+
+Post-login destinations (`/home`, `/swipe`, …) are stored in `sessionStorage`
+(`oauth:next`) by `stashOAuthNext` before OAuth starts, and read by
+`AuthCallbackPage` via `consumeOAuthNext`.
+
+## Fix (code — already in repo)
+- `buildOAuthRedirectUrl()` → clean `/auth/callback` only
+- `stashOAuthNext` / `consumeOAuthNext` for return path
+- Production ignores `VITE_AUTH_REDIRECT_URL` (dev-only override)
+
+## Fix (Supabase Dashboard — human, required)
+
+1. Open Supabase project **`zthcndwkvhstjgusovqw`** (the one in all app `.env` files).
+2. **Authentication → URL Configuration**.
+3. **Site URL**: keep `https://360ghar.com` (primary marketplace).  
+   Do **not** set Site URL to flatmates — that would reverse the bug for the main site.
+4. **Redirect URLs** — prefer wildcards so path/query variants never fall back:
+
+   ```
+   https://360ghar.com/**
+   https://flatmates.360ghar.com/**
+   https://tours.360ghar.com/**
+   https://admin.360ghar.com/**
+   http://localhost:3000/**
+   http://localhost:5173/**
+   ```
+
+5. For Google OAuth, ensure Google Cloud Console authorized redirect URIs include
+   only the Supabase callback:  
+   `https://zthcndwkvhstjgusovqw.supabase.co/auth/v1/callback`
 
 ## Verification
 1. Clear browser storage for `flatmates.360ghar.com`.
 2. Navigate to `https://flatmates.360ghar.com/login`.
-3. Click "Continue with Google".
-4. After authentication, you should land on
-   `https://flatmates.360ghar.com/auth/callback` and then be routed to `/home`
+3. Click "Continue with Google"; in Network, authorize URL `redirect_to` should be
+   `https://flatmates.360ghar.com/auth/callback` **without** `?next=`.
+4. After authentication, land on
+   `https://flatmates.360ghar.com/auth/callback?code=…` then `/home`
    (or `/add-phone` for new OAuth users without a phone number).
 
 ## Code Reference
-- `src/lib/auth/oauth-redirect.ts` — builds the redirect URL from `window.location.origin`.
-- `src/pages/auth/AuthCallbackPage.tsx` — exchanges the OAuth code and routes the user.
-- `src/hooks/useAuth.ts` — `signInWithGoogle` / `signInWithApple` pass the redirect URL to Supabase.
+- `src/lib/auth/oauth-redirect.ts` — clean redirect URL + next stash
+- `src/pages/auth/AuthCallbackPage.tsx` — exchanges code, consumes next
+- `src/hooks/useAuth.ts` — `signInWithGoogle` / `signInWithApple`

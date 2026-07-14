@@ -7,7 +7,10 @@ import {
   reportLastMethod,
   type IdentifierStatus,
 } from "@/lib/api/auth";
-import { buildOAuthRedirectUrl } from "@/lib/auth/oauth-redirect";
+import {
+  buildOAuthRedirectUrl,
+  stashOAuthNext,
+} from "@/lib/auth/oauth-redirect";
 import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
 import type { Session, User } from "@supabase/supabase-js";
 import {
@@ -227,7 +230,10 @@ export function useAuth(): UseAuthReturn {
   );
 
   const signInWithGoogle = useCallback(async (next?: string) => {
-    const redirectTo = buildOAuthRedirectUrl(next);
+    // Stash destination client-side; never put ?next= on redirectTo (Supabase
+    // allowlist rejects query strings and falls back to Site URL / 360ghar.com).
+    stashOAuthNext(next);
+    const redirectTo = buildOAuthRedirectUrl();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
@@ -236,7 +242,8 @@ export function useAuth(): UseAuthReturn {
   }, [supabase]);
 
   const signInWithApple = useCallback(async (next?: string) => {
-    const redirectTo = buildOAuthRedirectUrl(next);
+    stashOAuthNext(next);
+    const redirectTo = buildOAuthRedirectUrl();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: { redirectTo },

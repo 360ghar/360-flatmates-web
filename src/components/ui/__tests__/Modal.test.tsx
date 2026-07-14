@@ -89,17 +89,28 @@ describe("Modal", () => {
 
   it("calls onClose when overlay is clicked", async () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <Modal open onClose={onClose}>
         <p>Content</p>
       </Modal>,
     );
-    // The overlay button is the first button with no visible label
-    const overlay = container.querySelector('button[aria-label="Close dialog"]');
-    if (overlay) {
-      await userEvent.click(overlay);
-      expect(onClose).toHaveBeenCalled();
-    }
+    // Overlay is portaled to document.body, not the React render container.
+    const overlay = document.body.querySelector('button[aria-label="Close dialog"]');
+    expect(overlay).toBeTruthy();
+    await userEvent.click(overlay!);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("portals the dialog overlay to document.body", () => {
+    render(
+      <Modal open onClose={vi.fn()} title="Dialog">
+        <p>Content</p>
+      </Modal>,
+    );
+    const dialog = screen.getByRole("dialog");
+    // Overlay wrapper is the parent of the dialog panel and must sit on body
+    // so fixed positioning is viewport-relative (not trapped by ancestor transforms).
+    expect(dialog.parentElement?.parentElement).toBe(document.body);
   });
 
   it("traps Tab focus within the dialog", () => {
@@ -152,6 +163,16 @@ describe("Drawer", () => {
       </Drawer>,
     );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("portals the drawer overlay to document.body", () => {
+    render(
+      <Drawer open onClose={vi.fn()} title="Settings">
+        <p>Content</p>
+      </Drawer>,
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.parentElement?.parentElement).toBe(document.body);
   });
 });
 

@@ -1,23 +1,31 @@
 import { resolveRedirect } from "@/lib/redirect";
 
 /**
- * OAuth redirect URL construction.
+ * OAuth redirect URL construction + post-auth destination stash.
  *
- * In production this always uses the current browser origin + `/auth/callback`,
- * so a user on `https://flatmates.360ghar.com` is redirected back there after
- * Google/Apple sign-in — never to a different 360ghar host.
+ * Supabase only honors `redirectTo` values that match the project's
+ * Authentication → URL Configuration allowlist. If the URL is not allowlisted,
+ * GoTrue **silently** falls back to Site URL (typically https://360ghar.com).
  *
- * IMPORTANT (Supabase dashboard requirement):
- * For this to work, the Supabase project's Authentication → URL Configuration
- * must include each deployment's callback URL in the "Redirect URLs" allowlist:
- *   - https://flatmates.360ghar.com/auth/callback
- *   - https://360ghar.com/auth/callback  (if the main site also uses OAuth)
- * The "Site URL" should be set to the primary app URL (e.g. https://flatmates.360ghar.com).
- * If a redirect URL is NOT in the allowlist, Supabase silently falls back to the
- * configured Site URL — which is the root cause of issue #14 (redirect to
- * 360ghar.com instead of flatmates.360ghar.com).
+ * Critical: do NOT put `?next=…` (or any query string) on `redirectTo`. Exact
+ * allowlist entries like `https://flatmates.360ghar.com/auth/callback` often
+ * fail to match `…/auth/callback?next=%2Fhome`, which is why Google login on
+ * flatmates was bouncing users to 360ghar.com (issue #14).
+ *
+ * Post-login destinations live in sessionStorage instead; the callback page
+ * reads them after exchanging the OAuth code.
+ *
+ * Dashboard allowlist (project zthcndwkvhstjgusovqw) should include wildcards:
+ *   - https://flatmates.360ghar.com/**
+ *   - https://360ghar.com/**
+ *   - https://tours.360ghar.com/**
+ *   - https://admin.360ghar.com/**
+ * Site URL stays the primary site (https://360ghar.com) — not flatmates.
  */
 export const OAUTH_CALLBACK_PATH = "/auth/callback";
+
+/** sessionStorage key for the safe relative path to open after OAuth. */
+export const OAUTH_NEXT_STORAGE_KEY = "oauth:next";
 
 interface BuildOAuthRedirectUrlOptions {
   origin?: string;
@@ -25,22 +33,51 @@ interface BuildOAuthRedirectUrlOptions {
   isProduction?: boolean;
 }
 
+/**
+ * Build the Supabase `redirectTo` callback URL for this deployment.
+ *
+ * Always returns origin + `/auth/callback` with **no query string**, so it
+ * matches exact and wildcard allowlist entries. Pass `next` to
+ * {@link stashOAuthNext} separately before starting OAuth.
+ */
 export function buildOAuthRedirectUrl(
-  next?: string,
   options: BuildOAuthRedirectUrlOptions = {},
 ): string {
   const origin = normalizeOrigin(options.origin ?? currentOrigin());
   const isProduction = options.isProduction ?? import.meta.env.PROD;
-  const base = isProduction
+  return isProduction
     ? callbackUrlForOrigin(origin)
     : callbackUrlForDev(origin, options.redirectUrlOverride);
-  const url = new URL(base);
+}
 
-  if (next) {
-    url.searchParams.set("next", resolveRedirect(next));
+/**
+ * Persist a safe same-site path for the callback page to navigate to after
+ * OAuth completes. Call immediately before `signInWithOAuth`.
+ */
+export function stashOAuthNext(next?: string): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    sessionStorage.setItem(OAUTH_NEXT_STORAGE_KEY, resolveRedirect(next ?? null));
+  } catch {
+    // Private mode / quota — callback falls back to URL param or /home.
   }
+}
 
-  return url.toString();
+/**
+ * Read and clear the stashed post-OAuth path. Falls back to a URL `next`
+ * query param (legacy / email links), then `/home`.
+ */
+export function consumeOAuthNext(urlNext?: string | null): string {
+  let stored: string | null = null;
+  if (typeof sessionStorage !== "undefined") {
+    try {
+      stored = sessionStorage.getItem(OAUTH_NEXT_STORAGE_KEY);
+      sessionStorage.removeItem(OAUTH_NEXT_STORAGE_KEY);
+    } catch {
+      stored = null;
+    }
+  }
+  return resolveRedirect(stored ?? urlNext ?? null);
 }
 
 function callbackUrlForDev(
@@ -70,6 +107,10 @@ function normalizeOrigin(origin: string): string {
   const url = new URL(origin);
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new Error("OAuth redirect origin must be an http(s) origin.");
+  }
+  // www.360ghar.com is 301'd to non-www; keep allowlist matches stable.
+  if (url.hostname.startsWith("www.")) {
+    url.hostname = url.hostname.slice(4);
   }
   return url.origin;
 }

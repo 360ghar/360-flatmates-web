@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { setLastAuthMethod } from "@/lib/lastAuthMethod";
 import { reportLastMethod } from "@/lib/api/auth";
-import { resolveRedirect } from "@/lib/redirect";
+import { consumeOAuthNext } from "@/lib/auth/oauth-redirect";
 import { mapSupabaseAuthError } from "@/lib/authErrors";
 import type { AuthMethod } from "@/lib/lastAuthMethod";
 
@@ -21,7 +21,8 @@ export function AuthCallbackPage() {
     const code = searchParams.get("code");
     const oauthError =
       searchParams.get("error_description") || searchParams.get("error");
-    const next = resolveRedirect(searchParams.get("next"));
+    // Prefer sessionStorage stash (clean redirectTo); URL ?next= is legacy fallback.
+    const next = consumeOAuthNext(searchParams.get("next"));
 
     if (oauthError) {
       navigate(`/login?error=${encodeURIComponent(oauthError)}`, {

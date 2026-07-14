@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "./Button";
 import { cn } from "./component-utils";
@@ -126,7 +127,9 @@ export function Modal({
     return null;
   }
 
-  return (
+  // Portal to document.body so position:fixed is viewport-relative even when
+  // ancestors apply transform/filter (e.g. .page-fade animation fill mode).
+  return createPortal(
     <div className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-black/50 p-0 backdrop-blur-[9px] md:items-center md:p-6">
       <button
         aria-label={closeLabel}
@@ -173,7 +176,8 @@ export function Modal({
         <div className={cn(title ? "mt-5" : "mt-0")}>{children}</div>
         {footer ? <div className="mt-6 flex flex-col gap-3 md:flex-row md:justify-end">{footer}</div> : null}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -202,7 +206,9 @@ export function Drawer({
     return null;
   }
 
-  return (
+  // Portal to document.body so position:fixed is viewport-relative even when
+  // ancestors apply transform/filter (e.g. .page-fade animation fill mode).
+  return createPortal(
     <div className="fixed inset-0 z-[var(--z-modal)] bg-black/50 backdrop-blur-[9px]">
       <button
         aria-label="Close drawer"
@@ -244,7 +250,8 @@ export function Drawer({
         </div>
         <div className="p-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
