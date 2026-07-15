@@ -1,5 +1,5 @@
 import { useCallback, useRef, type HTMLAttributes } from "react";
-import { motion } from "framer-motion";
+import { LazyMotion, domMax, m } from "framer-motion";
 import { useStore } from "zustand";
 import { cn, focusRing, interactiveMotion } from "./component-utils";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -71,46 +71,48 @@ export function SegmentedControl({
   );
 
   return (
-    <div
-      ref={containerRef}
-      role="tablist"
-      aria-label={ariaLabel}
-      className={cn("relative inline-flex min-h-11 rounded-full bg-paper-2 p-1", className)}
-      onKeyDown={handleKeyDown}
-      {...props}
-    >
-      {options.map((option, index) => {
-        const selected = option.value === value;
+    <LazyMotion features={domMax}>
+      <div
+        ref={containerRef}
+        role="tablist"
+        aria-label={ariaLabel}
+        className={cn("relative inline-flex min-h-11 rounded-full bg-paper-2 p-1", className)}
+        onKeyDown={handleKeyDown}
+        {...props}
+      >
+        {options.map((option, index) => {
+          const selected = option.value === value;
 
-        return (
-          <button
-            type="button"
-            role="tab"
-            tabIndex={selected ? 0 : -1}
-            aria-selected={selected}
-            disabled={option.disabled}
-            data-index={index}
-            className={cn(
-              "relative z-10 min-h-9 rounded-full px-4 text-body-md font-semibold disabled:cursor-not-allowed disabled:text-ink-4",
-              interactiveMotion,
-              focusRing,
-              selected ? "text-ink" : "text-ink-3 hover:text-ink",
-            )}
-            key={option.value}
-            onClick={() => onValueChange?.(option.value)}
-          >
-            {selected ? (
-              <motion.span
-                layoutId="segmented-indicator"
-                className="absolute inset-0 -z-10 rounded-full bg-surface shadow-xs"
-                transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 35 }}
-              />
-            ) : null}
-            <span className="relative z-10">{option.label}</span>
-          </button>
-        );
-      })}
-    </div>
+          return (
+            <button
+              type="button"
+              role="tab"
+              tabIndex={selected ? 0 : -1}
+              aria-selected={selected}
+              disabled={option.disabled}
+              data-index={index}
+              className={cn(
+                "relative z-10 min-h-9 rounded-full px-4 text-body-md font-semibold disabled:cursor-not-allowed disabled:text-ink-4",
+                interactiveMotion,
+                focusRing,
+                selected ? "text-ink" : "text-ink-3 hover:text-ink",
+              )}
+              key={option.value}
+              onClick={() => onValueChange?.(option.value)}
+            >
+              {selected ? (
+                <m.span
+                  layoutId="segmented-indicator"
+                  className="absolute inset-0 -z-10 rounded-full bg-surface shadow-xs"
+                  transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 35 }}
+                />
+              ) : null}
+              <span className="relative z-10">{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </LazyMotion>
   );
 }
 

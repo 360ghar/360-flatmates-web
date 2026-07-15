@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router";
 import { SeoHelmet, SITE_URL, SUPPORTED_CITIES, buildCollectionPageSchema, buildFaqPageSchema } from "@/lib/seo";
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { Card } from "@/components/ui/Card";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { TrustBadge } from "@/components/ui/TrustBadge";

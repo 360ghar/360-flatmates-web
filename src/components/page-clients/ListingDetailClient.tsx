@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Share } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateConversation } from "@/hooks/queries/useConversations";
@@ -9,18 +9,18 @@ import { myProfileOptions } from "@/hooks/queries/useProfiles";
 import { useProperty } from "@/hooks/queries/useProperties";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
 import { uiStore } from "@/lib/stores/ui-store";
-import { formatCurrencyINR } from "@/lib/utils/format";
-import { Avatar } from "@/components/ui/Avatar";
-import { Button, buttonClasses } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
-import { NetworkImage } from "@/components/ui/NetworkImage";
 import { PriceText } from "@/components/ui/PriceText";
-import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, ErrorState, EmptyState } from "@/components/ui/StateViews";
-import { cn } from "@/components/ui/component-utils";
+import { cn, buttonClasses } from "@/components/ui/component-utils";
 import { ShareSheet } from "@/components/organisms/ShareSheet";
+import { ListingPhotoGallery } from "./ListingPhotoGallery";
+import { ListingCostBreakdown } from "./ListingCostBreakdown";
+import { ListingSocietyVibeCard } from "./ListingSocietyVibeCard";
+import { ListingBookingPanel } from "./ListingBookingPanel";
 
 export default function ListingDetailClient() {
   const params = useParams<{ id: string }>();
@@ -159,57 +159,17 @@ export default function ListingDetailClient() {
           const extraPhotos = (property?.image_urls ?? []).filter(
             (url) => url && url !== data.imageUrl
           ).slice(0, 2);
-          const hasGallery = extraPhotos.length > 0;
 
           return (
           <div className="space-y-8 pb-24 lg:pb-0">
             {/* Photo gallery — no empty placeholders */}
-            <div className={hasGallery ? "grid gap-2 md:grid-cols-3 md:grid-rows-2 md:h-[420px]" : ""}>
-              <div
-                className={cn(
-                  "relative overflow-hidden rounded-2xl border border-line bg-surface-soft shadow-md",
-                  hasGallery
-                    ? "aspect-[4/3] md:col-span-2 md:row-span-2 md:aspect-auto md:h-full"
-                    : "aspect-[16/10] w-full"
-                )}
-              >
-                <NetworkImage
-                  alt={data.title}
-                  src={data.imageUrl}
-                  wrapperClassName="h-full w-full rounded-2xl"
-                  className="hover:scale-[1.02] transition-transform duration-700 ease-out"
-                />
-                {data.compatibilityScore !== undefined && (
-                  <div className="absolute top-4 left-4 flex items-center gap-2 rounded-full border border-white/50 bg-surface/95 px-3 py-1.5 shadow-md backdrop-blur-sm">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-2">Match</span>
-                    <ProgressRing value={data.compatibilityScore} size="sm" showValue label="Compatibility score" />
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsShareOpen(true)}
-                  className="absolute top-4 right-4 rounded-full border border-white/50 bg-surface/95 p-2.5 text-ink shadow-md backdrop-blur-sm hover:text-accent"
-                  aria-label="Share this listing"
-                >
-                  <Share className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </div>
-              {hasGallery
-                ? extraPhotos.map((url, index) => (
-                    <div
-                      key={`${url}-${index}`}
-                      className="relative hidden min-h-0 overflow-hidden rounded-2xl border border-line bg-surface-soft shadow-sm md:block md:h-full"
-                    >
-                      <NetworkImage
-                        alt=""
-                        src={url}
-                        wrapperClassName="h-full w-full rounded-2xl"
-                        className="hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                  ))
-                : null}
-            </div>
+            <ListingPhotoGallery
+              title={data.title}
+              imageUrl={data.imageUrl}
+              compatibilityScore={data.compatibilityScore}
+              extraPhotos={extraPhotos}
+              onShareClick={() => setIsShareOpen(true)}
+            />
 
             <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
               <div className="space-y-5">
@@ -280,138 +240,27 @@ export default function ListingDetailClient() {
                   </Card>
                 ) : null}
 
-                <Card className="border-line p-5 shadow-sm md:p-6">
-                  <h2 className="text-h3 font-semibold text-ink">Cost breakdown</h2>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
-                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Monthly rent</p>
-                      <PriceText
-                        value={data.price}
-                        variant="inline"
-                        suffix=""
-                        className="mt-1 block text-h2 font-semibold text-accent"
-                      />
-                    </div>
-                    <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
-                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Deposit</p>
-                      <p className="mt-1 text-h2 font-semibold text-ink">
-                        {property?.security_deposit ? formatCurrencyINR(property.security_deposit) : "TBD"}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
-                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Maintenance</p>
-                      <p className="mt-1 text-h2 font-semibold text-ink">
-                        {property?.maintenance_charges
-                          ? formatCurrencyINR(property.maintenance_charges)
-                          : "None"}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                <ListingCostBreakdown
+                  price={data.price}
+                  securityDeposit={property?.security_deposit}
+                  maintenanceCharges={property?.maintenance_charges}
+                />
 
-                {property?.society_type ||
-                (property?.society_amenities && property.society_amenities.length > 0) ||
-                (property?.society_vibe_tags && property.society_vibe_tags.length > 0) ? (
-                  <Card className="border-line p-5 shadow-sm md:p-6">
-                    <h2 className="text-h3 font-semibold text-ink">Society & vibe</h2>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
-                      {property?.society_type && (
-                        <div className="rounded-xl border border-line bg-surface-soft p-4">
-                          <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Society type</p>
-                          <p className="mt-1 text-body-lg font-medium capitalize text-ink">
-                            {property.society_type.replace("_", " ")}
-                          </p>
-                        </div>
-                      )}
-                      {property?.society_amenities && property.society_amenities.length > 0 && (
-                        <div className="rounded-xl border border-line bg-surface-soft p-4 md:col-span-2">
-                          <p className="mb-2 text-caption font-medium uppercase tracking-wide text-ink-3">
-                            Amenities
-                          </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {property.society_amenities.map((a) => (
-                              <Chip key={a} variant="info" className="cursor-default border border-line bg-surface px-3 py-1 text-ink-2">
-                                {a}
-                              </Chip>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {property?.society_vibe_tags && property.society_vibe_tags.length > 0 && (
-                        <div className="rounded-xl border border-line bg-surface-soft p-4 md:col-span-2">
-                          <p className="mb-2 text-caption font-medium uppercase tracking-wide text-ink-3">Vibe</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {property.society_vibe_tags.map((t) => (
-                              <Chip
-                                key={t}
-                                variant="info"
-                                className="cursor-default border border-accent/15 bg-accent-soft px-3 py-1 text-accent"
-                              >
-                                #{t}
-                              </Chip>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                ) : null}
+                {property ? <ListingSocietyVibeCard property={property} /> : null}
               </div>
 
               {/* Sticky booking / host column */}
-              <div className="space-y-4">
-                <Card className="sticky top-24 border-line p-5 shadow-md">
-                  <div className="mb-4 flex items-end justify-between gap-3 border-b border-line pb-4">
-                    <div>
-                      <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Monthly</p>
-                      <PriceText
-                        value={data.price}
-                        variant="card"
-                        className="text-2xl font-semibold text-ink"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="mb-4 flex w-full items-center gap-3 rounded-xl border border-line bg-surface-soft p-3 text-left transition-colors hover:border-accent/30"
-                    onClick={handleOpenOwnerProfile}
-                  >
-                    <Avatar name={data.owner?.name ?? "Host"} size="lg" src={data.owner?.avatarUrl} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-caption text-ink-3">Hosted by</p>
-                      <h3 className="truncate text-h3 font-semibold text-ink">
-                        {data.owner?.name ?? "Landlord"}
-                      </h3>
-                    </div>
-                    <span className="text-ink-3">→</span>
-                  </button>
-                  {data.interestCount !== undefined ? (
-                    <p className="mb-4 flex items-center gap-2 text-body-md text-ink-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                      {data.interestCount} flatmates interested
-                    </p>
-                  ) : null}
-                  <div className="flex flex-col gap-2.5">
-                    <Button
-                      fullWidth
-                      className="rounded-full font-semibold"
-                      disabled={isOwnListing}
-                      loading={isProfileLoading || createConversation.isPending}
-                      onClick={handleContactOwner}
-                    >
-                      {isOwnListing ? "Your listing" : "Contact owner"}
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="secondary"
-                      className="rounded-full"
-                      onClick={() => setIsShareOpen(true)}
-                    >
-                      Share listing
-                    </Button>
-                  </div>
-                </Card>
-              </div>
+              <ListingBookingPanel
+                price={data.price}
+                ownerName={data.owner?.name}
+                ownerAvatarUrl={data.owner?.avatarUrl}
+                interestCount={data.interestCount}
+                isOwnListing={isOwnListing}
+                contactPending={isProfileLoading || createConversation.isPending}
+                onOpenOwnerProfile={handleOpenOwnerProfile}
+                onContactOwner={handleContactOwner}
+                onShareClick={() => setIsShareOpen(true)}
+              />
             </div>
 
             {/* Mobile sticky CTA — clear AppShell bottom nav when on /listing/* */}

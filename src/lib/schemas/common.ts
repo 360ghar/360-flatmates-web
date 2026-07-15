@@ -3,7 +3,6 @@ import { z } from "zod";
 export const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 export const optionalUrlSchema = z
-  .string()
   .url()
   .optional()
   .or(z.literal("").transform(() => undefined))

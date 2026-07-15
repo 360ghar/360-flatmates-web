@@ -1,4 +1,4 @@
-import { Trash2, Search, Bookmark, Pencil, Copy, Bell, Check, X } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState, useCallback } from "react";
 import {
@@ -7,16 +7,14 @@ import {
   useCreateSavedSearch,
   useUpdateSavedSearch
 } from "@/hooks/queries";
-import { humanizeSnakeCase, toTitleCase } from "@/lib/utils/format";
 import { uiStore } from "@/lib/stores/ui-store";
 import type { SearchFilters } from "@/lib/api/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
-import { Input } from "@/components/ui/Input";
 import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { SavedSearchRow } from "./SavedSearchRow";
 
 /** Serialize all SearchFilters fields into URL search params. */
 function filtersToSearchParams(filters: SearchFilters): string {
@@ -69,25 +67,6 @@ function filtersToSearchParams(filters: SearchFilters): string {
 
   const qs = params.toString();
   return qs ? `?${qs}` : "";
-}
-
-/** Render a single filter value as a human-readable chip. */
-function formatFilterValue(key: string, value: unknown): string {
-  const humanKey = toTitleCase(humanizeSnakeCase(key));
-  if (Array.isArray(value)) {
-    if (value.length === 0) return humanKey;
-    const items = value.map((v) => toTitleCase(humanizeSnakeCase(String(v)))).join(", ");
-    return `${humanKey}: ${items}`;
-  }
-  if (typeof value === "number") {
-    return `${humanKey}: ${value}`;
-  }
-  if (typeof value === "boolean") {
-    return `${humanKey}: ${value ? "yes" : "no"}`;
-  }
-  const str = String(value ?? "").trim();
-  if (!str) return humanKey;
-  return `${humanKey}: ${str}`;
 }
 
 export function SavedSearchesPage() {
@@ -267,146 +246,29 @@ export function SavedSearchesPage() {
         onRetry={() => refetch()}
       >
         {(data) => (
-          <div className="flex flex-col gap-3" role="list" aria-label="Saved searches">
-            {data.map((search) => {
-              const activeFilters = Object.entries(search.filters)
-                .filter(([, value]) => {
-                  if (value === undefined || value === null || value === "") return false;
-                  if (Array.isArray(value) && value.length === 0) return false;
-                  return true;
-                })
-                .map(([key, value]) => formatFilterValue(key, value));
-              const isRenaming = renamingId === search.id;
-
-              return (
-                <Card
-                  key={search.id}
-                  className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
-                  role="listitem"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      {isRenaming ? (
-                        <Input
-                          aria-label={`Rename saved search ${search.name}`}
-                          value={renameValue}
-                          autoFocus
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              commitRename();
-                            } else if (e.key === "Escape") {
-                              e.preventDefault();
-                              cancelRename();
-                            }
-                          }}
-                          className="max-w-xs"
-                        />
-                      ) : (
-                        <>
-                          <h2 className="text-body-md font-semibold text-ink truncate">{search.name}</h2>
-                          {search.alert_enabled && (
-                            <Chip variant="info" selected>Alert On</Chip>
-                          )}
-                        </>
-                      )}
-                    </div>
-                    {activeFilters.length > 0 && (
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {activeFilters.slice(0, 3).map((filter) => (
-                          <Chip key={filter} variant="info">{filter}</Chip>
-                        ))}
-                        {activeFilters.length > 3 && (
-                          <Chip variant="info">+{activeFilters.length - 3}</Chip>
-                        )}
-                      </div>
-                    )}
-                    {search.new_results_count !== undefined && search.new_results_count > 0 && (
-                      <p className="text-caption text-accent mt-1">
-                        {search.new_results_count} new results
-                      </p>
-                    )}
-                  </div>
-                  <div
-                    className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto"
-                    role="group"
-                    aria-label={`Actions for ${search.name}`}
-                  >
-                    {isRenaming ? (
-                      <>
-                        <Button
-                          variant="icon"
-                          size="icon"
-                          aria-label="Confirm rename"
-                          disabled={!renameValue.trim() || updateSavedSearch.isPending}
-                          loading={updateSavedSearch.isPending}
-                          onClick={commitRename}
-                        >
-                          <Check aria-hidden="true" className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="icon"
-                          size="icon"
-                          aria-label="Cancel rename"
-                          disabled={updateSavedSearch.isPending}
-                          onClick={cancelRename}
-                        >
-                          <X aria-hidden="true" className="h-4 w-4 text-ink-3" />
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          variant="icon"
-                          size="icon"
-                          aria-label={`Run search: ${search.name}`}
-                          onClick={() => handleRerun(search.filters)}
-                        >
-                          <Search aria-hidden="true" className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="icon"
-                          size="icon"
-                          aria-label={`Rename saved search: ${search.name}`}
-                          onClick={() => beginRename(search.id, search.name)}
-                        >
-                          <Pencil aria-hidden="true" className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="icon"
-                          size="icon"
-                          aria-label={`Duplicate saved search: ${search.name}`}
-                          onClick={() => handleClone(search.id)}
-                          disabled={createSavedSearch.isPending}
-                          loading={createSavedSearch.isPending && pendingCloneId === search.id}
-                        >
-                          <Copy aria-hidden="true" className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="icon"
-                          size="icon"
-                          aria-label={`Create alert from saved search: ${search.name}`}
-                          onClick={() => handleSaveAsAlert(search.filters)}
-                        >
-                          <Bell aria-hidden="true" className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="icon"
-                          size="icon"
-                          aria-label={`Delete saved search: ${search.name}`}
-                          onClick={() => setConfirmDeleteId(search.id)}
-                          loading={deleteSavedSearch.isPending && pendingDeleteId === search.id}
-                        >
-                          <Trash2 aria-hidden="true" className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+          <ul className="flex flex-col gap-3" aria-label="Saved searches">
+            {data.map((search) => (
+              <SavedSearchRow
+                key={search.id}
+                search={search}
+                isRenaming={renamingId === search.id}
+                renameValue={renameValue}
+                onRenameValueChange={setRenameValue}
+                onCommitRename={commitRename}
+                onCancelRename={cancelRename}
+                onBeginRename={beginRename}
+                onRerun={handleRerun}
+                onClone={handleClone}
+                onSaveAsAlert={handleSaveAsAlert}
+                onRequestDelete={setConfirmDeleteId}
+                renamePending={updateSavedSearch.isPending}
+                clonePending={createSavedSearch.isPending}
+                cloneIsThisRow={pendingCloneId === search.id}
+                deletePending={deleteSavedSearch.isPending}
+                deleteIsThisRow={pendingDeleteId === search.id}
+              />
+            ))}
+          </ul>
         )}
       </AsyncView>
 

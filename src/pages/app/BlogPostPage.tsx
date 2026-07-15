@@ -160,7 +160,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
             .split("\n\n")
             .filter((paragraph) => paragraph.trim().length > 0)
             .map((paragraph, index) => (
-              <p key={index} className="text-body-md leading-relaxed mb-4">
+              <p key={`${index}-${paragraph}`} className="text-body-md leading-relaxed mb-4">
                 {paragraph}
               </p>
             ))}

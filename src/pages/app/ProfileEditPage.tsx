@@ -7,17 +7,6 @@ import { z } from "zod";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
 import { uiStore } from "@/lib/stores/ui-store";
 import {
-  MOVE_IN_TIMELINE_OPTIONS,
-  SLEEP_SCHEDULE_VALUES,
-  CLEANLINESS_VALUES,
-  FOOD_HABITS_VALUES,
-  SMOKING_DRINKING_VALUES,
-  GUESTS_POLICY_VALUES,
-  WORK_STYLE_VALUES,
-  GENDER_PREFERENCE_VALUES,
-  FLATMATE_MODE_OPTIONS,
-} from "@/lib/data";
-import {
   flatmatesModeSchema,
   genderPreferenceSchema,
   moveInTimelineSchema,
@@ -28,14 +17,17 @@ import {
   guestsPolicySchema,
   workStyleSchema,
 } from "@/lib/schemas/enums";
-import { toSelectOptions, stripEmptyFields } from "@/lib/utils";
+import { stripEmptyFields } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Input, TextArea, SelectField } from "@/components/ui/Input";
 import { ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Modal } from "@/components/ui/Modal";
 import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
+import { ProfileContactInfoSection } from "./ProfileContactInfoSection";
+import { ProfileBasicInfoSection } from "./ProfileBasicInfoSection";
+import { ProfileLocationBudgetSection } from "./ProfileLocationBudgetSection";
+import { ProfileLifestylePreferencesSection } from "./ProfileLifestylePreferencesSection";
 
 /* ── Zod schema ──────────────────────────────────────────── */
 
@@ -58,7 +50,7 @@ const profileSchema = z.object({
   gender: z.string().optional(),
   gender_preference: genderPreferenceSchema.optional(),
   mode: flatmatesModeSchema.optional(),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  email: z.email("Invalid email address").optional().or(z.literal("")),
   phone: z.string().optional().or(z.literal(""))
 }).refine(
   (data) =>
@@ -73,35 +65,7 @@ const profileSchema = z.object({
   }
 );
 
-type ProfileFormData = z.infer<typeof profileSchema>;
-
-/** Coerce a numeric input to a number, mapping empty/NaN to undefined so a
- *  cleared field neither trips min/max validation nor gets sent to the API. */
-function optionalNumberValue(raw: string): number | undefined {
-  if (raw.trim() === "") return undefined;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-/* ── Select option helpers ───────────────────────────────── */
-
-const timelineOptions = toSelectOptions(MOVE_IN_TIMELINE_OPTIONS);
-
-const sleepOptions = toSelectOptions(SLEEP_SCHEDULE_VALUES);
-
-const cleanlinessOptions = toSelectOptions(CLEANLINESS_VALUES);
-
-const foodOptions = toSelectOptions(FOOD_HABITS_VALUES);
-
-const smokingOptions = toSelectOptions(SMOKING_DRINKING_VALUES);
-
-const guestsOptions = toSelectOptions(GUESTS_POLICY_VALUES);
-
-const workStyleOptions = toSelectOptions(WORK_STYLE_VALUES);
-
-const genderPrefOptions = toSelectOptions(GENDER_PREFERENCE_VALUES);
-
-const modeOptions = toSelectOptions(FLATMATE_MODE_OPTIONS);
+export type ProfileFormData = z.infer<typeof profileSchema>;
 
 /* ── Page component ──────────────────────────────────────── */
 
@@ -270,164 +234,18 @@ export function ProfileEditPage() {
           </Card>
         )}
 
-        {/* Contact Information */}
-        <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-h3">Contact Information</h2>
-          <Input
-            label="Email"
-            type="email"
-            readOnly={hasEmail}
-            disabled={hasEmail}
-            error={errors.email?.message}
-            helperText={hasEmail ? "Email is verified and cannot be changed here." : undefined}
-            placeholder={hasEmail ? undefined : "you@example.com"}
-            {...register("email")}
-          />
-          <Input
-            label="Phone Number"
-            type="tel"
-            readOnly={hasPhone}
-            disabled={hasPhone}
-            error={errors.phone?.message}
-            helperText={hasPhone ? "Phone is verified and cannot be changed here." : "Enter a 10-digit mobile number."}
-            placeholder={hasPhone ? undefined : "9876543210"}
-            {...register("phone")}
-          />
-        </Card>
+        <ProfileContactInfoSection
+          register={register}
+          errors={errors}
+          hasEmail={hasEmail}
+          hasPhone={hasPhone}
+        />
 
-        {/* Basic Info */}
-        <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-h3">Basic Information</h2>
-          <Input
-            label="Full Name"
-            error={errors.full_name?.message}
-            {...register("full_name")}
-          />
-          <TextArea
-            label="Bio"
-            error={errors.bio?.message}
-            helperText={`${bioValue.length}/500`}
-            maxLength={500}
-            placeholder="Tell flatmates about yourself..."
-            {...register("bio")}
-          />
-          <Input
-            label="Profession"
-            error={errors.profession?.message}
-            placeholder="Software Engineer"
-            {...register("profession")}
-          />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
-              label="Age"
-              type="number"
-              error={errors.age?.message}
-              placeholder="25"
-              {...register("age", { setValueAs: optionalNumberValue })}
-            />
-            <SelectField
-              label="Mode"
-              options={modeOptions}
-              placeholder="Select mode"
-              error={errors.mode?.message}
-              {...register("mode")}
-            />
-          </div>
-        </Card>
+        <ProfileBasicInfoSection register={register} errors={errors} bioValue={bioValue} />
 
-        {/* Location & Budget */}
-        <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-h3">Location & Budget</h2>
-          <Input
-            label="City"
-            error={errors.city?.message}
-            placeholder="Gurugram"
-            {...register("city")}
-          />
-          <Input
-            label="Locality"
-            error={errors.locality?.message}
-            placeholder="DLF Phase 1"
-            {...register("locality")}
-          />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
-              label="Budget Min"
-              type="number"
-              error={errors.budget_min?.message}
-              placeholder="10000"
-              {...register("budget_min", { setValueAs: optionalNumberValue })}
-            />
-            <Input
-              label="Budget Max"
-              type="number"
-              error={errors.budget_max?.message}
-              placeholder="20000"
-              {...register("budget_max", { setValueAs: optionalNumberValue })}
-            />
-          </div>
-          <SelectField
-            label="Move-in Timeline"
-            options={timelineOptions}
-            placeholder="When do you want to move?"
-            error={errors.move_in_timeline?.message}
-            {...register("move_in_timeline")}
-          />
-        </Card>
+        <ProfileLocationBudgetSection register={register} errors={errors} />
 
-        {/* Lifestyle Preferences */}
-        <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-h3">Lifestyle Preferences</h2>
-          <SelectField
-            label="Sleep Schedule"
-            options={sleepOptions}
-            placeholder="Select schedule"
-            error={errors.sleep_schedule?.message}
-            {...register("sleep_schedule")}
-          />
-          <SelectField
-            label="Cleanliness"
-            options={cleanlinessOptions}
-            placeholder="Select cleanliness level"
-            error={errors.cleanliness?.message}
-            {...register("cleanliness")}
-          />
-          <SelectField
-            label="Food Habits"
-            options={foodOptions}
-            placeholder="Select food habits"
-            error={errors.food_habits?.message}
-            {...register("food_habits")}
-          />
-          <SelectField
-            label="Smoking / Drinking"
-            options={smokingOptions}
-            placeholder="Select preference"
-            error={errors.smoking_drinking?.message}
-            {...register("smoking_drinking")}
-          />
-          <SelectField
-            label="Guests Policy"
-            options={guestsOptions}
-            placeholder="Select guests policy"
-            error={errors.guests_policy?.message}
-            {...register("guests_policy")}
-          />
-          <SelectField
-            label="Work Style"
-            options={workStyleOptions}
-            placeholder="Select work style"
-            error={errors.work_style?.message}
-            {...register("work_style")}
-          />
-          <SelectField
-            label="Gender Preference"
-            options={genderPrefOptions}
-            placeholder="Any preference?"
-            error={errors.gender_preference?.message}
-            {...register("gender_preference")}
-          />
-        </Card>
+        <ProfileLifestylePreferencesSection register={register} errors={errors} />
 
         {/* TODO(privacy): per-field privacy toggles (e.g. hide phone from
             non-matches, hide budget from public profiles) belong here, but

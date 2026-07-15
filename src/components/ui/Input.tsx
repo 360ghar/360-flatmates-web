@@ -78,7 +78,7 @@ function FieldHelp({
   return null;
 }
 
-export function FieldWrapper({
+function FieldWrapper({
   id,
   label,
   helperText,

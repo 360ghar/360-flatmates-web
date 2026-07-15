@@ -8,7 +8,6 @@ import {
   GENDER_PREFERENCE_VALUES,
   GUESTS_POLICY_VALUES,
   LISTING_SHARING_TYPE_VALUES,
-  MESSAGE_TYPE_VALUES,
   MOVE_IN_TIMELINE_VALUES,
   NON_NEGOTIABLE_VALUES,
   PROFILE_STATUS_VALUES,
@@ -19,8 +18,6 @@ import {
   SLEEP_SCHEDULE_VALUES,
   SMOKING_DRINKING_VALUES,
   SOCIETY_TYPE_VALUES,
-  SWIPE_ACTION_VALUES,
-  SWIPE_TARGET_TYPE_VALUES,
   VISIT_CONTEXT_VALUES,
   VISIT_STATUS_VALUES,
   WORK_STYLE_VALUES
@@ -47,9 +44,6 @@ export const alertFrequencySchema = z.enum(ALERT_FREQUENCY_VALUES);
 export const alertChannelSchema = z.enum(ALERT_CHANNEL_VALUES);
 export const visitContextSchema = z.enum(VISIT_CONTEXT_VALUES);
 export const visitStatusSchema = z.enum(VISIT_STATUS_VALUES);
-export const swipeTargetTypeSchema = z.enum(SWIPE_TARGET_TYPE_VALUES);
-export const swipeActionSchema = z.enum(SWIPE_ACTION_VALUES);
-export const messageTypeSchema = z.enum(MESSAGE_TYPE_VALUES);
 
 export const jsonObjectSchema = z.record(z.string(), z.unknown());
 

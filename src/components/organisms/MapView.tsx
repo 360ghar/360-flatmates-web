@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 
 import {
   MapContainer,
@@ -287,17 +287,12 @@ export function MapView({
   isFetching = false,
   className
 }: MapViewProps) {
-  const [isMounted, setIsMounted] = useState(false);
   const [hasEverLoaded, setHasEverLoaded] = useState(false);
   const [flyToTarget, setFlyToTarget] = useState<{
     lat: number;
     lng: number;
     zoom: number;
   } | null>(null);
-
-  // SSR guard: Leaflet requires window, so we defer rendering until client hydration.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setIsMounted(true); }, []);
 
   const theme = useStore(uiStore, (s) => s.theme);
   const [systemDark, setSystemDark] = useState(
@@ -373,46 +368,33 @@ export function MapView({
    * container-level keydown listener that checks for our `data-*` hooks
    * added in the icon HTML and forwards Enter / Space as a click. */
   const containerRef = useRef<HTMLDivElement>(null);
+  const handleContainerKeyDown = useEffectEvent((event: KeyboardEvent) => {
+    const root = containerRef.current;
+    if (!root) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const active = document.activeElement as HTMLElement | null;
+    if (!active || !root.contains(active)) return;
+    const clusterId = active.getAttribute("data-cluster-id");
+    const pinId = active.getAttribute("data-pin-id");
+    if (clusterId !== null) {
+      event.preventDefault();
+      const cluster = clusters.find((c) => c.id === clusterId);
+      if (cluster) handleClusterClick(cluster);
+      return;
+    }
+    if (pinId !== null) {
+      event.preventDefault();
+      const numericId = Number(pinId);
+      const pin = pins.find((p) => p.id === numericId);
+      if (pin) handlePinClick(pin);
+    }
+  });
   useEffect(() => {
     const root = containerRef.current;
     if (!root) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      const active = document.activeElement as HTMLElement | null;
-      if (!active || !root.contains(active)) return;
-      const clusterId = active.getAttribute("data-cluster-id");
-      const pinId = active.getAttribute("data-pin-id");
-      if (clusterId !== null) {
-        event.preventDefault();
-        const cluster = clusters.find((c) => c.id === clusterId);
-        if (cluster) handleClusterClick(cluster);
-        return;
-      }
-      if (pinId !== null) {
-        event.preventDefault();
-        const numericId = Number(pinId);
-        const pin = pins.find((p) => p.id === numericId);
-        if (pin) handlePinClick(pin);
-      }
-    };
-    root.addEventListener("keydown", handleKeyDown);
-    return () => root.removeEventListener("keydown", handleKeyDown);
-  }, [clusters, pins, handleClusterClick, handlePinClick]);
-
-  if (!isMounted) {
-    return (
-      <section
-        className={cn(
-          "relative flex flex-1 flex-col overflow-hidden bg-paper-2",
-          className
-        )}
-      >
-        <div className="flex flex-1 items-center justify-center">
-          <Spinner size="md" />
-        </div>
-      </section>
-    );
-  }
+    root.addEventListener("keydown", handleContainerKeyDown);
+    return () => root.removeEventListener("keydown", handleContainerKeyDown);
+  }, []);
 
   return (
     <section

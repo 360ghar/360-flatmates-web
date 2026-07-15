@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router";
 import { SeoHelmet, SITE_URL, buildFaqPageSchema } from "@/lib/seo";
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { Card } from "@/components/ui/Card";
 import { Check, X } from "lucide-react";
 

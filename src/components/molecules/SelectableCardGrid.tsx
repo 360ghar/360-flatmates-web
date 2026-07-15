@@ -9,7 +9,7 @@ export interface SelectableCardProps {
   onClick: () => void;
 }
 
-export function SelectableCard({
+function SelectableCard({
   icon,
   label,
   description,

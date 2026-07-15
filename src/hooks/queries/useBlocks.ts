@@ -34,26 +34,6 @@ export function useBlockedUsers() {
   });
 }
 
-/**
- * Block a user. Centralises path, body, and cache invalidation.
- */
-export function useBlockUser() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (blockedUserId: number) =>
-      apiClient.request<{ message?: string }>({
-        method: "POST",
-        path: "/flatmates/blocks",
-        body: { blocked_user_id: blockedUserId }
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: BLOCKS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    }
-  });
-}
-
 export function useUnblockUser() {
   const queryClient = useQueryClient();
 

@@ -23,18 +23,7 @@ export const visitCreateSchema = z
     }
   );
 
-export const visitUpdateSchema = z.object({
-  status: visitStatusSchema.optional(),
-  scheduled_date: z.string().optional(),
-  special_requirements: z.string().max(500).optional(),
-  visit_notes: z.string().max(500).optional(),
-  visitor_feedback: z.string().max(1000).optional(),
-  interest_level: z.string().optional(),
-  follow_up_required: z.boolean().optional(),
-  follow_up_date: z.string().optional()
-});
-
-export const visitSchema = visitCreateSchema.extend({
+const _visitSchema = visitCreateSchema.extend({
   id: z.number().int().positive(),
   user_id: z.number().int().positive().optional(),
   property_title: z.string().optional(),
@@ -50,11 +39,6 @@ export const visitSchema = visitCreateSchema.extend({
   created_at: z.string().optional()
 });
 
-export const visitListSchema = z.object({
-  visits: z.array(visitSchema),
-  total: z.number().int().min(0)
-});
-
 export type VisitCreateInput = z.infer<typeof visitCreateSchema>;
-export type VisitInput = z.infer<typeof visitSchema>;
+export type VisitInput = z.infer<typeof _visitSchema>;
 

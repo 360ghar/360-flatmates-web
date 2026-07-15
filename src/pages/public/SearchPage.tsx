@@ -3,25 +3,67 @@ import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { useQueryStates } from "nuqs";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
-import { Search, SlidersHorizontal, Loader2, X } from "lucide-react";
 
 import { useInfiniteWebSearch } from "@/hooks/queries/useSearch";
 import { useAmenities, useCities } from "@/hooks/queries/useCatalogs";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
-import type { SearchFilters } from "@/lib/api/types";
+import type { SearchFilters, CatalogAmenity, CatalogCity } from "@/lib/api/types";
 import { searchPageParams } from "@/lib/schemas/search-params";
 import { searchStore } from "@/lib/stores/search-store";
 import { type FilterSection, FilterPanel } from "@/components/molecules/FilterPanel";
-import { type ListingCardData, ListingCard } from "@/components/molecules/ListingCard";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { type ListingCardData } from "@/components/molecules/ListingCard";
 import { Button } from "@/components/ui/Button";
-import { Input, SelectField } from "@/components/ui/Input";
-import { EmptyState, ErrorState } from "@/components/ui/StateViews";
-import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/Layout";
 import { BottomSheet } from "@/components/ui/Modal";
+import { SearchQuickFilterBar } from "./SearchQuickFilterBar";
+import { RecentSearchesRow } from "./RecentSearchesRow";
+import { SearchResultsList } from "./SearchResultsList";
 
 const breadcrumb = [{ name: "Search", item: `${SITE_URL}/search` }];
+
+function buildSearchFilterSections(
+  cities: CatalogCity[] | undefined,
+  amenities: CatalogAmenity[] | undefined,
+  selectedCity: number,
+  selectedBedrooms: string,
+  selectedAmenityNames: string[]
+): FilterSection[] {
+  const selectedAmenities = new Set(selectedAmenityNames);
+  return [
+    {
+      id: "city",
+      title: "City",
+      options:
+        cities?.map((c) => ({
+          value: String(c.id),
+          label: c.name,
+          selected: c.id === selectedCity,
+        })) ?? [],
+    },
+    {
+      id: "bedrooms",
+      title: "Bedrooms",
+      options: ["1", "2", "3", "4+"].map((b) => ({
+        value: b,
+        label: `${b} BHK`,
+        selected: selectedBedrooms === b,
+      })),
+    },
+    ...(amenities
+      ? [
+        {
+          id: "amenities",
+          title: "Amenities",
+          options: amenities.slice(0, 10).map((a) => ({
+            value: a.name,
+            label: a.name,
+            selected: selectedAmenities.has(a.name),
+          })),
+        },
+      ]
+      : []),
+  ];
+}
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -152,40 +194,7 @@ export function SearchPage() {
   }, [params.q, hasSettledSearchResults, addRecentSearch]);
 
   const filterSections: FilterSection[] = useMemo(
-    () => [
-      {
-        id: "city",
-        title: "City",
-        options:
-          cities?.map((c) => ({
-            value: String(c.id),
-            label: c.name,
-            selected: c.id === params.city,
-          })) ?? [],
-      },
-      {
-        id: "bedrooms",
-        title: "Bedrooms",
-        options: ["1", "2", "3", "4+"].map((b) => ({
-          value: b,
-          label: `${b} BHK`,
-          selected: params.bedrooms === b,
-        })),
-      },
-      ...(amenities
-        ? [
-          {
-            id: "amenities",
-            title: "Amenities",
-            options: amenities.slice(0, 10).map((a) => ({
-              value: a.name,
-              label: a.name,
-              selected: params.amenities.includes(a.name),
-            })),
-          },
-        ]
-        : []),
-    ],
+    () => buildSearchFilterSections(cities, amenities, params.city, params.bedrooms, params.amenities),
     [cities, params.city, params.bedrooms, amenities, params.amenities]
   );
 
@@ -261,185 +270,46 @@ export function SearchPage() {
         />
 
         {/* Unified Search & Quick Filter Bar */}
-        <div className="flex flex-wrap items-center gap-3 border border-line bg-surface p-3 rounded-2xl mb-6 shadow-xs">
-          <form onSubmit={handleSearchSubmit} role="search" className="flex-1 min-w-[280px]">
-            <Input
-              type="search"
-              aria-label="Search listings by city, locality, or keyword"
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              placeholder="Search by city, locality, or keyword (e.g. 1BHK, WiFi)..."
-              leadingIcon={<Search className="h-4.5 w-4.5" />}
-            />
-          </form>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {/* City Dropdown */}
-            <SelectField
-              aria-label="Filter by city"
-              value={String(params.city ?? 0)}
-              onChange={(e) => setParams({ city: Number(e.target.value), cursor: "" })}
-              fullWidth={false}
-              options={[
-                { value: "0", label: "All Cities" },
-                ...(cities?.map((c) => ({ value: String(c.id), label: c.name })) ?? []),
-              ]}
-            />
-
-            {/* Bedrooms Dropdown */}
-            <SelectField
-              aria-label="Filter by bedrooms"
-              value={params.bedrooms ?? ""}
-              onChange={(e) => setParams({ bedrooms: e.target.value, cursor: "" })}
-              fullWidth={false}
-              options={[
-                { value: "", label: "All BHKs" },
-                { value: "1", label: "1 BHK" },
-                { value: "2", label: "2 BHK" },
-                { value: "3", label: "3 BHK" },
-                { value: "4+", label: "4+ BHK" },
-              ]}
-            />
-
-            {/* Amenities dialog button */}
-            <Button
-              variant="secondary"
-              size="compact"
-              className="h-9 rounded-xl border-line text-body-sm font-semibold text-ink-2"
-              onClick={() => setMobileFiltersOpen(true)}
-            >
-              <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
-              Filters {params.amenities.length > 0 ? `(${params.amenities.length})` : ""}
-            </Button>
-
-            {/* Clear Filters */}
-            {(params.q || params.city !== 0 || params.bedrooms || params.amenities.length > 0) && (
-              <Button
-                variant="icon"
-                size="compact"
-                className="text-body-sm text-accent hover:text-accent font-semibold px-2"
-                onClick={handleClearFilters}
-              >
-                Clear
-              </Button>
-            )}
-          </div>
-        </div>
+        <SearchQuickFilterBar
+          localSearch={localSearch}
+          onLocalSearchChange={setLocalSearch}
+          onSearchSubmit={handleSearchSubmit}
+          cities={cities}
+          cityId={params.city ?? 0}
+          onCityChange={(id) => setParams({ city: id, cursor: "" })}
+          bedrooms={params.bedrooms ?? ""}
+          onBedroomsChange={(value) => setParams({ bedrooms: value, cursor: "" })}
+          amenitiesCount={params.amenities.length}
+          onOpenFilters={() => setMobileFiltersOpen(true)}
+          showClear={Boolean(params.q || params.city !== 0 || params.bedrooms || params.amenities.length > 0)}
+          onClearFilters={handleClearFilters}
+        />
 
         {/* Recent searches */}
-        {recentSearches.length > 0 && (
-          <div className="mb-6 flex flex-wrap items-center gap-2">
-            <span className="text-eyebrow uppercase tracking-widest text-ink-3">Recent:</span>
-            {recentSearches.map((term) => (
-              <button
-                key={term}
-                type="button"
-                onClick={() => {
-                  setLocalSearch(term);
-                  setParams({ q: term, cursor: "" });
-                }}
-                className="rounded-full border border-line bg-surface px-3 py-1 text-body-sm text-ink-2 transition-colors hover:border-accent/40 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                {term}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={clearRecentSearches}
-              aria-label="Clear recent searches"
-              className="ml-1 inline-flex items-center gap-1 text-body-sm text-ink-3 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              <X className="h-3.5 w-3.5" aria-hidden="true" />
-              Clear
-            </button>
-          </div>
-        )}
+        <RecentSearchesRow
+          recentSearches={recentSearches}
+          onSelectTerm={(term) => {
+            setLocalSearch(term);
+            setParams({ q: term, cursor: "" });
+          }}
+          onClear={clearRecentSearches}
+        />
 
         {/* Listings Container */}
-        <div className="flex flex-col min-w-0 min-h-[550px] gap-4">
-          <div className="flex items-center justify-between">
-            <span
-              className="flex items-center gap-2 text-eyebrow text-ink-3 tracking-widest uppercase"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              {isLoading && listings.length === 0 ? (
-                <Skeleton className="h-4 w-28" />
-              ) : isError && listings.length === 0 ? (
-                "Search unavailable"
-              ) : (
-                <>
-                  {`${totalResults} results found`}
-                  {isFetching && !isFetchingNextPage && listings.length > 0 ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none text-ink-3" aria-hidden="true" />
-                  ) : null}
-                </>
-              )}
-            </span>
-          </div>
-
-          {/* Scrolling list */}
-          <div id="listings-scroll-container" className="flex-1">
-            {isLoading && listings.length === 0 ? (
-              <Skeleton
-                variant="listingCard"
-                count={8}
-                className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-              />
-            ) : isError && listings.length === 0 ? (
-              <Card className="flex items-center justify-center p-8">
-                <ErrorState
-                  title="Could not load listings"
-                  description={
-                    error instanceof Error
-                      ? error.message
-                      : "Check your connection and try again."
-                  }
-                  onRetry={() => refetch()}
-                />
-              </Card>
-            ) : listings.length === 0 ? (
-              <EmptyState
-                title="No results found"
-                description="Try clearing your filters or refining your search query."
-                actionLabel="Clear Filters"
-                onAction={handleClearFilters}
-              />
-            ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {listings.map((listing, index) => (
-                  <div
-                    key={listing.id}
-                    id={`listing-card-${listing.id}`}
-                    className="card-appear motion-reduce:animate-none transition-all duration-300 rounded-2xl"
-                    style={{ animationDelay: `${Math.min(index % PAGE_SIZE, 10) * 50}ms` }}
-                  >
-                    <ListingCard
-                      listing={listing}
-                      ctaLabel="View Details"
-                      onOpen={(id) => navigate(`/discover/${id}`)}
-                      onContact={(id) => navigate(`/discover/${id}`)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Infinite Scroll Sentinel */}
-            {listings.length > 0 && (
-              <div ref={observerTarget} className="mt-8 flex justify-center pb-8 h-20">
-                {isFetchingNextPage ? (
-                  <div className="flex items-center gap-2 text-ink-3">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-body-sm">Loading more...</span>
-                  </div>
-                ) : !hasNextPage ? (
-                  <span className="text-body-sm text-ink-3">You've reached the end of the list.</span>
-                ) : null}
-              </div>
-            )}
-          </div>
-        </div>
+        <SearchResultsList
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          listings={listings}
+          totalResults={totalResults}
+          isFetching={isFetching}
+          isFetchingNextPage={isFetchingNextPage}
+          hasNextPage={Boolean(hasNextPage)}
+          pageSize={PAGE_SIZE}
+          observerTarget={observerTarget}
+          onRetry={() => refetch()}
+          onClearFilters={handleClearFilters}
+        />
       </main>
 
       {/* Filter panel drawer */}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Button, buttonClasses } from "../Button";
+import { Button } from "../Button";
+import { buttonClasses } from "../component-utils";
 
 /**
  * Design-system contract tests for the Airbnb Rausch migration.

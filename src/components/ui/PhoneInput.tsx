@@ -2,10 +2,6 @@ import { useId } from "react";
 import { AlertCircle } from "lucide-react";
 import { cn, interactiveMotion } from "./component-utils";
 
-export function formatFullPhone(localDigits: string): string {
-  return `+91${localDigits}`;
-}
-
 interface PhoneInputProps {
   value: string;
   onChange: (rawDigits: string) => void;

@@ -538,20 +538,20 @@ function BlogPostSkeleton() {
   );
 }
 
+const HOME_FEED_SKELETON_SECTIONS: Array<{ key: string; card: "profile" | "listing" }> = [
+  { key: "recommended", card: "profile" },
+  { key: "listings", card: "listing" },
+  { key: "nearby", card: "profile" },
+];
+
 /**
  * Home feed sections only (hero + real SearchBar/chips stay outside).
  * Fixed-width carousel cards match loaded Home sections.
  */
 function HomeFeedSkeleton() {
-  const sections: Array<{ key: string; card: "profile" | "listing" }> = [
-    { key: "recommended", card: "profile" },
-    { key: "listings", card: "listing" },
-    { key: "nearby", card: "profile" },
-  ];
-
   return (
     <div className="flex flex-col gap-6">
-      {sections.map((section) => (
+      {HOME_FEED_SKELETON_SECTIONS.map((section) => (
         <section key={section.key} className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <div className={cn("h-4 w-32 rounded-full", shimmer)} />

@@ -63,9 +63,10 @@ export function LocationPage() {
   const suggestions = useMemo(() => {
     const query = city.trim().toLowerCase();
     const source: string[] = catalogCities && catalogCities.length > 0
-      ? catalogCities
-          .filter((c) => c.is_active)
-          .map((c) => c.name)
+      ? catalogCities.reduce<string[]>((acc, c) => {
+          if (c.is_active) acc.push(c.name);
+          return acc;
+        }, [])
       : [...POPULAR_CITIES];
     if (!query) return source.slice(0, 5);
     return source

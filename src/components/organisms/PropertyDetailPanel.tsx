@@ -55,8 +55,8 @@ export function PropertyDetailPanel({
           <div className="relative group">
             <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
               {fullProperty.image_urls && fullProperty.image_urls.length > 0 ? (
-                fullProperty.image_urls.map((url, index) => (
-                  <div key={index} className="w-full shrink-0 aspect-[16/10] snap-start overflow-hidden rounded-xl border border-line bg-paper-2">
+                fullProperty.image_urls.map((url) => (
+                  <div key={url} className="w-full shrink-0 aspect-[16/10] snap-start overflow-hidden rounded-xl border border-line bg-paper-2">
                     <NetworkImage
                       alt={fullProperty.title}
                       src={url}

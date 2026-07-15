@@ -108,6 +108,19 @@ export function visitToVisitCardProps(visit: ApiVisit): VisitCardData {
   };
 }
 
+/**
+ * Map an API visit status string to the card-level status. Differs from the
+ * `visitToVisitCardProps` adapter only in that `reschedule_suggested` is
+ * preserved (the adapter collapses it to "pending"). Pages that need the
+ * distinction should use this helper when building card data inline.
+ */
+export function visitStatusToCardStatus(
+  status: "requested" | "confirmed" | "reschedule_suggested" | "cancelled" | "completed"
+): ComponentVisitStatus {
+  if (status === "requested") return "pending";
+  return status;
+}
+
 /** Map API notification type string to component NotificationType */
 function mapNotificationType(apiType: string): NotificationType {
   const typeMap: Record<string, NotificationType> = {

@@ -49,7 +49,7 @@ export const onboardingDraftSchema = z.object({
   mode: flatmatesModeSchema.optional(),
   location: onboardingLocationSchema.partial().optional(),
   basic_info: onboardingBasicInfoSchema.partial().optional(),
-  profile_image_url: z.string().url().optional(),
+  profile_image_url: z.url().optional(),
   lifestyle: lifestyleSchema.partial().optional(),
   budget_timeline: onboardingBudgetTimelineFieldsSchema.partial().optional(),
   preferences: onboardingPreferencesSchema.partial().optional(),

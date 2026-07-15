@@ -112,40 +112,6 @@ export function calculateCompatibility(
   };
 }
 
-export function toApiCompatibilityBreakdown(
-  result: CompatibilityResult
-): {
-  user_id: number;
-  peer_id: number;
-  overall_percentage: number;
-  color: CompatibilityResult["color"];
-  dimensions: Array<{
-    name: LifestyleDimensionKey;
-    weight: number;
-    user_value?: string;
-    peer_value?: string;
-    score: number;
-    match: boolean;
-  }>;
-  summary: string[];
-} {
-  return {
-    user_id: result.user_id ?? 0,
-    peer_id: result.peer_id ?? 0,
-    overall_percentage: result.overall_percentage,
-    color: result.color,
-    dimensions: result.dimensions.map((dimension) => ({
-      name: dimension.name,
-      weight: dimension.weight,
-      user_value: dimension.user_value,
-      peer_value: dimension.peer_value,
-      score: dimension.score,
-      match: dimension.match
-    })),
-    summary: result.summary
-  };
-}
-
 export function rankPeersByCompatibility<TPeer extends FlatmatesPeer>(
   user: CompatibilityProfile,
   peers: readonly TPeer[]

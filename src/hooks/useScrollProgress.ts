@@ -34,7 +34,6 @@ export function useScrollProgress<T extends HTMLElement = HTMLElement>(
           lastProgress.current = clamped;
           setProgress(clamped);
         }
-        element.style.setProperty("--scroll-progress", String(clamped));
       });
     };
 

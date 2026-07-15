@@ -1,5 +1,4 @@
 import {
-  FLATMATE_MODE_OPTIONS,
   LIFESTYLE_DIMENSIONS,
   LISTING_SHARING_TYPE_OPTIONS,
   MOVE_IN_TIMELINE_OPTIONS
@@ -9,11 +8,6 @@ const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
   style: "currency",
   currency: "INR",
   maximumFractionDigits: 0
-});
-
-const COMPACT_INR_FORMATTER = new Intl.NumberFormat("en-IN", {
-  notation: "compact",
-  maximumFractionDigits: 1
 });
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-IN", {
@@ -44,12 +38,6 @@ export function formatCurrencyINR(amount: number): string {
   return INR_FORMATTER.format(amount);
 }
 
-export function formatCompactINR(amount: number): string {
-  return INR_FORMATTER.formatToParts(amount)[0]?.value === "-"
-    ? `-${COMPACT_INR_FORMATTER.format(Math.abs(amount))}`
-    : COMPACT_INR_FORMATTER.format(amount);
-}
-
 export function formatRent(amount: number): string {
   return `${formatCurrencyINR(amount)}/mo`;
 }
@@ -78,40 +66,20 @@ export function formatDateTime(value: string | Date): string {
   return DATE_TIME_FORMATTER.format(new Date(value));
 }
 
-export function formatDistanceKm(distanceKm?: number): string {
-  if (distanceKm === undefined) {
-    return "";
-  }
-
-  if (distanceKm < 1) {
-    return `${Math.round(distanceKm * 1000)} m away`;
-  }
-
-  return `${distanceKm.toFixed(distanceKm < 10 ? 1 : 0)} km away`;
-}
-
-export function formatPercent(value: number): string {
-  return `${Math.round(value)}%`;
-}
-
 export function formatMoveInTimeline(value?: string): string {
   return getOptionLabel(value, MOVE_IN_TIMELINE_OPTIONS);
-}
-
-export function formatMode(value?: string): string {
-  return getOptionLabel(value, FLATMATE_MODE_OPTIONS);
 }
 
 export function formatSharingType(value?: string): string {
   return getOptionLabel(value, LISTING_SHARING_TYPE_OPTIONS);
 }
 
-export function pluralize(count: number, singular: string, plural?: string): string {
-  return `${count} ${count === 1 ? singular : (plural ?? `${singular}s`)}`;
-}
-
 export function formatLocation(locality?: string, city?: string): string {
   return [locality, city].filter(Boolean).join(", ");
+}
+
+export function formatFullPhone(localDigits: string): string {
+  return `+91${localDigits}`;
 }
 
 export function humanizeSnakeCase(value: string): string {
@@ -162,6 +130,14 @@ export function stripEmptyFields(data: Record<string, unknown>): Record<string, 
     }
   }
   return result;
+}
+
+/** Coerce a numeric input to a number, mapping empty/NaN to undefined so a
+ *  cleared field neither trips min/max validation nor gets sent to the API. */
+export function optionalNumberValue(raw: string): number | undefined {
+  if (raw.trim() === "") return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
 }
 
 export function formatRelativeTime(value?: string | Date): string {

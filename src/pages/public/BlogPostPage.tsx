@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router";
 import { SeoHelmet, SITE_URL, buildArticleSchema, buildHowToSchema, buildSpeakableSchema } from "@/lib/seo";
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { BlogPostPage as DynamicBlogPostPage } from "@/pages/app/BlogPostPage";
 
@@ -254,6 +254,44 @@ Successful co-living requires flexibility from all parties.
   },
 };
 
+function renderContent(content: string) {
+  return content.split("\n").filter(Boolean).map((line, index) => {
+    const key = `${index}-${line}`;
+    if (line.startsWith("## ")) {
+      return <h2 key={key} className="text-h2 font-normal mt-10 mb-4 text-ink">{line.replace("## ", "")}</h2>;
+    }
+    if (line.startsWith("### ")) {
+      return <h3 key={key} className="text-h3 font-normal mt-8 mb-3 text-ink">{line.replace("### ", "")}</h3>;
+    }
+    if (line.startsWith("- **")) {
+      const match = line.match(/- \*\*(.+?)\*\*:?\s+(.+)/);
+      if (match) {
+        return (
+          <li key={key} className="flex gap-3 text-body-lg text-ink-2 mb-2 leading-relaxed">
+            <span className="text-accent mt-1.5 select-none">•</span>
+            <span><strong className="text-ink font-medium">{match[1]}</strong>: {match[2]}</span>
+          </li>
+        );
+      }
+    }
+    if (line.startsWith("- ")) {
+      return (
+        <li key={key} className="flex gap-3 text-body-lg text-ink-2 mb-2 leading-relaxed">
+          <span className="text-accent mt-1.5 select-none">•</span>
+          <span>{line.replace("- ", "")}</span>
+        </li>
+      );
+    }
+    if (line.startsWith("**") && line.endsWith("**")) {
+      return <p key={key} className="text-body-lg font-semibold text-ink mt-6 mb-2">{line.replace(/\*\*/g, "")}</p>;
+    }
+    if (line.trim()) {
+      return <p key={key} className="text-body-lg text-ink-2 leading-relaxed mb-5">{line}</p>;
+    }
+    return null;
+  });
+}
+
 function LegacyBlogPostPage() {
   const { slug } = useParams<{ slug: string; }>();
   const post = BLOG_CONTENT[slug || ""];
@@ -319,43 +357,6 @@ function LegacyBlogPostPage() {
       : null;
 
   const speakableLd = buildSpeakableSchema(["article h1", "article .excerpt"], url);
-
-  const renderContent = (content: string) => {
-    return content.split("\n").filter(Boolean).map((line, i) => {
-      if (line.startsWith("## ")) {
-        return <h2 key={i} className="text-h2 font-normal mt-10 mb-4 text-ink">{line.replace("## ", "")}</h2>;
-      }
-      if (line.startsWith("### ")) {
-        return <h3 key={i} className="text-h3 font-normal mt-8 mb-3 text-ink">{line.replace("### ", "")}</h3>;
-      }
-      if (line.startsWith("- **")) {
-        const match = line.match(/- \*\*(.+?)\*\*:?\s+(.+)/);
-        if (match) {
-          return (
-            <li key={i} className="flex gap-3 text-body-lg text-ink-2 mb-2 leading-relaxed">
-              <span className="text-accent mt-1.5 select-none">•</span>
-              <span><strong className="text-ink font-medium">{match[1]}</strong>: {match[2]}</span>
-            </li>
-          );
-        }
-      }
-      if (line.startsWith("- ")) {
-        return (
-          <li key={i} className="flex gap-3 text-body-lg text-ink-2 mb-2 leading-relaxed">
-            <span className="text-accent mt-1.5 select-none">•</span>
-            <span>{line.replace("- ", "")}</span>
-          </li>
-        );
-      }
-      if (line.startsWith("**") && line.endsWith("**")) {
-        return <p key={i} className="text-body-lg font-semibold text-ink mt-6 mb-2">{line.replace(/\*\*/g, "")}</p>;
-      }
-      if (line.trim()) {
-        return <p key={i} className="text-body-lg text-ink-2 leading-relaxed mb-5">{line}</p>;
-      }
-      return null;
-    });
-  };
 
   return (
     <>

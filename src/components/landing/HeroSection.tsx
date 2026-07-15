@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { cn } from "@/components/ui/component-utils";
 import { AppStoreBadges } from "./AppStoreBadges";
 import { LandingSearch } from "./LandingSearch";

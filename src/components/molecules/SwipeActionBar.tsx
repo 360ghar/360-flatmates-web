@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { Heart, Star, X } from "lucide-react";
 import { cn, focusRing, interactiveMotion } from "../ui/component-utils";
 
@@ -25,7 +25,7 @@ export function SwipeActionBar({
 
   return (
     <div className={cn("flex items-center justify-center gap-5", className)} {...props}>
-      <motion.button
+      <m.button
         type="button"
         aria-label="Pass"
         disabled={disabled}
@@ -39,8 +39,8 @@ export function SwipeActionBar({
         whileTap={tapScale}
       >
         <X aria-hidden="true" className="h-6 w-6" />
-      </motion.button>
-      <motion.button
+      </m.button>
+      <m.button
         type="button"
         aria-label="Super Like"
         disabled={disabled}
@@ -54,8 +54,8 @@ export function SwipeActionBar({
         whileTap={tapScale}
       >
         <Star aria-hidden="true" className="h-5 w-5" />
-      </motion.button>
-      <motion.button
+      </m.button>
+      <m.button
         type="button"
         aria-label="Like"
         disabled={disabled}
@@ -69,7 +69,7 @@ export function SwipeActionBar({
         whileTap={tapScale}
       >
         <Heart aria-hidden="true" className="h-6 w-6" />
-      </motion.button>
+      </m.button>
     </div>
   );
 }

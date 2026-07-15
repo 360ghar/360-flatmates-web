@@ -3,10 +3,9 @@ export * from "./ChatThread";
 export * from "./DashboardPanel";
 export * from "./FeedSection";
 export * from "./ListingBuilder";
-// MapExplorer and MapView are heavy (Leaflet). Import directly:
+// MapView is heavy (Leaflet). Import directly:
 //   import { MapView } from "@/components/organisms/MapView";
-//   import { MapExplorer } from "@/components/organisms/MapExplorer";
-// Prefer React.lazy() for these components.
+// Prefer React.lazy() for it.
 export * from "./SearchResults";
 export * from "./LegalPage";
 export * from "./PeopleGridPage";

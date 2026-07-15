@@ -23,6 +23,14 @@ import {
 import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { uiStore } from "@/lib/stores/ui-store";
 
+function handleAttachFile(file: File) {
+  uiStore.getState().pushToast({
+    type: "info",
+    title: "Attachment selected",
+    description: `${file.name} is ready, but chat uploads are not enabled yet.`
+  });
+}
+
 export function ChatDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -266,14 +274,6 @@ export function ChatDetailPage() {
         }
       }
     );
-  }
-
-  function handleAttachFile(file: File) {
-    uiStore.getState().pushToast({
-      type: "info",
-      title: "Attachment selected",
-      description: `${file.name} is ready, but chat uploads are not enabled yet.`
-    });
   }
 
   return (

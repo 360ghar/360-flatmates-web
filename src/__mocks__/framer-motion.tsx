@@ -37,6 +37,15 @@ const motion = new Proxy(
   },
 );
 
+const m = motion;
+
+function LazyMotion({ children }: { children: React.ReactNode }) {
+  return children;
+}
+
+const domAnimation = {};
+const domMax = {};
+
 function AnimatePresence({ children }: { children: React.ReactNode }) {
   return children;
 }
@@ -59,6 +68,10 @@ function useTransform(
 
 export {
   motion,
+  m,
+  LazyMotion,
+  domAnimation,
+  domMax,
   AnimatePresence,
   useMotionValue,
   useReducedMotion,

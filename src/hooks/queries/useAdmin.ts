@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, useInfiniteQuery, keepPreviousData, type InfiniteData } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useInfiniteQuery, keepPreviousData, type InfiniteData } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
   AdminListingCursorPage,
@@ -70,23 +70,6 @@ function isInfiniteReportsData(
         Array.isArray((page as { items: unknown }).items)
     )
   );
-}
-
-export function useAdminListings(filters?: AdminListingFilters) {
-  return useQuery({
-    queryKey: ["admin", "listings", filters],
-    queryFn: async ({ signal }) => {
-      const response = await apiClient.request<AdminListingCursorPage>({
-        method: "GET",
-        path: "/flatmates/moderation/listings",
-        query: (filters ?? {}) as Record<string, QueryValue>,
-        signal
-      });
-      // Defense-in-depth against envelope shape drift (see RCA for the
-      // notifications `h?.filter is not a function` regression).
-      return Array.isArray(response?.items) ? response.items : [];
-    }
-  });
 }
 
 export function useAdminModerate() {
@@ -164,23 +147,6 @@ export function useInfiniteAdminListings(
     },
     placeholderData: keepPreviousData,
     staleTime: 30_000
-  });
-}
-
-export function useAdminReports(filters?: AdminReportFilters) {
-  return useQuery({
-    queryKey: ["admin", "reports", filters],
-    queryFn: async ({ signal }) => {
-      const response = await apiClient.request<AdminReportCursorPage>({
-        method: "GET",
-        path: "/flatmates/moderation/reports",
-        query: (filters ?? {}) as Record<string, QueryValue>,
-        signal
-      });
-      // Defense-in-depth against envelope shape drift (see RCA for the
-      // notifications `h?.filter is not a function` regression).
-      return Array.isArray(response?.items) ? response.items : [];
-    }
   });
 }
 

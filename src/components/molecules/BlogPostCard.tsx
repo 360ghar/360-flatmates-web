@@ -11,6 +11,8 @@ export interface BlogPostCardProps {
   index?: number;
 }
 
+const CARD_HOVER_EASE = "var(--ease-emphasized)";
+
 function formatDate(iso?: string | null): string {
   if (!iso) return "";
   try {
@@ -33,7 +35,7 @@ export function BlogPostCard({ post, href, index = 0 }: BlogPostCardProps) {
     >
       <Card
         className="overflow-hidden h-full flex flex-col border border-line-low hover:border-accent/20 hover:shadow-md transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
-        style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+        style={{ transitionTimingFunction: CARD_HOVER_EASE }}
       >
         <div className="relative h-56 overflow-hidden bg-paper">
           <NetworkImage

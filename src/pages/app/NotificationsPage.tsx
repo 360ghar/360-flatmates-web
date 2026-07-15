@@ -102,7 +102,7 @@ export function NotificationsPage() {
         onRetry={() => refetch()}
       >
         {(data) => (
-          <div className="flex flex-col gap-2" role="list" aria-label="Notifications">
+          <ul className="flex flex-col gap-2" aria-label="Notifications">
             {data.map((notification) => {
               const cardProps = notificationToNotificationCardProps(notification);
               return (
@@ -133,7 +133,7 @@ export function NotificationsPage() {
                 />
               );
             })}
-          </div>
+          </ul>
         )}
       </AsyncView>
     </div>

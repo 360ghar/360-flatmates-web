@@ -51,7 +51,7 @@ export const searchFiltersSchema = z
   .refine(priceRefine.check, priceRefine.opts)
   .refine(bedroomsRefine.check, bedroomsRefine.opts);
 
-export const webSearchResponseSchema = z.object({
+const _webSearchResponseSchema = z.object({
   results: z.array(z.union([propertySchema, flatmatesPeerSchema])),
   total: z.number().int().min(0).optional(),
   next_cursor: z.string().nullable(),
@@ -75,7 +75,7 @@ export const savedSearchCreateSchema = z.object({
   alert_channels: z.array(alertChannelSchema).default(["in_app"])
 });
 
-export const savedSearchSchema = savedSearchCreateSchema.extend({
+const _savedSearchSchema = savedSearchCreateSchema.extend({
   id: z.number().int().positive(),
   user_id: z.number().int().positive(),
   alert_enabled: z.boolean(),
@@ -87,20 +87,7 @@ export const savedSearchSchema = savedSearchCreateSchema.extend({
   updated_at: z.string().optional()
 });
 
-export const searchAlertSchema = z.object({
-  id: z.number().int().positive(),
-  user_id: z.number().int().positive(),
-  name: z.string().min(1).max(100),
-  filters: searchFiltersSchema,
-  frequency: alertFrequencySchema,
-  channels: z.array(alertChannelSchema),
-  enabled: z.boolean(),
-  last_sent_at: z.string().optional(),
-  results_sent_count: z.number().int().min(0).optional(),
-  created_at: z.string().optional()
-});
-
 export type SearchFiltersInput = z.infer<typeof searchFiltersSchema>;
-export type WebSearchResponseInput = z.infer<typeof webSearchResponseSchema>;
-export type SavedSearchInput = z.infer<typeof savedSearchSchema>;
+export type WebSearchResponseInput = z.infer<typeof _webSearchResponseSchema>;
+export type SavedSearchInput = z.infer<typeof _savedSearchSchema>;
 

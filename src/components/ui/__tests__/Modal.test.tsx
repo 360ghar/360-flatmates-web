@@ -76,28 +76,34 @@ describe("Modal", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("calls onClose on Escape key", () => {
+  it("calls onClose on Escape key (native dialog 'cancel' event)", () => {
     const onClose = vi.fn();
     render(
       <Modal open onClose={onClose} title="Dialog">
         <p>Content</p>
       </Modal>,
     );
-    fireEvent.keyDown(document, { key: "Escape" });
+    // Real browsers fire `cancel` (not a keydown) on the <dialog> itself when
+    // Escape is pressed while it's the active modal.
+    const dialog = screen.getByRole("dialog");
+    fireEvent(dialog, new Event("cancel", { cancelable: true }));
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("calls onClose when overlay is clicked", async () => {
+  it("calls onClose when the backdrop is clicked, but not when content is clicked", async () => {
     const onClose = vi.fn();
     render(
       <Modal open onClose={onClose}>
         <p>Content</p>
       </Modal>,
     );
-    // Overlay is portaled to document.body, not the React render container.
-    const overlay = document.body.querySelector('button[aria-label="Close dialog"]');
-    expect(overlay).toBeTruthy();
-    await userEvent.click(overlay!);
+    const dialog = screen.getByRole("dialog");
+    // Clicking inside the dialog's content must not close it.
+    await userEvent.click(screen.getByText("Content"));
+    expect(onClose).not.toHaveBeenCalled();
+    // A click landing on the dialog element itself (outside any child, i.e.
+    // the ::backdrop) closes it.
+    await userEvent.click(dialog);
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -108,9 +114,9 @@ describe("Modal", () => {
       </Modal>,
     );
     const dialog = screen.getByRole("dialog");
-    // Overlay wrapper is the parent of the dialog panel and must sit on body
-    // so fixed positioning is viewport-relative (not trapped by ancestor transforms).
-    expect(dialog.parentElement?.parentElement).toBe(document.body);
+    // The <dialog> is portaled directly onto body so its fixed/top-layer
+    // positioning is viewport-relative (not trapped by ancestor transforms).
+    expect(dialog.parentElement).toBe(document.body);
   });
 
   it("traps Tab focus within the dialog", () => {
@@ -172,7 +178,7 @@ describe("Drawer", () => {
       </Drawer>,
     );
     const dialog = screen.getByRole("dialog");
-    expect(dialog.parentElement?.parentElement).toBe(document.body);
+    expect(dialog.parentElement).toBe(document.body);
   });
 });
 

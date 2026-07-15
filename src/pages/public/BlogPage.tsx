@@ -8,6 +8,8 @@ import type { BlogPostStatus } from "@/lib/api/types";
 
 const breadcrumb = [{ name: "Blog", item: `${SITE_URL}/blog` }];
 
+const FILTER_BUTTON_EASE = "var(--ease-emphasized)";
+
 const STATUS_OPTIONS: Array<{ value: BlogPostStatus | "all"; label: string }> = [
   { value: "all", label: "All" },
   { value: "published", label: "Published" },
@@ -89,7 +91,7 @@ export function BlogPage() {
                     ? "border border-accent bg-accent-soft text-accent shadow-xs"
                     : "border border-line-low bg-paper text-ink-2 hover:border-accent hover:text-accent hover:bg-surface"
                 }`}
-                style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+                style={{ transitionTimingFunction: FILTER_BUTTON_EASE }}
               >
                 {option.label}
               </button>

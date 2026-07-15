@@ -108,17 +108,15 @@ export function SettingsNotificationsPage() {
 
   const handleToggle = useCallback(
     (key: string) => {
-      const wasOn = (userEdits ?? baseToggles)[key] ?? false;
-      setUserEdits((prev) => {
-        const base = prev ?? baseToggles;
-        const next = { ...base, [key]: !base[key] };
-        pendingPrefs.current = next;
+      const base = userEdits ?? baseToggles;
+      const wasOn = base[key] ?? false;
+      const next = { ...base, [key]: !base[key] };
 
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(flushPrefs, 500);
+      pendingPrefs.current = next;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(flushPrefs, 500);
 
-        return next;
-      });
+      setUserEdits(next);
 
       // Opt-in browser push: register/unregister when the master toggle flips.
       if (key === "push_notifications") {

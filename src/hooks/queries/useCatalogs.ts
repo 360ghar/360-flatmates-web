@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { CatalogEntry, CatalogCity, CatalogLocality, CatalogAmenity } from "@/lib/api/types";
+import type { CatalogEntry, CatalogCity, CatalogAmenity } from "@/lib/api/types";
 
 function catalogItems<T>(entry: CatalogEntry | undefined): T[] {
   const payload = entry?.payload as unknown;
@@ -35,14 +35,6 @@ export function useCities() {
   const entry = data.find((c) => c.key === "cities");
   const cities = catalogItems<CatalogCity>(entry);
   return { ...rest, data: cities };
-}
-
-export function useLocalities(cityId: number) {
-  const { data = [], ...rest } = useAllCatalogs();
-  const entry = data.find((c) => c.key === "localities");
-  const allLocalities = catalogItems<CatalogLocality>(entry);
-  const localities = cityId > 0 ? allLocalities.filter((l) => l.city_id === cityId) : allLocalities;
-  return { ...rest, data: localities };
 }
 
 export function useAmenities() {

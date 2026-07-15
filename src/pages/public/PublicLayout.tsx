@@ -4,7 +4,7 @@ import { Instagram, Linkedin, Menu, Twitter } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { cn, focusRing } from "@/components/ui/component-utils";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 import { Drawer } from "@/components/ui/Modal";

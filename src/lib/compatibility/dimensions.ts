@@ -147,12 +147,3 @@ export const scoreWorkStyle: DimensionScorer<WorkStyle> = (
   return 70;
 };
 
-export const DIMENSION_SCORERS = {
-  sleep_schedule: scoreSleepSchedule,
-  cleanliness: scoreCleanliness,
-  food_habits: scoreFoodHabits,
-  smoking_drinking: scoreSmokingDrinking,
-  guests_policy: scoreGuestsPolicy,
-  work_style: scoreWorkStyle
-} as const;
-

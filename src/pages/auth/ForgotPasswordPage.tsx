@@ -5,23 +5,21 @@ import { SeoHelmet, SITE_URL } from "@/lib/seo";
 import { useAuth } from "@/hooks/useAuth";
 import { useResendTimer } from "@/hooks/useResendTimer";
 import { useWebOtp } from "@/hooks/useWebOtp";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { PasswordInput } from "@/components/ui/PasswordInput";
-import { ResendOtp } from "@/components/ui/ResendOtp";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { PASSWORD_REGEX } from "@/lib/schemas/common";
-import { maskIdentifier } from "@/lib/lastAuthMethod";
 import { authStore } from "@/lib/stores/auth-store";
 import { uiStore } from "@/lib/stores/ui-store";
 import { normalizePhone } from "@/lib/redirect";
-import { PASSWORD_POLICY_HELPER_TEXT, PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
+import { PASSWORD_POLICY_ERROR_TEXT } from "./_password-policy";
 import { checkIdentifierStatus } from "@/lib/api/auth";
 import {
   mapSupabaseAuthError,
   NO_ACCOUNT_FOUND_MESSAGE,
   IDENTIFIER_STATUS_UNAVAILABLE_MESSAGE,
 } from "@/lib/authErrors";
+import { ForgotPasswordRequestStep } from "./ForgotPasswordRequestStep";
+import { ForgotPasswordOtpStep } from "./ForgotPasswordOtpStep";
+import { ForgotPasswordSetPasswordStep } from "./ForgotPasswordSetPasswordStep";
 
 /**
  * Password reset — 6-digit OTP for BOTH channels (decision 1).
@@ -261,120 +259,44 @@ export function ForgotPasswordPage() {
 
       {/* Step 1 — request: single identifier field (email or phone, auto-detected) */}
       {step === "request" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleRequest();
-          }}
-        >
-          <Input
-            label="Phone or email"
-            type={channel === "phone" ? "tel" : "text"}
-            inputMode={channel === "phone" ? "tel" : undefined}
-            autoComplete="username"
-            placeholder="you@example.com or 98765 43210"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="mt-5"
-            autoFocus
-          />
-          <Button
-            type="submit"
-            fullWidth
-            className="mt-5"
-            loading={submitting}
-            disabled={input.trim().length < 3}
-          >
-            Send OTP
-          </Button>
-        </form>
+        <ForgotPasswordRequestStep
+          channel={channel}
+          input={input}
+          onInputChange={setInput}
+          submitting={submitting}
+          onSubmit={handleRequest}
+        />
       )}
 
       {/* Step 2 — verify OTP (both channels) */}
-      {step === "verify" && (() => {
-        const expectedOtpLength = 6;
-        return (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleVerifyOtp();
-            }}
-          >
-            <Input
-              label="OTP"
-              placeholder={`${expectedOtpLength}-digit code`}
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={expectedOtpLength}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, expectedOtpLength))}
-              className="mt-5"
-              autoFocus
-              helperText={`Sent to ${maskIdentifier(identifier)}`}
-            />
-            <ResendOtp timer={resendTimer} onResend={handleResendOtp} loading={resending} />
-            <div className="mt-5 flex gap-3">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setStep("request");
-                  setOtp("");
-                  setError(null);
-                }}
-              >
-                Back
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                loading={submitting}
-                disabled={!otp || otp.length < expectedOtpLength}
-              >
-                Verify
-              </Button>
-            </div>
-          </form>
-        );
-      })()}
+      {step === "verify" && (
+        <ForgotPasswordOtpStep
+          identifier={identifier}
+          otp={otp}
+          onOtpChange={setOtp}
+          submitting={submitting}
+          resending={resending}
+          resendTimer={resendTimer}
+          onResend={handleResendOtp}
+          onBack={() => {
+            setStep("request");
+            setOtp("");
+            setError(null);
+          }}
+          onSubmit={handleVerifyOtp}
+        />
+      )}
 
       {/* Step 3 — set new password (both channels) */}
       {step === "new-password" && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleResetPassword();
-          }}
-        >
-          <PasswordInput
-            label="New password"
-            placeholder="Min 8 characters"
-            autoComplete="new-password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="mt-5"
-            autoFocus
-            helperText={PASSWORD_POLICY_HELPER_TEXT}
-          />
-          <PasswordInput
-            label="Confirm password"
-            placeholder="Re-enter password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-4"
-          />
-          <Button
-            type="submit"
-            fullWidth
-            className="mt-5"
-            loading={submitting}
-            disabled={!newPassword || !confirmPassword}
-          >
-            Reset Password
-          </Button>
-        </form>
+        <ForgotPasswordSetPasswordStep
+          newPassword={newPassword}
+          onNewPasswordChange={setNewPassword}
+          confirmPassword={confirmPassword}
+          onConfirmPasswordChange={setConfirmPassword}
+          submitting={submitting}
+          onSubmit={handleResetPassword}
+        />
       )}
 
       <Link

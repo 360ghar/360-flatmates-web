@@ -1,36 +1,26 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Trash2, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  useBatchDeleteMedia,
-  useMyProperty,
-  useUpdateProperty,
-  useUploadPropertyImage
-} from "@/hooks/queries";
-import { useImageUpload } from "@/hooks/useImageUpload";
+import { useMyProperty, useUpdateProperty } from "@/hooks/queries";
 import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
 import { uiStore } from "@/lib/stores/ui-store";
-import {
-  GENDER_PREFERENCE_VALUES,
-  LISTING_SHARING_TYPE_OPTIONS,
-  SOCIETY_TYPE_VALUES,
-} from "@/lib/data";
 import {
   genderPreferenceSchema,
   listingSharingTypeSchema,
   societyTypeSchema,
 } from "@/lib/schemas/enums";
-import { toSelectOptions, stripEmptyFields } from "@/lib/utils";
+import { stripEmptyFields } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Input, TextArea, SelectField } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { NetworkImage } from "@/components/ui/NetworkImage";
 import { ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ListingPhotoManager } from "./ListingPhotoManager";
+import { ListingBasicInfoFields } from "./ListingBasicInfoFields";
+import { ListingLocationFields } from "./ListingLocationFields";
 
 /* ── Zod schema ──────────────────────────────────────────── */
 
@@ -51,19 +41,11 @@ const listingSchema = z.object({
   gender_preference: genderPreferenceSchema.optional(),
   sharing_type: listingSharingTypeSchema.optional(),
   society_type: societyTypeSchema.optional(),
-  video_tour_url: z.string().url().optional().or(z.literal("")),
+  video_tour_url: z.url().optional().or(z.literal("")),
   is_available: z.boolean().optional()
 });
 
-type ListingFormData = z.infer<typeof listingSchema>;
-
-/* ── Select option helpers ───────────────────────────────── */
-
-const genderPrefOptions = toSelectOptions(GENDER_PREFERENCE_VALUES);
-
-const sharingTypeOptions = toSelectOptions(LISTING_SHARING_TYPE_OPTIONS);
-
-const societyTypeOptions = toSelectOptions(SOCIETY_TYPE_VALUES);
+export type ListingFormData = z.infer<typeof listingSchema>;
 
 /* ── Page component ──────────────────────────────────────── */
 
@@ -74,11 +56,8 @@ export function MyListingEditPage() {
 
   const { data: property, isLoading, error, refetch } = useMyProperty(propertyId);
   const updateProperty = useUpdateProperty(propertyId);
-  const uploadImage = useUploadPropertyImage();
-  const { upload: uploadImageFile } = useImageUpload();
 
   const [serverError, setServerError] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
 
   const {
     register,
@@ -159,68 +138,6 @@ export function MyListingEditPage() {
     });
   }
 
-  /* ----- Multi-select photo deletion ----- */
-  const [multiSelect, setMultiSelect] = useState(false);
-  const [selectedPhotoIndexes, setSelectedPhotoIndexes] = useState<number[]>([]);
-  const batchDeleteMedia = useBatchDeleteMedia();
-
-  const handleTogglePhoto = (index: number) => {
-    setSelectedPhotoIndexes((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
-  };
-
-  const handleDeleteSelectedPhotos = () => {
-    const selected = (imageUrls ?? []).filter((_, i) =>
-      selectedPhotoIndexes.includes(i)
-    );
-    if (selected.length === 0) return;
-
-    const remaining = (imageUrls ?? []).filter(
-      (_, i) => !selectedPhotoIndexes.includes(i)
-    );
-
-    // Update the listing first so the UI is never out of sync with the
-    // property record, then best-effort delete the underlying storage files.
-    updateProperty.mutate(
-      { image_urls: remaining },
-      {
-        onSuccess: () => {
-          setSelectedPhotoIndexes([]);
-          setMultiSelect(false);
-          batchDeleteMedia.mutate(
-            { media_ids: selected },
-            {
-              onSuccess: (result) => {
-                uiStore.getState().pushToast({
-                  type: result.failed.length === 0 ? "success" : "warning",
-                  title: `Deleted ${result.deleted.length} photo${result.deleted.length === 1 ? "" : "s"}`,
-                  description:
-                    result.failed.length > 0
-                      ? `${result.failed.length} could not be removed`
-                      : undefined
-                });
-              },
-              onError: () => {
-                uiStore.getState().pushToast({
-                  type: "warning",
-                  title: "Photos removed from listing",
-                  description: "Some files could not be deleted from storage."
-                });
-              }
-            }
-          );
-        },
-        onError: () => {
-          uiStore.getState().pushToast({
-            type: "error",
-            title: "Could not remove photos from listing"
-          });
-        }
-      }
-    );
-  };
-
   /* Unsaved-changes guard: block in-app navigation while the form is dirty and
      not in the middle of saving; surface a confirmation modal. */
   const hasUnsavedChanges = isDirty && !updateProperty.isPending;
@@ -228,97 +145,6 @@ export function MyListingEditPage() {
     hasUnsavedChanges,
     "You have unsaved listing edits. Leaving will discard them."
   );
-
-  /* ── Photo grid controls ─────────────────────────────────
-   * The PostPage wizard shows a "Main" badge and per-photo remove / set-as-main
-   * controls. We mirror those affordances here so the create and edit flows
-   * present the same UI. A full unification (shared <PhotoGrid> component) is
-   * TODO — see the F5 fix log. */
-  function removeImageAt(index: number) {
-    const urls = imageUrls ?? [];
-    const url = urls[index];
-    const next = urls.filter((_, i) => i !== index);
-    if (!url) {
-      updateProperty.mutate({ image_urls: next });
-      return;
-    }
-    updateProperty.mutate(
-      { image_urls: next },
-      {
-        onSuccess: () => {
-          batchDeleteMedia.mutate(
-            { media_ids: [url] },
-            {
-              onError: () => {
-                uiStore.getState().pushToast({
-                  type: "warning",
-                  title: "Photo removed from listing",
-                  description: "The file could not be deleted from storage."
-                });
-              }
-            }
-          );
-        },
-        onError: () => {
-          uiStore.getState().pushToast({
-            type: "error",
-            title: "Could not remove photo"
-          });
-        }
-      }
-    );
-  }
-
-  function setImageAsMain(index: number) {
-    if (index === 0) return;
-    const urls = imageUrls ?? [];
-    const next = [urls[index], ...urls.filter((_, i) => i !== index)];
-    updateProperty.mutate({ image_urls: next });
-  }
-
-  async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setImageUploading(true);
-
-    try {
-      const dataUrl = await uploadImageFile(file);
-
-      uploadImage.mutate(
-        {
-          propertyId,
-          payload: { image_url: dataUrl, is_main: !(property?.image_urls?.length) }
-        },
-        {
-          onSuccess: () => {
-            uiStore.getState().pushToast({
-              type: "success",
-              title: "Photo added",
-              description: "Your photo has been uploaded."
-            });
-          },
-          onError: (err) => {
-            uiStore.getState().pushToast({
-              type: "error",
-              title: "Upload failed",
-              description: err instanceof Error ? err.message : "Could not upload photo."
-            });
-          },
-          onSettled: () => {
-            setImageUploading(false);
-          }
-        }
-      );
-    } catch {
-      setImageUploading(false);
-      uiStore.getState().pushToast({
-        type: "error",
-        title: "Upload failed",
-        description: "Could not read the selected file."
-      });
-    }
-  }
 
   if (isLoading) {
     return (
@@ -384,276 +210,13 @@ export function MyListingEditPage() {
         )}
 
         {/* Photos */}
-        <Card className="flex flex-col gap-4 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-h3">Photos</h2>
-            {imageUrls.length > 1 ? (
-              <div className="flex items-center gap-2">
-                {multiSelect && selectedPhotoIndexes.length > 0 ? (
-                  <span className="text-body-sm text-ink-2">
-                    {selectedPhotoIndexes.length} selected
-                  </span>
-                ) : null}
-                <Button
-                  variant={multiSelect ? "primary" : "secondary"}
-                  size="compact"
-                  onClick={() => {
-                    setMultiSelect((prev) => {
-                      if (prev) setSelectedPhotoIndexes([]);
-                      return !prev;
-                    });
-                  }}
-                  aria-pressed={multiSelect}
-                >
-                  <Trash2 aria-hidden="true" className="mr-1 h-3.5 w-3.5" />
-                  {multiSelect ? "Exit select" : "Select to delete"}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-          {imageUrls.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {imageUrls.map((url, index) => {
-                const isSelected = selectedPhotoIndexes.includes(index);
-                return (
-                  <div
-                    key={`${url}-${index}`}
-                    className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-paper-2 ${
-                      isSelected ? "border-accent ring-2 ring-accent" : "border-line"
-                    }`}
-                  >
-                    <NetworkImage
-                      alt={`Photo ${index + 1}`}
-                      src={url}
-                      wrapperClassName="h-full w-full rounded-xl"
-                    />
-                    {/* Multi-select checkbox */}
-                    {multiSelect ? (
-                      <button
-                        type="button"
-                        onClick={() => handleTogglePhoto(index)}
-                        aria-pressed={isSelected}
-                        aria-label={
-                          isSelected
-                            ? `Deselect photo ${index + 1}`
-                            : `Select photo ${index + 1}`
-                        }
-                        className="absolute inset-0 z-10 flex items-start justify-end p-2"
-                      >
-                        <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
-                            isSelected
-                              ? "border-accent bg-accent text-white"
-                              : "border-line bg-surface/80 text-ink-2"
-                          }`}
-                        >
-                          {isSelected ? (
-                            <svg
-                              aria-hidden="true"
-                              width="12"
-                              height="12"
-                              viewBox="0 0 14 14"
-                              fill="none"
-                            >
-                              <path
-                                d="M2 7L5.5 10.5L12 4"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          ) : null}
-                        </span>
-                      </button>
-                    ) : (
-                      /* Remove button (single mode) */
-                      <button
-                        type="button"
-                        onClick={() => removeImageAt(index)}
-                        disabled={updateProperty.isPending || batchDeleteMedia.isPending}
-                        className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/60 text-paper opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-40"
-                        aria-label={`Remove photo ${index + 1}`}
-                      >
-                        <X aria-hidden="true" className="h-3 w-3" />
-                      </button>
-                    )}
-                    {/* Set-as-main button (hidden when already main) */}
-                    {!multiSelect && index !== 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => setImageAsMain(index)}
-                        disabled={updateProperty.isPending}
-                        className="absolute bottom-1 right-1 rounded bg-surface px-1.5 py-0.5 text-caption font-semibold text-accent shadow-sm opacity-0 transition-opacity group-hover:opacity-100 hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
-                      >
-                        Set main
-                      </button>
-                    ) : null}
-                    {/* Main badge */}
-                    {index === 0 ? (
-                      <span className="absolute bottom-1 left-1 rounded bg-accent px-1.5 py-0.5 text-caption font-semibold text-paper">
-                        Main
-                      </span>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {multiSelect ? (
-            <div className="flex items-center justify-between gap-2 rounded-xl border border-line bg-paper-2 p-3">
-              <span className="text-body-sm text-ink-2">
-                {selectedPhotoIndexes.length} of {imageUrls.length} selected
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  size="compact"
-                  onClick={() => setSelectedPhotoIndexes([])}
-                  disabled={selectedPhotoIndexes.length === 0}
-                >
-                  Clear
-                </Button>
-                <Button
-                  variant="primary"
-                  size="compact"
-                  onClick={handleDeleteSelectedPhotos}
-                  disabled={
-                    selectedPhotoIndexes.length === 0 ||
-                    updateProperty.isPending ||
-                    batchDeleteMedia.isPending
-                  }
-                >
-                  {updateProperty.isPending || batchDeleteMedia.isPending
-                    ? "Deleting…"
-                    : `Delete ${selectedPhotoIndexes.length || ""}`.trim()}
-                </Button>
-              </div>
-            </div>
-          ) : null}
-          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[8px] border-2 border-dashed border-line bg-paper-2 px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={handleImageUpload}
-              disabled={imageUploading}
-            />
-            {imageUploading ? "Uploading..." : "Add Photo"}
-          </label>
-        </Card>
+        <ListingPhotoManager propertyId={propertyId} imageUrls={imageUrls} />
 
         {/* Basic Info */}
-        <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-h3">Basic Information</h2>
-          <Input
-            label="Title"
-            error={errors.title?.message}
-            {...register("title")}
-          />
-          <TextArea
-            label="Description"
-            error={errors.description?.message}
-            placeholder="Describe your listing..."
-            {...register("description")}
-          />
-          <Input
-            label="Monthly Rent"
-            type="number"
-            error={errors.monthly_rent?.message}
-            placeholder="15000"
-            {...register("monthly_rent", { valueAsNumber: true })}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Security Deposit"
-              type="number"
-              error={errors.security_deposit?.message}
-              placeholder="30000"
-              {...register("security_deposit", { valueAsNumber: true })}
-            />
-            <Input
-              label="Maintenance"
-              type="number"
-              error={errors.maintenance_charges?.message}
-              placeholder="2000"
-              {...register("maintenance_charges", { valueAsNumber: true })}
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <Input
-              label="Bedrooms"
-              type="number"
-              error={errors.bedrooms?.message}
-              placeholder="1"
-              {...register("bedrooms", { valueAsNumber: true })}
-            />
-            <Input
-              label="Bathrooms"
-              type="number"
-              error={errors.bathrooms?.message}
-              placeholder="1"
-              {...register("bathrooms", { valueAsNumber: true })}
-            />
-            <Input
-              label="Area (sqft)"
-              type="number"
-              error={errors.area_sqft?.message}
-              placeholder="800"
-              {...register("area_sqft", { valueAsNumber: true })}
-            />
-          </div>
-          <SelectField
-            label="Sharing Type"
-            options={sharingTypeOptions}
-            placeholder="Select sharing type"
-            error={errors.sharing_type?.message}
-            {...register("sharing_type")}
-          />
-          <SelectField
-            label="Gender Preference"
-            options={genderPrefOptions}
-            placeholder="Any preference?"
-            error={errors.gender_preference?.message}
-            {...register("gender_preference")}
-          />
-          <Input
-            label="Available From"
-            type="date"
-            error={errors.available_from?.message}
-            {...register("available_from")}
-          />
-        </Card>
+        <ListingBasicInfoFields register={register} errors={errors} />
 
         {/* Location */}
-        <Card className="flex flex-col gap-4 p-5">
-          <h2 className="text-h3">Location</h2>
-          <Input
-            label="City"
-            error={errors.city?.message}
-            placeholder="Gurugram"
-            {...register("city")}
-          />
-          <Input
-            label="Locality"
-            error={errors.locality?.message}
-            placeholder="DLF Phase 1"
-            {...register("locality")}
-          />
-          <Input
-            label="Sub Locality"
-            error={errors.sub_locality?.message}
-            placeholder="5th Block"
-            {...register("sub_locality")}
-          />
-          <SelectField
-            label="Society Type"
-            options={societyTypeOptions}
-            placeholder="Select society type"
-            error={errors.society_type?.message}
-            {...register("society_type")}
-          />
-        </Card>
+        <ListingLocationFields register={register} errors={errors} />
 
         {/* Availability */}
         <Card className="flex flex-col gap-4 p-5">

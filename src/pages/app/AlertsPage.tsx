@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router";
-import { Bell, BellOff, Pencil, Plus, Trash2 } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import {
   useSearchAlerts,
   useCreateSearchAlert,
@@ -10,46 +10,15 @@ import {
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
-import { Input, SelectField } from "@/components/ui/Input";
 import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { humanizeSnakeCase, toTitleCase } from "@/lib/utils/format";
-import {
-  ALERT_FREQUENCY_VALUES,
-  ALERT_CHANNEL_VALUES,
-  type AlertChannel,
-  type AlertFrequency,
-} from "@/lib/data";
+import type { AlertChannel, AlertFrequency } from "@/lib/data";
 import type { SearchAlertCreate, SearchFilters } from "@/lib/api/types";
+import { AlertRow } from "./AlertRow";
+import { AlertFormModal, type AlertFormState } from "./AlertFormModal";
 
-const FREQUENCY_OPTIONS = ALERT_FREQUENCY_VALUES.map((v) => ({
-  value: v,
-  label: toTitleCase(humanizeSnakeCase(v)),
-}));
-const CHANNEL_OPTIONS = ALERT_CHANNEL_VALUES.map((v) => ({
-  value: v,
-  label: toTitleCase(humanizeSnakeCase(v)),
-}));
-
-function toggleChannel(channels: AlertChannel[], channel: AlertChannel): AlertChannel[] {
-  return channels.includes(channel)
-    ? channels.filter((c) => c !== channel)
-    : [...channels, channel];
-}
-
-interface CreateAlertFormState {
-  name: string;
-  city: string;
-  locality: string;
-  priceMin: string;
-  priceMax: string;
-  frequency: AlertFrequency;
-  channels: AlertChannel[];
-}
-
-const EMPTY_FORM: CreateAlertFormState = {
+const EMPTY_FORM: AlertFormState = {
   name: "",
   city: "",
   locality: "",
@@ -59,7 +28,7 @@ const EMPTY_FORM: CreateAlertFormState = {
   channels: ["push"],
 };
 
-function buildFilters(form: CreateAlertFormState): SearchFilters {
+function buildFilters(form: AlertFormState): SearchFilters {
   const filters: SearchFilters = {};
   const city = form.city.trim();
   const locality = form.locality.trim();
@@ -72,7 +41,7 @@ function buildFilters(form: CreateAlertFormState): SearchFilters {
   return filters;
 }
 
-function formFromFilters(name: string, filters: SearchFilters): CreateAlertFormState {
+function formFromFilters(name: string, filters: SearchFilters): AlertFormState {
   return {
     name,
     city: filters.city ?? "",
@@ -89,7 +58,7 @@ function formFromAlert(alert: {
   filters: SearchFilters;
   frequency: AlertFrequency;
   channels: AlertChannel[];
-}): CreateAlertFormState {
+}): AlertFormState {
   return {
     ...formFromFilters(alert.name, alert.filters),
     frequency: alert.frequency,
@@ -104,7 +73,7 @@ export function AlertsPage() {
   const deleteAlert = useDeleteSearchAlert();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState<CreateAlertFormState>(EMPTY_FORM);
+  const [createForm, setCreateForm] = useState<AlertFormState>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   // Confirmation modal for delete
@@ -212,11 +181,6 @@ export function AlertsPage() {
   const canSave =
     createForm.name.trim().length > 0 && createForm.channels.length > 0;
 
-  const frequencyLabel = useMemo(
-    () => toTitleCase(humanizeSnakeCase(createForm.frequency)),
-    [createForm.frequency]
-  );
-
   return (
     <div className="flex flex-col gap-5 page-fade">
       <div className="flex items-center justify-between gap-4">
@@ -258,215 +222,52 @@ export function AlertsPage() {
         onRetry={() => refetch()}
       >
         {(data) => (
-          <div className="flex flex-col gap-3" role="list" aria-label="Search alerts">
+          <ul className="flex flex-col gap-3" aria-label="Search alerts">
             {data.map((alert) => (
-              <Card key={alert.id} className="flex items-center justify-between gap-4 p-4" role="listitem">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-body-md font-semibold text-ink truncate">{alert.name}</h2>
-                    {alert.enabled ? (
-                      <Chip variant="info" selected>Active</Chip>
-                    ) : (
-                      <Chip variant="info">Paused</Chip>
-                    )}
-                  </div>
-                  <p className="text-caption text-ink-3 mt-1">
-                    {toTitleCase(humanizeSnakeCase(alert.frequency))} ·{" "}
-                    {alert.channels
-                      .map((c) => toTitleCase(humanizeSnakeCase(c)))
-                      .join(", ")}
-                  </p>
-                  {alert.results_sent_count !== undefined && alert.results_sent_count > 0 && (
-                    <p className="text-caption text-ink-3">
-                      {alert.results_sent_count} results sent
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="icon"
-                    size="icon"
-                    aria-label={`Edit alert: ${alert.name}`}
-                    onClick={() => handleEdit(alert)}
-                  >
-                    <Pencil aria-hidden="true" className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="icon"
-                    size="icon"
-                    aria-label={alert.enabled ? `Pause alert: ${alert.name}` : `Resume alert: ${alert.name}`}
-                    onClick={() => {
-                      updateAlert.mutate(
-                        { id: alert.id, payload: { enabled: !alert.enabled } },
-                        {
-                          onSuccess: () => {
-                            uiStore.getState().pushToast({
-                              type: "success",
-                              title: alert.enabled ? "Alert disabled" : "Alert enabled",
-                            });
-                          },
-                          onError: () => {
-                            uiStore.getState().pushToast({
-                              type: "error",
-                              title: "Could not update alert",
-                            });
-                          },
-                        }
-                      );
-                    }}
-                    loading={updateAlert.isPending}
-                  >
-                    {alert.enabled ? (
-                      <BellOff aria-hidden="true" className="h-4 w-4" />
-                    ) : (
-                      <Bell aria-hidden="true" className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="icon"
-                    size="icon"
-                    aria-label={`Delete alert: ${alert.name}`}
-                    onClick={() => setConfirmDeleteId(alert.id)}
-                    loading={deleteAlert.isPending && confirmDeleteId === alert.id}
-                  >
-                    <Trash2 aria-hidden="true" className="h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
+              <AlertRow
+                key={alert.id}
+                alert={alert}
+                onEdit={handleEdit}
+                onTogglePause={(a) => {
+                  updateAlert.mutate(
+                    { id: a.id, payload: { enabled: !a.enabled } },
+                    {
+                      onSuccess: () => {
+                        uiStore.getState().pushToast({
+                          type: "success",
+                          title: a.enabled ? "Alert disabled" : "Alert enabled",
+                        });
+                      },
+                      onError: () => {
+                        uiStore.getState().pushToast({
+                          type: "error",
+                          title: "Could not update alert",
+                        });
+                      },
+                    }
+                  );
+                }}
+                togglePending={updateAlert.isPending}
+                onRequestDelete={setConfirmDeleteId}
+                deletePending={deleteAlert.isPending}
+                deleteIsThisRow={confirmDeleteId === alert.id}
+              />
             ))}
-          </div>
+          </ul>
         )}
       </AsyncView>
 
       {/* Create / edit alert modal */}
-      <Modal
+      <AlertFormModal
         open={showCreateModal}
-        title={editingId !== null ? "Edit Search Alert" : "Create Search Alert"}
-        description="Get notified when new listings match your search criteria."
+        isEditing={editingId !== null}
+        form={createForm}
+        onFormChange={setCreateForm}
+        isSaving={isSaving}
+        canSave={canSave}
         onClose={closeCreate}
-        footer={
-          <>
-            <Button variant="tertiary" onClick={closeCreate}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              loading={isSaving}
-              disabled={!canSave}
-            >
-              {editingId !== null ? "Save changes" : "Create alert"}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <Input
-            label="Alert name"
-            placeholder="e.g. 1BHK in Koramangala under 15k"
-            value={createForm.name}
-            onChange={(e) =>
-              setCreateForm((prev) => ({ ...prev, name: e.target.value }))
-            }
-          />
-
-          <div className="flex flex-col gap-2">
-            <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
-              Filters
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="City"
-                placeholder="Gurugram"
-                value={createForm.city}
-                onChange={(e) =>
-                  setCreateForm((prev) => ({ ...prev, city: e.target.value }))
-                }
-              />
-              <Input
-                label="Locality"
-                placeholder="DLF Phase 1"
-                value={createForm.locality}
-                onChange={(e) =>
-                  setCreateForm((prev) => ({ ...prev, locality: e.target.value }))
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="Min price (₹)"
-                type="number"
-                placeholder="10000"
-                value={createForm.priceMin}
-                onChange={(e) =>
-                  setCreateForm((prev) => ({ ...prev, priceMin: e.target.value }))
-                }
-              />
-              <Input
-                label="Max price (₹)"
-                type="number"
-                placeholder="20000"
-                value={createForm.priceMax}
-                onChange={(e) =>
-                  setCreateForm((prev) => ({ ...prev, priceMax: e.target.value }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
-              Frequency
-            </p>
-            <SelectField
-              options={FREQUENCY_OPTIONS}
-              value={createForm.frequency}
-              onChange={(e) =>
-                setCreateForm((prev) => ({
-                  ...prev,
-                  frequency: e.target.value as AlertFrequency,
-                }))
-              }
-              helperText={`Currently ${frequencyLabel}`}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
-              Channels
-            </p>
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Alert channels">
-              {CHANNEL_OPTIONS.map((opt) => {
-                const selected = createForm.channels.includes(opt.value as AlertChannel);
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="checkbox"
-                    aria-checked={selected}
-                    onClick={() =>
-                      setCreateForm((prev) => ({
-                        ...prev,
-                        channels: toggleChannel(prev.channels, opt.value as AlertChannel),
-                      }))
-                    }
-                    className={
-                      "rounded-full border px-3 py-1.5 text-caption font-semibold transition-colors " +
-                      (selected
-                        ? "border-accent bg-accent-soft text-accent"
-                        : "border-line bg-surface text-ink-2 hover:border-accent/40")
-                    }
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-            {createForm.channels.length === 0 && (
-              <p className="text-caption text-error">Select at least one channel.</p>
-            )}
-          </div>
-        </div>
-      </Modal>
+        onSave={handleSave}
+      />
 
       {/* Delete confirmation modal */}
       <Modal

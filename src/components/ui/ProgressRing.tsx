@@ -17,6 +17,10 @@ const sizeMap: Record<ProgressRingSize, { box: number; stroke: number; text: str
   xl: { box: 80, stroke: 6, text: "text-body-md" }
 };
 
+const RING_DRAW_STYLE: React.CSSProperties = {
+  transition: "stroke-dashoffset 800ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+};
+
 export interface RingSvgProps {
   box: number;
   stroke: number;
@@ -79,9 +83,7 @@ export function RingSvg({
         strokeLinecap="round"
         strokeWidth={stroke}
         transform={`rotate(-90 ${box / 2} ${box / 2})`}
-        style={{
-          transition: "stroke-dashoffset 800ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-        }}
+        style={RING_DRAW_STYLE}
       />
     </svg>
   );

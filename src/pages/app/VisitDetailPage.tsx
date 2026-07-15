@@ -1,22 +1,20 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { Star } from "lucide-react";
 import { useVisit, useCancelVisit, useUpdateVisit } from "@/hooks/queries";
-import { visitToVisitCardProps } from "@/lib/api/adapters";
-import { visitStatusToCardStatus } from "@/components/molecules";
+import { visitToVisitCardProps, visitStatusToCardStatus } from "@/lib/api/adapters";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Modal } from "@/components/ui/Modal";
-import { TextArea } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
 import { VisitCard } from "@/components/molecules/VisitCard";
-import { cn } from "@/components/ui/component-utils";
 import type { StatusTone } from "@/components/ui/Badge";
 import type { Tone } from "@/components/ui/component-utils";
 import type { Visit } from "@/lib/api/types";
+import { RescheduleVisitModal } from "./RescheduleVisitModal";
+import { CancelVisitModal } from "./CancelVisitModal";
+import { VisitFeedbackSection } from "./VisitFeedbackSection";
 
 const VISIT_STATUS_BADGE: Record<Visit["status"], StatusTone> = {
   requested: "pending",
@@ -66,45 +64,6 @@ function ratingToInterestLevel(rating: number): "high" | "medium" | "low" {
  * comparing Date objects at submit time. Decision is pending per-item
  * review; keeping the current behaviour for now.
  */
-
-/* ---------- Star Rating ---------- */
-
-function StarRating({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (rating: number) => void;
-}) {
-  const [hovered, setHovered] = useState(0);
-
-  return (
-    <div className="flex gap-1" role="radiogroup" aria-label="Rating">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          role="radio"
-          aria-checked={value === star}
-          aria-label={`${star} star${star > 1 ? "s" : ""}`}
-          className={cn(
-            "p-0.5 transition-colors",
-            (hovered || value) >= star ? "text-warning" : "text-ink-4"
-          )}
-          onClick={() => onChange(star)}
-          onMouseEnter={() => setHovered(star)}
-          onMouseLeave={() => setHovered(0)}
-        >
-          <Star
-            aria-hidden="true"
-            className="h-7 w-7"
-            fill={(hovered || value) >= star ? "currentColor" : "none"}
-          />
-        </button>
-      ))}
-    </div>
-  );
-}
 
 /* ---------- Visit Detail Page ---------- */
 
@@ -360,104 +319,34 @@ export function VisitDetailPage() {
       </div>
 
       {/* Feedback section for completed visits */}
-      {visit.status === "completed" && !feedbackSubmitted && (
-        <Card className="p-4 flex flex-col gap-4">
-          <h2 className="text-h3">Leave Feedback</h2>
-          <div className="flex flex-col gap-2">
-            <span className="text-label-md text-ink-2">How was your visit?</span>
-            <StarRating value={feedbackRating} onChange={setFeedbackRating} />
-          </div>
-          <TextArea
-            label="Comments"
-            placeholder="Share your experience (optional)"
-            value={feedbackComment}
-            onChange={(e) => setFeedbackComment(e.target.value)}
-            rows={3}
-          />
-          <Button
-            fullWidth
-            disabled={feedbackRating === 0}
-            loading={updateVisit.isPending}
-            onClick={handleFeedbackSubmit}
-          >
-            Submit Feedback
-          </Button>
-        </Card>
-      )}
+      <VisitFeedbackSection
+        visitCompleted={visit.status === "completed"}
+        feedbackSubmitted={feedbackSubmitted}
+        feedbackRating={feedbackRating}
+        onFeedbackRatingChange={setFeedbackRating}
+        feedbackComment={feedbackComment}
+        onFeedbackCommentChange={setFeedbackComment}
+        submitting={updateVisit.isPending}
+        onSubmit={handleFeedbackSubmit}
+      />
 
-      {feedbackSubmitted && (
-        <Card className="p-4 text-center">
-          <p className="text-body-md font-semibold text-success">Thank you for your feedback!</p>
-        </Card>
-      )}
-
-      {/* Reschedule Modal */}
-      <Modal
+      <RescheduleVisitModal
         open={showReschedule}
-        title="Reschedule Visit"
-        description="Pick a new date for your visit."
+        newDate={newDate}
+        minDate={minDate}
+        rescheduleInvalid={rescheduleInvalid}
+        isMutating={isMutating}
+        submitting={updateVisit.isPending}
         onClose={() => setShowReschedule(false)}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setShowReschedule(false)}>
-              Keep current date
-            </Button>
-            <Button
-              disabled={!newDate || rescheduleInvalid || isMutating}
-              loading={updateVisit.isPending}
-              onClick={handleReschedule}
-            >
-              Confirm Reschedule
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-2">
-          <label htmlFor="reschedule-date" className="text-label-md text-ink-2">
-            New Date
-          </label>
-          <input
-            id="reschedule-date"
-            type="date"
-            className={cn(
-              "h-12 w-full rounded-[8px] border bg-surface px-3 text-body-md text-ink focus:focus:outline-none",
-              rescheduleInvalid ? "border-error focus:border-error" : "border-line focus:border-accent"
-            )}
-            value={newDate}
-            min={minDate}
-            aria-invalid={rescheduleInvalid}
-            aria-describedby={rescheduleInvalid ? "reschedule-date-error" : undefined}
-            onChange={(e) => setNewDate(e.target.value)}
-          />
-          {rescheduleInvalid ? (
-            <p id="reschedule-date-error" className="text-caption text-error">
-              Pick a date today or later.
-            </p>
-          ) : null}
-        </div>
-      </Modal>
+        onDateChange={setNewDate}
+        onConfirm={handleReschedule}
+      />
 
-      {/* Cancel-confirmation Modal */}
-      <Modal
+      <CancelVisitModal
         open={showCancelConfirm}
-        title="Cancel this visit?"
-        description="This lets the other party know the visit is off. You can always schedule a new one."
+        submitting={cancelVisit.isPending}
         onClose={() => setShowCancelConfirm(false)}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setShowCancelConfirm(false)}>
-              Keep visit
-            </Button>
-            <Button
-              variant="primary"
-              className="bg-error text-white shadow-none hover:bg-error/90"
-              loading={cancelVisit.isPending}
-              onClick={handleCancel}
-            >
-              Cancel visit
-            </Button>
-          </>
-        }
+        onConfirm={handleCancel}
       />
       </>
       )}

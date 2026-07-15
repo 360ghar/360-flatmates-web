@@ -11,7 +11,6 @@ import { optionalUrlSchema } from "./common";
 
 export const LISTING_DRAFT_STORAGE_KEY = "360-flatmates-listing-draft";
 const httpUrlSchema = z
-  .string()
   .url()
   .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
     message: "Must be a valid http(s) URL"
@@ -143,7 +142,7 @@ export const propertySchema = propertyCreateSchema.extend({
     .optional()
 });
 
-export const listingDraftSchema = z.object({
+const _listingDraftSchema = z.object({
   location: listingLocationStepSchema.partial().optional(),
   society: listingSocietyStepSchema.partial().optional(),
   room: listingRoomStepSchema.partial().optional(),
@@ -155,5 +154,5 @@ export const listingDraftSchema = z.object({
 
 export type PropertyCreateInput = z.infer<typeof propertyCreateSchema>;
 export type PropertyInput = z.infer<typeof propertySchema>;
-export type ListingDraft = z.infer<typeof listingDraftSchema>;
+export type ListingDraft = z.infer<typeof _listingDraftSchema>;
 

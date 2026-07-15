@@ -1,4 +1,4 @@
-import { type FormEvent, type HTMLAttributes, type KeyboardEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, type HTMLAttributes, type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 import { PrefetchLink } from "../ui/PrefetchLink";
@@ -35,6 +35,7 @@ import { ThemeToggle } from "../ui/ThemeToggle";
 import { cn, focusRing } from "../ui/component-utils";
 import { useNotifications } from "@/hooks/queries";
 import { BottomSheet } from "../ui/Modal";
+import { useSidebarResize } from "./useSidebarResize";
 
 export interface ShellUser {
   name: string;
@@ -136,8 +137,15 @@ export function AppShell({
     // primary items are reachable on mobile.
     return [...primary.slice(0, 4), MORE_NAV_ITEM];
   }, [visibleItems, sidebarOnlyItems]);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragRef = useRef<{ startX: number; startWidth: number; pointerId: number } | null>(null);
+  const {
+    isDragging,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+    handleKeyDown,
+    handleDoubleClick,
+  } = useSidebarResize(collapsed, sidebarWidth, onSidebarWidthChange);
   const asideRef = useRef<HTMLElement | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
@@ -169,101 +177,6 @@ export function AppShell({
   );
 
   const handleSearchClear = useCallback(() => setSearchQuery(""), []);
-
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      if (collapsed) return;
-      e.preventDefault();
-      const target = e.currentTarget as HTMLElement;
-      target.setPointerCapture(e.pointerId);
-      dragRef.current = { startX: e.clientX, startWidth: sidebarWidth, pointerId: e.pointerId };
-      setIsDragging(true);
-    },
-    [collapsed, sidebarWidth]
-  );
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!dragRef.current) return;
-      const delta = e.clientX - dragRef.current.startX;
-      const next = Math.min(SIDEBAR_WIDTH_MAX, Math.max(SIDEBAR_WIDTH_MIN, dragRef.current.startWidth + delta));
-      onSidebarWidthChange?.(next);
-    },
-    [onSidebarWidthChange]
-  );
-
-  const handlePointerUp = useCallback(
-    (e?: React.PointerEvent) => {
-      const drag = dragRef.current;
-      if (drag && e && (e.currentTarget as HTMLElement).hasPointerCapture?.(drag.pointerId)) {
-        try {
-          (e.currentTarget as HTMLElement).releasePointerCapture(drag.pointerId);
-        } catch {
-          // capture may already be released on cancel; ignore
-        }
-      }
-      dragRef.current = null;
-      setIsDragging(false);
-    },
-    []
-  );
-
-  const handlePointerCancel = useCallback(
-    (e: React.PointerEvent) => handlePointerUp(e),
-    [handlePointerUp]
-  );
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
-      if (collapsed) return;
-      const step = e.shiftKey ? 32 : 8;
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        onSidebarWidthChange?.(Math.min(SIDEBAR_WIDTH_MAX, sidebarWidth + step));
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        onSidebarWidthChange?.(Math.max(SIDEBAR_WIDTH_MIN, sidebarWidth - step));
-      } else if (e.key === "Home") {
-        e.preventDefault();
-        onSidebarWidthChange?.(SIDEBAR_WIDTH_MIN);
-      } else if (e.key === "End") {
-        e.preventDefault();
-        onSidebarWidthChange?.(SIDEBAR_WIDTH_MAX);
-      } else if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onSidebarWidthChange?.(SIDEBAR_WIDTH_DEFAULT);
-      }
-    },
-    [collapsed, onSidebarWidthChange, sidebarWidth]
-  );
-
-  const handleDoubleClick = useCallback(() => {
-    if (collapsed) return;
-    onSidebarWidthChange?.(SIDEBAR_WIDTH_DEFAULT);
-  }, [collapsed, onSidebarWidthChange]);
-
-  useEffect(() => {
-    if (!isDragging) return;
-    document.body.style.userSelect = "none";
-    document.body.style.cursor = "col-resize";
-
-    const cancelDrag = () => {
-      dragRef.current = null;
-      setIsDragging(false);
-    };
-    const handleVisibilityChange = () => {
-      if (document.hidden) cancelDrag();
-    };
-    window.addEventListener("blur", cancelDrag);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.body.style.userSelect = "";
-      document.body.style.cursor = "";
-      window.removeEventListener("blur", cancelDrag);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isDragging]);
 
   const currentWidth = collapsed ? SIDEBAR_WIDTH_COLLAPSED : sidebarWidth;
 

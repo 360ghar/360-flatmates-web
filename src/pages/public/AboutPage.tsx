@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { Card } from "@/components/ui/Card";
 import { TrustBadge } from "@/components/ui/TrustBadge";
 
@@ -32,6 +32,8 @@ const VALUES = [
   },
 ] as const;
 
+const CARD_HOVER_EASE = "var(--ease-emphasized)";
+
 export function AboutPage() {
   return (
     <>
@@ -60,7 +62,7 @@ export function AboutPage() {
               <Card
                 key={value.title}
                 className="flex flex-col gap-4 p-6 border border-line-low hover:border-accent/20 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all duration-300"
-                style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+                style={{ transitionTimingFunction: CARD_HOVER_EASE }}
               >
                 <div className="flex justify-between items-start">
                   <TrustBadge variant={value.badge} />

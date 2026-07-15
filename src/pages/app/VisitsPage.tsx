@@ -2,8 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Calendar, ChevronLeft, ChevronRight, List, Monitor } from "lucide-react";
 import { useVisits } from "@/hooks/queries";
-import { visitToVisitCardProps } from "@/lib/api/adapters";
-import { visitStatusToCardStatus } from "@/components/molecules";
+import { visitToVisitCardProps, visitStatusToCardStatus } from "@/lib/api/adapters";
 import type { Visit } from "@/lib/api/types";
 import { SegmentedControl, type SegmentedControlOption } from "@/components/ui/SegmentedControl";
 import { Button } from "@/components/ui/Button";
@@ -205,7 +204,7 @@ function CalendarView({
 
           return (
             <div
-              key={idx}
+              key={cell.dateStr || `blank-${idx}`}
               role="gridcell"
               aria-label={cell.day !== null ? `${cell.day}, ${monthLabel}${visitCount > 0 ? `, ${visitCount} visit${visitCount > 1 ? "s" : ""}` : ""}` : undefined}
               tabIndex={cell.day !== null ? 0 : undefined}

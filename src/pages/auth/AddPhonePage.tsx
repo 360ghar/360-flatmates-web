@@ -7,11 +7,12 @@ import { useWebOtp } from "@/hooks/useWebOtp";
 import { useResendTimer } from "@/hooks/useResendTimer";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { PhoneInput, formatFullPhone } from "@/components/ui/PhoneInput";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { ResendOtp } from "@/components/ui/ResendOtp";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { focusRing } from "@/components/ui/component-utils";
 import { resolveRedirect } from "@/lib/redirect";
+import { formatFullPhone } from "@/lib/utils/format";
 
 /**
  * Post-Google add-phone interstitial (skippable).

@@ -108,16 +108,13 @@ export const WORK_STYLE_VALUES = ["wfh", "office", "hybrid"] as const;
 
 export type WorkStyle = (typeof WORK_STYLE_VALUES)[number];
 
-export const LIFESTYLE_DIMENSION_VALUES = [
-  "sleep_schedule",
-  "cleanliness",
-  "food_habits",
-  "smoking_drinking",
-  "guests_policy",
-  "work_style"
-] as const;
-
-export type LifestyleDimensionKey = (typeof LIFESTYLE_DIMENSION_VALUES)[number];
+export type LifestyleDimensionKey =
+  | "sleep_schedule"
+  | "cleanliness"
+  | "food_habits"
+  | "smoking_drinking"
+  | "guests_policy"
+  | "work_style";
 
 export const LIFESTYLE_DIMENSIONS = [
   {
@@ -299,22 +296,11 @@ export const VISIT_STATUS_VALUES = [
 
 export type VisitStatus = (typeof VISIT_STATUS_VALUES)[number];
 
-export const SWIPE_TARGET_TYPE_VALUES = ["property", "user"] as const;
+export type SwipeTargetType = "property" | "user";
 
-export type SwipeTargetType = (typeof SWIPE_TARGET_TYPE_VALUES)[number];
+export type SwipeAction = "pass" | "like" | "super_like";
 
-export const SWIPE_ACTION_VALUES = ["pass", "like", "super_like"] as const;
-
-export type SwipeAction = (typeof SWIPE_ACTION_VALUES)[number];
-
-export const MESSAGE_TYPE_VALUES = [
-  "text",
-  "image",
-  "system",
-  "visit_request"
-] as const;
-
-export type MessageType = (typeof MESSAGE_TYPE_VALUES)[number];
+export type MessageType = "text" | "image" | "system" | "visit_request";
 
 export const POPULAR_CITIES = [
   "Gurugram",
@@ -326,86 +312,41 @@ export const POPULAR_CITIES = [
   // "Noida",
 ] as const;
 
-export const USER_REPORT_REASON_VALUES = [
-  "spam",
-  "fake_profile",
-  "abuse",
-  "inappropriate",
-  "other"
-] as const;
+export type UserReportReason = "spam" | "fake_profile" | "abuse" | "inappropriate" | "other";
 
-export type UserReportReason = (typeof USER_REPORT_REASON_VALUES)[number];
+export type UserReportStatus = "open" | "reviewed" | "dismissed" | "actioned";
 
-export const USER_REPORT_STATUS_VALUES = [
-  "open",
-  "reviewed",
-  "dismissed",
-  "actioned"
-] as const;
+export type BoostDuration = "24h" | "7d" | "30d";
 
-export type UserReportStatus = (typeof USER_REPORT_STATUS_VALUES)[number];
+export type ShareCardFormat = "whatsapp_square" | "instagram_story" | "original";
 
-export const BOOST_DURATION_VALUES = ["24h", "7d", "30d"] as const;
+export type DevicePlatform = "ios" | "android" | "web";
 
-export type BoostDuration = (typeof BOOST_DURATION_VALUES)[number];
+export type UserRole = "user" | "admin" | "agent";
 
-export const SHARE_CARD_FORMAT_VALUES = [
-  "whatsapp_square",
-  "instagram_story",
-  "original"
-] as const;
+export type UserMatchStatus = "active" | "unmatched" | "blocked";
 
-export type ShareCardFormat = (typeof SHARE_CARD_FORMAT_VALUES)[number];
+export type ConversationSource = "listing_interest" | "profile_match";
 
-export const DEVICE_PLATFORM_VALUES = ["ios", "android", "web"] as const;
+export type ConversationStatus = "active" | "archived" | "blocked" | "closed";
 
-export type DevicePlatform = (typeof DEVICE_PLATFORM_VALUES)[number];
-
-export const USER_ROLE_VALUES = ["user", "admin", "agent"] as const;
-
-export type UserRole = (typeof USER_ROLE_VALUES)[number];
-
-export const USER_MATCH_STATUS_VALUES = ["active", "unmatched", "blocked"] as const;
-
-export type UserMatchStatus = (typeof USER_MATCH_STATUS_VALUES)[number];
-
-export const CONVERSATION_SOURCE_VALUES = ["listing_interest", "profile_match"] as const;
-
-export type ConversationSource = (typeof CONVERSATION_SOURCE_VALUES)[number];
-
-export const CONVERSATION_STATUS_VALUES = ["active", "archived", "blocked", "closed"] as const;
-
-export type ConversationStatus = (typeof CONVERSATION_STATUS_VALUES)[number];
-
-export const PROPERTY_LIFECYCLE_STATUS_VALUES = ["draft", "active", "paused", "expired"] as const;
-
-export type PropertyLifecycleStatus = (typeof PROPERTY_LIFECYCLE_STATUS_VALUES)[number];
+export type PropertyLifecycleStatus = "draft" | "active" | "paused" | "expired";
 
 export const PROPERTY_MODERATION_STATUS_VALUES = ["pending_review", "approved", "rejected"] as const;
 
 export type PropertyModerationStatus = (typeof PROPERTY_MODERATION_STATUS_VALUES)[number];
 
-export const COMPATIBILITY_COLOR_VALUES = ["green", "amber", "red"] as const;
+export type CompatibilityColor = "green" | "amber" | "red";
 
-export type CompatibilityColor = (typeof COMPATIBILITY_COLOR_VALUES)[number];
+export type InterestLevel = "high" | "medium" | "low";
 
-export const INTEREST_LEVEL_VALUES = ["high", "medium", "low"] as const;
-
-export type InterestLevel = (typeof INTEREST_LEVEL_VALUES)[number];
-
-export const MODERATION_ACTION_VALUES = ["approve", "reject", "request_edit"] as const;
-
-export type ModerationAction = (typeof MODERATION_ACTION_VALUES)[number];
+export type ModerationAction = "approve" | "reject" | "request_edit";
 
 export const REPORT_STATUS_VALUES = ["open", "under_review", "resolved", "dismissed"] as const;
 
 export type ReportStatus = (typeof REPORT_STATUS_VALUES)[number];
 
-export const REPORT_ACTION_VALUES = ["dismiss", "warn", "suspend"] as const;
+export type ReportAction = "dismiss" | "warn" | "suspend";
 
-export type ReportAction = (typeof REPORT_ACTION_VALUES)[number];
-
-export const SOCIETY_TAG_VOTE_DIRECTION_VALUES = ["up", "down"] as const;
-
-export type SocietyTagVoteDirection = (typeof SOCIETY_TAG_VOTE_DIRECTION_VALUES)[number];
+export type SocietyTagVoteDirection = "up" | "down";
 

@@ -38,6 +38,16 @@ export interface ListingCardProps extends Omit<HTMLAttributes<HTMLElement>, "tit
   layout?: "vertical" | "horizontal";
 }
 
+type MetaChipTone = "blue" | "teal" | "purple" | "green" | "orange";
+
+const metaChipTones: Record<MetaChipTone, string> = {
+  blue: "bg-blue-soft text-blue-ink",
+  teal: "bg-teal-soft text-teal-ink",
+  purple: "bg-purple-soft text-purple-ink",
+  green: "bg-green-soft text-green-ink",
+  orange: "bg-orange-soft text-orange-ink",
+};
+
 /** Colored meta chips — mobile discover_listing_card palette */
 function MetaChip({
   icon,
@@ -46,20 +56,13 @@ function MetaChip({
 }: {
   icon: ReactNode;
   label: string;
-  tone: "blue" | "teal" | "purple" | "green" | "orange";
+  tone: MetaChipTone;
 }) {
-  const tones: Record<typeof tone, string> = {
-    blue: "bg-blue-soft text-blue-ink",
-    teal: "bg-teal-soft text-teal-ink",
-    purple: "bg-purple-soft text-purple-ink",
-    green: "bg-green-soft text-green-ink",
-    orange: "bg-orange-soft text-orange-ink",
-  };
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-medium",
-        tones[tone]
+        metaChipTones[tone]
       )}
     >
       {icon}

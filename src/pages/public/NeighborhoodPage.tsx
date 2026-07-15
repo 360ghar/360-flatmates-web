@@ -8,7 +8,7 @@ import {
 } from "@/lib/seo";
 import { getNeighborhoodsForCity } from "@/lib/seo/neighborhoods";
 import type { Neighborhood } from "@/lib/seo/neighborhoods";
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";

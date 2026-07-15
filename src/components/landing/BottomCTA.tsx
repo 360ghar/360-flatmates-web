@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
 
-import { buttonClasses } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { AppStoreBadges } from "./AppStoreBadges";
 

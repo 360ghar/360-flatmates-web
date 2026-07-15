@@ -57,13 +57,16 @@ function safeJsonLd(schema: object): string {
 }
 
 function renderJsonLd(schemas: object[]) {
-  return schemas.map((schema, i) => (
-    <script
-      key={`jsonld-${i}`}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
-    />
-  ));
+  return schemas.map((schema) => {
+    const json = safeJsonLd(schema);
+    return (
+      <script
+        key={json}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: json }}
+      />
+    );
+  });
 }
 
 export function SeoHelmet({

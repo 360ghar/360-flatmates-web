@@ -138,6 +138,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
         )}
       >
         <button
+          type="button"
           aria-label="Dismiss banner"
           onClick={handleDismiss}
           className="absolute right-3 top-3 text-ink-3 hover:text-ink transition-colors duration-200"

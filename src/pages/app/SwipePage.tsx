@@ -12,6 +12,7 @@ import { uiStore } from "@/lib/stores/ui-store";
 import { ApiClientError } from "@/lib/api/errors";
 import type { FlatmatesPeer, FlatmatesProfile } from "@/lib/api/types";
 import { Button } from "@/components/ui/Button";
+import { handleDialogBackdropClick, useNativeDialog } from "@/components/ui/useNativeDialog";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
@@ -21,7 +22,7 @@ import {
   calculateCompatibility,
   type CompatibilityProfile
 } from "@/lib/compatibility";
-import { motion, AnimatePresence } from "framer-motion";
+import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Sparkles, Star } from "lucide-react";
 
 const SWIPE_HINT_DISMISSED_KEY = "360-flatmates-swipe-hint-dismissed";
@@ -253,7 +254,7 @@ export function SwipePage() {
   }
 
   return (
-    <>
+    <LazyMotion features={domAnimation}>
       <div className="flex justify-center py-2 md:py-4">
         <SwipeDeck
           profiles={swipeProfiles}
@@ -283,7 +284,7 @@ export function SwipePage() {
           }}
         />
       )}
-    </>
+    </LazyMotion>
   );
 }
 
@@ -293,7 +294,7 @@ export function SwipePage() {
 
 function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
   return (
-    <motion.div
+    <m.div
       className="pointer-events-none fixed inset-0 z-[var(--z-overlay)] flex items-end justify-center pb-32 md:pb-40"
       role="dialog"
       aria-label="Swipe controls overview"
@@ -302,7 +303,7 @@ function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <motion.div
+      <m.div
         className="pointer-events-auto relative w-[min(380px,calc(100vw-32px))] rounded-2xl border border-line bg-surface/95 p-5 shadow-2xl backdrop-blur-md"
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -351,8 +352,8 @@ function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
         <Button className="mt-5 w-full" size="compact" onClick={onDismiss}>
           Got it
         </Button>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 }
 
@@ -429,19 +430,20 @@ function MatchCelebration({
     });
   }, []);
 
+  const dialogRef = useNativeDialog(true, onDismiss);
+
   return (
-    <div
-      className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-ink/75 backdrop-blur-md"
-      onClick={onDismiss}
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      ref={dialogRef}
       aria-label="Match celebration"
+      onClick={(e) => handleDialogBackdropClick(e, onDismiss)}
+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none flex items-center justify-center bg-transparent p-0 backdrop:bg-ink/75 backdrop:backdrop-blur-md"
     >
       <div className="relative flex flex-col items-center justify-center">
         {/* Confetti Explosion Group */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           {particles.map((p) => (
-            <motion.div
+            <m.div
               key={p.id}
               className="absolute rounded-full"
               style={{
@@ -449,11 +451,11 @@ function MatchCelebration({
                 height: p.size,
                 backgroundColor: p.color,
               }}
-              initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+              initial={{ x: 0, y: 0, scale: 0.3, opacity: 1 }}
               animate={{
                 x: p.x,
                 y: p.y,
-                scale: [0, 1, 0.8, 0],
+                scale: [0.3, 1, 0.8, 0],
                 opacity: [1, 1, 0.6, 0],
               }}
               transition={{
@@ -466,9 +468,8 @@ function MatchCelebration({
         </div>
 
         {/* Celebration Card Container */}
-        <motion.div
+        <m.div
           className="relative max-w-sm rounded-2xl border border-line bg-surface p-8 text-center shadow-lg flex flex-col items-center gap-6"
-          onClick={(e) => e.stopPropagation()}
           initial={{ scale: 0.8, opacity: 0, y: 40 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ type: "spring", damping: 15, stiffness: 100 }}
@@ -478,16 +479,16 @@ function MatchCelebration({
           </div>
           {/* Match Score Progress Ring with animated delay */}
           <div className="relative flex items-center justify-center">
-            <motion.div
+            <m.div
               initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
               transition={{ delay: 0.2, type: "spring", damping: 12 }}
             >
               <ProgressRing value={profile.matchScore} size="xl" label="Compatibility score" />
-            </motion.div>
+            </m.div>
 
-            <Sparkles className="absolute -right-2 -top-1 h-6 w-6 animate-bounce text-action" aria-hidden="true" />
-            <Sparkles className="absolute -bottom-2 -left-2 h-5 w-5 animate-bounce text-accent delay-150" aria-hidden="true" />
+            <Sparkles className="absolute -right-2 -top-1 h-6 w-6 animate-pulse text-action" aria-hidden="true" />
+            <Sparkles className="absolute -bottom-2 -left-2 h-5 w-5 animate-pulse text-accent delay-150" aria-hidden="true" />
           </div>
 
           <div>
@@ -507,8 +508,8 @@ function MatchCelebration({
               Say Hello
             </Button>
           </div>
-        </motion.div>
+        </m.div>
       </div>
-    </div>
+    </dialog>
   );
 }

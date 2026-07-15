@@ -28,6 +28,7 @@ export function ErrorPage() {
             Return Home
           </Link>
           <button
+            type="button"
             onClick={() => window.location.reload()}
             className={`inline-flex h-12 items-center justify-center rounded-[8px] border border-line-low px-6 text-label-lg text-ink-2 hover:border-accent hover:text-accent transition-colors ${focusRing}`}
           >

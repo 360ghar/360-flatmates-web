@@ -24,12 +24,10 @@ export const lifestyleSchema = z.object({
   work_style: workStyleSchema
 });
 
-export const partialLifestyleSchema = lifestyleSchema.partial();
-
 export const flatmatesProfileSchema = z.object({
   id: z.number().int().positive().catch(0),
   full_name: z.string().min(1).max(120).catch(""),
-  email: z.string().email().optional().catch(undefined),
+  email: z.email().optional().catch(undefined),
   phone: z.string().optional().catch(undefined),
   profile_image_url: optionalUrlSchema,
   mode: flatmatesModeSchema.catch("seeker"),
@@ -58,7 +56,7 @@ export const flatmatesProfileSchema = z.object({
 
 const budgetRefine = minMaxRefine("budget_min", "budget_max", "Minimum budget cannot exceed maximum budget");
 
-export const flatmatesProfileUpdateSchema = flatmatesProfileSchema
+const _flatmatesProfileUpdateSchema = flatmatesProfileSchema
   .omit({
     id: true,
     email: true,
@@ -102,7 +100,7 @@ export const flatmatesPeerSchema = flatmatesProfileSchema
 export type LifestyleInput = z.infer<typeof lifestyleSchema>;
 export type FlatmatesProfileInput = z.infer<typeof flatmatesProfileSchema>;
 export type FlatmatesProfileUpdateInput = z.infer<
-  typeof flatmatesProfileUpdateSchema
+  typeof _flatmatesProfileUpdateSchema
 >;
 export type FlatmatesPeerInput = z.infer<typeof flatmatesPeerSchema>;
 
