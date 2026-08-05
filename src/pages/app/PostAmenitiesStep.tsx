@@ -2,7 +2,7 @@ import { Chip } from "@/components/ui/Chip";
 import { Card } from "@/components/ui/Card";
 import { humanizeSnakeCase } from "@/lib/utils";
 
-const SOCIETY_AMENITIES = ["gym", "pool", "parking", "security", "power_backup", "lift", "garden", "clubhouse", "intercom", "cctv"];
+const SOCIETY_AMENITIES = ["gym", "pool", "parking", "security", "power_backup", "lift", "garden", "clubhouse", "intercom", "cctv", "nearby_parks"];
 const VIBE_TAGS = ["quiet", "social", "family_friendly", "pet_friendly", "young_crowd", "luxury", "budget_friendly"];
 
 export function PostAmenitiesStep({

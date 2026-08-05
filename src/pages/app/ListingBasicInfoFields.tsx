@@ -1,12 +1,21 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { Card } from "@/components/ui/Card";
 import { Input, TextArea, SelectField } from "@/components/ui/Input";
-import { GENDER_PREFERENCE_VALUES, LISTING_SHARING_TYPE_OPTIONS } from "@/lib/data";
+import {
+  FURNISHING_LEVEL_OPTIONS,
+  GENDER_PREFERENCE_VALUES,
+  KITCHEN_TYPE_OPTIONS,
+  LISTING_SHARING_TYPE_OPTIONS,
+  VENTILATION_TYPE_OPTIONS
+} from "@/lib/data";
 import { toSelectOptions } from "@/lib/utils";
 import type { ListingFormData } from "./MyListingEditPage";
 
 const genderPrefOptions = toSelectOptions(GENDER_PREFERENCE_VALUES);
 const sharingTypeOptions = toSelectOptions(LISTING_SHARING_TYPE_OPTIONS);
+const kitchenTypeOptions = toSelectOptions(KITCHEN_TYPE_OPTIONS);
+const ventilationTypeOptions = toSelectOptions(VENTILATION_TYPE_OPTIONS);
+const furnishingOptions = toSelectOptions(FURNISHING_LEVEL_OPTIONS);
 
 export function ListingBasicInfoFields({
   register,
@@ -52,6 +61,29 @@ export function ListingBasicInfoFields({
           {...register("maintenance_charges", { valueAsNumber: true })}
         />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Setup Cost"
+          type="number"
+          error={errors.setup_cost?.message}
+          placeholder="5000"
+          {...register("setup_cost", { valueAsNumber: true })}
+        />
+        <Input
+          label="Other Charges"
+          type="number"
+          error={errors.other_charges?.message}
+          placeholder="0"
+          {...register("other_charges", { valueAsNumber: true })}
+        />
+      </div>
+      <Input
+        label="Other Charges Description"
+        error={errors.other_charges_description?.message}
+        placeholder="e.g. maintenance collected separately"
+        maxLength={300}
+        {...register("other_charges_description")}
+      />
       <div className="grid grid-cols-3 gap-3">
         <Input
           label="Bedrooms"
@@ -75,12 +107,73 @@ export function ListingBasicInfoFields({
           {...register("area_sqft", { valueAsNumber: true })}
         />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Floor Number"
+          type="number"
+          min={0}
+          error={errors.floor_number?.message}
+          placeholder="3"
+          {...register("floor_number", { valueAsNumber: true })}
+        />
+        <Input
+          label="Total Floors"
+          type="number"
+          min={1}
+          error={errors.total_floors?.message}
+          placeholder="12"
+          {...register("total_floors", { valueAsNumber: true })}
+        />
+      </div>
       <SelectField
         label="Sharing Type"
         options={sharingTypeOptions}
         placeholder="Select sharing type"
         error={errors.sharing_type?.message}
         {...register("sharing_type")}
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Kitchen Type"
+          options={kitchenTypeOptions}
+          placeholder="Select kitchen type"
+          error={errors.kitchen_type?.message}
+          {...register("kitchen_type")}
+        />
+        <SelectField
+          label="Ventilation"
+          options={ventilationTypeOptions}
+          placeholder="Select ventilation"
+          error={errors.ventilation_type?.message}
+          {...register("ventilation_type")}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Windows"
+          type="number"
+          min={0}
+          max={100}
+          error={errors.windows_count?.message}
+          placeholder="4"
+          {...register("windows_count", { valueAsNumber: true })}
+        />
+        <Input
+          label="Ventilation Shafts"
+          type="number"
+          min={0}
+          max={50}
+          error={errors.ventilation_shafts?.message}
+          placeholder="2"
+          {...register("ventilation_shafts", { valueAsNumber: true })}
+        />
+      </div>
+      <SelectField
+        label="Furnishing"
+        options={furnishingOptions}
+        placeholder="Select furnishing"
+        error={errors.furnishing_level?.message}
+        {...register("furnishing_level")}
       />
       <SelectField
         label="Gender Preference"

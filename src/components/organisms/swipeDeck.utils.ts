@@ -1,4 +1,4 @@
-import { Home, Moon, PartyPopper, Sparkles, Users, Utensils, Wind } from "lucide-react";
+import { GlassWater, Home, Moon, PartyPopper, Sparkles, Users, Utensils, Wind } from "lucide-react";
 import type { CompatibilityDimensionResult } from "@/lib/compatibility/types";
 import type { SwipeDirection, SwipeProfile } from "./swipeDeck.types";
 
@@ -17,7 +17,8 @@ export const LIFESTYLE_ITEMS = [
   { key: "sleepSchedule" as const, dimKey: "sleep_schedule", icon: Moon, label: "Sleep Schedule" },
   { key: "cleanliness" as const, dimKey: "cleanliness", icon: Sparkles, label: "Cleanliness" },
   { key: "foodHabits" as const, dimKey: "food_habits", icon: Utensils, label: "Food Habits" },
-  { key: "smokingDrinking" as const, dimKey: "smoking_drinking", icon: Wind, label: "Smoking / Drinking" },
+  { key: "smoking" as const, dimKey: "smoking", icon: Wind, label: "Smoking" },
+  { key: "drinking" as const, dimKey: "drinking", icon: GlassWater, label: "Drinking" },
   { key: "guestsPolicy" as const, dimKey: "guests_policy", icon: Users, label: "Guests Policy" },
   { key: "workStyle" as const, dimKey: "work_style", icon: Home, label: "Work Style" },
   { key: "partyHabit" as const, dimKey: "party_habit", icon: PartyPopper, label: "Party Habit" }
@@ -27,7 +28,8 @@ export const DIMENSION_ICONS: Record<string, typeof Moon> = {
   sleep_schedule: Moon,
   cleanliness: Sparkles,
   food_habits: Utensils,
-  smoking_drinking: Wind,
+  smoking: Wind,
+  drinking: GlassWater,
   guests_policy: Users,
   work_style: Home
 };

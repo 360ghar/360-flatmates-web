@@ -3,12 +3,37 @@ import { useStore } from "zustand";
 import { searchStore } from "@/lib/stores/search-store";
 import type { SearchFilters } from "@/lib/api/types";
 import {
-  LISTING_SHARING_TYPE_OPTIONS,
+  FURNISHING_LEVEL_OPTIONS,
   GENDER_PREFERENCE_VALUES,
+  KITCHEN_TYPE_OPTIONS,
+  LISTING_SHARING_TYPE_OPTIONS,
   MOVE_IN_TIMELINE_OPTIONS,
-  PROPERTY_TYPE_VALUES
+  PROPERTY_TYPE_VALUES,
+  VENTILATION_TYPE_OPTIONS
 } from "@/lib/data";
+import { useAmenities } from "@/hooks/queries/useCatalogs";
 import type { FilterSection } from "@/components/molecules/FilterPanel";
+
+/** Fallback amenity set (values the backend amenity filter resolves, i.e.
+ *  Amenity.title values) used until the amenities catalog loads. */
+const FALLBACK_AMENITIES = [
+  "Air Conditioning",
+  "Lift",
+  "Parking",
+  "Power Backup",
+  "Nearby Parks",
+  "Gym",
+  "24/7 Security",
+  "WiFi",
+  "CCTV"
+];
+
+const WINDOW_OPTIONS = [
+  { value: "any", label: "Any" },
+  { value: "1", label: "1+" },
+  { value: "2", label: "2+" },
+  { value: "3", label: "3+" }
+] as const;
 
 export function useExploreFilters() {
   const filters = useStore(searchStore, (s) => s.filters);
@@ -17,6 +42,23 @@ export function useExploreFilters() {
   const resetFilters = useStore(searchStore, (s) => s.resetFilters);
 
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+
+  const { data: amenities, isLoading: amenitiesLoading } = useAmenities();
+
+  const amenityOptions = useMemo(() => {
+    if (amenitiesLoading || amenities.length === 0) {
+      return FALLBACK_AMENITIES.map((a) => ({
+        value: a,
+        label: a,
+        selected: filters.amenities?.includes(a) ?? false
+      }));
+    }
+    return amenities.map((a) => ({
+      value: a.name,
+      label: a.name,
+      selected: filters.amenities?.includes(a.name) ?? false
+    }));
+  }, [amenities, amenitiesLoading, filters.amenities]);
 
   const filterSections: FilterSection[] = useMemo(
     () => [
@@ -48,6 +90,55 @@ export function useExploreFilters() {
         })),
       },
       {
+        id: "furnishing",
+        title: "Furnishing",
+        options: FURNISHING_LEVEL_OPTIONS.map((f) => ({
+          value: f.value,
+          label: f.label,
+          selected: filters.furnishing?.includes(f.value as SearchFilters["furnishing"] extends (infer U)[] | undefined ? U : never) ?? false,
+        })),
+      },
+      {
+        id: "kitchen_type",
+        title: "Kitchen Type",
+        options: KITCHEN_TYPE_OPTIONS.map((k) => ({
+          value: k.value,
+          label: k.label,
+          selected: filters.kitchen_type?.includes(k.value as SearchFilters["kitchen_type"] extends (infer U)[] | undefined ? U : never) ?? false,
+        })),
+      },
+      {
+        id: "ventilation_type",
+        title: "Ventilation",
+        options: VENTILATION_TYPE_OPTIONS.map((v) => ({
+          value: v.value,
+          label: v.label,
+          selected: filters.ventilation_type?.includes(v.value as SearchFilters["ventilation_type"] extends (infer U)[] | undefined ? U : never) ?? false,
+        })),
+      },
+      {
+        id: "amenities",
+        title: "Amenities",
+        options: amenityOptions,
+      },
+      {
+        id: "has_lift",
+        title: "Lift Availability",
+        options: [{ value: "has_lift", label: "Has Lift", selected: filters.has_lift === true }],
+      },
+      {
+        id: "windows",
+        title: "Windows",
+        options: WINDOW_OPTIONS.map((w) => ({
+          value: w.value,
+          label: w.label,
+          selected:
+            w.value === "any"
+              ? filters.windows_min == null
+              : filters.windows_min === Number(w.value),
+        })),
+      },
+      {
         id: "move_in",
         title: "Move-in Timeline",
         options: MOVE_IN_TIMELINE_OPTIONS.map((mo) => ({
@@ -68,7 +159,7 @@ export function useExploreFilters() {
         ],
       },
     ],
-    [filters.property_type, filters.sharing_type, filters.gender_preference, filters.move_in, filters.price_min, filters.price_max]
+    [filters.property_type, filters.sharing_type, filters.gender_preference, filters.furnishing, filters.kitchen_type, filters.ventilation_type, filters.move_in, filters.price_min, filters.price_max, filters.has_lift, filters.windows_min, amenityOptions]
   );
 
   const handleFilterToggle = useCallback(
@@ -95,8 +186,25 @@ export function useExploreFilters() {
         return;
       }
 
-      const currentArray = filters[sectionId as keyof SearchFilters];
-      if (!Array.isArray(currentArray)) return;
+      if (sectionId === "has_lift") {
+        setFilter("has_lift", filters.has_lift === true ? undefined : true);
+        return;
+      }
+
+      if (sectionId === "windows") {
+        if (value === "any") {
+          setFilter("windows_min", undefined);
+        } else if (filters.windows_min === Number(value)) {
+          setFilter("windows_min", undefined);
+        } else {
+          setFilter("windows_min", Number(value));
+        }
+        return;
+      }
+
+      // Default an uninitialized multi-select section to [] so the first
+      // click selects instead of being silently swallowed.
+      const currentArray = filters[sectionId as keyof SearchFilters] ?? [];
       const currentStrings = currentArray as string[];
       const next = currentStrings.includes(value)
         ? currentStrings.filter((v) => v !== value)

@@ -1,6 +1,6 @@
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
-import type { MoveInTimeline } from "@/lib/data";
+import { MOVE_IN_TIMELINE_OPTIONS, type MoveInTimeline } from "@/lib/data";
 import type { OnboardingDraft } from "@/lib/schemas/onboarding";
 
 function numberOrUndefined(raw: string): number | undefined {
@@ -53,21 +53,21 @@ export function OnboardingBudgetTimelineStep({
         <div>
           <p className="text-label-md text-ink-2 mb-2">Move-in Timeline</p>
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Move-in timeline">
-            {(["immediate", "this_month", "next_month", "flexible"] as const).map((val) => (
+            {MOVE_IN_TIMELINE_OPTIONS.map((option) => (
               <Chip
                 variant="choice"
-                key={val}
-                selected={budgetTimeline?.move_in_timeline === val}
+                key={option.value}
+                selected={budgetTimeline?.move_in_timeline === option.value}
                 onClick={() =>
                   patchDraft({
                     budget_timeline: {
                       ...budgetTimeline,
-                      move_in_timeline: val as MoveInTimeline
+                      move_in_timeline: option.value as MoveInTimeline
                     }
                   })
                 }
               >
-                {val === "immediate" ? "Immediately" : val === "this_month" ? "This month" : val === "next_month" ? "Next month" : "Flexible"}
+                {option.label}
               </Chip>
             ))}
           </div>

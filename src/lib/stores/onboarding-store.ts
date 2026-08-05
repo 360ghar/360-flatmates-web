@@ -8,19 +8,46 @@ import {
 import { createSafeJsonStorage } from "./storage";
 
 export const ONBOARDING_STEPS = [
+  // Phase 1 — Your Information
   "splash",
   "mode",
   "location",
   "basic_info",
   "profile_photo",
+  "phase_transition",
+  // Phase 2 — Your Preferences
   "lifestyle",
-  "smoking_guests",
+  "smoking_drinking",
+  "guests",
   "work_style",
   "budget_timeline",
   "preferences"
 ] as const;
 
 export type OnboardingStepKey = (typeof ONBOARDING_STEPS)[number];
+
+export interface OnboardingPhase {
+  index: 1 | 2;
+  label: string;
+  /** Index (into ONBOARDING_STEPS) of the first step belonging to the phase. */
+  start: number;
+}
+
+/** Phase metadata for the two-phase wizard. */
+export const ONBOARDING_PHASES: readonly OnboardingPhase[] = [
+  { index: 1, label: "Your Information", start: 0 },
+  { index: 2, label: "Your Preferences", start: 6 }
+] as const;
+
+/** Phase containing the transition marker between the two phases. */
+export const PHASE_TRANSITION_STEP = "phase_transition";
+
+export function phaseForStep(step: number): OnboardingPhase {
+  const phase =
+    ONBOARDING_PHASES[step >= ONBOARDING_PHASES[1].start ? 1 : 0] ??
+    ONBOARDING_PHASES[0];
+  return phase;
+}
 
 export interface OnboardingStoreState {
   currentStep: number;
@@ -141,14 +168,69 @@ export function createOnboardingStore(
       }),
       {
         name: ONBOARDING_DRAFT_STORAGE_KEY,
-        // NOTE (F10 #20): bump this version whenever the OnboardingDraft
-        // schema changes in a backward-incompatible way. Zustand's persist
-        // middleware ships a `migrate` hook; for the current 1.0 schema
-        // there is no migration logic because the Zod safeParse in
-        // `hydrateDraft` is the only consumer and it will simply reject
-        // malformed payloads. Add a `migrate` function when a real upgrade
-        // path is needed.
-        version: 1,
+        version: 2,
+        // v1 -> v2: the lifestyle step split `smoking_drinking` into
+        // `smoking` + `drinking` and MOVE_IN_TIMELINE_VALUES replaced
+        // immediate/this_month/next_month with the expanded set. Migrate
+        // persisted drafts so in-flight users don't lose their answers or
+        // get stuck on a step whose stored values no longer validate.
+        migrate: (persistedState, version) => {
+          if (version >= 2) {
+            return persistedState as OnboardingStoreState;
+          }
+          const state = (persistedState ?? {}) as {
+            currentStep?: number;
+            draft?: Record<string, unknown>;
+            lastSavedAt?: string | null;
+          };
+          const draft = { ...(state.draft ?? {}) } as Record<string, unknown>;
+          const lifestyle = draft.lifestyle as
+            | Record<string, unknown>
+            | undefined;
+          if (lifestyle && typeof lifestyle === "object") {
+            const combined = lifestyle.smoking_drinking;
+            if (typeof combined === "string") {
+              switch (combined) {
+                case "neither":
+                  lifestyle.smoking = "never";
+                  lifestyle.drinking = "never";
+                  break;
+                case "smoke_outside":
+                  lifestyle.smoking = "regularly";
+                  lifestyle.drinking = "never";
+                  break;
+                case "drink_occasionally":
+                  lifestyle.smoking = "never";
+                  lifestyle.drinking = "occasionally";
+                  break;
+                case "both_fine":
+                  lifestyle.smoking = "regularly";
+                  lifestyle.drinking = "occasionally";
+                  break;
+              }
+              delete lifestyle.smoking_drinking;
+            }
+          }
+          const budgetTimeline = draft.budget_timeline as
+            | Record<string, unknown>
+            | undefined;
+          if (budgetTimeline && typeof budgetTimeline === "object") {
+            const moveIn = budgetTimeline.move_in_timeline;
+            const legacyMoveIn: Record<string, string> = {
+              immediate: "immediately",
+              this_month: "within_1_month",
+              next_month: "within_2_months"
+            };
+            if (typeof moveIn === "string" && moveIn in legacyMoveIn) {
+              budgetTimeline.move_in_timeline = legacyMoveIn[moveIn];
+            }
+          }
+          return {
+            currentStep: state.currentStep ?? 0,
+            draft: draft as OnboardingStoreState["draft"],
+            lastSavedAt: state.lastSavedAt ?? null
+          };
+        },
         storage: createSafeJsonStorage(),
         partialize: (state) => ({
           currentStep: state.currentStep,

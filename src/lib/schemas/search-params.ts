@@ -52,6 +52,8 @@ export const searchPageParams = {
   city: parseAsInteger.withDefault(0),
   bedrooms: parseAsString.withDefault(""),
   amenities: parseAsArrayOf(parseAsString, ",").withDefault([]),
+  furnishing: parseAsArrayOf(parseAsString, ",").withDefault([]),
+  kitchen: parseAsArrayOf(parseAsString, ",").withDefault([]),
   priceMin: parseAsInteger,
   priceMax: parseAsInteger,
   cursor: parseAsString.withDefault(""),

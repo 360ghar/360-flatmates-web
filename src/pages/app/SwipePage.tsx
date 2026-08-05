@@ -36,7 +36,8 @@ function toCompatibilityProfile(
     sleep_schedule: source?.sleep_schedule,
     cleanliness: source?.cleanliness,
     food_habits: source?.food_habits,
-    smoking_drinking: source?.smoking_drinking,
+    smoking: source?.smoking,
+    drinking: source?.drinking,
     guests_policy: source?.guests_policy,
     work_style: source?.work_style
   };
@@ -58,6 +59,7 @@ function peerToSwipeProfile(
     id: String(peer.id),
     name: peer.full_name,
     age: peer.age,
+    ageBucket: peer.age_bucket,
     photoUrl: peer.profile_image_url ?? peer.main_image_url,
     mode: peer.mode,
     verified: false,
@@ -75,7 +77,8 @@ function peerToSwipeProfile(
     sleepSchedule: peer.sleep_schedule,
     cleanliness: peer.cleanliness,
     foodHabits: peer.food_habits,
-    smokingDrinking: peer.smoking_drinking,
+    smoking: peer.smoking,
+    drinking: peer.drinking,
     guestsPolicy: peer.guests_policy,
     workStyle: peer.work_style,
     gender: peer.gender,

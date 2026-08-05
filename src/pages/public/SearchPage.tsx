@@ -8,6 +8,7 @@ import { useInfiniteWebSearch } from "@/hooks/queries/useSearch";
 import { useAmenities, useCities } from "@/hooks/queries/useCatalogs";
 import { propertyToListingCardProps } from "@/lib/api/adapters";
 import type { SearchFilters, CatalogAmenity, CatalogCity } from "@/lib/api/types";
+import { FURNISHING_LEVEL_OPTIONS, KITCHEN_TYPE_OPTIONS } from "@/lib/data";
 import { searchPageParams } from "@/lib/schemas/search-params";
 import { searchStore } from "@/lib/stores/search-store";
 import { type FilterSection, FilterPanel } from "@/components/molecules/FilterPanel";
@@ -21,14 +22,48 @@ import { SearchResultsList } from "./SearchResultsList";
 
 const breadcrumb = [{ name: "Search", item: `${SITE_URL}/search` }];
 
+/** Amenities that matter most for room hunting, in priority order.
+ *  Values are Amenity.title equivalents (the backend amenities filter
+ *  resolves lower(Amenity.title)); normalizedKey handles the matching. */
+const KEY_AMENITY_PRIORITY = [
+  "Air Conditioning",
+  "Lift",
+  "Parking",
+  "Power Backup",
+  "Nearby Parks",
+  "Gym",
+  "Swimming Pool",
+  "24/7 Security",
+  "WiFi"
+];
+
+function normalizedKey(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/** Sorts the catalog so key amenities land inside the 10-chip cap, keeping
+ *  catalog order for everything else (stable sort preserves relative order). */
+function sortAmenitiesForDisplay(amenities: CatalogAmenity[]): CatalogAmenity[] {
+  const priorityIndex = (name: string) => {
+    const key = normalizedKey(name);
+    const idx = KEY_AMENITY_PRIORITY.findIndex((p) => normalizedKey(p) === key);
+    return idx === -1 ? KEY_AMENITY_PRIORITY.length : idx;
+  };
+  return [...amenities].sort((a, b) => priorityIndex(a.name) - priorityIndex(b.name));
+}
+
 function buildSearchFilterSections(
   cities: CatalogCity[] | undefined,
   amenities: CatalogAmenity[] | undefined,
   selectedCity: number,
   selectedBedrooms: string,
-  selectedAmenityNames: string[]
+  selectedAmenityNames: string[],
+  selectedFurnishing: string[],
+  selectedKitchenTypes: string[]
 ): FilterSection[] {
   const selectedAmenities = new Set(selectedAmenityNames);
+  const selectedFurnishingSet = new Set(selectedFurnishing);
+  const selectedKitchenSet = new Set(selectedKitchenTypes);
   return [
     {
       id: "city",
@@ -54,7 +89,7 @@ function buildSearchFilterSections(
         {
           id: "amenities",
           title: "Amenities",
-          options: amenities.slice(0, 10).map((a) => ({
+          options: sortAmenitiesForDisplay(amenities).slice(0, 10).map((a) => ({
             value: a.name,
             label: a.name,
             selected: selectedAmenities.has(a.name),
@@ -62,6 +97,24 @@ function buildSearchFilterSections(
         },
       ]
       : []),
+    {
+      id: "furnishing",
+      title: "Furnishing",
+      options: FURNISHING_LEVEL_OPTIONS.map((f) => ({
+        value: f.value,
+        label: f.label,
+        selected: selectedFurnishingSet.has(f.value),
+      })),
+    },
+    {
+      id: "kitchen",
+      title: "Kitchen Type",
+      options: KITCHEN_TYPE_OPTIONS.map((k) => ({
+        value: k.value,
+        label: k.label,
+        selected: selectedKitchenSet.has(k.value),
+      })),
+    },
   ];
 }
 
@@ -121,11 +174,19 @@ export function SearchPage() {
           ? Number(params.bedrooms)
           : undefined,
       amenities: params.amenities.length > 0 ? params.amenities : undefined,
+      furnishing:
+        params.furnishing.length > 0
+          ? (params.furnishing as SearchFilters["furnishing"])
+          : undefined,
+      kitchen_type:
+        params.kitchen.length > 0
+          ? (params.kitchen as SearchFilters["kitchen_type"])
+          : undefined,
       price_min: params.priceMin ?? undefined,
       price_max: params.priceMax ?? undefined,
       limit: PAGE_SIZE,
     }),
-    [params.q, params.city, params.bedrooms, params.amenities, params.priceMin, params.priceMax, cities]
+    [params.q, params.city, params.bedrooms, params.amenities, params.furnishing, params.kitchen, params.priceMin, params.priceMax, cities]
   );
 
   const {
@@ -157,7 +218,7 @@ export function SearchPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.scrollTo({ top: 0, behavior: "auto" });
-  }, [params.q, params.city, params.bedrooms, params.amenities, params.priceMin, params.priceMax, params.cursor]);
+  }, [params.q, params.city, params.bedrooms, params.amenities, params.furnishing, params.kitchen, params.priceMin, params.priceMax, params.cursor]);
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.pages) return [];
@@ -194,8 +255,8 @@ export function SearchPage() {
   }, [params.q, hasSettledSearchResults, addRecentSearch]);
 
   const filterSections: FilterSection[] = useMemo(
-    () => buildSearchFilterSections(cities, amenities, params.city, params.bedrooms, params.amenities),
-    [cities, params.city, params.bedrooms, amenities, params.amenities]
+    () => buildSearchFilterSections(cities, amenities, params.city, params.bedrooms, params.amenities, params.furnishing, params.kitchen),
+    [cities, params.city, params.bedrooms, amenities, params.amenities, params.furnishing, params.kitchen]
   );
 
   const handleFilterToggle = useCallback(
@@ -212,9 +273,19 @@ export function SearchPage() {
           ? params.amenities.filter((a) => a !== value)
           : [...params.amenities, value];
         setParams({ amenities: next, cursor: "" });
+      } else if (sectionId === "furnishing") {
+        const next = params.furnishing.includes(value)
+          ? params.furnishing.filter((f) => f !== value)
+          : [...params.furnishing, value];
+        setParams({ furnishing: next, cursor: "" });
+      } else if (sectionId === "kitchen") {
+        const next = params.kitchen.includes(value)
+          ? params.kitchen.filter((k) => k !== value)
+          : [...params.kitchen, value];
+        setParams({ kitchen: next, cursor: "" });
       }
     },
-    [params.bedrooms, params.amenities, setParams]
+    [params.bedrooms, params.amenities, params.furnishing, params.kitchen, setParams]
   );
 
   const handleClearFilters = useCallback(() => {
@@ -279,9 +350,18 @@ export function SearchPage() {
           onCityChange={(id) => setParams({ city: id, cursor: "" })}
           bedrooms={params.bedrooms ?? ""}
           onBedroomsChange={(value) => setParams({ bedrooms: value, cursor: "" })}
-          amenitiesCount={params.amenities.length}
+          filterCount={
+            params.amenities.length + params.furnishing.length + params.kitchen.length
+          }
           onOpenFilters={() => setMobileFiltersOpen(true)}
-          showClear={Boolean(params.q || params.city !== 0 || params.bedrooms || params.amenities.length > 0)}
+          showClear={Boolean(
+            params.q ||
+              params.city !== 0 ||
+              params.bedrooms ||
+              params.amenities.length > 0 ||
+              params.furnishing.length > 0 ||
+              params.kitchen.length > 0
+          )}
           onClearFilters={handleClearFilters}
         />
 

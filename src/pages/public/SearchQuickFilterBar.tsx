@@ -12,7 +12,7 @@ export function SearchQuickFilterBar({
   onCityChange,
   bedrooms,
   onBedroomsChange,
-  amenitiesCount,
+  filterCount,
   onOpenFilters,
   showClear,
   onClearFilters
@@ -25,7 +25,7 @@ export function SearchQuickFilterBar({
   onCityChange: (id: number) => void;
   bedrooms: string;
   onBedroomsChange: (value: string) => void;
-  amenitiesCount: number;
+  filterCount: number;
   onOpenFilters: () => void;
   showClear: boolean;
   onClearFilters: () => void;
@@ -79,7 +79,7 @@ export function SearchQuickFilterBar({
           onClick={onOpenFilters}
         >
           <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
-          Filters {amenitiesCount > 0 ? `(${amenitiesCount})` : ""}
+          Filters {filterCount > 0 ? `(${filterCount})` : ""}
         </Button>
 
         {/* Clear Filters */}

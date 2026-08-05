@@ -2,7 +2,9 @@ import type {
   AlertChannel,
   AlertFrequency,
   FlatmatesMode,
+  FurnishingLevel,
   GenderPreference,
+  KitchenType,
   ListingSharingType,
   MoveInTimeline,
   PropertyPurpose,
@@ -11,7 +13,8 @@ import type {
   SearchType,
   SocietyType,
   SwipeAction,
-  SwipeTargetType
+  SwipeTargetType,
+  VentilationType
 } from "@/lib/data";
 import type { FlatmatesPeer } from "./user.types";
 import type { Property } from "./property.types";
@@ -38,6 +41,11 @@ export interface SearchFilters {
   available_from?: string;
   amenities?: string[];
   features?: string[];
+  furnishing?: FurnishingLevel[];
+  kitchen_type?: KitchenType[];
+  ventilation_type?: VentilationType[];
+  windows_min?: number;
+  has_lift?: boolean;
   society_type?: SocietyType;
   society_vibe_tags?: string[];
   sort_by?: SearchSort;
@@ -152,6 +160,13 @@ export interface MapViewFilters {
   price_max?: number;
   move_in?: MoveInTimeline[];
   sharing_type?: ListingSharingType[];
+  gender_preference?: GenderPreference[];
+  amenities?: string[];
+  furnishing?: FurnishingLevel[];
+  kitchen_type?: KitchenType[];
+  ventilation_type?: VentilationType[];
+  windows_min?: number;
+  has_lift?: boolean;
 }
 
 export interface MapViewResponse {

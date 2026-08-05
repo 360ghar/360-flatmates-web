@@ -13,7 +13,8 @@ const profile: SwipeProfile = {
   sleepSchedule: "night_owl",
   cleanliness: "tidy",
   foodHabits: "vegetarian",
-  smokingDrinking: "neither",
+  smoking: "never",
+  drinking: "never",
   guestsPolicy: "occasional_ok",
   workStyle: "hybrid",
   genderPreference: "any",
@@ -51,14 +52,24 @@ const profile: SwipeProfile = {
       summary: "Food Habits: strong match"
     },
     {
-      name: "smoking_drinking",
-      label: "Smoking/Drinking",
-      weight: 0.2,
-      user_value: "neither",
-      peer_value: "neither",
+      name: "smoking",
+      label: "Smoking",
+      weight: 0.1,
+      user_value: "never",
+      peer_value: "never",
       score: 100,
       match: true,
-      summary: "Smoking/Drinking: strong match"
+      summary: "Smoking: strong match"
+    },
+    {
+      name: "drinking",
+      label: "Drinking",
+      weight: 0.1,
+      user_value: "never",
+      peer_value: "never",
+      score: 100,
+      match: true,
+      summary: "Drinking: strong match"
     },
     {
       name: "guests_policy",
@@ -123,7 +134,8 @@ it("shows lifestyle grid, deal-breakers, and full compatibility in expanded card
   expect(screen.getAllByText("Sleep Schedule").length).toBeGreaterThanOrEqual(1);
   expect(screen.getAllByText("Cleanliness").length).toBeGreaterThanOrEqual(1);
   expect(screen.getAllByText("Food Habits").length).toBeGreaterThanOrEqual(1);
-  expect(screen.getAllByText("Smoking/Drinking").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getAllByText("Smoking").length).toBeGreaterThanOrEqual(1);
+  expect(screen.getAllByText("Drinking").length).toBeGreaterThanOrEqual(1);
   expect(screen.getAllByText("Guests Policy").length).toBeGreaterThanOrEqual(1);
   expect(screen.getAllByText("Work Style").length).toBeGreaterThanOrEqual(1);
 });

@@ -1,5 +1,7 @@
 import type {
+  AgeBucket,
   Cleanliness,
+  DrinkingType,
   FlatmatesMode,
   FlatmatesProfileStatus,
   FoodHabits,
@@ -8,7 +10,7 @@ import type {
   MoveInTimeline,
   NonNegotiable,
   SleepSchedule,
-  SmokingDrinking,
+  SmokingType,
   SocietyTagVoteDirection,
   UserReportReason,
   UserReportStatus,
@@ -67,7 +69,11 @@ export interface FlatmatesProfile {
   sleep_schedule?: SleepSchedule;
   cleanliness?: Cleanliness;
   food_habits?: FoodHabits;
-  smoking_drinking?: SmokingDrinking;
+  smoking?: SmokingType;
+  drinking?: DrinkingType;
+  native_place?: string;
+  linkedin_url?: string | null;
+  age_bucket?: AgeBucket;
   guests_policy?: GuestsPolicy;
   work_style?: WorkStyle;
   gender?: string;
@@ -96,7 +102,12 @@ export interface FlatmatesPeer {
   sleep_schedule?: SleepSchedule;
   cleanliness?: Cleanliness;
   food_habits?: FoodHabits;
-  smoking_drinking?: SmokingDrinking;
+  smoking?: SmokingType;
+  drinking?: DrinkingType;
+  native_place?: string;
+  linkedin_url?: string | null;
+  /** Privacy-bucketed age range; exact age is not exposed on peer payloads. */
+  age_bucket?: AgeBucket;
   guests_policy?: GuestsPolicy;
   work_style?: WorkStyle;
   gender?: string;
@@ -205,6 +216,8 @@ export interface PeerFilters {
   budget_min?: number;
   budget_max?: number;
   move_in?: MoveInTimeline;
+  age_min?: number;
+  age_max?: number;
   limit?: number;
   cursor?: string;
 }

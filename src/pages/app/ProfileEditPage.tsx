@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries";
@@ -13,7 +13,9 @@ import {
   sleepScheduleSchema,
   cleanlinessSchema,
   foodHabitsSchema,
-  smokingDrinkingSchema,
+  smokingTypeSchema,
+  drinkingTypeSchema,
+  ageBucketSchema,
   guestsPolicySchema,
   workStyleSchema,
 } from "@/lib/schemas/enums";
@@ -28,14 +30,27 @@ import { ProfileContactInfoSection } from "./ProfileContactInfoSection";
 import { ProfileBasicInfoSection } from "./ProfileBasicInfoSection";
 import { ProfileLocationBudgetSection } from "./ProfileLocationBudgetSection";
 import { ProfileLifestylePreferencesSection } from "./ProfileLifestylePreferencesSection";
+import { NATIVE_PLACE_MAX_LENGTH, LINKEDIN_URL_MAX_LENGTH } from "@/lib/data";
 
 /* ── Zod schema ──────────────────────────────────────────── */
+
+const linkedinUrlSchema = z
+  .url("Enter a valid URL")
+  .max(LINKEDIN_URL_MAX_LENGTH, `Must be ${LINKEDIN_URL_MAX_LENGTH} characters or fewer`)
+  .optional()
+  .or(z.literal(""));
 
 const profileSchema = z.object({
   full_name: z.string().min(1, "Name is required").max(100),
   bio: z.string().max(500, "Bio must be 500 characters or fewer").optional(),
   profession: z.string().max(80).optional(),
   age: z.number().min(18, "Must be at least 18").max(120).optional(),
+  native_place: z
+    .string()
+    .max(NATIVE_PLACE_MAX_LENGTH, `Must be ${NATIVE_PLACE_MAX_LENGTH} characters or fewer`)
+    .optional(),
+  linkedin_url: linkedinUrlSchema,
+  age_bucket: ageBucketSchema.optional(),
   city: z.string().max(60).optional(),
   locality: z.string().max(80).optional(),
   budget_min: z.number().min(0, "Cannot be negative").optional(),
@@ -44,7 +59,8 @@ const profileSchema = z.object({
   sleep_schedule: sleepScheduleSchema.optional(),
   cleanliness: cleanlinessSchema.optional(),
   food_habits: foodHabitsSchema.optional(),
-  smoking_drinking: smokingDrinkingSchema.optional(),
+  smoking: smokingTypeSchema.optional(),
+  drinking: drinkingTypeSchema.optional(),
   guests_policy: guestsPolicySchema.optional(),
   work_style: workStyleSchema.optional(),
   gender: z.string().optional(),
@@ -83,7 +99,10 @@ export function ProfileEditPage() {
     control,
     formState: { errors, isDirty }
   } = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    // moveInTimelineSchema preprocesses legacy values, so its inferred input
+    // type is wider than the form's output type; the resolver is safe because
+    // the preprocessor normalizes any legacy value to a valid enum member.
+    resolver: zodResolver(profileSchema) as Resolver<ProfileFormData>,
     defaultValues: {
       full_name: "",
       bio: "",
@@ -97,7 +116,11 @@ export function ProfileEditPage() {
       sleep_schedule: undefined,
       cleanliness: undefined,
       food_habits: undefined,
-      smoking_drinking: undefined,
+      smoking: undefined,
+      drinking: undefined,
+      native_place: "",
+      linkedin_url: "",
+      age_bucket: undefined,
       guests_policy: undefined,
       work_style: undefined,
       gender: "",
@@ -118,6 +141,9 @@ export function ProfileEditPage() {
         bio: profile.bio ?? "",
         profession: profile.profession ?? "",
         age: profile.age,
+        native_place: profile.native_place ?? "",
+        linkedin_url: profile.linkedin_url ?? "",
+        age_bucket: profile.age_bucket,
         city: profile.city ?? "",
         locality: profile.locality ?? "",
         budget_min: profile.budget_min,
@@ -126,7 +152,8 @@ export function ProfileEditPage() {
         sleep_schedule: profile.sleep_schedule,
         cleanliness: profile.cleanliness,
         food_habits: profile.food_habits,
-        smoking_drinking: profile.smoking_drinking,
+        smoking: profile.smoking,
+        drinking: profile.drinking,
         guests_policy: profile.guests_policy,
         work_style: profile.work_style,
         gender: profile.gender ?? "",
@@ -146,6 +173,11 @@ export function ProfileEditPage() {
     setServerError(null);
 
     const payload = stripEmptyFields(data as Record<string, unknown>);
+
+    if (typeof data.linkedin_url === "string" && data.linkedin_url.trim() === "") {
+      // Empty input clears the stored LinkedIn URL (backend treats null as clear).
+      payload.linkedin_url = null;
+    }
 
     if (hasEmail) {
       delete payload.email;

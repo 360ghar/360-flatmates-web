@@ -19,8 +19,10 @@ import { OnboardingModeStep } from "./OnboardingModeStep";
 import { OnboardingLocationStep } from "./OnboardingLocationStep";
 import { OnboardingBasicInfoStep } from "./OnboardingBasicInfoStep";
 import { OnboardingProfilePhotoStep } from "./OnboardingProfilePhotoStep";
+import { OnboardingTransitionStep } from "./OnboardingTransitionStep";
 import { OnboardingLifestyleStep } from "./OnboardingLifestyleStep";
-import { OnboardingSmokingGuestsStep } from "./OnboardingSmokingGuestsStep";
+import { OnboardingSmokingDrinkingStep } from "./OnboardingSmokingDrinkingStep";
+import { OnboardingGuestsStep } from "./OnboardingGuestsStep";
 import { OnboardingWorkStyleStep } from "./OnboardingWorkStyleStep";
 import { OnboardingBudgetTimelineStep } from "./OnboardingBudgetTimelineStep";
 import { OnboardingPreferencesStep } from "./OnboardingPreferencesStep";
@@ -47,6 +49,7 @@ function validateVisibleStep(stepKey: OnboardingStepKey, draft: OnboardingDraft)
     case "splash":
     case "mode":
     case "profile_photo":
+    case "phase_transition":
     case "preferences":
       return { success: true as const };
     case "location":
@@ -57,9 +60,13 @@ function validateVisibleStep(stepKey: OnboardingStepKey, draft: OnboardingDraft)
       return lifestyleSchema
         .pick({ sleep_schedule: true, cleanliness: true, food_habits: true })
         .safeParse(finalDraft.lifestyle);
-    case "smoking_guests":
+    case "smoking_drinking":
       return lifestyleSchema
-        .pick({ smoking_drinking: true, guests_policy: true })
+        .pick({ smoking: true, drinking: true })
+        .safeParse(finalDraft.lifestyle);
+    case "guests":
+      return lifestyleSchema
+        .pick({ guests_policy: true })
         .safeParse(finalDraft.lifestyle);
     case "work_style":
       return lifestyleSchema.pick({ work_style: true }).safeParse(finalDraft.lifestyle);
@@ -78,8 +85,10 @@ function validationMessageForStep(stepKey: OnboardingStepKey): string {
       return "Add your name, age, and profession before continuing.";
     case "lifestyle":
       return "Choose your sleep schedule, cleanliness, and food habits.";
-    case "smoking_guests":
-      return "Choose your smoking/drinking and guests preferences.";
+    case "smoking_drinking":
+      return "Choose your smoking and drinking preferences.";
+    case "guests":
+      return "Choose your guests policy.";
     case "work_style":
       return "Choose your work style before continuing.";
     case "budget_timeline":
@@ -225,12 +234,20 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
         />
       )}
 
+      {stepKey === "phase_transition" && (
+        <OnboardingTransitionStep onContinue={goNext} />
+      )}
+
       {stepKey === "lifestyle" && (
         <OnboardingLifestyleStep lifestyle={draft.lifestyle} patchDraft={patchDraft} />
       )}
 
-      {stepKey === "smoking_guests" && (
-        <OnboardingSmokingGuestsStep lifestyle={draft.lifestyle} patchDraft={patchDraft} />
+      {stepKey === "smoking_drinking" && (
+        <OnboardingSmokingDrinkingStep lifestyle={draft.lifestyle} patchDraft={patchDraft} />
+      )}
+
+      {stepKey === "guests" && (
+        <OnboardingGuestsStep lifestyle={draft.lifestyle} patchDraft={patchDraft} />
       )}
 
       {stepKey === "work_style" && (
@@ -252,15 +269,17 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
             Back
           </Button>
         )}
-        <Button
-          fullWidth
-          loading={submitting}
-          onClick={goNext}
-          disabled={submitting || !canContinue}
-          aria-label={isSplashStep ? "Get started" : undefined}
-        >
-          {isLastStep ? "Complete Setup" : isSplashStep ? "Get started" : "Next"}
-        </Button>
+        {stepKey !== "phase_transition" && (
+          <Button
+            fullWidth
+            loading={submitting}
+            onClick={goNext}
+            disabled={submitting || !canContinue}
+            aria-label={isSplashStep ? "Get started" : undefined}
+          >
+            {isLastStep ? "Complete Setup" : isSplashStep ? "Get started" : "Next"}
+          </Button>
+        )}
       </div>
 
       {/* "Start over" affordance: visible from step 1+ (the splash is the

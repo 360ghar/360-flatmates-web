@@ -10,7 +10,7 @@ import { lifestyleSchema } from "./profile";
 
 export const ONBOARDING_DRAFT_STORAGE_KEY = "360-flatmates-onboarding-draft";
 
-export const onboardingStepSchema = z.number().int().min(0).max(9);
+export const onboardingStepSchema = z.number().int().min(0).max(11);
 
 export const onboardingLocationSchema = z.object({
   city: z.string().min(1),

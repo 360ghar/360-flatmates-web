@@ -3,7 +3,8 @@ import {
   SLEEP_SCHEDULE_VALUES,
   CLEANLINESS_VALUES,
   FOOD_HABITS_VALUES,
-  SMOKING_DRINKING_VALUES,
+  SMOKING_VALUES,
+  DRINKING_VALUES,
   GUESTS_POLICY_VALUES,
   WORK_STYLE_VALUES,
   GENDER_PREFERENCE_VALUES
@@ -19,7 +20,9 @@ const cleanlinessOptions = toSelectOptions(CLEANLINESS_VALUES);
 
 const foodOptions = toSelectOptions(FOOD_HABITS_VALUES);
 
-const smokingOptions = toSelectOptions(SMOKING_DRINKING_VALUES);
+const smokingOptions = toSelectOptions(SMOKING_VALUES);
+
+const drinkingOptions = toSelectOptions(DRINKING_VALUES);
 
 const guestsOptions = toSelectOptions(GUESTS_POLICY_VALUES);
 
@@ -61,11 +64,18 @@ export function ProfileLifestylePreferencesSection({
         {...register("food_habits")}
       />
       <SelectField
-        label="Smoking / Drinking"
+        label="Smoking"
         options={smokingOptions}
         placeholder="Select preference"
-        error={errors.smoking_drinking?.message}
-        {...register("smoking_drinking")}
+        error={errors.smoking?.message}
+        {...register("smoking")}
+      />
+      <SelectField
+        label="Drinking"
+        options={drinkingOptions}
+        placeholder="Select preference"
+        error={errors.drinking?.message}
+        {...register("drinking")}
       />
       <SelectField
         label="Guests Policy"

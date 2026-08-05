@@ -63,6 +63,35 @@ export function PostBasicInfoStep({
             onChange={(e) => onChange({ security_deposit: optionalNumberValue(e.target.value) })}
           />
         </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label-md text-ink-2">Setup Cost</span>
+            <Input
+              type="number"
+              placeholder="5000"
+              value={form.setup_cost !== undefined ? String(form.setup_cost) : ""}
+              onChange={(e) => onChange({ setup_cost: optionalNumberValue(e.target.value) })}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label-md text-ink-2">Other Charges</span>
+            <Input
+              type="number"
+              placeholder="0"
+              value={form.other_charges !== undefined ? String(form.other_charges) : ""}
+              onChange={(e) => onChange({ other_charges: optionalNumberValue(e.target.value) })}
+            />
+          </label>
+        </div>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-label-md text-ink-2">Other Charges Description</span>
+          <Input
+            placeholder="e.g. maintenance collected separately"
+            maxLength={300}
+            value={form.other_charges_description ?? ""}
+            onChange={(e) => onChange({ other_charges_description: e.target.value })}
+          />
+        </label>
       </div>
     </Card>
   );

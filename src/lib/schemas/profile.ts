@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
+  ageBucketSchema,
   cleanlinessSchema,
+  drinkingTypeSchema,
   flatmatesModeSchema,
   foodHabitsSchema,
   genderPreferenceSchema,
@@ -10,16 +12,25 @@ import {
   nonNegotiableSchema,
   profileStatusSchema,
   sleepScheduleSchema,
-  smokingDrinkingSchema,
+  smokingTypeSchema,
   workStyleSchema
 } from "./enums";
 import { minMaxRefine, optionalUrlSchema } from "./common";
+import { LINKEDIN_URL_MAX_LENGTH, NATIVE_PLACE_MAX_LENGTH } from "@/lib/data";
+
+export const optionalLinkedinUrlSchema = z
+  .url()
+  .max(LINKEDIN_URL_MAX_LENGTH)
+  .optional()
+  .or(z.literal("").transform(() => undefined))
+  .or(z.null().transform(() => undefined));
 
 export const lifestyleSchema = z.object({
   sleep_schedule: sleepScheduleSchema,
   cleanliness: cleanlinessSchema,
   food_habits: foodHabitsSchema,
-  smoking_drinking: smokingDrinkingSchema,
+  smoking: smokingTypeSchema,
+  drinking: drinkingTypeSchema,
   guests_policy: guestsPolicySchema,
   work_style: workStyleSchema
 });
@@ -33,7 +44,7 @@ export const flatmatesProfileSchema = z.object({
   mode: flatmatesModeSchema.catch("seeker"),
   profile_status: profileStatusSchema.optional().catch(undefined),
   onboarding_completed: z.boolean().catch(false),
-  onboarding_current_step: z.number().int().min(0).max(7).optional().catch(undefined),
+  onboarding_current_step: z.number().int().min(0).max(11).optional().catch(undefined),
   bio: z.string().max(500).optional().catch(undefined),
   age: z.number().int().min(18).max(100).optional().catch(undefined),
   profession: z.string().max(120).optional().catch(undefined),
@@ -45,7 +56,11 @@ export const flatmatesProfileSchema = z.object({
   sleep_schedule: sleepScheduleSchema.optional().catch(undefined),
   cleanliness: cleanlinessSchema.optional().catch(undefined),
   food_habits: foodHabitsSchema.optional().catch(undefined),
-  smoking_drinking: smokingDrinkingSchema.optional().catch(undefined),
+  smoking: smokingTypeSchema.optional().catch(undefined),
+  drinking: drinkingTypeSchema.optional().catch(undefined),
+  native_place: z.string().max(NATIVE_PLACE_MAX_LENGTH).optional().catch(undefined),
+  linkedin_url: optionalLinkedinUrlSchema.catch(undefined),
+  age_bucket: ageBucketSchema.optional().catch(undefined),
   guests_policy: guestsPolicySchema.optional().catch(undefined),
   work_style: workStyleSchema.optional().catch(undefined),
   gender: z.string().optional().catch(undefined),
@@ -75,6 +90,7 @@ export const flatmatesPeerSchema = flatmatesProfileSchema
     city: true,
     locality: true,
     age: true,
+    age_bucket: true,
     profession: true,
     bio: true,
     budget_min: true,
@@ -83,7 +99,10 @@ export const flatmatesPeerSchema = flatmatesProfileSchema
     sleep_schedule: true,
     cleanliness: true,
     food_habits: true,
-    smoking_drinking: true,
+    smoking: true,
+    drinking: true,
+    native_place: true,
+    linkedin_url: true,
     guests_policy: true,
     work_style: true,
     gender: true,

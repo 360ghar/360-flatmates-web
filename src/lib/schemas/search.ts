@@ -2,14 +2,17 @@ import { z } from "zod";
 import {
   alertChannelSchema,
   alertFrequencySchema,
+  furnishingLevelSchema,
   genderPreferenceSchema,
+  kitchenTypeSchema,
   moveInTimelineSchema,
   propertyPurposeSchema,
   propertyTypeSchema,
   searchSortSchema,
   searchTypeSchema,
   societyTypeSchema,
-  listingSharingTypeSchema
+  listingSharingTypeSchema,
+  ventilationTypeSchema
 } from "./enums";
 import { minMaxRefine } from "./common";
 import { flatmatesPeerSchema } from "./profile";
@@ -40,6 +43,11 @@ export const searchFiltersSchema = z
     available_from: z.string().optional(),
     amenities: z.array(z.string()).optional(),
     features: z.array(z.string()).optional(),
+    furnishing: z.array(furnishingLevelSchema).optional(),
+    kitchen_type: z.array(kitchenTypeSchema).optional(),
+    ventilation_type: z.array(ventilationTypeSchema).optional(),
+    windows_min: z.number().int().min(0).optional(),
+    has_lift: z.boolean().optional(),
     society_type: societyTypeSchema.optional(),
     society_vibe_tags: z.array(z.string()).optional(),
     sort_by: searchSortSchema.default("newest"),

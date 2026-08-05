@@ -113,7 +113,8 @@ export function SwipeableCard({
     profile.sleepSchedule ||
     profile.cleanliness ||
     profile.foodHabits ||
-    profile.smokingDrinking ||
+    profile.smoking ||
+    profile.drinking ||
     profile.guestsPolicy ||
     profile.workStyle ||
     profile.partyHabit ||

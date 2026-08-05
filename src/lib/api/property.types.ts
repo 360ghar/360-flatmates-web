@@ -1,12 +1,15 @@
 import type {
   BoostDuration,
+  FurnishingLevel,
   GenderPreference,
+  KitchenType,
   ListingSharingType,
   PropertyLifecycleStatus,
   PropertyModerationStatus,
   PropertyPurpose,
   PropertyType,
-  SocietyType
+  SocietyType,
+  VentilationType
 } from "@/lib/data";
 import type { CursorPage, JsonObject } from "./common.types";
 
@@ -40,6 +43,16 @@ export interface PropertyCreate {
   society_amenities?: string[];
   society_vibe_tags?: string[];
   listing_preferences?: JsonObject;
+  kitchen_type?: KitchenType;
+  ventilation_type?: VentilationType;
+  windows_count?: number;
+  ventilation_shafts?: number;
+  floor_number?: number;
+  total_floors?: number;
+  setup_cost?: number;
+  other_charges?: number;
+  other_charges_description?: string;
+  furnishing_level?: FurnishingLevel;
 }
 
 export type PropertyUpdate = Partial<Omit<PropertyCreate, "property_type" | "purpose">> & {
@@ -84,6 +97,16 @@ export interface Property {
   society_type?: SocietyType;
   society_amenities?: string[];
   society_vibe_tags?: string[];
+  kitchen_type?: KitchenType;
+  ventilation_type?: VentilationType;
+  windows_count?: number;
+  ventilation_shafts?: number;
+  floor_number?: number;
+  total_floors?: number;
+  setup_cost?: number;
+  other_charges?: number;
+  other_charges_description?: string;
+  furnishing_level?: FurnishingLevel;
   interest_count?: number;
   view_count?: number;
   like_count?: number;

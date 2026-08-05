@@ -50,18 +50,24 @@ export const PROFILE_STATUS_VALUES = [
 export type FlatmatesProfileStatus = (typeof PROFILE_STATUS_VALUES)[number];
 
 export const MOVE_IN_TIMELINE_VALUES = [
-  "immediate",
-  "this_month",
-  "next_month",
+  "immediately",
+  "within_1_week",
+  "within_2_weeks",
+  "within_1_month",
+  "within_2_months",
+  "within_3_months",
   "flexible"
 ] as const;
 
 export type MoveInTimeline = (typeof MOVE_IN_TIMELINE_VALUES)[number];
 
 export const MOVE_IN_TIMELINE_OPTIONS = [
-  { value: "immediate", label: "Immediately" },
-  { value: "this_month", label: "This month" },
-  { value: "next_month", label: "Next month" },
+  { value: "immediately", label: "Immediately" },
+  { value: "within_1_week", label: "Within 1 Week" },
+  { value: "within_2_weeks", label: "Within 2 Weeks" },
+  { value: "within_1_month", label: "Within 1 Month" },
+  { value: "within_2_months", label: "Within 2 Months" },
+  { value: "within_3_months", label: "Within 3 Months" },
   { value: "flexible", label: "Flexible" }
 ] as const satisfies readonly DomainOption<MoveInTimeline>[];
 
@@ -87,14 +93,51 @@ export const FOOD_HABITS_VALUES = [
 
 export type FoodHabits = (typeof FOOD_HABITS_VALUES)[number];
 
-export const SMOKING_DRINKING_VALUES = [
-  "neither",
-  "smoke_outside",
-  "drink_occasionally",
-  "both_fine"
+export const SMOKING_VALUES = ["never", "occasionally", "regularly"] as const;
+
+export type SmokingType = (typeof SMOKING_VALUES)[number];
+
+export const DRINKING_VALUES = ["never", "occasionally", "regularly"] as const;
+
+export type DrinkingType = (typeof DRINKING_VALUES)[number];
+
+export const SMOKING_OPTIONS = [
+  { value: "never", label: "Never" },
+  { value: "occasionally", label: "Occasionally" },
+  { value: "regularly", label: "Regularly" }
+] as const satisfies readonly DomainOption<SmokingType>[];
+
+export const DRINKING_OPTIONS = [
+  { value: "never", label: "Never" },
+  { value: "occasionally", label: "Occasionally" },
+  { value: "regularly", label: "Regularly" }
+] as const satisfies readonly DomainOption<DrinkingType>[];
+
+export const AGE_BUCKET_VALUES = [
+  "18-24",
+  "25-30",
+  "31-35",
+  "36-40",
+  "41-45",
+  "46+"
 ] as const;
 
-export type SmokingDrinking = (typeof SMOKING_DRINKING_VALUES)[number];
+export type AgeBucket = (typeof AGE_BUCKET_VALUES)[number];
+
+export const AGE_BUCKET_OPTIONS = [
+  { value: "18-24", label: "18-24" },
+  { value: "25-30", label: "25-30" },
+  { value: "31-35", label: "31-35" },
+  { value: "36-40", label: "36-40" },
+  { value: "41-45", label: "41-45" },
+  { value: "46+", label: "46+" }
+] as const satisfies readonly DomainOption<AgeBucket>[];
+
+/** Max length for a profile's native place (home town / city). */
+export const NATIVE_PLACE_MAX_LENGTH = 120;
+
+/** Max length for a profile's LinkedIn URL. */
+export const LINKEDIN_URL_MAX_LENGTH = 255;
 
 export const GUESTS_POLICY_VALUES = [
   "no_overnight_guests",
@@ -112,7 +155,8 @@ export type LifestyleDimensionKey =
   | "sleep_schedule"
   | "cleanliness"
   | "food_habits"
-  | "smoking_drinking"
+  | "smoking"
+  | "drinking"
   | "guests_policy"
   | "work_style";
 
@@ -150,14 +194,23 @@ export const LIFESTYLE_DIMENSIONS = [
     ]
   },
   {
-    key: "smoking_drinking",
-    label: "Smoking/Drinking",
-    weight: 0.2,
+    key: "smoking",
+    label: "Smoking",
+    weight: 0.1,
     options: [
-      { value: "neither", label: "Neither" },
-      { value: "smoke_outside", label: "Smoke Outside" },
-      { value: "drink_occasionally", label: "Drink Occasionally" },
-      { value: "both_fine", label: "Both Fine" }
+      { value: "never", label: "Never" },
+      { value: "occasionally", label: "Occasionally" },
+      { value: "regularly", label: "Regularly" }
+    ]
+  },
+  {
+    key: "drinking",
+    label: "Drinking",
+    weight: 0.1,
+    options: [
+      { value: "never", label: "Never" },
+      { value: "occasionally", label: "Occasionally" },
+      { value: "regularly", label: "Regularly" }
     ]
   },
   {
@@ -186,7 +239,8 @@ export type LifestyleProfile = {
   sleep_schedule?: SleepSchedule;
   cleanliness?: Cleanliness;
   food_habits?: FoodHabits;
-  smoking_drinking?: SmokingDrinking;
+  smoking?: SmokingType;
+  drinking?: DrinkingType;
   guests_policy?: GuestsPolicy;
   work_style?: WorkStyle;
 };
@@ -248,6 +302,46 @@ export const LISTING_SHARING_TYPE_OPTIONS = [
   { value: "master_bedroom", label: "Master Bedroom" },
   { value: "entire_flat", label: "Entire Flat" }
 ] as const satisfies readonly DomainOption<ListingSharingType>[];
+
+export const KITCHEN_TYPE_VALUES = [
+  "vegetarian",
+  "non_vegetarian",
+  "eggetarian",
+  "any"
+] as const;
+
+export type KitchenType = (typeof KITCHEN_TYPE_VALUES)[number];
+
+export const KITCHEN_TYPE_OPTIONS = [
+  { value: "vegetarian", label: "Vegetarian" },
+  { value: "non_vegetarian", label: "Non-Vegetarian" },
+  { value: "eggetarian", label: "Eggetarian" },
+  { value: "any", label: "Any" }
+] as const satisfies readonly DomainOption<KitchenType>[];
+
+export const VENTILATION_TYPE_VALUES = ["good", "average", "poor"] as const;
+
+export type VentilationType = (typeof VENTILATION_TYPE_VALUES)[number];
+
+export const VENTILATION_TYPE_OPTIONS = [
+  { value: "good", label: "Good" },
+  { value: "average", label: "Average" },
+  { value: "poor", label: "Poor" }
+] as const satisfies readonly DomainOption<VentilationType>[];
+
+export const FURNISHING_LEVEL_VALUES = [
+  "furnished",
+  "semi_furnished",
+  "unfurnished"
+] as const;
+
+export type FurnishingLevel = (typeof FURNISHING_LEVEL_VALUES)[number];
+
+export const FURNISHING_LEVEL_OPTIONS = [
+  { value: "furnished", label: "Furnished" },
+  { value: "semi_furnished", label: "Semi-Furnished" },
+  { value: "unfurnished", label: "Unfurnished" }
+] as const satisfies readonly DomainOption<FurnishingLevel>[];
 
 export const SOCIETY_TYPE_VALUES = [
   "gated",

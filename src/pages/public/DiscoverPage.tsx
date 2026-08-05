@@ -33,9 +33,9 @@ const QUICK_FILTER_MAP: Record<string, Partial<SearchFilters>> = {
   Nearby: { radius: 2 },
   "1BHK": { bedrooms_min: 1, bedrooms_max: 1 },
   "2BHK": { bedrooms_min: 2, bedrooms_max: 2 },
-  Furnished: { features: ["furnished"] },
+  Furnished: { furnishing: ["furnished"] },
   "Budget+": { price_max: 10000 },
-  "Vegetarian friendly": { features: ["vegetarian"] },
+  "Vegetarian friendly": { kitchen_type: ["vegetarian"] },
   "Pet friendly": { features: ["pets_allowed"] },
 };
 

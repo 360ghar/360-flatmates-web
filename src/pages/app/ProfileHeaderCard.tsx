@@ -6,6 +6,7 @@ import type { FlatmatesProfileUpdate } from "@/lib/api/types";
 import type { FlatmatesProfileInput } from "@/lib/schemas/profile";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { uiStore } from "@/lib/stores/ui-store";
+import { ONBOARDING_STEPS } from "@/lib/stores/onboarding-store";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -42,7 +43,10 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
 
   const onboardingProgress = profile.onboarding_completed
     ? 100
-    : ((profile.onboarding_current_step ?? 0) / 8) * 100;
+    : Math.min(
+        ((profile.onboarding_current_step ?? 0) / ONBOARDING_STEPS.length) * 100,
+        100
+      );
 
   const handlePhotoUpload = () => {
     fileInputRef.current?.click();

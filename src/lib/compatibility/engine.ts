@@ -6,10 +6,11 @@ import {
   COMPATIBILITY_MATCH_THRESHOLD,
   COMPATIBILITY_WEIGHTS,
   scoreCleanliness,
+  scoreDrinking,
   scoreFoodHabits,
   scoreGuestsPolicy,
   scoreSleepSchedule,
-  scoreSmokingDrinking,
+  scoreSmoking,
   scoreWorkStyle
 } from "./dimensions";
 import type {
@@ -65,8 +66,10 @@ function scoreDimension(
       return scoreCleanliness(user.cleanliness, peer.cleanliness);
     case "food_habits":
       return scoreFoodHabits(user.food_habits, peer.food_habits);
-    case "smoking_drinking":
-      return scoreSmokingDrinking(user.smoking_drinking, peer.smoking_drinking);
+    case "smoking":
+      return scoreSmoking(user.smoking, peer.smoking);
+    case "drinking":
+      return scoreDrinking(user.drinking, peer.drinking);
     case "guests_policy":
       return scoreGuestsPolicy(user.guests_policy, peer.guests_policy);
     case "work_style":

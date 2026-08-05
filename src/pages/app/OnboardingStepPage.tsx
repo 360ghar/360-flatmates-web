@@ -7,6 +7,7 @@ import { humanizeSnakeCase } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { StepProgress } from "@/components/ui/StepProgress";
 import { OnboardingStepContent } from "@/components/onboarding/OnboardingStepContent";
+import { OnboardingPhaseLabel } from "@/components/onboarding/OnboardingPhaseLabel";
 
 export function OnboardingStepPage() {
   const { step } = useParams<{ step: string }>();
@@ -52,6 +53,7 @@ export function OnboardingStepPage() {
   return (
     <div className="flex items-center justify-center p-4 md:p-6 min-h-[80vh]">
       <Card className="w-full max-w-md p-6">
+        <OnboardingPhaseLabel currentStep={currentStep} />
         <StepProgress
           totalSteps={ONBOARDING_STEPS.length}
           currentStep={currentStep}

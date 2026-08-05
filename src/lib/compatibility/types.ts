@@ -1,10 +1,11 @@
 import type {
   Cleanliness,
+  DrinkingType,
   FoodHabits,
   GuestsPolicy,
   LifestyleDimensionKey,
   SleepSchedule,
-  SmokingDrinking,
+  SmokingType,
   WorkStyle
 } from "@/lib/data";
 import type { CompatibilityColor } from "@/lib/data";
@@ -14,7 +15,8 @@ export interface CompatibilityProfile {
   sleep_schedule?: SleepSchedule;
   cleanliness?: Cleanliness;
   food_habits?: FoodHabits;
-  smoking_drinking?: SmokingDrinking;
+  smoking?: SmokingType;
+  drinking?: DrinkingType;
   guests_policy?: GuestsPolicy;
   work_style?: WorkStyle;
 }

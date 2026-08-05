@@ -84,7 +84,13 @@ export function ExplorePage() {
       gender_preference: filters.gender_preference,
       move_in: filters.move_in,
       city: filters.city,
-      locality: filters.locality
+      locality: filters.locality,
+      amenities: filters.amenities,
+      furnishing: filters.furnishing,
+      kitchen_type: filters.kitchen_type,
+      ventilation_type: filters.ventilation_type,
+      windows_min: filters.windows_min,
+      has_lift: filters.has_lift
     }),
     [
       mapCenter.lat,
@@ -97,7 +103,13 @@ export function ExplorePage() {
       filters.gender_preference,
       filters.move_in,
       filters.city,
-      filters.locality
+      filters.locality,
+      filters.amenities,
+      filters.furnishing,
+      filters.kitchen_type,
+      filters.ventilation_type,
+      filters.windows_min,
+      filters.has_lift
     ]
   );
 
@@ -173,7 +185,13 @@ export function ExplorePage() {
     filters.gender_preference,
     filters.property_type,
     filters.price_min,
-    filters.price_max
+    filters.price_max,
+    filters.amenities,
+    filters.furnishing,
+    filters.kitchen_type,
+    filters.ventilation_type,
+    filters.windows_min,
+    filters.has_lift
   ]);
 
   if (isLoading) {

@@ -35,6 +35,13 @@ export function mapViewOptions(filters: MapViewFilters) {
           price_min: filters.price_min,
           price_max: filters.price_max,
           sharing_type: filters.sharing_type?.[0],
+          gender_preference: filters.gender_preference?.[0],
+          amenities: filters.amenities,
+          furnishing: filters.furnishing,
+          kitchen_type: filters.kitchen_type,
+          ventilation_type: filters.ventilation_type,
+          windows_min: filters.windows_min,
+          has_lift: filters.has_lift,
           limit: 100,
         } as Record<string, QueryValue>,
       });

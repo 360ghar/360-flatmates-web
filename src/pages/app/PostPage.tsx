@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useCreateProperty, useUploadPropertyImage } from "@/hooks/queries";
 import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
 import type { PropertyCreate } from "@/lib/api/types";
+import { FURNISHING_LEVEL_VALUES } from "@/lib/data";
 import { uiStore } from "@/lib/stores/ui-store";
 import { LISTING_DRAFT_STORAGE_KEY } from "@/lib/schemas/listing-builder";
 import { Button } from "@/components/ui/Button";
@@ -77,25 +78,40 @@ function hostedImageUrls(urls: string[] | undefined): string[] | undefined {
 /** Returns true when the given step has all required fields filled in.
  *  Constraints mirror the Zod schema in `lib/schemas/listing-builder.ts`
  *  (propertyCreateSchema): title ≥ 5 chars, monthly_rent ≥ 500, city &
- *  locality non-empty. All other fields are optional. */
+ *  locality non-empty, numeric fields within their schema bounds. The
+ *  wizard never runs propertyCreateSchema itself, so out-of-range values
+ *  would otherwise pass gating and fail with a 422 only at publish time. */
 function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
+  const inRange = (
+    value: number | undefined,
+    min: number,
+    max: number
+  ): boolean =>
+    value === undefined || (Number.isFinite(value) && value >= min && value <= max);
+
   switch (step) {
     case 0:
       return (
         Boolean(form.title?.trim()) &&
         (form.title?.trim().length ?? 0) >= 5 &&
         Number.isFinite(form.monthly_rent) &&
-        (form.monthly_rent ?? 0) >= 500
+        (form.monthly_rent ?? 0) >= 500 &&
+        inRange(form.setup_cost, 0, Number.MAX_SAFE_INTEGER) &&
+        inRange(form.other_charges, 0, Number.MAX_SAFE_INTEGER)
       );
     case 1:
       return Boolean(form.city?.trim()) && Boolean(form.locality?.trim());
     case 2:
-      /* All fields optional per the schema; only require numbers when set. */
+      /* All fields optional per the schema; require bounds when set. */
       return (
-        (form.bedrooms === undefined || Number.isFinite(form.bedrooms)) &&
-        (form.bathrooms === undefined || Number.isFinite(form.bathrooms)) &&
-        (form.area_sqft === undefined || Number.isFinite(form.area_sqft)) &&
-        (form.security_deposit === undefined || Number.isFinite(form.security_deposit))
+        inRange(form.bedrooms, 0, 20) &&
+        inRange(form.bathrooms, 0, 20) &&
+        inRange(form.area_sqft, 0, Number.MAX_SAFE_INTEGER) &&
+        inRange(form.security_deposit, 0, Number.MAX_SAFE_INTEGER) &&
+        inRange(form.floor_number, 0, Number.MAX_SAFE_INTEGER) &&
+        inRange(form.total_floors, 1, Number.MAX_SAFE_INTEGER) &&
+        inRange(form.windows_count, 0, 100) &&
+        inRange(form.ventilation_shafts, 0, 50)
       );
     case 3:
     case 4:
@@ -178,8 +194,15 @@ export function PostPage() {
 
     if (currentStep >= STEPS.length - 1) {
       if (createProperty.isPending) return; // guard against double-submit
+      /* The furnishing dimension now lives in `furnishing_level`; drop legacy
+         furnishing values from features[] so they are not sent twice. */
+      const features =
+        form.furnishing_level !== undefined
+          ? (form.features ?? []).filter((f) => !FURNISHING_LEVEL_VALUES.some((level) => level === f))
+          : form.features;
       const submissionPayload: PropertyCreate = {
         ...form,
+        features,
         image_urls: hostedImageUrls(form.image_urls)
       } as PropertyCreate;
       createProperty.mutate(submissionPayload, {
@@ -283,8 +306,10 @@ export function PostPage() {
       {currentStep === 3 && (
         <PostRoomDetailsStep
           sharingType={form.sharing_type}
+          furnishingLevel={form.furnishing_level}
           featuresSet={featuresSet}
           onSharingTypeChange={(value) => patchForm({ sharing_type: value })}
+          onFurnishingLevelChange={(value) => patchForm({ furnishing_level: value })}
           onToggleFeature={(tag) => toggleArrayItem("features", tag)}
         />
       )}

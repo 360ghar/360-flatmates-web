@@ -1,5 +1,9 @@
 import type { UseFormRegister, FieldErrors } from "react-hook-form";
-import { FLATMATE_MODE_OPTIONS } from "@/lib/data";
+import {
+  FLATMATE_MODE_OPTIONS,
+  NATIVE_PLACE_MAX_LENGTH,
+  LINKEDIN_URL_MAX_LENGTH
+} from "@/lib/data";
 import { toSelectOptions, optionalNumberValue } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Input, TextArea, SelectField } from "@/components/ui/Input";
@@ -52,6 +56,23 @@ export function ProfileBasicInfoSection({ register, errors, bioValue }: ProfileB
           {...register("mode")}
         />
       </div>
+      <Input
+        label="Native Place"
+        error={errors.native_place?.message}
+        helperText={`${NATIVE_PLACE_MAX_LENGTH} characters max`}
+        maxLength={NATIVE_PLACE_MAX_LENGTH}
+        placeholder="e.g. Jaipur, Rajasthan"
+        {...register("native_place")}
+      />
+      <Input
+        label="LinkedIn URL"
+        type="url"
+        error={errors.linkedin_url?.message}
+        helperText={`${LINKEDIN_URL_MAX_LENGTH} characters max`}
+        maxLength={LINKEDIN_URL_MAX_LENGTH}
+        placeholder="https://www.linkedin.com/in/your-profile"
+        {...register("linkedin_url")}
+      />
     </Card>
   );
 }

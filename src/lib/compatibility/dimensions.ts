@@ -1,16 +1,19 @@
 import {
   CLEANLINESS_VALUES,
+  DRINKING_VALUES,
   GUESTS_POLICY_VALUES,
   LIFESTYLE_DIMENSIONS,
-  SLEEP_SCHEDULE_VALUES
+  SLEEP_SCHEDULE_VALUES,
+  SMOKING_VALUES
 } from "@/lib/data";
 import type {
   Cleanliness,
+  DrinkingType,
   FoodHabits,
   GuestsPolicy,
   LifestyleDimensionKey,
   SleepSchedule,
-  SmokingDrinking,
+  SmokingType,
   WorkStyle
 } from "@/lib/data";
 import type { DimensionScorer } from "./types";
@@ -21,7 +24,8 @@ export const COMPATIBILITY_WEIGHTS = {
   sleep_schedule: 0.2,
   cleanliness: 0.2,
   food_habits: 0.15,
-  smoking_drinking: 0.2,
+  smoking: 0.1,
+  drinking: 0.1,
   guests_policy: 0.15,
   work_style: 0.1
 } as const satisfies Record<LifestyleDimensionKey, number>;
@@ -106,31 +110,25 @@ export const scoreFoodHabits: DimensionScorer<FoodHabits> = (
   return 80;
 };
 
-export const scoreSmokingDrinking: DimensionScorer<SmokingDrinking> = (
-  userValue,
-  peerValue
-) => {
-  if (!userValue || !peerValue) {
-    return 0;
-  }
+/** Same spectrum for smoking: never vs occasionally scores higher than
+ *  never vs regularly, and exact matches are perfect. Values match the
+ *  backend `_score_lifestyle_level` (100/70/40) and the Flutter engine so
+ *  all surfaces agree on a pair's score and color. */
+export const scoreSmoking: DimensionScorer<SmokingType> = scoreOrdered(
+  SMOKING_VALUES,
+  100,
+  70,
+  40
+);
 
-  if (userValue === peerValue) {
-    return 100;
-  }
-
-  if (userValue === "both_fine" || peerValue === "both_fine") {
-    return 70;
-  }
-
-  // Non-smoker set: neither, drink_occasionally
-  const nonSmoker = new Set(["neither", "drink_occasionally"]);
-  if (nonSmoker.has(userValue) && nonSmoker.has(peerValue)) {
-    return 80;
-  }
-
-  // One smokes, other doesn't
-  return 30;
-};
+/** Same spectrum for drinking: never vs occasionally scores higher than
+ *  never vs regularly, and exact matches are perfect. */
+export const scoreDrinking: DimensionScorer<DrinkingType> = scoreOrdered(
+  DRINKING_VALUES,
+  100,
+  70,
+  40
+);
 
 export const scoreWorkStyle: DimensionScorer<WorkStyle> = (
   userValue,

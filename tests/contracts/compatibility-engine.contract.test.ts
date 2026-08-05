@@ -11,7 +11,8 @@ const baseProfile = {
   sleep_schedule: "early_bird",
   cleanliness: "tidy",
   food_habits: "vegetarian",
-  smoking_drinking: "neither",
+  smoking: "never",
+  drinking: "never",
   guests_policy: "occasional_ok",
   work_style: "wfh"
 } satisfies CompatibilityProfile;
@@ -25,23 +26,26 @@ describe("compatibility engine", () => {
 
     expect(result.overall_percentage).toBe(100);
     expect(result.color).toBe("green");
-    expect(result.dimensions).toHaveLength(6);
+    expect(result.dimensions).toHaveLength(7);
     expect(result.dimensions.every((dimension) => dimension.match)).toBe(true);
   });
 
-  it("weights strict lifestyle gaps into a red compatibility score", () => {
+  it("weights strict lifestyle gaps into an amber compatibility score", () => {
     const result = calculateCompatibility(baseProfile, {
       id: 3,
       sleep_schedule: "night_owl",
       cleanliness: "minimal",
       food_habits: "non_vegetarian",
-      smoking_drinking: "smoke_outside",
+      smoking: "regularly",
+      drinking: "never",
       guests_policy: "open_house",
       work_style: "office"
     });
 
-    expect(result.overall_percentage).toBe(32);
-    expect(result.color).toBe("red");
+    // 40 with the 100/70/40 smoking/drinking scale (matches the backend
+    // _score_lifestyle_level and the Flutter engine).
+    expect(result.overall_percentage).toBe(40);
+    expect(result.color).toBe("amber");
     expect(result.dimensions.find((item) => item.name === "food_habits")?.score).toBe(0);
     expect(result.summary).toContain("Food Habits: preference gap");
   });
@@ -55,7 +59,8 @@ describe("compatibility engine", () => {
         sleep_schedule: "night_owl",
         cleanliness: "minimal",
         food_habits: "non_vegetarian",
-        smoking_drinking: "smoke_outside",
+        smoking: "regularly",
+        drinking: "never",
         guests_policy: "open_house",
         work_style: "office"
       },
@@ -66,7 +71,8 @@ describe("compatibility engine", () => {
         sleep_schedule: "early_bird",
         cleanliness: "tidy",
         food_habits: "vegetarian",
-        smoking_drinking: "neither",
+        smoking: "never",
+        drinking: "never",
         guests_policy: "occasional_ok",
         work_style: "wfh"
       }

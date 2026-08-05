@@ -88,7 +88,8 @@ export {
 
 export {
   useCities,
-  useAmenities
+  useAmenities,
+  useCatalogs
 } from "./useCatalogs";
 
 export {

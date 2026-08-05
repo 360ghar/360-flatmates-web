@@ -1,11 +1,14 @@
 import { z } from "zod";
 import {
+  furnishingLevelSchema,
   genderPreferenceSchema,
   jsonObjectSchema,
+  kitchenTypeSchema,
   listingSharingTypeSchema,
   propertyPurposeSchema,
   propertyTypeSchema,
-  societyTypeSchema
+  societyTypeSchema,
+  ventilationTypeSchema
 } from "./enums";
 import { optionalUrlSchema } from "./common";
 
@@ -47,8 +50,12 @@ export const listingFlatStepSchema = z.object({
   bedrooms: z.number().int().min(0).max(20),
   bathrooms: z.number().int().min(0).max(20),
   area_sqft: z.number().min(0).optional(),
-  floor: z.number().int().optional(),
-  total_floors: z.number().int().optional(),
+  floor_number: z.number().int().min(0).optional(),
+  total_floors: z.number().int().min(1).optional(),
+  kitchen_type: kitchenTypeSchema.optional(),
+  ventilation_type: ventilationTypeSchema.optional(),
+  windows_count: z.number().int().min(0).max(100).optional(),
+  ventilation_shafts: z.number().int().min(0).max(50).optional(),
   flat_amenities: z.array(z.string()).default([])
 });
 
@@ -58,7 +65,9 @@ export const listingCostsStepSchema = z.object({
   maintenance_charges: z.number().min(0).optional(),
   electricity_charges: z.number().min(0).optional(),
   cook_maid_charges: z.number().min(0).optional(),
-  setup_cost: z.number().min(0).optional()
+  setup_cost: z.number().min(0).optional(),
+  other_charges: z.number().min(0).optional(),
+  other_charges_description: z.string().max(300).optional()
 });
 
 export const listingAboutStepSchema = z.object({
@@ -102,7 +111,17 @@ export const propertyCreateSchema = z
     society_type: societyTypeSchema.optional(),
     society_amenities: z.array(z.string()).default([]),
     society_vibe_tags: z.array(z.string()).default([]),
-    listing_preferences: jsonObjectSchema.optional()
+    listing_preferences: jsonObjectSchema.optional(),
+    kitchen_type: kitchenTypeSchema.optional(),
+    ventilation_type: ventilationTypeSchema.optional(),
+    windows_count: z.number().int().min(0).max(100).optional(),
+    ventilation_shafts: z.number().int().min(0).max(50).optional(),
+    floor_number: z.number().int().min(0).optional(),
+    total_floors: z.number().int().min(1).optional(),
+    setup_cost: z.number().min(0).optional(),
+    other_charges: z.number().min(0).optional(),
+    other_charges_description: z.string().max(300).optional(),
+    furnishing_level: furnishingLevelSchema.optional()
   })
   .refine(
     (value) =>
@@ -111,6 +130,16 @@ export const propertyCreateSchema = z
     {
       message: "Security deposit is unusually high",
       path: ["security_deposit"]
+    }
+  )
+  .refine(
+    (value) =>
+      value.floor_number === undefined ||
+      value.total_floors === undefined ||
+      value.floor_number <= value.total_floors,
+    {
+      message: "Floor number cannot exceed total floors",
+      path: ["floor_number"]
     }
   );
 

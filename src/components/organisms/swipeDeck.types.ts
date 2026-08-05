@@ -6,6 +6,7 @@ export interface SwipeProfile {
   id: string;
   name: string;
   age?: number;
+  ageBucket?: string;
   photoUrl?: string | null;
   mode?: UserMode;
   verified?: boolean;
@@ -22,7 +23,8 @@ export interface SwipeProfile {
   sleepSchedule?: string;
   cleanliness?: string;
   foodHabits?: string;
-  smokingDrinking?: string;
+  smoking?: string;
+  drinking?: string;
   guestsPolicy?: string;
   workStyle?: string;
   gender?: string;
@@ -30,7 +32,7 @@ export interface SwipeProfile {
   nonNegotiables?: string[];
   hasPets?: boolean;
   partyHabit?: string;
-  /** Full 6-dimension breakdown (client-computed or from API). */
+  /** Full 7-dimension breakdown (client-computed or from API). */
   compatibilityDimensions?: CompatibilityDimensionResult[];
   /* Listing context when the peer has an active flatmate/PG listing */
   propertyTitle?: string;
