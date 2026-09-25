@@ -99,20 +99,6 @@ export default defineConfig({
               },
             },
           },
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
-            handler: "NetworkFirst",
-            method: "GET",
-            options: {
-              cacheName: "api",
-              networkTimeoutSeconds: 4,
-              expiration: {
-                maxEntries: 64,
-                maxAgeSeconds: 60 * 5,
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
         ],
       },
     }),

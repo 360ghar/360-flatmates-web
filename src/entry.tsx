@@ -18,6 +18,12 @@ window.addEventListener("unhandledrejection", (event) => {
   debug.dumpError("GlobalError", "Unhandled promise rejection", event.reason);
 });
 
+// Older service workers cached authenticated API responses under "api".
+// That rule is gone; drop any cache it left so one user never sees another's data.
+if ("caches" in window) {
+  void caches.delete("api").catch(() => undefined);
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -35,12 +41,12 @@ try {
 
   const rootEl = document.getElementById("root")!;
   rootEl.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;font-family:Inter,system-ui,sans-serif;color:#222222;background:#ffffff">
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;font-family:system-ui,sans-serif;color:#23201C;background:#E4EBE3">
       <div style="max-width:480px;text-align:center">
         <h1 style="font-size:20px;font-weight:600;margin:0 0 12px">Configuration Error</h1>
-        <p style="font-size:14px;color:#6a6a6a;margin:0 0 20px;white-space:pre-line">${message}</p>
-        <p style="font-size:13px;color:#929292;margin:0 0 16px">Set the required environment variables and redeploy.</p>
-        <p style="font-size:13px;margin:0"><a href="/maintenance" style="color:#ff385c;text-decoration:underline">Go to maintenance page</a></p>
+        <p style="font-size:14px;color:#4A443D;margin:0 0 20px;white-space:pre-line">${message}</p>
+        <p style="font-size:13px;color:#6B6359;margin:0 0 16px">Set the required environment variables and redeploy.</p>
+        <p style="font-size:13px;margin:0"><a href="/maintenance" style="color:#A94A2B;text-decoration:underline">Go to maintenance page</a></p>
       </div>
     </div>
   `;
