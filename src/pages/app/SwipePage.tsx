@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -23,7 +24,7 @@ import {
   type CompatibilityProfile
 } from "@/lib/compatibility";
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, ArrowUp, X, Heart, Sparkles, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUp, X, Sparkles, Star } from "lucide-react";
 
 const SWIPE_HINT_DISMISSED_KEY = "360-flatmates-swipe-hint-dismissed";
 
@@ -310,6 +311,8 @@ export function SwipePage() {
 /* -------------------------------------------------------------------------- */
 
 function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
+  // Key caps only help where there is a keyboard and a pointer that hovers.
+  const hasKeyboard = useMediaQuery("(hover: hover) and (pointer: fine)");
   return (
     <m.div
       className="pointer-events-none fixed inset-0 z-[var(--z-overlay)] flex items-end justify-center pb-32 md:pb-40"
@@ -335,33 +338,30 @@ function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
         </button>
         <h3 className="text-body-md font-semibold text-ink">Quick swipe guide</h3>
         <p className="mt-1 text-caption text-ink-3">
-          Swipe profiles with your keyboard or the action buttons below.
+          {hasKeyboard
+            ? "Swipe profiles with your keyboard or the action buttons below."
+            : "Swipe the card, or tap the buttons below it."}
         </p>
         <ul className="mt-4 flex flex-col gap-2.5">
           <HintRow
             icon={<ArrowLeft aria-hidden="true" className="h-4 w-4 text-error" />}
-            label="Pass"
-            kbd="←"
+            label={hasKeyboard ? "Pass" : "Pass: swipe left"}
+            kbd={hasKeyboard ? "←" : ""}
           />
           <HintRow
             icon={<ArrowUp aria-hidden="true" className="h-4 w-4 text-warning" />}
-            label="Super Like"
-            kbd="↑"
+            label={hasKeyboard ? "Super Like" : "Super Like: swipe up"}
+            kbd={hasKeyboard ? "↑" : ""}
           />
           <HintRow
             icon={<ArrowRight aria-hidden="true" className="h-4 w-4 text-success" />}
-            label="Like"
-            kbd="→"
-          />
-          <HintRow
-            icon={<Heart aria-hidden="true" className="h-4 w-4 text-success" />}
-            label="Tap buttons or swipe card"
-            kbd=""
+            label={hasKeyboard ? "Like" : "Like: swipe right"}
+            kbd={hasKeyboard ? "→" : ""}
           />
           <HintRow
             icon={<Star aria-hidden="true" className="h-4 w-4 text-warning" />}
-            label="Expand profile details"
-            kbd="Space"
+            label={hasKeyboard ? "Expand profile details" : "Tap the card for profile details"}
+            kbd={hasKeyboard ? "Space" : ""}
           />
         </ul>
         <Button className="mt-5 w-full" size="compact" onClick={onDismiss}>

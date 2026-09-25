@@ -338,14 +338,15 @@ export function AppShell({
                 aria-haspopup="dialog"
                 aria-expanded={moreOpen}
                 className={cn(
-                  "flex min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-cut-md px-1 py-1 text-ink-2 hover:text-ink",
+                  // Same box as the ShellNavLink tabs so icon and label share their baseline.
+                  "relative flex min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-cut-md px-1 py-1 text-[12px] font-semibold text-ink-2 hover:text-ink",
                   interactiveMotion,
                   focusRing,
                   moreOpen && "bg-surface text-accent shadow-sm"
                 )}
               >
                 <item.icon aria-hidden="true" className="h-5 w-5" />
-                <span className="truncate text-[12px] font-semibold">{item.label}</span>
+                <span className="truncate">{item.label}</span>
               </button>
             );
           }
@@ -414,15 +415,16 @@ function ShellNavLink({
       title={collapsed ? item.label : undefined}
       className={cn(
         // Active tab rises one paper layer (DESIGN.md §8).
-        "relative flex items-center gap-3 rounded-cut-md text-ink-2 hover:text-ink",
+        // cn() does not merge classes, so each branch owns its gap.
+        "relative flex items-center rounded-cut-md text-ink-2 hover:text-ink",
         interactiveMotion,
         focusRing,
         active ? "bg-surface text-accent shadow-sm" : "hover:bg-surface-soft",
         collapsed
-          ? "h-11 justify-center px-0"
+          ? "h-11 justify-center gap-3 px-0"
           : mobile
             ? "min-h-[44px] flex-col justify-center gap-0.5 px-1 py-1 text-[12px] font-semibold"
-            : "h-11 px-3 text-body-md font-semibold"
+            : "h-11 gap-3 px-3 text-body-md font-semibold"
       )}
     >
       <Icon aria-hidden="true" className={cn(mobile ? "h-5 w-5" : "h-5 w-5")} />
