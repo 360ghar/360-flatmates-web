@@ -44,8 +44,6 @@ export function mapViewOptions(filters: MapViewFilters) {
           lng: filters.lng,
           radius: filters.radius ?? radiusForZoom(filters.zoom_level, filters.lat),
           property_type: filters.property_type,
-          city: filters.city,
-          locality: filters.locality,
           move_in: filters.move_in?.[0],
           price_min: filters.price_min,
           price_max: filters.price_max,

@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UserMode } from "../ui/Badge";
 import { Spinner } from "../ui/Spinner";
@@ -30,6 +30,8 @@ export interface ChatThreadProps extends HTMLAttributes<HTMLElement> {
   matchContext?: MatchContextCardData;
   qna?: QnACardProps[];
   disconnected?: boolean;
+  /** Inline strip under the header, e.g. why sending is unavailable. */
+  notice?: ReactNode;
   /** True while the active send mutation is in flight (disables the send button). */
   sending?: boolean;
   /** True while older messages are being fetched (infinite scroll up). */
@@ -49,6 +51,7 @@ export function ChatThread({
   matchContext,
   qna = [],
   disconnected = false,
+  notice,
   sending = false,
   loadingMore = false,
   onSend,
@@ -188,6 +191,7 @@ export function ChatThread({
           setShowBlockModal(true);
         }}
       />
+      {notice}
       <div className="flex flex-col gap-3 border-b border-line bg-surface-soft/60 px-4 py-3">
         {matchContext ? <MatchContextCard item={matchContext} /> : null}
         {qna.map((item) => (

@@ -44,7 +44,7 @@ export function ChatDetailPage() {
     hasNextPage,
     isFetchingNextPage
   } = useMessages(conversationId);
-  const { data: myProfile } = useMyProfile();
+  const { data: myProfile, error: profileError, refetch: refetchProfile } = useMyProfile();
   const sendMessage = useSendMessage();
   const createVisit = useCreateVisit();
   const reportUser = useReportUserMutation();
@@ -244,6 +244,16 @@ export function ChatDetailPage() {
       loadingMore={isFetchingNextPage}
       sending={sendMessage.isPending || !myUserId}
       disconnected={!realtimeConnected}
+      notice={
+        profileError && !myUserId ? (
+          <div role="alert" className="flex items-center justify-between gap-3 bg-danger-soft px-4 py-2 text-body-sm text-ink">
+            <span>Could not load your profile, so you cannot send messages yet.</span>
+            <button type="button" onClick={() => void refetchProfile()} className="min-h-11 shrink-0 px-2 font-semibold text-danger">
+              Retry
+            </button>
+          </div>
+        ) : null
+      }
     />
   );
 }

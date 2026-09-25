@@ -9,7 +9,6 @@ import {
   useQuery,
   useQueryClient
 } from "@tanstack/react-query";
-import { useRef } from "react";
 import { apiClient } from "@/lib/api";
 import type {
   ConversationSummary,
@@ -144,14 +143,17 @@ function messagePageKey(conversationId: number) {
   } as const;
 }
 
+// Negative ids mark optimistic messages. Seeded from the clock so an id is
+// never reused after a remount: failed sends outlive the component in
+// chatStore, and a reused id would overwrite one (W7).
+let tempIdSeq = 0;
+function nextTempId(): number {
+  tempIdSeq = (tempIdSeq + 1) % 1000;
+  return -(Date.now() * 1000 + tempIdSeq);
+}
+
 export function useSendMessage() {
   const queryClient = useQueryClient();
-
-  // Per-hook-instance (per-tab) counter so concurrent sends in the same tab
-  // don't collide. (Audit F6 #2 + #20: the previous module-level counter was
-  // shared across all tabs and would race between tabs opened in the same
-  // session.)
-  const tempIdCounterRef = useRef(-1);
 
   return useMutation<MessageOut, Error, SendMessageVars, SendMessageContext>({
     mutationFn: ({ conversationId, payload }) =>
@@ -168,7 +170,7 @@ export function useSendMessage() {
       const previous = queryClient.getQueriesData<
         InfiniteData<MessageListResponse>
       >(filter);
-      const id = tempId ?? tempIdCounterRef.current--;
+      const id = tempId ?? nextTempId();
       chatStore.getState().removeFailedSend(conversationId, id);
 
       const optimistic: MessageOut = {

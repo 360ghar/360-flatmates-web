@@ -83,8 +83,8 @@ export function ExplorePage() {
       property_type: filters.property_type,
       gender_preference: filters.gender_preference,
       move_in: filters.move_in,
-      city: filters.city,
-      locality: filters.locality,
+      // No city/locality: the map is viewport-based (lat/lng/radius). A city
+      // filter kept from Home would hide every pin once the user pans away.
       amenities: filters.amenities,
       furnishing: filters.furnishing,
       kitchen_type: filters.kitchen_type,
@@ -102,8 +102,6 @@ export function ExplorePage() {
       filters.property_type,
       filters.gender_preference,
       filters.move_in,
-      filters.city,
-      filters.locality,
       filters.amenities,
       filters.furnishing,
       filters.kitchen_type,
@@ -123,13 +121,8 @@ export function ExplorePage() {
 
   const activeFilters = useMemo(
     () =>
-      [
-        filters.city,
-        filters.locality,
-        filters.sharing_type?.[0],
-        filters.move_in?.[0]
-      ].filter(Boolean) as string[],
-    [filters.city, filters.locality, filters.sharing_type, filters.move_in]
+      [filters.sharing_type?.[0], filters.move_in?.[0]].filter(Boolean) as string[],
+    [filters.sharing_type, filters.move_in]
   );
 
   // Handle map viewport changes (pan/zoom)
