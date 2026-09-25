@@ -80,12 +80,15 @@ function HeroLayer({
 export function PaperScene({
   className,
   children,
-  edgeClassName = "bg-paper"
+  edgeClassName = "bg-paper",
+  torn = true
 }: {
   className?: string;
   children?: ReactNode;
   /** Colour of the torn paper that closes the scene: match what sits below. */
   edgeClassName?: string;
+  /** Close the bottom with a torn paper strip (off when the scene ends the page). */
+  torn?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion() ?? false;
@@ -101,10 +104,10 @@ export function PaperScene({
         <HeroLayer key={layer.name} {...layer} progress={scrollYProgress} still={reduceMotion} />
       ))}
       {children ? <div className="relative z-10 h-full">{children}</div> : null}
-      <div
+      {torn ? <div
         aria-hidden="true"
         className={cn("paper-edge-torn-top paper-grain absolute inset-x-0 bottom-0 z-10 h-[calc(var(--torn-depth)+2px)]", edgeClassName)}
-      />
+      /> : null}
     </div>
   );
 }
