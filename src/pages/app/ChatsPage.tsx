@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { userMessage } from "@/lib/api/errors";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
@@ -18,6 +19,7 @@ import { cn, getInitials } from "@/components/ui/component-utils";
 
 export function ChatsPage() {
   const navigate = useNavigate();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const {
     data: conversationsPages,
     isLoading,
@@ -60,63 +62,64 @@ export function ChatsPage() {
     <div className="flex flex-col page-fade">
       <h1 className="text-h1 mb-4">Chats</h1>
 
-      {/* ── Mobile: vertical layout (matches bar + conversations) ── */}
-      <div className="flex flex-col md:hidden">
-        <MatchesBar matches={matches} matchesLoading={matchesLoading} onStartChat={handleStartConversation} />
-        <section
-          aria-labelledby="mobile-conversations-heading"
-          className="mt-2 overflow-hidden rounded-hand bg-surface paper-grain shadow-sm"
-        >
-          <h2 id="mobile-conversations-heading" className="px-4 pt-4 text-h4 text-ink">
-            Conversations
-          </h2>
-          <div>
-            <ConversationsPanel
-              conversations={conversations}
-              isLoading={isLoading}
-              error={error}
-              refetch={refetch}
-              onNavigate={(id) => navigate(`/chats/${id}`)}
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              onLoadMore={() => void fetchNextPage()}
+      {/* One tree per breakpoint, so the list is not mounted twice. */}
+      {!isDesktop ? (
+        <div className="flex flex-col">
+          <MatchesBar matches={matches} matchesLoading={matchesLoading} onStartChat={handleStartConversation} />
+          <section
+            aria-labelledby="mobile-conversations-heading"
+            className="mt-2 overflow-hidden rounded-hand bg-surface paper-grain shadow-sm"
+          >
+            <h2 id="mobile-conversations-heading" className="px-4 pt-4 text-h4 text-ink">
+              Conversations
+            </h2>
+            <div>
+              <ConversationsPanel
+                conversations={conversations}
+                isLoading={isLoading}
+                error={error}
+                refetch={refetch}
+                onNavigate={(id) => navigate(`/chats/${id}`)}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onLoadMore={() => void fetchNextPage()}
+              />
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="flex min-h-[65vh] overflow-hidden rounded-hand bg-surface paper-grain shadow-md">
+          <aside className="flex w-72 shrink-0 flex-col border-r border-line bg-surface-soft/40 lg:w-80">
+            <div className="border-b border-line px-4 py-3">
+              <h2 className="text-h4 text-ink">Your matches</h2>
+              <p className="mt-0.5 text-caption text-ink-3">Start a new conversation</p>
+            </div>
+            <MatchesList
+              matches={matches}
+              matchesLoading={matchesLoading}
+              onStartChat={handleStartConversation}
             />
-          </div>
-        </section>
-      </div>
+          </aside>
 
-      {/* ── Tablet / Desktop: depth shell + split ── */}
-      <div className="hidden min-h-[65vh] overflow-hidden rounded-hand bg-surface paper-grain shadow-sm shadow-md md:flex">
-        <aside className="flex w-72 shrink-0 flex-col border-r border-line bg-surface-soft/40 lg:w-80">
-          <div className="border-b border-line px-4 py-3">
-            <h2 className="text-h4 text-ink">Your matches</h2>
-            <p className="mt-0.5 text-caption text-ink-3">Start a new conversation</p>
-          </div>
-          <MatchesList
-            matches={matches}
-            matchesLoading={matchesLoading}
-            onStartChat={handleStartConversation}
-          />
-        </aside>
-
-        <section className="flex min-w-0 flex-1 flex-col bg-surface">
-          <div className="border-b border-line px-4 py-3">
-            <h2 className="text-h4 text-ink">Conversations</h2>
-          </div>
-          <div className="flex-1 p-2">
-            <ConversationsPanel
-              conversations={conversations}
-              isLoading={isLoading}
-              error={error}
-              refetch={refetch}
-              onNavigate={(id) => navigate(`/chats/${id}`)}
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              onLoadMore={() => void fetchNextPage()}
-            />
-          </div>
-        </section>
-      </div>
+          <section className="flex min-w-0 flex-1 flex-col bg-surface">
+            <div className="border-b border-line px-4 py-3">
+              <h2 className="text-h4 text-ink">Conversations</h2>
+            </div>
+            <div className="flex-1 p-2">
+              <ConversationsPanel
+                conversations={conversations}
+                isLoading={isLoading}
+                error={error}
+                refetch={refetch}
+                onNavigate={(id) => navigate(`/chats/${id}`)}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onLoadMore={() => void fetchNextPage()}
+              />
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
