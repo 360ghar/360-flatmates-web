@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import math
 import random
+import shutil
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -390,6 +392,10 @@ def build():
     dart.append("  static const tornEdgeTile = <double>[" + ",".join(f"{x:.3f},{y}" for x, y in edge) + "];\n}\n")
     DART_OUT.parent.mkdir(parents=True, exist_ok=True)
     DART_OUT.write_text("".join(dart))
+    # Match the mobile repo's `dart format` so a regenerate causes no diff noise.
+    dart = shutil.which("dart")
+    if dart:
+        subprocess.run([dart, "format", str(DART_OUT)], check=False, capture_output=True)
     print(f"wrote {WEB_OUT.relative_to(ROOT)} and {DART_OUT}")
 
 
