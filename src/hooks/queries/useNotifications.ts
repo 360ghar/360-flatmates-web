@@ -1,3 +1,4 @@
+import { useRealtimeFallbackInterval } from "@/hooks/useRealtimeFallback";
 import {
   queryOptions,
   useInfiniteQuery,
@@ -36,7 +37,8 @@ export function notificationsOptions(filters?: NotificationFilters) {
 }
 
 export function useNotifications(filters?: NotificationFilters) {
-  return useQuery(notificationsOptions(filters));
+  const refetchInterval = useRealtimeFallbackInterval();
+  return useQuery({ ...notificationsOptions(filters), refetchInterval });
 }
 
 /**

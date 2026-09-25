@@ -14,6 +14,7 @@ import { uiStore } from "@/lib/stores/ui-store";
 import type { ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { onboardingStore } from "@/lib/stores/onboarding-store";
+import { chatStore } from "@/lib/stores/chat-store";
 import { Toast, ToastViewport } from "@/components/ui/Toast";
 
 
@@ -36,6 +37,7 @@ function ProviderInternals({
       searchStore.getState().resetFilters();
       onboardingStore.getState().clearDraft();
       authStore.getState().resetAuthFlow();
+      chatStore.getState().reset();
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);

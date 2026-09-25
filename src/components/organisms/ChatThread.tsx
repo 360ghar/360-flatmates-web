@@ -1,4 +1,4 @@
-import type { ChangeEvent, HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import type { UserMode } from "../ui/Badge";
@@ -38,7 +38,6 @@ export interface ChatThreadProps extends HTMLAttributes<HTMLElement> {
   onSend?: (message: string) => void;
   onRetryMessage?: (messageId: string) => void;
   onScheduleVisit?: (data: { scheduledDate: string; specialRequirements: string }) => void;
-  onAttachFile?: (file: File) => void;
   onBlock?: () => void;
   onReport?: (reason: ChatReportReason, notes: string) => void;
   /** Called when the user scrolls to the top and more history is available. */
@@ -56,7 +55,6 @@ export function ChatThread({
   onSend,
   onRetryMessage,
   onScheduleVisit,
-  onAttachFile,
   onBlock,
   onReport,
   onLoadMore,
@@ -67,7 +65,6 @@ export function ChatThread({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { atBottomRef, handleScroll } = useChatScrollAnchor(logRef, messages, onLoadMore);
 
   function focusComposer() {
@@ -148,13 +145,6 @@ export function ChatThread({
     setDraft((value) => `${value}${emoji}`);
     setShowEmojiPicker(false);
     requestAnimationFrame(focusComposer);
-  }
-
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    onAttachFile?.(file);
   }
 
   function confirmBlock() {
@@ -250,14 +240,12 @@ export function ChatThread({
       </div>
       <ChatComposer
         footerRef={footerRef}
-        fileInputRef={fileInputRef}
         emojiPickerRef={emojiPickerRef}
         draft={draft}
         onDraftChange={setDraft}
         showEmojiPicker={showEmojiPicker}
         onToggleEmojiPicker={() => setShowEmojiPicker((open) => !open)}
         onInsertEmoji={insertEmoji}
-        onFileChange={handleFileChange}
         onScheduleVisit={() => setShowScheduleModal(true)}
         sending={sending}
         onSubmit={submit}

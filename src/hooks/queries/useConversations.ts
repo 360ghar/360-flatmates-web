@@ -1,3 +1,5 @@
+import { chatStore } from "@/lib/stores/chat-store";
+import { useRealtimeFallbackInterval } from "@/hooks/useRealtimeFallback";
 import {
   type InfiniteData,
   infiniteQueryOptions,
@@ -32,7 +34,8 @@ export const conversationsOptions = queryOptions({
 });
 
 export function useConversations() {
-  return useQuery(conversationsOptions);
+  const refetchInterval = useRealtimeFallbackInterval();
+  return useQuery({ ...conversationsOptions, refetchInterval });
 }
 
 const CONVERSATIONS_PAGE_SIZE = 30;
@@ -113,7 +116,8 @@ export function messagesInfiniteOptions(conversationId: number) {
 }
 
 export function useMessages(conversationId: number) {
-  return useInfiniteQuery(messagesInfiniteOptions(conversationId));
+  const refetchInterval = useRealtimeFallbackInterval();
+  return useInfiniteQuery({ ...messagesInfiniteOptions(conversationId), refetchInterval });
 }
 
 interface SendMessageVars {
@@ -165,6 +169,7 @@ export function useSendMessage() {
         InfiniteData<MessageListResponse>
       >(filter);
       const id = tempId ?? tempIdCounterRef.current--;
+      chatStore.getState().removeFailedSend(conversationId, id);
 
       const optimistic: MessageOut = {
         id,
@@ -198,14 +203,22 @@ export function useSendMessage() {
     },
 
     onError: (_err, { conversationId, payload, senderId }, context) => {
-      // Keep a failed optimistic bubble so the user can retry (first send and
-      // retries). Full rollback removed the only handle the UI had for retry.
+      // Move the bubble out of the query cache into chatStore: a refetch
+      // (realtime event, fallback polling) would otherwise erase the text.
       if (!context) return;
-      const filter = messagePageKey(conversationId);
-      const pages = queryClient.getQueriesData<
+      for (const [key, data] of queryClient.getQueriesData<
         InfiniteData<MessageListResponse>
-      >(filter);
-      const failed: MessageOut = {
+      >(messagePageKey(conversationId))) {
+        if (!data) continue;
+        queryClient.setQueryData<InfiniteData<MessageListResponse>>(key, {
+          ...data,
+          pages: data.pages.map((page) => ({
+            ...page,
+            messages: page.messages.filter((m) => m.id !== context.tempId)
+          }))
+        });
+      }
+      chatStore.getState().addFailedSend({
         id: context.tempId,
         conversation_id: conversationId,
         sender_id: senderId,
@@ -214,57 +227,7 @@ export function useSendMessage() {
         message_type: payload.message_type ?? "text",
         metadata: { __optimistic: true, __failed: true },
         created_at: new Date().toISOString()
-      };
-      if (pages.length === 0) {
-        queryClient.setQueryData<InfiniteData<MessageListResponse>>(
-          ["conversations", conversationId, "messages"],
-          {
-            pages: [
-              {
-                messages: [failed],
-                total: 1,
-                has_more: false
-              }
-            ],
-            pageParams: [undefined]
-          }
-        );
-        return;
-      }
-      for (const [key, data] of pages) {
-        if (!data) {
-          queryClient.setQueryData(key, {
-            pages: [
-              {
-                messages: [failed],
-                total: 1,
-                has_more: false
-              }
-            ],
-            pageParams: [undefined]
-          });
-          continue;
-        }
-        queryClient.setQueryData<InfiniteData<MessageListResponse>>(key, {
-          ...data,
-          pages: data.pages.map((page, index) => {
-            if (index !== data.pages.length - 1) {
-              return {
-                ...page,
-                messages: page.messages.filter((m) => m.id !== context.tempId)
-              };
-            }
-            const withoutTemp = page.messages.filter(
-              (m) => m.id !== context.tempId
-            );
-            return {
-              ...page,
-              messages: [...withoutTemp, failed],
-              total: withoutTemp.length + 1
-            };
-          })
-        });
-      }
+      });
     },
 
     onSuccess: (serverMessage, { conversationId }, context) => {

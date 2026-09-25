@@ -1,49 +1,36 @@
 import { createStore } from "zustand/vanilla";
+import type { MessageOut } from "@/lib/api/types";
 
+/** Messages whose send failed, per conversation. Kept outside the query
+ *  cache so a refetch or leaving the chat never drops the user's text. */
 export interface ChatStoreState {
-  activeConversationId: number | null;
-  draftMessages: Record<number, string>;
-  isTyping: Record<number, boolean>;
-  showInfoPanel: boolean;
-  setActiveConversation: (id: number) => void;
-  clearActiveConversation: () => void;
-  getDraftMessage: (conversationId: number) => string;
-  setDraftMessage: (conversationId: number, message: string) => void;
-  clearDraftMessage: (conversationId: number) => void;
-  setTyping: (conversationId: number, typing: boolean) => void;
-  setShowInfoPanel: (show: boolean) => void;
+  failedSends: Record<number, MessageOut[]>;
+  addFailedSend: (message: MessageOut) => void;
+  removeFailedSend: (conversationId: number, tempId: number) => void;
+  reset: () => void;
 }
 
-export const chatStore = createStore<ChatStoreState>()((set, get) => ({
-  activeConversationId: null,
-  draftMessages: {},
-  isTyping: {},
-  showInfoPanel: false,
-
-  setActiveConversation: (id) => set({ activeConversationId: id }),
-  clearActiveConversation: () => set({ activeConversationId: null }),
-
-  getDraftMessage: (conversationId) =>
-    get().draftMessages[conversationId] ?? "",
-
-  setDraftMessage: (conversationId, message) =>
+export const chatStore = createStore<ChatStoreState>()((set) => ({
+  failedSends: {},
+  addFailedSend: (message) =>
     set((state) => {
-      if (state.draftMessages[conversationId] === message) return state;
-      return { draftMessages: { ...state.draftMessages, [conversationId]: message } };
+      const list = (state.failedSends[message.conversation_id] ?? []).filter(
+        (m) => m.id !== message.id
+      );
+      return {
+        failedSends: { ...state.failedSends, [message.conversation_id]: [...list, message] }
+      };
     }),
-
-  clearDraftMessage: (conversationId) =>
+  removeFailedSend: (conversationId, tempId) =>
     set((state) => {
-      const rest = { ...state.draftMessages };
-      delete rest[conversationId];
-      return { draftMessages: rest };
+      const list = state.failedSends[conversationId];
+      if (!list?.some((m) => m.id === tempId)) return state;
+      return {
+        failedSends: {
+          ...state.failedSends,
+          [conversationId]: list.filter((m) => m.id !== tempId)
+        }
+      };
     }),
-
-  setTyping: (conversationId, typing) =>
-    set((state) => {
-      if (state.isTyping[conversationId] === typing) return state;
-      return { isTyping: { ...state.isTyping, [conversationId]: typing } };
-    }),
-
-  setShowInfoPanel: (showInfoPanel) => set({ showInfoPanel })
+  reset: () => set({ failedSends: {} })
 }));

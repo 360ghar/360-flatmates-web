@@ -1,71 +1,33 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { chatStore } from "../chat-store";
+import type { MessageOut } from "@/lib/api/types";
 
-describe("chatStore", () => {
-  beforeEach(() => {
-    chatStore.setState(chatStore.getInitialState());
+const failed = (id: number, conversation_id = 7): MessageOut => ({
+  id,
+  conversation_id,
+  sender_id: 1,
+  body: `hello ${id}`,
+  message_type: "text",
+  metadata: { __failed: true },
+  created_at: "2026-09-25T10:00:00Z"
+});
+
+// W7 regression: failed sends survive outside the query cache.
+describe("chatStore failed sends", () => {
+  beforeEach(() => chatStore.getState().reset());
+
+  it("adds, replaces by temp id, and removes", () => {
+    chatStore.getState().addFailedSend(failed(-1));
+    chatStore.getState().addFailedSend(failed(-1));
+    chatStore.getState().addFailedSend(failed(-2));
+    expect(chatStore.getState().failedSends[7].map((m) => m.id)).toEqual([-1, -2]);
+    chatStore.getState().removeFailedSend(7, -1);
+    expect(chatStore.getState().failedSends[7].map((m) => m.id)).toEqual([-2]);
   });
 
-  it("should have correct initial state", () => {
-    const state = chatStore.getState();
-    expect(state.activeConversationId).toBeNull();
-    expect(state.draftMessages).toEqual({});
-    expect(state.isTyping).toEqual({});
-    expect(state.showInfoPanel).toBe(false);
-  });
-
-  it("setActiveConversation sets activeConversationId", () => {
-    chatStore.getState().setActiveConversation(42);
-    expect(chatStore.getState().activeConversationId).toBe(42);
-  });
-
-  it("clearActiveConversation sets activeConversationId to null", () => {
-    chatStore.getState().setActiveConversation(42);
-    chatStore.getState().clearActiveConversation();
-    expect(chatStore.getState().activeConversationId).toBeNull();
-  });
-
-  it("getDraftMessage returns empty string when not set", () => {
-    expect(chatStore.getState().getDraftMessage(1)).toBe("");
-  });
-
-  it("getDraftMessage returns the stored message", () => {
-    chatStore.getState().setDraftMessage(1, "Hello there");
-    expect(chatStore.getState().getDraftMessage(1)).toBe("Hello there");
-  });
-
-  it("setDraftMessage sets a draft message for a conversation", () => {
-    chatStore.getState().setDraftMessage(5, "Hey!");
-    expect(chatStore.getState().draftMessages[5]).toBe("Hey!");
-  });
-
-  it("clearDraftMessage removes a draft message for a conversation", () => {
-    chatStore.getState().setDraftMessage(5, "Hey!");
-    chatStore.getState().clearDraftMessage(5);
-    expect(chatStore.getState().draftMessages[5]).toBeUndefined();
-  });
-
-  it("clearDraftMessage does not affect other conversations", () => {
-    chatStore.getState().setDraftMessage(1, "First");
-    chatStore.getState().setDraftMessage(2, "Second");
-    chatStore.getState().clearDraftMessage(1);
-    expect(chatStore.getState().draftMessages[1]).toBeUndefined();
-    expect(chatStore.getState().draftMessages[2]).toBe("Second");
-  });
-
-  it("setTyping sets typing state for a conversation", () => {
-    chatStore.getState().setTyping(10, true);
-    expect(chatStore.getState().isTyping[10]).toBe(true);
-
-    chatStore.getState().setTyping(10, false);
-    expect(chatStore.getState().isTyping[10]).toBe(false);
-  });
-
-  it("setShowInfoPanel sets showInfoPanel directly", () => {
-    chatStore.getState().setShowInfoPanel(true);
-    expect(chatStore.getState().showInfoPanel).toBe(true);
-
-    chatStore.getState().setShowInfoPanel(false);
-    expect(chatStore.getState().showInfoPanel).toBe(false);
+  it("reset clears every conversation", () => {
+    chatStore.getState().addFailedSend(failed(-1, 3));
+    chatStore.getState().reset();
+    expect(chatStore.getState().failedSends).toEqual({});
   });
 });

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useStore } from "zustand";
 import { useNavigate, useParams } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -22,14 +23,10 @@ import {
 } from "@/components/organisms/ChatThread";
 import { useRealtimeStatus } from "@/hooks/useRealtimeStatus";
 import { uiStore } from "@/lib/stores/ui-store";
+import { chatStore } from "@/lib/stores/chat-store";
+import type { MessageOut } from "@/lib/api/types";
 
-function handleAttachFile(file: File) {
-  uiStore.getState().pushToast({
-    type: "info",
-    title: "Attachment selected",
-    description: `${file.name} is ready, but chat uploads are not enabled yet.`
-  });
-}
+const NO_FAILED_SENDS: MessageOut[] = [];
 
 export function ChatDetailPage() {
   const { id } = useParams();
@@ -69,11 +66,9 @@ export function ChatDetailPage() {
     }
   });
 
-  // Temp-id → body for optimistic sends that failed. The hook rolls back the
-  // cache on error, so the original `MessageOut` is no longer in the page's
-  // messages list — we keep the body here so the retry affordance still works.
-  const [failedBodies, setFailedBodies] = useState<Map<number, string>>(
-    () => new Map()
+  const failedSends = useStore(
+    chatStore,
+    (state) => state.failedSends[conversationId] ?? NO_FAILED_SENDS
   );
 
   // Audit F6 #4: mark conversation as read on mount and whenever the tab
@@ -97,59 +92,28 @@ export function ChatDetailPage() {
   }, [conversationId]);
 
   const myUserId = myProfile?.id ?? 0;
-  const messages = useMemo<ChatMessageData[]>(
-    () => {
-      const flat = messagesData?.pages.flatMap((p) => p.messages) ?? [];
-      return flat.map((msg) => {
-        const base = messageToChatBubbleProps(msg, myUserId);
-        if (msg.id < 0) {
-          return {
-            ...base,
-            status: failedBodies.has(msg.id) ? "failed" : "sending"
-          };
-        }
-        return base;
-      });
-    },
-    [messagesData, myUserId, failedBodies]
-  );
+  const messages = useMemo<ChatMessageData[]>(() => {
+    const flat = messagesData?.pages.flatMap((p) => p.messages) ?? [];
+    const sent = flat.map((msg) => {
+      const base = messageToChatBubbleProps(msg, myUserId);
+      return msg.id < 0 ? { ...base, status: "sending" as const } : base;
+    });
+    const failed = failedSends.map((msg) => ({
+      ...messageToChatBubbleProps(msg, myUserId),
+      status: "failed" as const
+    }));
+    return [...sent, ...failed];
+  }, [messagesData, myUserId, failedSends]);
 
   const sendBody = useCallback(
     (body: string, retryTempId?: number) => {
-      if (!myUserId) return;
-      // Mints a fresh temp id inside the hook (per-tab counter) when no
-      // retryTempId is provided.
-      sendMessage.mutate(
-        {
-          conversationId,
-          payload: { body },
-          senderId: myUserId,
-          ...(retryTempId !== undefined ? { tempId: retryTempId } : {})
-        },
-        {
-          onError: (_err, _vars, context) => {
-            // useSendMessage keeps the failed optimistic bubble; record body
-            // for retry (first failure and subsequent retries).
-            const tempId = context?.tempId ?? retryTempId;
-            if (tempId === undefined) return;
-            setFailedBodies((prev) => {
-              const next = new Map(prev);
-              next.set(tempId, body);
-              return next;
-            });
-          },
-          onSuccess: (_data, _vars, context) => {
-            const tempId = context?.tempId ?? retryTempId;
-            if (tempId === undefined) return;
-            setFailedBodies((prev) => {
-              if (!prev.has(tempId)) return prev;
-              const next = new Map(prev);
-              next.delete(tempId);
-              return next;
-            });
-          }
-        }
-      );
+      if (!myUserId) return; // Send stays disabled until the profile loads.
+      sendMessage.mutate({
+        conversationId,
+        payload: { body },
+        senderId: myUserId,
+        ...(retryTempId !== undefined ? { tempId: retryTempId } : {})
+      });
     },
     [conversationId, myUserId, sendMessage]
   );
@@ -159,19 +123,10 @@ export function ChatDetailPage() {
   const handleRetryMessage = useCallback(
     (messageId: string) => {
       const tempId = Number(messageId);
-      const cachedBody = failedBodies.get(tempId);
-      if (cachedBody) {
-        // Drop the failed entry; the new optimistic + success path re-adds it.
-        setFailedBodies((prev) => {
-          if (!prev.has(tempId)) return prev;
-          const next = new Map(prev);
-          next.delete(tempId);
-          return next;
-        });
-        sendBody(cachedBody, tempId);
-      }
+      const failed = failedSends.find((m) => m.id === tempId);
+      if (failed?.body) sendBody(failed.body, tempId);
     },
-    [failedBodies, sendBody]
+    [failedSends, sendBody]
   );
 
   if (Number.isNaN(conversationId) || conversationId <= 0) {
@@ -282,13 +237,12 @@ export function ChatDetailPage() {
       messages={messages}
       onSend={handleSend}
       onRetryMessage={handleRetryMessage}
-      onAttachFile={handleAttachFile}
       onBlock={handleBlock}
       onReport={handleReport}
       onScheduleVisit={handleScheduleVisit}
       onLoadMore={hasNextPage ? () => fetchNextPage() : undefined}
       loadingMore={isFetchingNextPage}
-      sending={sendMessage.isPending}
+      sending={sendMessage.isPending || !myUserId}
       disconnected={!realtimeConnected}
     />
   );

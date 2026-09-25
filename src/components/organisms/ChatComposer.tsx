@@ -1,5 +1,5 @@
-import type { ChangeEvent, RefObject } from "react";
-import { CalendarPlus, Paperclip, Send, Smile } from "lucide-react";
+import type { RefObject } from "react";
+import { CalendarPlus, Send, Smile } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { TrustBadge } from "../ui/TrustBadge";
@@ -9,41 +9,29 @@ const EMOJI_OPTIONS = ["😀", "😂", "😊", "😍", "👍", "🙏", "🎉", "
 
 export function ChatComposer({
   footerRef,
-  fileInputRef,
   emojiPickerRef,
   draft,
   onDraftChange,
   showEmojiPicker,
   onToggleEmojiPicker,
   onInsertEmoji,
-  onFileChange,
   onScheduleVisit,
   sending,
   onSubmit
 }: {
   footerRef: RefObject<HTMLElement | null>;
-  fileInputRef: RefObject<HTMLInputElement | null>;
   emojiPickerRef: RefObject<HTMLDivElement | null>;
   draft: string;
   onDraftChange: (value: string) => void;
   showEmojiPicker: boolean;
   onToggleEmojiPicker: () => void;
   onInsertEmoji: (emoji: string) => void;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onScheduleVisit: () => void;
   sending: boolean;
   onSubmit: () => void;
 }) {
   return (
     <footer ref={footerRef} className="border-t border-line bg-surface/95 p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] backdrop-blur-xl">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="sr-only"
-        aria-label="Choose message attachment"
-        onChange={onFileChange}
-      />
       <div className="flex items-center gap-2">
         <TrustBadge variant="privacy" className="hidden sm:inline-flex" />
         <div className="relative" ref={emojiPickerRef}>
@@ -97,14 +85,6 @@ export function ChatComposer({
           onClick={onScheduleVisit}
         >
           <CalendarPlus aria-hidden="true" className="h-5 w-5" />
-        </Button>
-        <Button
-          aria-label="Attach image"
-          size="icon"
-          variant="icon"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Paperclip aria-hidden="true" className="h-5 w-5" />
         </Button>
         <Button
           aria-label="Send message"
