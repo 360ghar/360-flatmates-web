@@ -81,29 +81,26 @@ export function SettingsNotificationsPage() {
     }
   }, [updateProfile]);
 
-  // Flush any pending preferences on unmount. Best-effort: the user has
-  // already navigated away, so we still attempt the save but log an error
-  // toast if it fails.
+  // Flush any pending preferences on unmount. mutate() callbacks do not run
+  // once the component is gone, so use the mutateAsync promise (W12).
+  const updateProfileRef = useRef(updateProfile);
+  useEffect(() => {
+    updateProfileRef.current = updateProfile;
+  });
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (pendingPrefs.current) {
-        updateProfile.mutate(
-          { preferences: pendingPrefs.current },
-          {
-            onError: () => {
-              uiStore.getState().pushToast({
-                type: "error",
-                title: "Could not save preferences",
-                description: "Please reopen settings to retry."
-              });
-            }
-          }
-        );
-        pendingPrefs.current = null;
-      }
+      const pending = pendingPrefs.current;
+      if (!pending) return;
+      pendingPrefs.current = null;
+      updateProfileRef.current.mutateAsync({ preferences: pending }).catch(() => {
+        uiStore.getState().pushToast({
+          type: "error",
+          title: "Could not save preferences",
+          description: "Please reopen settings to retry."
+        });
+      });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleToggle = useCallback(
@@ -126,11 +123,15 @@ export function SettingsNotificationsPage() {
             if (enabling) {
               const token = await requestAndRegisterPush();
               if (!token) {
+                // Permission denied or unsupported: put the toggle back off
+                // so the saved preference matches reality.
+                const reverted = { ...next, push_notifications: false };
+                pendingPrefs.current = reverted;
+                setUserEdits(reverted);
                 uiStore.getState().pushToast({
                   type: "info",
                   title: "Push not enabled",
-                  description:
-                    "Allow notifications in the browser prompt, or check VAPID configuration."
+                  description: "Allow notifications for this site in your browser settings, then try again."
                 });
                 return;
               }

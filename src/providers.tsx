@@ -7,7 +7,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useFlatmatesRealtime } from "@/hooks/useFlatmatesRealtime";
 import { bootstrapOptions } from "@/hooks/queries/useBootstrap";
-import { ApiClientError, setAccessToken, setRefreshTokenHandler } from "@/lib/api";
+import { ApiClientError, setRefreshTokenHandler } from "@/lib/api";
 import { getAuthState } from "@/lib/api/auth";
 import { refreshAccessToken } from "@/lib/auth/refresh";
 import { authStore } from "@/lib/stores/auth-store";
@@ -43,13 +43,6 @@ function ProviderInternals({
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);
-
-  // Hoist the access token synchronously before the first render so that
-  // any useQuery that fires during this render cycle already has a token.
-  // Previously this was deferred to a useEffect, which created a race
-  // window where the auth-state query (and any other enabled query) could
-  // fire with a null token, get a 401, and never recover.
-  setAccessToken(session?.access_token ?? null);
 
   // Fetch the backend-computed auth gate stage when the user is authenticated.
   // Routed through TanStack Query so retries, dedup, and refetch-on-focus are

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 
 /**
  * Block in-app navigation and warn on browser tab close / reload while a form
@@ -55,11 +56,34 @@ export function useDirtyFormGuard(isDirty: boolean, message: string): DirtyFormB
     [isDirty]
   );
 
+  // Also guard in-app links (sidebar, bottom nav, any <a>) while dirty (W13):
+  // intercept same-origin link clicks in the capture phase, before React Router
+  // handles them, and route them through the same confirm modal.
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!isDirty) return;
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const anchor = (event.target as Element | null)?.closest?.("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.target && anchor.target !== "_self") return;
+      if (anchor.hasAttribute("download")) return;
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      event.preventDefault();
+      event.stopPropagation();
+      pendingActionRef.current = () => navigate(url.pathname + url.search + url.hash);
+      setState("blocked");
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [isDirty, navigate]);
+
   const effectiveState = !isDirty && state === "blocked" ? "unblocked" : state;
 
-  // `useBlocker` only works reliably in React Router data routers. This app
-  // currently uses BrowserRouter, so callers opt into modal-backed blocking for
-  // explicit cancel/back actions via `confirmNavigation`.
+  // ponytail: browser Back is not intercepted. BrowserRouter has no useBlocker;
+  // moving to a data router (createBrowserRouter) would cover it.
   return useMemo(
     () => ({
       state: effectiveState,

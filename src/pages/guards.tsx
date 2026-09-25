@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Navigate, Outlet, useLocation, useSearchParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStore } from "zustand";
@@ -36,24 +37,36 @@ export function AuthGuard() {
   return <Outlet />;
 }
 
+/** Redirects home and shows one "access denied" toast (side effect in an effect, not render). */
+function AccessDeniedRedirect() {
+  const toasted = useRef(false);
+  useEffect(() => {
+    if (toasted.current) return;
+    toasted.current = true;
+    uiStore.getState().pushToast({
+      type: "warning",
+      title: "Access denied",
+      description: "You don't have permission to access that page.",
+    });
+  }, []);
+  return <Navigate to="/home" replace />;
+}
+
 export function AdminGuard() {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <PageSpinner />;
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const redirectTo = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+    return <Navigate to={redirectTo} replace />;
   }
 
   if (user.app_metadata?.role !== "admin") {
-    uiStore.getState().pushToast({
-      type: "warning",
-      title: "Access denied",
-      description: "You don't have permission to access that page.",
-    });
-    return <Navigate to="/home" replace />;
+    return <AccessDeniedRedirect />;
   }
 
   return <Outlet />;

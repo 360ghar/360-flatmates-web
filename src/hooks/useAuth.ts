@@ -12,7 +12,7 @@ import {
   stashOAuthNext,
 } from "@/lib/auth/oauth-redirect";
 import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
-import type { Session, User } from "@supabase/supabase-js";
+import { isAuthRetryableFetchError, type Session, type User } from "@supabase/supabase-js";
 import {
   mapSupabaseAuthError,
   type AuthErrorContext,
@@ -112,7 +112,10 @@ function initAuthSubscription() {
 
       if (currentSession && isTokenExpired(currentSession)) {
         const refreshResult = await supabase.auth.refreshSession();
-        if (refreshResult.error || !refreshResult.data.session) {
+        if (refreshResult.error && isAuthRetryableFetchError(refreshResult.error)) {
+          // Offline or a flaky network: keep the stored session. The API
+          // client refreshes on the first 401 once the network is back (W10).
+        } else if (refreshResult.error || !refreshResult.data.session) {
           currentSession = null;
           clearPlaywrightSession();
           authStore.getState().resetAuthFlow();
