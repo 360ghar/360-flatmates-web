@@ -525,7 +525,48 @@ describe("HttpApiClient.request", () => {
       signal: controller.signal,
     });
 
+    // The caller signal is combined with the timeout signal; aborting the
+    // caller must abort what fetch received.
     const requestInit = mockFetch.mock.calls[0][1] as RequestInit;
-    expect(requestInit.signal).toBe(controller.signal);
+    expect(requestInit.signal?.aborted).toBe(false);
+    controller.abort();
+    expect(requestInit.signal?.aborted).toBe(true);
+  });
+});
+
+describe("HttpApiClient transport errors", () => {
+  it("maps a fetch TypeError to a network AppError", async () => {
+    mockFetch.mockRejectedValue(new TypeError("Failed to fetch"));
+    await expect(createTestClient().request({ path: "/x" })).rejects.toMatchObject({
+      appError: { type: "network" },
+    });
+  });
+
+  it("maps an elapsed timeout to a timeout AppError", async () => {
+    const timeoutSpy = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockReturnValue(AbortSignal.abort(new DOMException("t", "TimeoutError")));
+    mockFetch.mockImplementation((_url: string, init: RequestInit) =>
+      init.signal?.aborted
+        ? Promise.reject(new DOMException("aborted", "TimeoutError"))
+        : Promise.resolve(jsonResponse({}))
+    );
+    await expect(createTestClient().request({ path: "/slow" })).rejects.toMatchObject({
+      appError: { type: "timeout" },
+    });
+    timeoutSpy.mockRestore();
+  });
+
+  it("rethrows caller aborts unchanged", async () => {
+    const controller = new AbortController();
+    mockFetch.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        init.signal?.aborted
+          ? Promise.reject(new DOMException("aborted", "AbortError"))
+          : Promise.resolve(jsonResponse({}))
+    );
+    controller.abort();
+    const pending = createTestClient().request({ path: "/x", signal: controller.signal });
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
   });
 });

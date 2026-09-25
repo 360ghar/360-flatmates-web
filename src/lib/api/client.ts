@@ -2,6 +2,9 @@ import { getEnv } from "@/lib/env";
 import { debug } from "@/lib/debug";
 import { ApiClientError, mapStatusToAppError } from "./errors";
 
+export const READ_TIMEOUT_MS = 20_000;
+export const WRITE_TIMEOUT_MS = 60_000;
+
 export type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export type QueryValue =
@@ -191,12 +194,32 @@ export class HttpApiClient implements ApiAdapter {
       req.body !== undefined,
       req.headers
     );
-    return this.fetcher(buildApiUrl(this.baseUrl, req.path, req.query), {
-      method: req.method ?? "GET",
-      headers,
-      body: req.body === undefined ? undefined : JSON.stringify(req.body),
-      signal: req.signal
-    });
+    // Uploads send base64 JSON bodies, so writes get a longer budget.
+    const timeout = AbortSignal.timeout(
+      req.body === undefined ? READ_TIMEOUT_MS : WRITE_TIMEOUT_MS
+    );
+    const signal = req.signal ? AbortSignal.any([req.signal, timeout]) : timeout;
+    try {
+      return await this.fetcher(buildApiUrl(this.baseUrl, req.path, req.query), {
+        method: req.method ?? "GET",
+        headers,
+        body: req.body === undefined ? undefined : JSON.stringify(req.body),
+        signal
+      });
+    } catch (error) {
+      // Caller cancellation (TanStack Query unmount, etc.) must stay an AbortError.
+      if (req.signal?.aborted) throw error;
+      if (timeout.aborted) {
+        throw new ApiClientError({
+          type: "timeout",
+          message: "The server took too long to respond."
+        });
+      }
+      throw new ApiClientError({
+        type: "network",
+        message: "Could not reach the server."
+      });
+    }
   }
 
   async request<TResponse, TBody = unknown>(
