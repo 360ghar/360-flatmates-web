@@ -167,6 +167,7 @@ export function SwipeDeck({
   if (!current) {
     return (
       <EmptyState
+          scene="house"
         actionLabel="Explore Listings"
         description="Check back later for new profiles."
         title="No profiles waiting"
@@ -276,7 +277,7 @@ export function SwipeDeck({
       </div>
       {multiSelect ? (
         <div
-          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-3 shadow-sm"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-hand bg-surface paper-grain shadow-sm p-3 shadow-sm"
           role="region"
           aria-label="Multi-select actions"
         >
@@ -335,7 +336,7 @@ function SwipeCard({
     <button
       type="button"
       className={cn(
-        "overflow-hidden rounded-2xl bg-surface text-left shadow-lg",
+        "overflow-hidden rounded-cut-lg bg-surface text-left shadow-lg",
         className
       )}
       onClick={onClick}

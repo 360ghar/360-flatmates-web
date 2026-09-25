@@ -111,6 +111,7 @@ export default function ListingDetailClient() {
     return (
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
         <EmptyState
+          scene="house"
           title="Listing not found"
           description="This listing may have been removed or the URL is incorrect."
         />
@@ -143,6 +144,7 @@ export default function ListingDetailClient() {
         loading={<Skeleton variant="listingDetail" />}
         empty={
           <EmptyState
+          scene="house"
             title="Listing not found"
             description="This listing may have been removed or is no longer available."
           />
@@ -173,7 +175,7 @@ export default function ListingDetailClient() {
 
             <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
               <div className="space-y-5">
-                <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm md:p-6">
+                <div className="rounded-hand bg-surface paper-grain shadow-sm p-5 shadow-sm md:p-6">
                   <PriceText
                     value={data.price}
                     variant="card"

@@ -107,6 +107,7 @@ export function AnalyticsPage() {
       <div className="p-4 md:p-6">
         <PageHeader title="Listing Analytics" description="View performance metrics for your listings." />
         <EmptyState
+          scene="house"
           title="No listing selected"
           description="Select a listing from your dashboard to view its analytics."
         />
@@ -179,6 +180,7 @@ export function AnalyticsPage() {
             ) : (
               <Card className="flex items-center justify-center p-8">
                 <EmptyState
+          scene="heart"
                   title="No daily activity yet"
                   description="Day-by-day views, likes, and shares will appear here once this listing gets engagement."
                 />

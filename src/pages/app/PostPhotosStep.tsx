@@ -32,7 +32,7 @@ export function PostPhotosStep({
         variant="secondary"
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="flex min-h-[160px] w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line bg-paper-2 text-ink-3 hover:border-accent/50 hover:bg-accent-soft"
+        className="flex min-h-[160px] w-full flex-col items-center justify-center gap-2 rounded-cut-lg border-2 border-dashed border-line bg-paper-2 text-ink-3 hover:border-accent/50 hover:bg-accent-soft"
       >
         <ImagePlus aria-hidden="true" className="h-6 w-6" />
         <span className="text-body-md">Click to upload photos</span>
@@ -57,13 +57,13 @@ export function PostPhotosStep({
           {pendingImages.map((img, index) => (
             <div
               key={img.id}
-              className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-line bg-paper-2"
+              className="group relative aspect-[4/3] overflow-hidden rounded-cut-md bg-paper-2"
             >
               {img.preview ? (
                 <NetworkImage
                   alt={`Listing photo ${index + 1} preview`}
                   src={img.preview}
-                  wrapperClassName="h-full w-full rounded-xl"
+                  wrapperClassName="h-full w-full rounded-cut-md"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-error-soft px-2 text-center">

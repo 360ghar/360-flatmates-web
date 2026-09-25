@@ -22,7 +22,7 @@ function SelectableCard({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex items-center gap-4 rounded-2xl border p-4 text-left",
+        "flex items-center gap-4 rounded-cut-lg border p-4 text-left",
         focusRing,
         interactiveMotion,
         selected
@@ -32,7 +32,7 @@ function SelectableCard({
     >
       <div
         className={cn(
-          "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+          "flex h-12 w-12 shrink-0 items-center justify-center rounded-cut-md",
           selected ? "bg-accent text-surface" : "bg-paper-3 text-ink-2",
         )}
       >

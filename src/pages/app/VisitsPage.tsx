@@ -271,6 +271,7 @@ function VisitsListView({
       }
       empty={
         <EmptyState
+          scene="house"
           title={
             activeTab === "upcoming"
               ? "No upcoming visits"
@@ -381,7 +382,7 @@ export function VisitsPage() {
       {/* Mobile fallback banner: the calendar is a desktop-only view. */}
       {viewMode === "calendar" ? (
         <Card className="flex items-start gap-3 p-4 md:hidden">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-accent">
             <Monitor aria-hidden="true" className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">

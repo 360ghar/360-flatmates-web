@@ -40,7 +40,7 @@ export function PropertyDetailPanel({
 
       {isPropertyLoading ? (
         <div className="p-4 lg:p-5 space-y-4">
-          <Skeleton className="w-full aspect-[16/10] rounded-xl" />
+          <Skeleton className="w-full aspect-[16/10] rounded-cut-md" />
           <Skeleton className="h-8 w-1/2" />
           <Skeleton className="h-6 w-3/4" />
           <div className="grid grid-cols-3 gap-2">
@@ -56,21 +56,21 @@ export function PropertyDetailPanel({
             <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
               {fullProperty.image_urls && fullProperty.image_urls.length > 0 ? (
                 fullProperty.image_urls.map((url) => (
-                  <div key={url} className="w-full shrink-0 aspect-[16/10] snap-start overflow-hidden rounded-xl border border-line bg-paper-2">
+                  <div key={url} className="w-full shrink-0 aspect-[16/10] snap-start overflow-hidden rounded-cut-md bg-paper-2">
                     <NetworkImage
                       alt={fullProperty.title}
                       src={url}
-                      wrapperClassName="w-full h-full rounded-xl"
+                      wrapperClassName="w-full h-full rounded-cut-md"
                       className="object-cover hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                 ))
               ) : (
-                <div className="w-full shrink-0 aspect-[16/10] overflow-hidden rounded-xl border border-line bg-paper-2">
+                <div className="w-full shrink-0 aspect-[16/10] overflow-hidden rounded-cut-md bg-paper-2">
                   <NetworkImage
                     alt={fullProperty.title}
                     src={fullProperty.main_image_url || selectedPin.main_image_url}
-                    wrapperClassName="w-full h-full rounded-xl"
+                    wrapperClassName="w-full h-full rounded-cut-md"
                     className="object-cover"
                   />
                 </div>
@@ -95,7 +95,7 @@ export function PropertyDetailPanel({
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
+            <div className="rounded-cut-md bg-paper-2/20 p-2.5 text-center">
               <span className="text-[9px] font-sans text-ink-3 block">Rent</span>
               <PriceText
                 value={fullProperty.monthly_rent}
@@ -104,13 +104,13 @@ export function PropertyDetailPanel({
                 className="mt-0.5 text-body-md font-sans font-normal text-accent"
               />
             </div>
-            <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
+            <div className="rounded-cut-md bg-paper-2/20 p-2.5 text-center">
               <span className="text-[9px] font-sans text-ink-3 block">Deposit</span>
               <p className="text-body-md font-sans font-normal text-ink mt-0.5">
                 {fullProperty.security_deposit ? formatCurrencyINR(fullProperty.security_deposit) : "TBD"}
               </p>
             </div>
-            <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
+            <div className="rounded-cut-md bg-paper-2/20 p-2.5 text-center">
               <span className="text-[9px] font-sans text-ink-3 block">Maint.</span>
               <p className="text-body-md font-sans font-normal text-ink mt-0.5">
                 {fullProperty.maintenance_charges ? formatCurrencyINR(fullProperty.maintenance_charges) : "None"}
@@ -150,7 +150,7 @@ export function PropertyDetailPanel({
           </div>
 
           {fullProperty.available_from && (
-            <div className="flex items-center gap-2 text-body-md text-ink-2 bg-paper-2/40 px-3 py-2 rounded-xl border border-line-low">
+            <div className="flex items-center gap-2 text-body-md text-ink-2 bg-paper-2/40 px-3 py-2 rounded-cut-md border border-line-low">
               <Calendar className="h-4 w-4 text-accent shrink-0" />
               <span>Available from: <strong>{new Date(fullProperty.available_from).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</strong></span>
             </div>

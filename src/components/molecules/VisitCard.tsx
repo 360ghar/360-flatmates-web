@@ -99,7 +99,7 @@ export function VisitCard({
       <NetworkImage
         alt={visit.propertyTitle}
         src={visit.propertyImageUrl}
-        wrapperClassName="h-36 w-full shrink-0 rounded-xl sm:h-14 sm:w-14"
+        wrapperClassName="h-36 w-full shrink-0 rounded-cut-md sm:h-14 sm:w-14"
       />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">

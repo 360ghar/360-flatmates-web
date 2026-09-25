@@ -31,7 +31,7 @@ export function SearchQuickFilterBar({
   onClearFilters: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 border border-line bg-surface p-3 rounded-2xl mb-6 shadow-xs">
+    <div className="flex flex-wrap items-center gap-3 border border-line bg-surface p-3 rounded-cut-lg mb-6 shadow-xs">
       <form onSubmit={onSearchSubmit} role="search" className="flex-1 min-w-[280px]">
         <Input
           type="search"
@@ -75,7 +75,7 @@ export function SearchQuickFilterBar({
         <Button
           variant="secondary"
           size="compact"
-          className="h-9 rounded-xl border-line text-body-sm font-semibold text-ink-2"
+          className="h-9 rounded-cut-md border-line text-body-sm font-semibold text-ink-2"
           onClick={onOpenFilters}
         >
           <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />

@@ -112,14 +112,14 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
             <h3 className="text-h4 text-ink mb-2">Budget &amp; Move-in</h3>
             <div className="flex flex-wrap gap-3">
               {budgetLabel ? (
-                <div className="flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2">
+                <div className="flex items-center gap-2 rounded-cut-md bg-accent-soft px-3 py-2">
                   <span className="text-label-md text-accent font-semibold">
                     {budgetLabel}
                   </span>
                 </div>
               ) : null}
               {moveInLabel ? (
-                <div className="flex items-center gap-2 rounded-xl bg-teal-soft px-3 py-2">
+                <div className="flex items-center gap-2 rounded-cut-md bg-teal-soft px-3 py-2">
                   <Clock aria-hidden="true" className="h-4 w-4 text-teal-mid" />
                   <span className="text-label-md text-teal-mid font-semibold">
                     {moveInLabel}
@@ -203,7 +203,7 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
         <Card className="flex flex-col gap-4 p-5">
           <h3 className="text-h4 text-ink">The Place</h3>
           {photos.length > 0 ? (
-            <div className="overflow-hidden rounded-xl">
+            <div className="overflow-hidden rounded-cut-md">
               <NetworkImage
                 alt={profile.property_title ?? profile.full_name}
                 src={photos[0]}
@@ -312,7 +312,7 @@ function CostLine({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl bg-paper-2 px-3 py-2">
+    <div className="flex items-center gap-2 rounded-cut-md bg-paper-2 px-3 py-2">
       <span className="text-ink-3">{icon}</span>
       <span className="text-label-md text-ink-2">{label}</span>
       <span className="text-label-md font-semibold text-ink">{value}</span>

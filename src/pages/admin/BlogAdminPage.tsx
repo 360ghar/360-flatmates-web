@@ -124,7 +124,7 @@ export function BlogAdminPage() {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-hand bg-surface paper-grain shadow-sm p-4 shadow-sm"
             >
               <div className="flex flex-col min-w-0">
                 <span className="truncate text-body-md text-ink font-semibold">

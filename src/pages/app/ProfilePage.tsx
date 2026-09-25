@@ -291,7 +291,7 @@ export function ProfilePage() {
         }
       >
         <div className="flex flex-col gap-4">
-          <div className="flex items-start gap-3 rounded-xl bg-error-soft p-4">
+          <div className="flex items-start gap-3 rounded-cut-md bg-error-soft p-4">
             <AlertTriangle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-error" />
             <div>
               <p className="text-body-md font-semibold text-error">This action is irreversible</p>

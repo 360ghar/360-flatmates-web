@@ -97,15 +97,15 @@ export function AppearancePage() {
           <div className="flex flex-wrap gap-3">
             {PREVIEW_SWATCHES.map((swatch) => (
               <div key={swatch.token} className="flex flex-col items-center gap-1.5">
-                <div className="h-12 w-12 rounded-xl border border-line" style={{ background: `var(--color-${swatch.token.toLowerCase()})` }} />
+                <div className="h-12 w-12 rounded-cut-md border border-line" style={{ background: `var(--color-${swatch.token.toLowerCase()})` }} />
                 <span className="text-caption text-ink-3">{swatch.token}</span>
               </div>
             ))}
           </div>
           <div className="mt-2 flex flex-col gap-3 border-t border-line/60 pt-4">
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3">
+            <div className="flex items-center justify-between gap-3 rounded-cut-md bg-surface p-3">
               <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                <span className="flex h-9 w-9 items-center justify-center rounded-cut-md text-accent">
                   <Bell aria-hidden="true" className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">

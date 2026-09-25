@@ -126,7 +126,7 @@ export function HomePage() {
               onClick={() => navigate(to)}
             >
               <div className="flex items-center gap-1.5">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-accent">
                   <Icon size={14} />
                 </div>
                 <span className="text-h5 tabular-nums text-ink">{value}</span>
@@ -149,7 +149,7 @@ export function HomePage() {
       />
 
       {/* Quick filter chips */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 md:mx-0 md:px-0">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 scroll-px-5 md:mx-0 md:px-0 md:scroll-px-0">
         {QUICK_FILTERS.map((item) => (
           <Chip
             key={item}
@@ -191,6 +191,7 @@ export function HomePage() {
               ))
             ) : (
               <EmptyState
+          scene="heart"
                 title={swipeError ? "Swipe API Error" : "No recommendations yet"}
                 description={swipeError ? String(swipeError) : "Complete your profile for better matches!"}
               />
@@ -215,6 +216,7 @@ export function HomePage() {
               ))
             ) : (
               <EmptyState
+          scene="house"
                 title={propertiesError ? "Properties API Error" : "No new listings"}
                 description={propertiesError ? String(propertiesError) : "No new listings in your area yet."}
               />
@@ -238,6 +240,7 @@ export function HomePage() {
               ))
             ) : (
               <EmptyState
+          scene="magnifier"
                 title={peersError ? "Peers API Error" : "No flatmates nearby"}
                 description={peersError ? String(peersError) : "Expand your search area to find more flatmates."}
               />

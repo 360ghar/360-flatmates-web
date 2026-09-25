@@ -116,7 +116,7 @@ export function AddPhonePage() {
       </p>
 
       {error && (
-        <div className="mt-4 rounded-xl bg-error-soft p-3 text-caption text-error" role="alert">
+        <div className="mt-4 rounded-cut-md bg-error-soft p-3 text-caption text-error" role="alert">
           {error}
         </div>
       )}

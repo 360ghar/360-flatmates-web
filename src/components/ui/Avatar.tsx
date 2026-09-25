@@ -66,7 +66,7 @@ export function Avatar({
   className,
   ...props
 }: AvatarProps) {
-  const roundedClass = shape === "circle" ? "rounded-full" : "rounded-xl";
+  const roundedClass = shape === "circle" ? "rounded-full" : "rounded-cut-md";
   const initials = getInitials(name);
 
   const renderRing = ringValue !== undefined && animated;

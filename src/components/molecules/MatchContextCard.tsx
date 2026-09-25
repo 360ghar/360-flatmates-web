@@ -41,7 +41,7 @@ export function MatchContextCard({
         aria-expanded={expanded}
         onClick={() => setExpanded((value) => !value)}
       >
-        <NetworkImage alt={item.title} src={item.thumbnailUrl} wrapperClassName="h-20 w-[88px] shrink-0 rounded-xl" />
+        <NetworkImage alt={item.title} src={item.thumbnailUrl} wrapperClassName="h-20 w-[88px] shrink-0 rounded-cut-md" />
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
             <span className="truncate text-body-md font-semibold text-ink">{item.title}</span>

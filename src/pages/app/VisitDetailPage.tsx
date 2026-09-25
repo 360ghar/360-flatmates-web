@@ -104,7 +104,7 @@ export function VisitDetailPage() {
         {/* Visit card */}
         <Skeleton variant="visitCard" />
         {/* Detail card with key-value rows */}
-        <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm flex flex-col gap-3">
+        <div className="rounded-hand bg-surface paper-grain shadow-sm p-4 shadow-sm flex flex-col gap-3">
           {Array.from({ length: 3 }, (_, i) => (
             <div key={i} className="flex items-center justify-between">
               <Skeleton className="h-4 w-20" />

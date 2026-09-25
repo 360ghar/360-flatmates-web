@@ -96,9 +96,9 @@ export function ChooseRolePage() {
           {Array.from({ length: 3 }, (_, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm"
+              className="flex items-center gap-4 rounded-hand bg-surface paper-grain shadow-sm p-5 shadow-sm"
             >
-              <Skeleton className="h-12 w-12 shrink-0 rounded-xl" />
+              <Skeleton className="h-12 w-12 shrink-0 rounded-cut-md" />
               <div className="flex flex-1 flex-col gap-2">
                 <Skeleton className="h-4 w-1/3" />
                 <Skeleton className="h-3 w-3/4" />

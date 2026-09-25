@@ -146,7 +146,7 @@ export function SwipeableCard({
     >
       <div
         className={cn(
-          "h-full w-full overflow-hidden rounded-2xl bg-surface text-left shadow-lg relative",
+          "h-full w-full overflow-hidden rounded-cut-lg bg-surface text-left shadow-lg relative",
           "transition-shadow duration-150 ease-out",
           "hover:shadow-hover",
           isSelected && "ring-4 ring-accent"

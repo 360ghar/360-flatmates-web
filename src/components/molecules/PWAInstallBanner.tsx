@@ -97,7 +97,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
       <>
         <div
           className={cn(
-            "flex items-center justify-between gap-3 rounded-xl border border-accent/25 bg-accent-soft px-4 py-3 shadow-sm",
+            "flex items-center justify-between gap-3 rounded-cut-md border border-accent/25 bg-accent-soft px-4 py-3 shadow-sm",
             className
           )}
         >
@@ -133,7 +133,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
     <>
       <div
         className={cn(
-          "relative flex flex-col items-start justify-between gap-4 rounded-2xl border border-accent/25 bg-accent-soft p-4 shadow-sm sm:flex-row sm:items-center",
+          "relative flex flex-col items-start justify-between gap-4 rounded-cut-lg border border-accent/25 bg-accent-soft p-4 shadow-sm sm:flex-row sm:items-center",
           className
         )}
       >
@@ -147,7 +147,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
         </button>
 
         <div className="flex items-center gap-3 pr-6">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-on-clay shadow-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-cut-md bg-accent text-on-clay shadow-sm">
             <Smartphone className="h-5 w-5" />
           </div>
           <div>

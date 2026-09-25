@@ -33,7 +33,7 @@ export function ModerationListingRow({
         <NetworkImage
           src={listing.main_image_url}
           alt={listing.title}
-          wrapperClassName="h-16 w-16 shrink-0 rounded-xl"
+          wrapperClassName="h-16 w-16 shrink-0 rounded-cut-md"
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">

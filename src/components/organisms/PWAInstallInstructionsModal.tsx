@@ -22,7 +22,7 @@ export function PWAInstallInstructionsModal({ open, onClose }: PWAInstallInstruc
     >
       <div className="flex flex-col gap-5 py-2">
         <div className="flex items-start gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-cut-md text-accent">
             <Share aria-hidden="true" className="h-5 w-5" />
           </div>
           <div>
@@ -34,7 +34,7 @@ export function PWAInstallInstructionsModal({ open, onClose }: PWAInstallInstruc
         </div>
 
         <div className="flex items-start gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-cut-md text-accent">
             <PlusSquare aria-hidden="true" className="h-5 w-5" />
           </div>
           <div>
@@ -46,7 +46,7 @@ export function PWAInstallInstructionsModal({ open, onClose }: PWAInstallInstruc
         </div>
 
         <div className="flex items-start gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-cut-md text-accent">
             <ArrowUpToLine aria-hidden="true" className="h-5 w-5" />
           </div>
           <div>

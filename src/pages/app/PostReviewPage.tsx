@@ -22,7 +22,7 @@ export function PostReviewPage() {
   return (
     <div className="flex items-center justify-center p-4 md:p-6">
       <Card className="mx-auto max-w-lg p-6 text-center">
-        <div className="mx-auto grid size-20 place-items-center rounded-2xl bg-warning-soft text-warning">
+        <div className="mx-auto grid size-20 place-items-center rounded-cut-lg bg-warning-soft text-warning">
           <Clock aria-hidden className="size-9" />
         </div>
         <h1 className="mt-5 text-h1">Under Review</h1>
@@ -33,7 +33,7 @@ export function PostReviewPage() {
           {reviewSteps.map(({ label, icon: Icon }, index) => (
             <div
               key={label}
-              className={`rounded-xl p-3 ${index < 2 ? "bg-accent-soft text-accent" : "bg-paper-2 text-ink-3"}`}
+              className={`rounded-cut-md p-3 ${index < 2 ? "bg-accent-soft text-accent" : "bg-paper-2 text-ink-3"}`}
             >
               <Icon aria-hidden className="mx-auto mb-2 size-5" />
               {label}

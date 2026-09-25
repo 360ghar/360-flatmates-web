@@ -171,6 +171,7 @@ export function ModerationListingsPage() {
           loading={<Skeleton variant="moderationRow" count={5} />}
           empty={
             <EmptyState
+          scene="magnifier"
               title={emptyTitle}
               description={emptyDescription}
               actionLabel={hasSearch ? "Clear search" : undefined}

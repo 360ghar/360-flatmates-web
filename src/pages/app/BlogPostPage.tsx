@@ -1,4 +1,5 @@
-import { userMessage } from "@/lib/api/errors";
+import { toAppError, userMessage } from "@/lib/api/errors";
+import { EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { useMemo } from "react";
 import { useLocation, useNavigate, useParams, Link } from "react-router";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
@@ -45,6 +46,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
   const isLoading = previewMode ? previewQuery.isLoading : postQuery.isLoading;
   const isError = previewMode ? previewQuery.isError : postQuery.isError;
   const error = previewMode ? previewQuery.error : postQuery.error;
+  const refetch = previewMode ? previewQuery.refetch : postQuery.refetch;
 
   const post = useMemo(() => {
     if (previewMode) {
@@ -73,14 +75,22 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4 mr-1" /> Back
         </Button>
-        <Card className="p-8 text-center">
-          <p className="text-h3 text-ink-2 font-semibold">Post not found</p>
-          <p className="mt-2 text-body-md text-ink-3">
-            {userMessage(error, "The post may have been removed.")}
-          </p>
-          <Button className="mt-4" onClick={() => navigate("/blog")}>
-            Back to blog
-          </Button>
+        <Card>
+          {isError && toAppError(error).type !== "not_found" ? (
+            <ErrorState
+              title="Could not load this post"
+              description={userMessage(error)}
+              onRetry={() => void refetch()}
+            />
+          ) : (
+            <EmptyState
+              scene="magnifier"
+              title="Post not found"
+              description="It may have been removed or the link has expired."
+              actionLabel="Back to blog"
+              onAction={() => navigate("/blog")}
+            />
+          )}
         </Card>
       </div>
     );
@@ -145,7 +155,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         </div>
 
         {post.cover_image_url ? (
-          <div className="mt-8 overflow-hidden rounded-2xl border border-line-low">
+          <div className="mt-8 overflow-hidden rounded-cut-lg border border-line-low">
             <NetworkImage
               src={post.cover_image_url}
               alt={post.title}

@@ -25,7 +25,7 @@ export function PrescreenPropertyDetails({ property }: { property: Property }) {
               key={url}
               src={url}
               alt={`${property.title} - image ${index + 1}`}
-              wrapperClassName="aspect-[16/10] rounded-2xl"
+              wrapperClassName="aspect-[16/10] rounded-cut-lg"
             />
           ))}
         </div>
@@ -34,7 +34,7 @@ export function PrescreenPropertyDetails({ property }: { property: Property }) {
         <NetworkImage
           src={property.main_image_url}
           alt={property.title}
-          wrapperClassName="aspect-[16/10] max-h-80 rounded-2xl"
+          wrapperClassName="aspect-[16/10] max-h-80 rounded-cut-lg"
         />
       )}
 

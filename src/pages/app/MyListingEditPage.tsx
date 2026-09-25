@@ -187,15 +187,15 @@ export function MyListingEditPage() {
           <Skeleton className="h-10 w-10 rounded-cut-md" />
           <Skeleton className="h-8 w-36" />
         </div>
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="rounded-hand bg-surface paper-grain shadow-sm p-5 shadow-sm">
           <Skeleton className="mb-4 h-5 w-20" />
           <div className="flex gap-2">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} className="h-20 w-20 shrink-0 rounded-xl" />
+              <Skeleton key={i} className="h-20 w-20 shrink-0 rounded-cut-md" />
             ))}
           </div>
         </div>
-        <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="flex flex-col gap-4 rounded-hand bg-surface paper-grain shadow-sm p-5 shadow-sm">
           {Array.from({ length: 5 }, (_, i) => (
             <div key={i} className="flex flex-col gap-2">
               <Skeleton className="h-3 w-20" />

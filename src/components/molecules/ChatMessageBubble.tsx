@@ -47,7 +47,7 @@ export function ChatMessageBubble({
       <div className={cn("flex max-w-[290px] flex-col", mine ? "items-end" : "items-start")}>
         <div
           className={cn(
-            "rounded-2xl px-3 py-2 text-body-md font-medium",
+            "rounded-cut-lg px-3 py-2 text-body-md font-medium",
             mine
               ? "rounded-bl bg-accent text-on-clay shadow-sm"
               : "rounded-br border border-line bg-surface text-ink shadow-xs"

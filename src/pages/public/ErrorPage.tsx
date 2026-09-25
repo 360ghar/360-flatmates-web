@@ -13,7 +13,7 @@ export function ErrorPage() {
         noindex
       />
       <main id="main" className="flex min-h-screen flex-col items-center justify-center bg-surface text-ink px-5">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-error-soft">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full">
           <TriangleAlert className="h-8 w-8 text-error" />
         </div>
         <h1 className="mt-6 text-h1">Something went wrong</h1>

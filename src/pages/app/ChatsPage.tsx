@@ -66,7 +66,7 @@ export function ChatsPage() {
         <div className="my-4 border-t border-line" />
         <section
           aria-labelledby="mobile-conversations-heading"
-          className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm"
+          className="overflow-hidden rounded-hand bg-surface paper-grain shadow-sm shadow-sm"
         >
           <div className="border-b border-line bg-surface-soft/80 px-4 py-3">
             <h2 id="mobile-conversations-heading" className="text-h3">
@@ -89,7 +89,7 @@ export function ChatsPage() {
       </div>
 
       {/* ── Tablet / Desktop: depth shell + split ── */}
-      <div className="hidden min-h-[65vh] overflow-hidden rounded-2xl border border-line bg-surface shadow-md md:flex">
+      <div className="hidden min-h-[65vh] overflow-hidden rounded-hand bg-surface paper-grain shadow-sm shadow-md md:flex">
         <aside className="flex w-72 shrink-0 flex-col border-r border-line bg-surface-soft/40 lg:w-80">
           <div className="border-b border-line px-4 py-3">
             <h2 className="text-h3">Your matches</h2>
@@ -156,6 +156,7 @@ function MatchesBar({
   if (!matches || matches.length === 0) {
     return (
       <EmptyState
+          scene="heart"
         title="No matches yet"
         description="Keep swiping to find your match!"
       />
@@ -174,20 +175,19 @@ function MatchesBar({
               type="button"
               className={cn(
                 "flex flex-col items-center shrink-0 rounded-cut-md p-1.5 gap-1 w-16",
-                "hover:bg-accent-soft transition-colors duration-150 ease-out",
+                "hover:bg-paper-2 transition-colors duration-150 ease-out",
                 "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
               )}
               onClick={() => onStartChat(peer.id)}
               aria-label={`Start chat with ${peer.full_name}`}
             >
-              <div className="relative">
-                <MatchAvatar name={peer.full_name} src={peer.profile_image_url} />
-                <span className="absolute -bottom-0.5 -right-0.5">
-                  <ProgressRing size="sm" value={peer.match_percentage ?? 0} label="Compatibility score" />
-                </span>
-              </div>
-              <span className="max-w-[56px] truncate text-[10px] font-medium text-ink-2">
+              {/* Score sits below the name: a ring over the avatar hid the initials. */}
+              <MatchAvatar name={peer.full_name} src={peer.profile_image_url} />
+              <span className="max-w-[56px] truncate text-caption font-semibold text-ink-2">
                 {peer.full_name.split(" ")[0]}
+              </span>
+              <span className="text-caption tabular text-pine" aria-label={`${peer.match_percentage ?? 0}% compatible`}>
+                {peer.match_percentage ?? 0}%
               </span>
             </button>
           );
@@ -230,6 +230,7 @@ function MatchesList({
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <EmptyState
+          scene="heart"
           title="No matches yet"
           description="Keep swiping to find your match!"
         />
@@ -247,7 +248,7 @@ function MatchesList({
             type="button"
             className={cn(
               "flex items-center gap-3 rounded-cut-md p-2 text-left",
-              "hover:bg-accent-soft transition-colors duration-150 ease-out",
+              "hover:bg-paper-2 transition-colors duration-150 ease-out",
               "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
             )}
             onClick={() => onStartChat(peer.id)}
@@ -315,6 +316,7 @@ function ConversationsPanel({
       }
       empty={
         <EmptyState
+          scene="chat"
           title="No conversations yet"
           description="Start chatting with your matches!"
         />

@@ -81,7 +81,7 @@ export function ModerationReportActionModal({
     >
       <div className="flex flex-col gap-4">
         {isSuspend && report ? (
-          <div className="rounded-xl border border-error/30 bg-error-soft p-3 text-caption text-error">
+          <div className="rounded-cut-md border border-error/30 bg-error-soft p-3 text-caption text-error">
             <p className="font-semibold">
               Suspending will hide {report.reported_name}'s account from
               discovery and prevent them from signing in.

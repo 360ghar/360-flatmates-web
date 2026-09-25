@@ -129,7 +129,7 @@ export function MyListingDetailPage() {
         </div>
         {/* Loaded layout is ListingCard + status/manage cards — not public listingDetail */}
         <Skeleton variant="listingCard" />
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="rounded-hand bg-surface paper-grain shadow-sm p-5 shadow-sm">
           <Skeleton className="mb-3 h-5 w-28 rounded-full" />
           {Array.from({ length: 3 }, (_, i) => (
             <div key={i} className="mb-2 flex flex-col gap-1">
@@ -138,7 +138,7 @@ export function MyListingDetailPage() {
             </div>
           ))}
         </div>
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="rounded-hand bg-surface paper-grain shadow-sm p-5 shadow-sm">
           <Skeleton className="mb-3 h-5 w-32 rounded-full" />
           <div className="flex flex-col gap-3 sm:flex-row">
             <Skeleton className="h-10 w-24 rounded-cut-md" />
@@ -179,6 +179,7 @@ export function MyListingDetailPage() {
         </Card>
       ) : !property ? (
         <EmptyState
+          scene="house"
           title="Listing not found"
           description="This listing may have been removed or you don't have access."
         />

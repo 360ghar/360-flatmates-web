@@ -181,7 +181,7 @@ export function SettingsNotificationsPage() {
           <Skeleton className="h-10 w-10 rounded-cut-md" />
           <Skeleton className="h-8 w-48" />
         </div>
-        <div className="rounded-2xl border border-line bg-surface">
+        <div className="rounded-hand bg-surface paper-grain shadow-sm">
           {Array.from({ length: 6 }, (_, i) => (
             <div
               key={i}

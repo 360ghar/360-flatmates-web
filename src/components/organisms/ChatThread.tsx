@@ -170,7 +170,7 @@ export function ChatThread({
   }
 
   return (
-    <section className={cn("flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] md:min-h-[640px] flex-col overflow-hidden rounded-none border-line bg-surface md:rounded-2xl md:border md:shadow-md", className)} {...props}>
+    <section className={cn("flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] md:min-h-[640px] flex-col overflow-hidden rounded-none border-line bg-surface md:rounded-cut-lg md:border md:shadow-md", className)} {...props}>
       <ChatThreadHeader
         participant={participant}
         disconnected={disconnected}

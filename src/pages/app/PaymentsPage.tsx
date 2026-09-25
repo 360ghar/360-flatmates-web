@@ -32,9 +32,9 @@ function PaymentMethodRow({
   const methodLabel = formatPaymentMethodLabel(method);
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-hand bg-surface paper-grain shadow-sm p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full text-accent">
           <CreditCard aria-hidden="true" className="h-4 w-4" />
         </div>
         <div className="flex flex-col min-w-0">

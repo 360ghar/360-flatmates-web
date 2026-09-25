@@ -29,7 +29,7 @@ export function FullPageMessage({
       <section className="animate-fade-slide-up max-w-md text-center">
         <div
           className={cn(
-            "mx-auto mb-5 grid size-28 place-items-center rounded-2xl",
+            "mx-auto mb-5 grid size-28 place-items-center rounded-cut-lg",
             iconClassName,
           )}
         >

@@ -239,7 +239,7 @@ export function DiscoverPage() {
         </div>
 
         <div
-          className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 md:mx-0 md:px-0"
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x -mx-5 px-5 scroll-px-5 md:mx-0 md:px-0 md:scroll-px-0"
           role="group"
           aria-label="Quick filters"
         >
@@ -290,7 +290,7 @@ export function DiscoverPage() {
               />
             }
             empty={
-              <div className="col-span-full text-center py-16 bg-surface/30 border border-line-low rounded-2xl">
+              <div className="col-span-full text-center py-16 bg-surface/30 border border-line-low rounded-cut-lg">
                 <p className="text-h3 text-ink-2 font-semibold">No listings found</p>
                 <p className="mt-2 text-body-md text-ink-3">
                   Try a different city or adjust filters.

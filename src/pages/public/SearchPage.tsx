@@ -334,7 +334,7 @@ export function SearchPage() {
           description="Find verified properties by query, budget, city, or configuration."
           className="mb-6"
           actions={
-            <Button variant="secondary" size="compact" onClick={() => navigate("/saved-searches")} className="rounded-xl">
+            <Button variant="secondary" size="compact" onClick={() => navigate("/saved-searches")} className="rounded-cut-md">
               Saved Searches
             </Button>
           }

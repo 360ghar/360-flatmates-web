@@ -345,9 +345,11 @@ body {
   }
 }
 
-img,
-svg {
-  max-width: 100%;
+@layer base {
+  img,
+  svg {
+    max-width: 100%;
+  }
 }
 
 ::selection {

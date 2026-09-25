@@ -86,7 +86,7 @@ export function ReportProblemPage() {
           <h1 className="text-h1">Report a Problem</h1>
         </div>
         <Card className="flex flex-col items-center gap-3 p-8 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-soft">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full">
             <CheckCircle2 aria-hidden="true" className="h-8 w-8 text-success" />
           </div>
           <h2 className="text-h3 text-ink">Thank you!</h2>

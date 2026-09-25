@@ -129,6 +129,7 @@ export function SearchResults({
         </div>
         {listings.length === 0 ? (
           <EmptyState
+          scene="heart"
             actionLabel="Clear Filters"
             description="No listings match your filters."
             title="No results"

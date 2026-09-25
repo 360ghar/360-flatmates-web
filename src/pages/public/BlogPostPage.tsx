@@ -387,7 +387,7 @@ function LegacyBlogPostPage() {
             </p>
           </div>
 
-          <div className="relative h-64 md:h-96 rounded-2xl overflow-hidden mb-12 shadow-sm">
+          <div className="relative h-64 md:h-96 rounded-cut-lg overflow-hidden mb-12 shadow-sm">
             <NetworkImage
               src={post.image}
               alt={post.title}

@@ -134,7 +134,7 @@ function DimensionDetailModal({
       }
     >
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between rounded-xl bg-paper-2 p-3">
+        <div className="flex items-center justify-between rounded-cut-md bg-paper-2 p-3">
           <div>
             <p className="text-caption text-ink-3">Dimension score</p>
             <p className="text-h2 font-semibold text-ink">{score}%</p>
@@ -326,7 +326,7 @@ export function CompatibilityPage() {
             {opportunity ? (
               <Card className="flex flex-col gap-2 p-5">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-accent">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full text-accent">
                     <Sparkles aria-hidden="true" className="h-4 w-4" />
                   </div>
                   <h2 className="text-h3">Top opportunity</h2>
@@ -359,7 +359,7 @@ export function CompatibilityPage() {
             {incomplete.length > 0 ? (
               <Card className="flex flex-col gap-2 p-5">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-warning-soft text-warning">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full text-warning">
                     <AlertCircle aria-hidden="true" className="h-4 w-4" />
                   </div>
                   <h2 className="text-h3">What we couldn't compare</h2>

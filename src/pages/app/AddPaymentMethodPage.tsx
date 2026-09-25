@@ -132,7 +132,7 @@ export function AddPaymentMethodPage() {
             <span className="text-body-md text-ink font-semibold">Method details</span>
           </div>
 
-          <div className="rounded-xl border border-warning/30 bg-warning-soft p-3 text-body-sm text-ink-2">
+          <div className="rounded-cut-md border border-warning/30 bg-warning-soft p-3 text-body-sm text-ink-2">
             Use the Razorpay checkout flow first, then paste the returned
             token ID or payment ID below. Card number, CVV, expiry, and UPI PIN
             belong in Razorpay, not in 360 Flatmates.

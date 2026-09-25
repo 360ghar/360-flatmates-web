@@ -76,6 +76,7 @@ export function SearchResultsList({
           </Card>
         ) : listings.length === 0 ? (
           <EmptyState
+          scene="magnifier"
             title="No results found"
             description="Try clearing your filters or refining your search query."
             actionLabel="Clear Filters"
@@ -87,7 +88,7 @@ export function SearchResultsList({
               <div
                 key={listing.id}
                 id={`listing-card-${listing.id}`}
-                className="card-appear motion-reduce:animate-none transition-all duration-300 rounded-2xl"
+                className="card-appear motion-reduce:animate-none transition-all duration-300 rounded-cut-lg"
                 style={{ animationDelay: `${Math.min(index % pageSize, 10) * 50}ms` }}
               >
                 <ListingCard

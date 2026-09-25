@@ -151,7 +151,7 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
       <Card variant="media" className="relative shadow-md">
         <PaperScene className="h-28 sm:h-32" edgeClassName="bg-surface" />
         <div className="-mt-12 flex flex-col items-center gap-3 px-5 pb-6 text-center sm:-mt-14">
-          <div className="relative z-20 rounded-2xl ring-4 ring-surface shadow-md">
+          <div className="relative z-20 rounded-cut-lg ring-4 ring-surface shadow-md">
             <Avatar
               name={profile.full_name}
               size="xl"
@@ -162,7 +162,7 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
               }}
             />
             {photoUploading && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surface/60">
+              <div className="absolute inset-0 flex items-center justify-center rounded-cut-lg bg-surface/60">
                 <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin text-accent" />
               </div>
             )}
@@ -233,7 +233,7 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
           </Button>
 
           {!profile.onboarding_completed && (
-            <div className="mt-2 flex w-full flex-col items-center justify-between gap-4 rounded-2xl border border-accent/15 bg-accent-soft/40 p-4 text-center sm:flex-row sm:p-5 sm:text-left">
+            <div className="mt-2 flex w-full flex-col items-center justify-between gap-4 rounded-cut-lg border border-accent/15 bg-accent-soft/40 p-4 text-center sm:flex-row sm:p-5 sm:text-left">
               <div className="flex flex-col items-center gap-4 sm:flex-row">
                 <ProgressRing size="lg" value={onboardingProgress} label="Profile completion" />
                 <div>

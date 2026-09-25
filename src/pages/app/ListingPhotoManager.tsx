@@ -213,7 +213,7 @@ export function ListingPhotoManager({
         </div>
       )}
       {multiSelect ? (
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-line bg-paper-2 p-3">
+        <div className="flex items-center justify-between gap-2 rounded-cut-md bg-paper-2 p-3">
           <span className="text-body-sm text-ink-2">
             {selectedPhotoIndexes.size} of {imageUrls.length} selected
           </span>

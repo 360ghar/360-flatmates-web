@@ -39,7 +39,7 @@ export function ListingBookingPanel({
         </div>
         <button
           type="button"
-          className="mb-4 flex w-full items-center gap-3 rounded-xl border border-line bg-surface-soft p-3 text-left transition-colors hover:border-accent/30"
+          className="mb-4 flex w-full items-center gap-3 rounded-cut-md bg-paper-2 p-3 text-left transition-colors hover:border-accent/30"
           onClick={onOpenOwnerProfile}
         >
           <Avatar name={ownerName ?? "Host"} size="lg" src={ownerAvatarUrl} />

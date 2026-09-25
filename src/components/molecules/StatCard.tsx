@@ -26,7 +26,7 @@ export function StatCard({
 }: StatCardProps) {
   const body = icon ? (
     <div className="flex items-start gap-4">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-cut-md text-accent">
         {icon}
       </div>
       <div className="min-w-0">
@@ -51,7 +51,7 @@ export function StatCard({
     return (
       <Link
         to={href}
-        className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+        className="block rounded-cut-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       >
         <Card className="h-full p-5 transition-shadow hover:shadow-hover">
           {body}
@@ -65,7 +65,7 @@ export function StatCard({
       <button
         type="button"
         onClick={onClick as (e: MouseEvent<HTMLButtonElement>) => void}
-        className="block w-full rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+        className="block w-full rounded-cut-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
       >
         <Card className="h-full p-5 transition-shadow hover:shadow-hover">
           {body}

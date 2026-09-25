@@ -81,18 +81,18 @@ export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
       profile.maintenance != null ? (
         <div className="mt-3 flex flex-wrap gap-2">
           {profile.monthlyRent != null ? (
-            <div className="rounded-xl bg-accent-soft px-3 py-2 text-label-md font-semibold text-accent">
+            <div className="rounded-cut-md bg-accent-soft px-3 py-2 text-label-md font-semibold text-accent">
               ₹{Math.round(profile.monthlyRent).toLocaleString("en-IN")}/mo
             </div>
           ) : null}
           {profile.securityDeposit != null ? (
-            <div className="rounded-xl bg-paper-2 px-3 py-2 text-label-md text-ink-2">
+            <div className="rounded-cut-md bg-paper-2 px-3 py-2 text-label-md text-ink-2">
               Deposit ₹
               {Math.round(profile.securityDeposit).toLocaleString("en-IN")}
             </div>
           ) : null}
           {profile.maintenance != null ? (
-            <div className="rounded-xl bg-paper-2 px-3 py-2 text-label-md text-ink-2">
+            <div className="rounded-cut-md bg-paper-2 px-3 py-2 text-label-md text-ink-2">
               Maint. ₹
               {Math.round(profile.maintenance).toLocaleString("en-IN")}
             </div>

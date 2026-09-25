@@ -25,6 +25,7 @@ export function SharePage() {
     return (
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
         <EmptyState
+          scene="house"
           title="Listing not found"
           description="This listing may have been removed or the URL is incorrect."
         />

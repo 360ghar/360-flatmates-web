@@ -38,7 +38,7 @@ export function ProfileCompatibilitySection({ profile }: { profile: SwipeProfile
   return (
     <section>
       <h3 className="text-h4 text-ink mb-3">Compatibility</h3>
-      <div className="rounded-xl border border-line/45 bg-paper-2 p-3 space-y-4">
+      <div className="rounded-cut-md border border-line/45 bg-paper-2 p-3 space-y-4">
         <div className="flex items-center gap-3">
           <div className="rounded-full bg-surface p-1 shadow-xs">
             <ProgressRing

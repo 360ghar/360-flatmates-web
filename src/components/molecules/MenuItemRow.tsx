@@ -30,14 +30,14 @@ export function MenuItemRow({
     <button
       type="button"
       className={cn(
-        "group flex min-h-14 w-full items-center gap-3 px-2 py-2 text-left hover:bg-accent-soft active:scale-[0.99] rounded-xl transition-all duration-300",
+        "group flex min-h-14 w-full items-center gap-3 px-2 py-2 text-left hover:bg-accent-soft active:scale-[0.99] rounded-cut-md transition-all duration-300",
         interactiveMotion,
         focusRing,
         className
       )}
       {...props}
     >
-      <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105", classes.soft, classes.text)}>
+      <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-cut-md transition-transform duration-300 group-hover:scale-105", classes.soft, classes.text)}>
         <Icon aria-hidden="true" className="h-5 w-5" />
       </span>
       <span className="min-w-0 flex-1">

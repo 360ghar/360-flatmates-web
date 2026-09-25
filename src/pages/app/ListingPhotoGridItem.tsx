@@ -24,14 +24,14 @@ export function ListingPhotoGridItem({
 }) {
   return (
     <div
-      className={`group relative aspect-[4/3] overflow-hidden rounded-xl border bg-paper-2 ${
+      className={`group relative aspect-[4/3] overflow-hidden rounded-cut-md border bg-paper-2 ${
         isSelected ? "border-accent ring-2 ring-accent" : "border-line"
       }`}
     >
       <NetworkImage
         alt={`Photo ${index + 1}`}
         src={url}
-        wrapperClassName="h-full w-full rounded-xl"
+        wrapperClassName="h-full w-full rounded-cut-md"
       />
       {/* Multi-select checkbox */}
       {multiSelect ? (

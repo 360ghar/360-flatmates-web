@@ -26,7 +26,7 @@ export const ShareListingCard = forwardRef<HTMLDivElement, ShareListingCardProps
     return (
       <div
         ref={ref}
-        className={`flex flex-col overflow-hidden rounded-2xl shadow-2xl ${FORMAT_CLASSES[format]}`}
+        className={`flex flex-col overflow-hidden rounded-cut-lg shadow-2xl ${FORMAT_CLASSES[format]}`}
       >
         <div className="relative flex-1 min-h-0">
           <NetworkImage

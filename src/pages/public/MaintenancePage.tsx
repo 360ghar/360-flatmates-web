@@ -13,7 +13,7 @@ export function MaintenancePage() {
         noindex
       />
       <main id="main" className="flex min-h-screen flex-col items-center justify-center bg-surface text-ink px-5">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full">
           <Wrench className="h-8 w-8 text-accent" />
         </div>
         <h1 className="mt-6 text-h1">We'll be right back</h1>

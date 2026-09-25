@@ -19,7 +19,7 @@ export function PropertyDetailSheet({ pin, onClose, onNavigate }: PropertyDetail
           <NetworkImage
             alt={pin.title}
             src={pin.main_image_url}
-            wrapperClassName="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-xl"
+            wrapperClassName="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-cut-md"
           />
         )}
         <div className="min-w-0 flex-1">
