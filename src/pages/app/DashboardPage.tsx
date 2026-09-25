@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Plus } from "lucide-react";
 import { useDashboardStats } from "@/hooks/queries";
 import type { RoomPosterDashboard } from "@/lib/api/types";
 import { Card } from "@/components/ui/Card";
@@ -85,7 +84,7 @@ export function DashboardPage() {
             description="Post a room to start tracking views, likes, and chats from potential flatmates."
             actionLabel="Post a listing"
             onAction={() => navigate("/post")}
-            icon={<Plus aria-hidden="true" className="h-6 w-6" />}
+            scene="house"
           />
         </Card>
       ) : stats ? (

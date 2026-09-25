@@ -259,7 +259,7 @@ export function DiscoverPage() {
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <p
-            className="text-eyebrow uppercase tracking-[0.16em] text-ink-3"
+            className="text-eyebrow text-ink-3"
             aria-live="polite"
             aria-atomic="true"
           >
@@ -299,7 +299,7 @@ export function DiscoverPage() {
                   <button
                     type="button"
                     onClick={handleClearFilters}
-                    className="mt-4 inline-flex rounded-full bg-accent px-4 py-2 text-body-sm font-semibold text-white transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="mt-4 inline-flex rounded-full bg-accent px-4 py-2 text-body-sm font-semibold text-on-clay transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     Clear filters
                   </button>

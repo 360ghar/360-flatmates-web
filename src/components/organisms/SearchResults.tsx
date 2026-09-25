@@ -108,7 +108,7 @@ export function SearchResults({
       <div className="min-w-0">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <p
-            className="text-eyebrow uppercase tracking-[0.16em] text-ink-3"
+            className="text-eyebrow text-ink-3"
             aria-live="polite"
             aria-atomic="true"
           >

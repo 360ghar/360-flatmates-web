@@ -36,7 +36,7 @@ export function CollapsedProfileBadges({ profile }: { profile: SwipeProfile }) {
           </span>
         ) : null}
         {profile.budgetMin !== undefined || profile.budgetMax !== undefined ? (
-          <span className="inline-flex items-center gap-1 rounded-md bg-accent/70 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+          <span className="inline-flex items-center gap-1 rounded-md bg-accent/70 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-on-clay">
             {formatBudgetRange(profile.budgetMin, profile.budgetMax).replace(
               "Any budget",
               "Flex"
@@ -44,7 +44,7 @@ export function CollapsedProfileBadges({ profile }: { profile: SwipeProfile }) {
           </span>
         ) : null}
         {dealCount > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-md bg-warning/80 backdrop-blur-xs px-2 py-0.5 text-caption font-semibold text-white">
+          <span className="inline-flex items-center gap-1 rounded-md bg-[#7E5208]/85 px-2 py-0.5 text-caption font-semibold text-white">
             <ShieldAlert aria-hidden="true" className="h-3 w-3" />
             {dealCount} deal-breaker{dealCount === 1 ? "" : "s"}
           </span>

@@ -69,9 +69,9 @@ export function BlogPage() {
 
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-16 md:px-12">
         <div className="text-center mb-16">
-          <p className="text-eyebrow text-accent uppercase tracking-widest">Resources</p>
+          <p className="text-eyebrow text-accent">Resources</p>
           <h1 className="mt-4 text-display text-4xl md:text-6xl text-ink leading-tight tracking-tight max-w-3xl mx-auto">
-            Flatmate Living <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-7xl">guides & tips</span>
+            Flatmate Living <span className="text-serif-italic text-5xl md:text-7xl">guides & tips</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-body-lg text-ink-2">
             Expert advice, market insights, and real stories to help you find the perfect flatmate and make shared living work.

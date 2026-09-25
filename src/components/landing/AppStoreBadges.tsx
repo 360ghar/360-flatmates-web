@@ -74,7 +74,7 @@ export function AppStoreBadges({ variant = "light" }: AppStoreBadgesProps) {
   const isDark = useIsDark();
 
   const base =
-    "inline-flex items-center gap-2.5 rounded-[8px] px-4 py-2.5 transition-all duration-200 hover:-translate-y-px active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2";
+    "inline-flex items-center gap-2.5 rounded-cut-md px-4 py-2.5 transition-all duration-200 hover:-translate-y-px active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2";
 
   // "dark" variant: always on a dark section background (e.g. BottomCTA) — white glass pill.
   // Does not need to adapt to app theme; it lives on a permanently dark surface.
@@ -127,7 +127,7 @@ export function AppStoreBadges({ variant = "light" }: AppStoreBadgesProps) {
         >
           <Icon className="h-5 w-5 shrink-0" />
           <span className="flex flex-col text-left leading-none">
-            <span className="text-[9px] font-medium opacity-75 tracking-wide uppercase mb-0.5">
+            <span className="text-[9px] font-medium opacity-75 mb-0.5">
               {eyebrow}
             </span>
             <span className="text-[13px] font-semibold tracking-tight">

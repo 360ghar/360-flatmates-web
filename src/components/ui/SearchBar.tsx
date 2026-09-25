@@ -152,7 +152,7 @@ export function SearchBar({
                 role="option"
                 aria-selected={index === activeIndex}
                 className={cn(
-                  "rounded-[8px] px-3 py-2 text-left text-body-md text-ink hover:bg-accent-soft",
+                  "rounded-cut-md px-3 py-2 text-left text-body-md text-ink hover:bg-accent-soft",
                   index === activeIndex && "bg-accent-soft"
                 )}
                 key={query}
@@ -166,7 +166,7 @@ export function SearchBar({
           {onClearHistory ? (
             <button
               type="button"
-              className="mt-1 rounded-[8px] px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="mt-1 rounded-cut-md px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               onClick={onClearHistory}
             >
               Clear history

@@ -17,7 +17,7 @@ export function AuthLayout() {
         </Link>
       </div>
 
-      <div className="relative z-[var(--z-raised)] w-full max-w-md rounded-[24px] border border-line-low bg-surface p-6 shadow-md sm:p-8">
+      <div className="relative z-[var(--z-raised)] w-full max-w-md rounded-cut-lg border border-line-low bg-surface p-6 shadow-md sm:p-8">
         <div className="flex justify-center mb-8">
           <Logo className="scale-105" />
         </div>

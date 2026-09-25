@@ -48,7 +48,7 @@ export function Badge({
     return (
       <span
         className={cn(
-          "inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[12px] font-bold leading-none text-paper",
+          "inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[12px] font-bold leading-none text-on-clay",
           className
         )}
         {...props}
@@ -80,17 +80,14 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex min-h-6 items-center gap-1.5 rounded-full border px-2.5 py-1 text-label-md font-semibold",
+        "inline-flex min-h-6 items-center gap-1.5 rounded-cut-sm px-2 py-0.5 text-label-md font-semibold",
         classes.soft,
         classes.inkText,
-        classes.border,
         className
       )}
       {...props}
     >
-      {dot || variant === "status" ? (
-        <span aria-hidden="true" className={cn("h-2 w-2 rounded-full", classes.dot)} />
-      ) : null}
+      {dot ? <span aria-hidden="true" className={cn("h-2 w-2 rounded-full", classes.dot)} /> : null}
       {icon ? (
         <span className={cn("flex h-4 w-4 items-center justify-center", classes.icon)}>{icon}</span>
       ) : null}

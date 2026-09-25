@@ -163,7 +163,7 @@ function AuthGateError({
 }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-paper px-5 text-ink">
-      <section className="w-full max-w-md rounded-[16px] border border-line bg-surface p-6 text-center shadow-sm">
+      <section className="w-full max-w-md rounded-cut-md border border-line bg-surface p-6 text-center shadow-sm">
         <h1 className="text-h2">Could not verify your account</h1>
         <p className="mt-2 text-body-md text-ink-2">
           {message || "Please check your connection and try again."}

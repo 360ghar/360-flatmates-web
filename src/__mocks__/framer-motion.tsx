@@ -31,7 +31,17 @@ const motion = new Proxy(
         const domProps = Object.fromEntries(
           Object.entries(rest).filter(([k]) => !FRAMER_PROPS.includes(k as typeof FRAMER_PROPS[number]))
         );
-        return createElement(prop, { ...domProps, ref, style }, children);
+        // Motion values in `style` resolve to their current value.
+        const resolvedStyle =
+          style && typeof style === "object"
+            ? Object.fromEntries(
+                Object.entries(style as Record<string, unknown>).map(([k, v]) => [
+                  k,
+                  v && typeof v === "object" && "get" in v ? (v as { get: () => unknown }).get() : v
+                ])
+              )
+            : style;
+        return createElement(prop, { ...domProps, ref, style: resolvedStyle }, children);
       });
     },
   },
@@ -66,8 +76,18 @@ function useTransform(
   return { get: () => 0 };
 }
 
+function useScroll() {
+  return { scrollY: { get: () => 0 }, scrollYProgress: { get: () => 0 } };
+}
+
+function MotionConfig({ children }: { children: React.ReactNode }) {
+  return children;
+}
+
 export {
   motion,
+  useScroll,
+  MotionConfig,
   m,
   LazyMotion,
   domAnimation,

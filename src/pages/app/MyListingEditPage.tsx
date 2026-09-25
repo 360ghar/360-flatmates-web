@@ -183,7 +183,7 @@ export function MyListingEditPage() {
     return (
       <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
         <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-[8px]" />
+          <Skeleton className="h-10 w-10 rounded-cut-md" />
           <Skeleton className="h-8 w-36" />
         </div>
         <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
@@ -198,12 +198,12 @@ export function MyListingEditPage() {
           {Array.from({ length: 5 }, (_, i) => (
             <div key={i} className="flex flex-col gap-2">
               <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-12 w-full rounded-[8px]" />
+              <Skeleton className="h-12 w-full rounded-cut-md" />
             </div>
           ))}
         </div>
-        <Skeleton className="h-[52px] w-full rounded-[8px]" />
-        <Skeleton className="h-[52px] w-full rounded-[8px]" />
+        <Skeleton className="h-[52px] w-full rounded-cut-md" />
+        <Skeleton className="h-[52px] w-full rounded-cut-md" />
       </div>
     );
   }
@@ -303,7 +303,7 @@ export function MyListingEditPage() {
             <Button
               variant="primary"
               onClick={() => blocker.proceed?.()}
-              className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+              className="w-full bg-error text-on-clay hover:bg-error/95 md:w-auto"
             >
               Discard changes
             </Button>

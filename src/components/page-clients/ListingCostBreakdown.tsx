@@ -16,7 +16,7 @@ export function ListingCostBreakdown({
       <h2 className="text-h3 font-semibold text-ink">Cost breakdown</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
-          <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Monthly rent</p>
+          <p className="text-caption font-medium text-ink-3">Monthly rent</p>
           <PriceText
             value={price}
             variant="inline"
@@ -25,13 +25,13 @@ export function ListingCostBreakdown({
           />
         </div>
         <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
-          <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Deposit</p>
+          <p className="text-caption font-medium text-ink-3">Deposit</p>
           <p className="mt-1 text-h2 font-semibold text-ink">
             {securityDeposit ? formatCurrencyINR(securityDeposit) : "TBD"}
           </p>
         </div>
         <div className="rounded-xl border border-line bg-surface-soft p-4 text-center">
-          <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Maintenance</p>
+          <p className="text-caption font-medium text-ink-3">Maintenance</p>
           <p className="mt-1 text-h2 font-semibold text-ink">
             {maintenanceCharges ? formatCurrencyINR(maintenanceCharges) : "None"}
           </p>

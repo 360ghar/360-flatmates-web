@@ -36,7 +36,7 @@ export function ListingPhotoGallery({
         />
         {compatibilityScore !== undefined && (
           <div className="absolute top-4 left-4 flex items-center gap-2 rounded-full border border-white/50 bg-surface/95 px-3 py-1.5 shadow-md backdrop-blur-sm">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-ink-2">Match</span>
+            <span className="text-[10px] font-bold text-ink-2">Match</span>
             <ProgressRing value={compatibilityScore} size="sm" showValue label="Compatibility score" />
           </div>
         )}

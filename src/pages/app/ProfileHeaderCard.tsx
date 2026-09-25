@@ -11,6 +11,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { PaperScene } from "@/components/paper/PaperScene";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { TrustBadge } from "@/components/ui/TrustBadge";
 
@@ -146,10 +147,10 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
         onChange={handleFileChange}
       />
 
-      <Card variant="media" className="relative border-line shadow-md">
-        <div className="h-20 bg-gradient-to-br from-accent-soft via-lavender to-surface-soft sm:h-24" aria-hidden="true" />
+      <Card variant="media" className="relative shadow-md">
+        <PaperScene className="h-28 sm:h-32" edgeClassName="bg-surface" />
         <div className="-mt-12 flex flex-col items-center gap-3 px-5 pb-6 text-center sm:-mt-14">
-          <div className="relative rounded-2xl ring-4 ring-surface shadow-md">
+          <div className="relative z-20 rounded-2xl ring-4 ring-surface shadow-md">
             <Avatar
               name={profile.full_name}
               size="xl"

@@ -87,7 +87,7 @@ function ListItemSkeleton() {
 
 function CardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <div className="overflow-hidden rounded-hand bg-surface shadow-sm">
       <div className={cn("aspect-[20/19] w-full", shimmer)} />
       <div className="flex flex-col gap-2 p-3.5">
         <BlockSkeleton className="h-4 w-1/4" />
@@ -105,7 +105,7 @@ function CardSkeleton() {
 
 function ProfileSkeleton() {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="flex flex-col items-center gap-3 rounded-hand bg-surface p-4 shadow-sm">
       <div className={cn("h-20 w-20 rounded-xl", shimmer)} />
       <BlockSkeleton className="h-5 w-1/2" />
       <BlockSkeleton className="w-1/3" />
@@ -122,7 +122,7 @@ function ListingCardSkeleton({ layout = "vertical" }: { layout?: "vertical" | "h
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-line bg-surface shadow-sm",
+        "overflow-hidden rounded-hand bg-surface shadow-sm",
         isHorizontal ? "grid gap-0 lg:grid-cols-[200px_minmax(0,1fr)]" : "flex flex-col"
       )}
     >
@@ -162,7 +162,7 @@ function ListingCardSkeleton({ layout = "vertical" }: { layout?: "vertical" | "h
 /** Matches ProfileGridCard compact default — 3:4 photo + match ring + CTA */
 function ProfileGridCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <div className="overflow-hidden rounded-hand bg-surface shadow-sm">
       <div className="relative">
         <div className={cn("aspect-[3/4] w-full", shimmer)} />
         <div className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full border border-line bg-surface/95 p-0.5 shadow-xs" />
@@ -193,7 +193,7 @@ function MenuItemRowSkeleton() {
 /** Matches NotificationCard */
 function NotificationCardSkeleton() {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="flex items-start gap-3 rounded-hand bg-surface p-4 shadow-sm">
       <div className={cn("h-12 w-12 shrink-0 rounded-full", shimmer)} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className={cn("h-[15px] w-3/5 rounded-sm", shimmer)} />
@@ -211,7 +211,7 @@ function NotificationCardSkeleton() {
 /** Matches ConversationRow */
 function ConversationRowSkeleton() {
   return (
-    <div className="flex min-h-[72px] items-center gap-3 rounded-[8px] px-3 py-2">
+    <div className="flex min-h-[72px] items-center gap-3 rounded-cut-md px-3 py-2">
       <div className={cn("h-[52px] w-[52px] shrink-0 rounded-xl", shimmer)} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ function ConversationRowSkeleton() {
 /** Matches VisitCard */
 function VisitCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="rounded-hand bg-surface p-4 shadow-sm">
       <div className="flex gap-3">
         <div className={cn("h-14 w-14 shrink-0 rounded-xl", shimmer)} />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -252,7 +252,7 @@ function VisitCardSkeleton() {
 /** Matches StatCard */
 function StatCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+    <div className="rounded-hand bg-surface p-5 shadow-sm">
       <div className="flex items-start gap-4">
         <div className={cn("h-12 w-12 shrink-0 rounded-xl", shimmer)} />
         <div className="flex min-w-0 flex-col gap-2">
@@ -293,9 +293,9 @@ function SwipeCardSkeleton() {
     <div className="mx-auto flex w-full max-w-[480px] flex-col gap-5 md:max-w-3xl lg:max-w-4xl">
       <div className="relative h-[calc(100dvh-328px)] md:h-[calc(100dvh-268px)]">
         <div className="md:hidden">
-          <div className="absolute inset-x-4 top-4 h-full translate-y-3 scale-90 rounded-2xl border border-line bg-surface opacity-30 shadow-sm" />
-          <div className="absolute inset-x-2 top-2 h-full translate-y-[6px] scale-[0.95] rounded-2xl border border-line bg-surface opacity-50 shadow-sm" />
-          <div className="absolute inset-0 overflow-hidden rounded-2xl border border-line bg-surface shadow-lg">
+          <div className="absolute inset-x-4 top-4 h-full translate-y-3 scale-90 rounded-hand bg-surface opacity-30 shadow-sm" />
+          <div className="absolute inset-x-2 top-2 h-full translate-y-[6px] scale-[0.95] rounded-hand bg-surface opacity-50 shadow-sm" />
+          <div className="absolute inset-0 overflow-hidden rounded-hand bg-surface shadow-lg">
             <div className={cn("absolute inset-0", shimmer)} />
             <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-5 pt-20">
               <div className={cn("h-8 w-3/5 rounded-md", shimmer)} />
@@ -312,7 +312,7 @@ function SwipeCardSkeleton() {
           </div>
         </div>
 
-        <div className="absolute inset-0 hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-lg md:flex">
+        <div className="absolute inset-0 hidden overflow-hidden rounded-hand bg-surface shadow-lg md:flex">
           <div className={cn("relative h-full w-[40%] shrink-0 lg:w-[45%]", shimmer)}>
             <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 bg-gradient-to-t from-ink/80 to-transparent p-4 pt-20">
               <div className={cn("h-7 w-3/5 rounded-md", shimmer)} />
@@ -361,7 +361,7 @@ function SwipeCardSkeleton() {
 
 function SearchBarSkeleton() {
   return (
-    <div className="flex h-12 items-center gap-2 rounded-[8px] border border-line bg-surface px-3">
+    <div className="flex h-12 items-center gap-2 rounded-cut-md border border-line bg-surface px-3">
       <div className={cn("h-5 w-5 rounded-sm", shimmer)} />
       <div className={cn("h-3.5 flex-1 rounded-sm", shimmer)} />
     </div>
@@ -388,7 +388,7 @@ function FilterChipsSkeleton({ count = 5 }: { count?: number }) {
 function SearchResultsSkeleton() {
   return (
     <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-      <aside className="hidden flex-col gap-5 rounded-2xl border border-line bg-surface p-4 lg:flex">
+      <aside className="hidden flex-col gap-5 rounded-hand bg-surface p-4 lg:flex">
         {Array.from({ length: 3 }, (_, s) => (
           <div key={s} className="flex flex-col gap-2">
             <div className={cn("h-4 w-20 rounded-sm", shimmer)} />
@@ -433,14 +433,14 @@ function ListingDetailSkeleton() {
           <div className={cn("h-7 w-14 rounded-full", shimmer)} />
           <div className={cn("h-7 w-16 rounded-full", shimmer)} />
         </div>
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="rounded-hand bg-surface p-5 shadow-sm">
           <div className={cn("h-5 w-20 rounded-sm", shimmer)} />
           <div className="mt-3 flex flex-col gap-2">
             <div className={cn("h-4 w-full rounded-sm", shimmer)} />
             <div className={cn("h-4 w-3/5 rounded-sm", shimmer)} />
           </div>
         </div>
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <div className="rounded-hand bg-surface p-5 shadow-sm">
           <div className={cn("h-5 w-32 rounded-sm", shimmer)} />
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {Array.from({ length: 3 }, (_, i) => (
@@ -449,8 +449,8 @@ function ListingDetailSkeleton() {
           </div>
         </div>
         <div className="flex gap-3">
-          <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
-          <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
+          <div className={cn("h-10 flex-1 rounded-cut-md", shimmer)} />
+          <div className={cn("h-10 flex-1 rounded-cut-md", shimmer)} />
         </div>
       </div>
     </div>
@@ -460,7 +460,7 @@ function ListingDetailSkeleton() {
 function PublicProfileSkeleton() {
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 text-center shadow-sm">
+      <div className="flex flex-col items-center gap-4 rounded-hand bg-surface p-6 text-center shadow-sm">
         <div className={cn("h-[120px] w-[120px] rounded-xl", shimmer)} />
         <div className={cn("h-7 w-24 rounded-sm", shimmer)} />
         <div className={cn("h-4 w-32 rounded-sm", shimmer)} />
@@ -469,7 +469,7 @@ function PublicProfileSkeleton() {
           <div className={cn("h-5 w-16 rounded-full", shimmer)} />
         </div>
       </div>
-      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+      <div className="flex flex-col gap-3 rounded-hand bg-surface p-5 shadow-sm">
         {Array.from({ length: 5 }, (_, i) => (
           <div key={i} className="flex items-center justify-between">
             <div className={cn("h-4 w-1/4 rounded-sm", shimmer)} />
@@ -477,7 +477,7 @@ function PublicProfileSkeleton() {
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+      <div className="flex flex-col gap-3 rounded-hand bg-surface p-5 shadow-sm">
         <div className={cn("h-5 w-40 rounded-sm", shimmer)} />
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="flex items-center justify-between">
@@ -486,7 +486,7 @@ function PublicProfileSkeleton() {
           </div>
         ))}
       </div>
-      <div className={cn("h-[52px] w-full rounded-[8px]", shimmer)} />
+      <div className={cn("h-[52px] w-full rounded-cut-md", shimmer)} />
     </div>
   );
 }
@@ -522,7 +522,7 @@ function BlogCardSkeleton() {
 function BlogPostSkeleton() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-      <div className={cn("h-8 w-24 rounded-[8px]", shimmer)} />
+      <div className={cn("h-8 w-24 rounded-cut-md", shimmer)} />
       <div className={cn("h-10 w-3/4 rounded-sm", shimmer)} />
       <div className={cn("h-5 w-1/2 rounded-sm", shimmer)} />
       <div className={cn("mt-2 h-72 w-full rounded-2xl", shimmer)} />
@@ -602,8 +602,8 @@ function ChatThreadSkeleton() {
           <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
         </div>
         <div className="flex gap-2">
-          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
-          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-cut-md", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-cut-md", shimmer)} />
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-4 p-4">
@@ -614,8 +614,8 @@ function ChatThreadSkeleton() {
       </div>
       <div className="flex items-center gap-2 border-t border-line px-3 py-3">
         <div className={cn("h-5 w-5 rounded-sm", shimmer)} />
-        <div className={cn("h-10 flex-1 rounded-[8px]", shimmer)} />
-        <div className={cn("h-8 w-8 rounded-[8px]", shimmer)} />
+        <div className={cn("h-10 flex-1 rounded-cut-md", shimmer)} />
+        <div className={cn("h-8 w-8 rounded-cut-md", shimmer)} />
       </div>
     </div>
   );
@@ -625,7 +625,7 @@ function ChatThreadSkeleton() {
 function ProfilePageSkeleton() {
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-line bg-surface p-6 text-center shadow-sm">
+      <div className="flex flex-col items-center gap-3 rounded-hand bg-surface p-6 text-center shadow-sm">
         <div className={cn("h-[120px] w-[120px] rounded-xl", shimmer)} />
         <div className={cn("h-7 w-24 rounded-sm", shimmer)} />
         <div className={cn("h-4 w-32 rounded-sm", shimmer)} />
@@ -634,19 +634,19 @@ function ProfilePageSkeleton() {
           <div className={cn("h-5 w-16 rounded-full", shimmer)} />
         </div>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-hand bg-surface shadow-sm">
         <MenuItemRowSkeleton />
       </div>
       <div className={cn("h-3 w-14 rounded-sm", shimmer)} />
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-hand bg-surface shadow-sm">
         <MenuItemRowSkeleton />
         <MenuItemRowSkeleton />
       </div>
       <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-hand bg-surface shadow-sm">
         <MenuItemRowSkeleton />
       </div>
-      <div className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <div className="flex items-center justify-between rounded-hand bg-surface p-4 shadow-sm">
         <div className="flex flex-col gap-1.5">
           <div className={cn("h-5 w-16 rounded-sm", shimmer)} />
           <div className={cn("h-3 w-32 rounded-sm", shimmer)} />
@@ -654,12 +654,12 @@ function ProfilePageSkeleton() {
         <div className={cn("h-8 w-14 rounded-full", shimmer)} />
       </div>
       <div className={cn("h-3 w-24 rounded-sm", shimmer)} />
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-hand bg-surface shadow-sm">
         <MenuItemRowSkeleton />
         <MenuItemRowSkeleton />
       </div>
       <div className={cn("h-3 w-16 rounded-sm", shimmer)} />
-      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-hand bg-surface shadow-sm">
         <MenuItemRowSkeleton />
         <MenuItemRowSkeleton />
       </div>
@@ -672,19 +672,19 @@ function FormSkeleton({ fields = 4 }: { fields?: number }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center gap-3">
-        <div className={cn("h-10 w-10 rounded-[8px]", shimmer)} />
+        <div className={cn("h-10 w-10 rounded-cut-md", shimmer)} />
         <div className={cn("h-8 w-40 rounded-sm", shimmer)} />
       </div>
-      <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+      <div className="flex flex-col gap-4 rounded-hand bg-surface p-5 shadow-sm">
         {Array.from({ length: fields }, (_, i) => (
           <div key={i} className="flex flex-col gap-2">
             <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
-            <div className={cn("h-12 w-full rounded-[8px]", shimmer)} />
+            <div className={cn("h-12 w-full rounded-cut-md", shimmer)} />
           </div>
         ))}
       </div>
-      <div className={cn("h-[52px] w-full rounded-[8px]", shimmer)} />
-      <div className={cn("h-[52px] w-full rounded-[8px]", shimmer)} />
+      <div className={cn("h-[52px] w-full rounded-cut-md", shimmer)} />
+      <div className={cn("h-[52px] w-full rounded-cut-md", shimmer)} />
     </div>
   );
 }
@@ -692,7 +692,7 @@ function FormSkeleton({ fields = 4 }: { fields?: number }) {
 /** Saved search list card (title, filter chips, actions) */
 function SavedSearchCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="rounded-hand bg-surface p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex items-center gap-2">
@@ -707,8 +707,8 @@ function SavedSearchCardSkeleton() {
           <div className={cn("h-3 w-24 rounded-sm", shimmer)} />
         </div>
         <div className="flex shrink-0 gap-2">
-          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
-          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-cut-md", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-cut-md", shimmer)} />
         </div>
       </div>
     </div>
@@ -718,7 +718,7 @@ function SavedSearchCardSkeleton() {
 /** Alert list card (name, meta lines, actions — no filter chips) */
 function AlertCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="rounded-hand bg-surface p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex items-center gap-2">
@@ -729,8 +729,8 @@ function AlertCardSkeleton() {
           <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
         </div>
         <div className="flex shrink-0 gap-2">
-          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
-          <div className={cn("h-9 w-9 rounded-[8px]", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-cut-md", shimmer)} />
+          <div className={cn("h-9 w-9 rounded-cut-md", shimmer)} />
         </div>
       </div>
     </div>
@@ -740,7 +740,7 @@ function AlertCardSkeleton() {
 /** Payment method / blocked user list row */
 function PaymentMethodRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="flex items-center gap-3 rounded-hand bg-surface p-4 shadow-sm">
       <div className={cn("h-9 w-9 shrink-0 rounded-full", shimmer)} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className={cn("h-4 w-32 rounded-sm", shimmer)} />
@@ -755,12 +755,12 @@ function PaymentMethodRowSkeleton() {
 function CompatibilitySkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-line bg-surface p-6 text-center shadow-sm">
+      <div className="flex flex-col items-center gap-4 rounded-hand bg-surface p-6 text-center shadow-sm">
         <div className={cn("h-28 w-28 rounded-full", shimmer)} />
         <div className={cn("h-5 w-24 rounded-full", shimmer)} />
         <div className={cn("h-4 w-48 rounded-full", shimmer)} />
       </div>
-      <div className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+      <div className="flex flex-col gap-4 rounded-hand bg-surface p-5 shadow-sm">
         <div className={cn("h-5 w-24 rounded-full", shimmer)} />
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex flex-col gap-1.5">
@@ -769,7 +769,7 @@ function CompatibilitySkeleton() {
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+      <div className="flex flex-col gap-3 rounded-hand bg-surface p-5 shadow-sm">
         <div className={cn("h-5 w-20 rounded-full", shimmer)} />
         <div className={cn("h-4 w-full rounded-full", shimmer)} />
         <div className={cn("h-4 w-4/5 rounded-full", shimmer)} />
@@ -787,7 +787,7 @@ function DashboardPanelSkeleton() {
           <StatCardSkeleton key={i} />
         ))}
       </div>
-      <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <div className="rounded-hand bg-surface p-4 shadow-sm">
         <div className={cn("mb-4 h-5 w-32 rounded-sm", shimmer)} />
         <div className="mb-3 flex gap-4 border-b border-line pb-2">
           <div className={cn("h-3 w-20 rounded-sm", shimmer)} />
@@ -811,7 +811,7 @@ function DashboardPanelSkeleton() {
 /** Admin moderation list row */
 function ModerationRowSkeleton() {
   return (
-    <div className="flex gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <div className="flex gap-3 rounded-hand bg-surface p-4 shadow-sm">
       <div className={cn("h-16 w-16 shrink-0 rounded-xl", shimmer)} />
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
@@ -823,9 +823,9 @@ function ModerationRowSkeleton() {
         </div>
         <div className={cn("h-4 w-1/5 rounded-sm", shimmer)} />
         <div className="flex gap-2 pt-1">
-          <div className={cn("h-8 w-18 rounded-[8px]", shimmer)} />
-          <div className={cn("h-8 w-16 rounded-[8px]", shimmer)} />
-          <div className={cn("h-8 w-16 rounded-[8px]", shimmer)} />
+          <div className={cn("h-8 w-18 rounded-cut-md", shimmer)} />
+          <div className={cn("h-8 w-16 rounded-cut-md", shimmer)} />
+          <div className={cn("h-8 w-16 rounded-cut-md", shimmer)} />
         </div>
       </div>
     </div>

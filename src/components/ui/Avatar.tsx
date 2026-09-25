@@ -101,7 +101,7 @@ export function Avatar({
         role={optimizedSrc ? undefined : "img"}
         aria-label={optimizedSrc ? undefined : (alt ?? name)}
         className={cn(
-          "relative inline-flex items-center justify-center overflow-hidden bg-gradient-to-br from-accent to-accent/70 font-semibold text-white shadow-md",
+          "relative inline-flex items-center justify-center overflow-hidden bg-pine-soft font-display text-ink shadow-xs",
           sizeClasses[size],
           roundedClass
         )}
@@ -123,7 +123,7 @@ export function Avatar({
           type="button"
           aria-label={`Edit ${name} avatar`}
           className={cn(
-            "absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-accent text-white shadow-md transition-transform duration-150 ease-out hover:scale-105",
+            "absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-accent text-on-clay shadow-md transition-transform duration-150 ease-out hover:scale-105",
             focusRing,
             editButtonSize[size]
           )}

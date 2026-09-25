@@ -91,7 +91,7 @@ export function AdminLayout() {
       </aside>
 
       <div className="min-h-screen xl:pl-60">
-        <header className="sticky top-0 z-[var(--z-raised)] flex min-h-16 items-center gap-3 border-b border-line bg-surface/92 px-5 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:px-6">
+        <header className="sticky top-0 z-[var(--z-raised)] flex min-h-16 items-center gap-3 bg-paper-1 paper-grain px-5 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_var(--color-edge)] md:px-6">
           <div className="flex min-w-0 items-center gap-2 xl:hidden">
             <Logo compact />
             <span className="text-label-lg text-ink-3">Admin</span>
@@ -109,7 +109,7 @@ export function AdminLayout() {
                 aria-label={item.label}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2 rounded-[8px] px-3 py-2 text-label-md text-ink-3 hover:bg-paper-3 hover:text-ink",
+                  "flex items-center gap-2 rounded-cut-md px-3 py-2 text-label-md text-ink-3 hover:bg-paper-3 hover:text-ink",
                   active && "bg-accent-soft text-accent",
                   focusRing
                 )}
@@ -137,7 +137,7 @@ function AdminNavLink({ item, active }: { item: AdminNavItem; active: boolean })
       title={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-body-md font-semibold hover:bg-paper-3 hover:text-ink",
+        "flex items-center gap-3 rounded-cut-md px-3 py-2.5 text-body-md font-semibold hover:bg-paper-3 hover:text-ink",
         active ? "bg-accent-soft text-accent" : "text-ink-3",
         focusRing
       )}

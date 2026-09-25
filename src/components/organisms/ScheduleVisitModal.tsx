@@ -45,7 +45,7 @@ export function ScheduleVisitModal({
           <input
             id="visit-date"
             type="date"
-            className="h-12 w-full rounded-[8px] border border-line bg-surface px-3 text-body-md text-ink focus:border-accent focus:focus:outline-none"
+            className="h-12 w-full rounded-cut-md border border-line bg-surface px-3 text-body-md text-ink focus:border-accent focus:focus:outline-none"
             value={visitDate}
             min={new Date().toISOString().split("T")[0]}
             onChange={(e) => onVisitDateChange(e.target.value)}
@@ -61,7 +61,7 @@ export function ScheduleVisitModal({
             placeholder="Any special requests or notes..."
             value={visitNotes}
             onChange={(e) => onVisitNotesChange(e.target.value)}
-            className="w-full rounded-[8px] border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:focus:outline-none resize-y"
+            className="w-full rounded-cut-md border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:focus:outline-none resize-y"
           />
         </div>
       </div>

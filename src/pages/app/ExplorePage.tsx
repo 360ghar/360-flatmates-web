@@ -240,7 +240,7 @@ export function ExplorePage() {
             widen the search radius, clear filters, or use their location. */}
         {!isLoading && !error && (mapData?.pins?.length ?? 0) === 0 && (mapData?.clusters?.length ?? 0) === 0 ? (
           <div className="pointer-events-none absolute inset-x-4 bottom-24 z-10 flex justify-center md:inset-x-auto md:left-1/2 md:bottom-12 md:-translate-x-1/2">
-            <div className="pointer-events-auto flex max-w-sm flex-col items-center gap-3 rounded-2xl border border-line bg-surface/95 p-4 shadow-lg backdrop-blur-md">
+            <div className="pointer-events-auto flex max-w-sm flex-col items-center gap-3 rounded-hand bg-surface-elevated paper-grain p-4 shadow-md">
               <p className="text-center text-body-md text-ink">
                 No listings in this area yet.
               </p>

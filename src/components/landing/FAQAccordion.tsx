@@ -23,7 +23,7 @@ export function FAQAccordion() {
             >
               <summary className="flex cursor-pointer items-center justify-between py-6 text-h3 md:text-xl text-ink hover:text-accent group-open:text-accent transition-colors duration-300 list-none [&::-webkit-details-marker]:hidden">
                 <span className="max-w-[85%] font-medium transition-all">{item.question}</span>
-                <div className="h-8 w-8 rounded-full border border-line-low flex items-center justify-center transition-all duration-300 group-open:rotate-180 group-open:bg-accent group-open:border-accent group-open:text-white shadow-xs">
+                <div className="h-8 w-8 rounded-full border border-line-low flex items-center justify-center transition-all duration-300 group-open:rotate-180 group-open:bg-accent group-open:border-accent group-open:text-on-clay shadow-xs">
                   <ChevronDown className="h-[18px] w-[18px]" aria-hidden="true" />
                 </div>
               </summary>

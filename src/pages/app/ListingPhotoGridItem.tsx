@@ -49,7 +49,7 @@ export function ListingPhotoGridItem({
           <span
             className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
               isSelected
-                ? "border-accent bg-accent text-white"
+                ? "border-accent bg-accent text-on-clay"
                 : "border-line bg-surface/80 text-ink-2"
             }`}
           >

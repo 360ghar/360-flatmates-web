@@ -128,7 +128,7 @@ export function ProfilePage() {
       {/* Activity section: profile-dependent */}
       {hasProfile && (
         <section>
-          <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+          <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
             Activity
           </h2>
           <Card variant="media" className="divide-y divide-line border-line shadow-sm">
@@ -151,7 +151,7 @@ export function ProfilePage() {
 
       {/* Preferences: always visible */}
       <section>
-      <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+      <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
         Preferences
       </h2>
       <Card variant="media" className="divide-y divide-line border-line shadow-sm">
@@ -201,7 +201,7 @@ export function ProfilePage() {
       </Card>
 
       <section>
-      <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+      <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
         Privacy & safety
       </h2>
       <Card variant="media" className="divide-y divide-line border-line shadow-sm">
@@ -220,7 +220,7 @@ export function ProfilePage() {
       </section>
 
       <section>
-      <h2 className="mb-2 px-1 text-label-md font-semibold uppercase tracking-wide text-ink-3">
+      <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
         Account
       </h2>
       <Card variant="media" className="divide-y divide-line border-line shadow-sm">
@@ -251,7 +251,7 @@ export function ProfilePage() {
             <Button variant="secondary" onClick={() => setShowSignOutDialog(false)} className="w-full md:w-auto">
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSignOut} loading={signingOut} className="w-full bg-error text-white hover:bg-error/95 md:w-auto">
+            <Button variant="primary" onClick={handleSignOut} loading={signingOut} className="w-full bg-error text-on-clay hover:bg-error/95 md:w-auto">
               Sign Out
             </Button>
           </>
@@ -283,7 +283,7 @@ export function ProfilePage() {
               onClick={handleDeleteAccount}
               disabled={!deleteEnabled || deleting}
               loading={deleting}
-              className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+              className="w-full bg-error text-on-clay hover:bg-error/95 md:w-auto"
             >
               Delete Account
             </Button>

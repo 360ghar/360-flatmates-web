@@ -40,7 +40,7 @@ export const ShareListingCard = forwardRef<HTMLDivElement, ShareListingCardProps
         </div>
 
         <div className="flex flex-col gap-2 bg-accent p-5 text-surface">
-          <span className="text-label-md font-semibold uppercase tracking-wider opacity-80">
+          <span className="text-label-md font-semibold opacity-80">
             {SITE_NAME}
           </span>
           <div className="flex items-start justify-between gap-3">
@@ -59,7 +59,7 @@ export const ShareListingCard = forwardRef<HTMLDivElement, ShareListingCardProps
                 size={80}
                 level="M"
                 bgColor="transparent"
-                fgColor="#ff385c"
+                fgColor="#A94A2B"
               />
             </div>
           </div>

@@ -1,39 +1,37 @@
 import type { ReactNode } from "react";
-import { AlertTriangle, Search } from "lucide-react";
+import { PaperMiniScene, type PaperProp } from "@/components/paper/PaperScene";
 import { Button } from "./Button";
 import { cn } from "./component-utils";
+
+export type { PaperProp };
 
 export interface EmptyStateProps {
   title: string;
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
-  icon?: ReactNode;
+  /** Prop in the cut-paper scene (DESIGN.md §6). */
+  scene?: PaperProp;
   className?: string;
 }
 
+/** Zero-data state: compact paper scene, title, one line, one action. */
 export function EmptyState({
   title,
   description,
   actionLabel,
   onAction,
-  icon,
+  scene = "magnifier",
   className
 }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-3 rounded-2xl p-6 text-center animate-fade-slide-up", className)}>
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent animate-breathe">
-        {icon ?? <Search aria-hidden="true" className="h-6 w-6" />}
-      </div>
+    <div className={cn("flex flex-col items-center justify-center gap-4 p-6 text-center", className)}>
+      <PaperMiniScene prop={scene} className="w-[70%] max-w-[220px]" />
       <div className="max-w-[34rem]">
-        <h3 className="text-h3 font-semibold text-ink">{title}</h3>
-        {description ? <p className="mt-1 text-body-md text-ink-2">{description}</p> : null}
+        <h3 className="text-h3 text-ink">{title}</h3>
+        {description ? <p className="mt-1.5 text-body-md text-ink-2">{description}</p> : null}
       </div>
-      {actionLabel && onAction ? (
-        <Button size="compact" onClick={onAction}>
-          {actionLabel}
-        </Button>
-      ) : null}
+      {actionLabel && onAction ? <Button onClick={onAction}>{actionLabel}</Button> : null}
     </div>
   );
 }
@@ -43,32 +41,30 @@ export interface ErrorStateProps {
   description?: string;
   actionLabel?: string;
   onRetry?: () => void;
-  icon?: ReactNode;
+  scene?: PaperProp;
   className?: string;
 }
 
+/** Failure state: rain-cloud scene, a human message and Retry. Never raw error text. */
 export function ErrorState({
   title = "Something went wrong",
   description,
-  actionLabel = "Try Again",
+  actionLabel = "Try again",
   onRetry,
-  icon,
+  scene = "rainCloud",
   className
 }: ErrorStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-3 rounded-2xl p-6 text-center animate-fade-slide-up", className)}>
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-error-soft text-error">
-        {icon ?? <AlertTriangle aria-hidden="true" className="h-6 w-6" />}
-      </div>
+    <div
+      role="alert"
+      className={cn("flex flex-col items-center justify-center gap-4 p-6 text-center", className)}
+    >
+      <PaperMiniScene prop={scene} className="w-[60%] max-w-[200px]" />
       <div className="max-w-[34rem]">
-        <h3 className="text-h3 font-semibold text-ink">{title}</h3>
-        {description ? <p className="mt-1 text-body-md text-ink-2">{description}</p> : null}
+        <h3 className="text-h3 text-ink">{title}</h3>
+        {description ? <p className="mt-1.5 text-body-md text-ink-2">{description}</p> : null}
       </div>
-      {onRetry ? (
-        <Button size="compact" onClick={onRetry}>
-          {actionLabel}
-        </Button>
-      ) : null}
+      {onRetry ? <Button onClick={onRetry}>{actionLabel}</Button> : null}
     </div>
   );
 }

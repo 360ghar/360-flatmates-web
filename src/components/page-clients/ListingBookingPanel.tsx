@@ -29,7 +29,7 @@ export function ListingBookingPanel({
       <Card className="sticky top-24 border-line p-5 shadow-md">
         <div className="mb-4 flex items-end justify-between gap-3 border-b border-line pb-4">
           <div>
-            <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Monthly</p>
+            <p className="text-caption font-medium text-ink-3">Monthly</p>
             <PriceText
               value={price}
               variant="card"

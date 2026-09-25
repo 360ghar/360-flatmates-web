@@ -13,7 +13,7 @@ export function RecentSearchesRow({
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-2">
-      <span className="text-eyebrow uppercase tracking-widest text-ink-3">Recent:</span>
+      <span className="text-eyebrow text-ink-3">Recent:</span>
       {recentSearches.map((term) => (
         <button
           key={term}

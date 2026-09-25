@@ -102,7 +102,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
           )}
         >
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-on-clay">
               <Smartphone className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -147,7 +147,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
         </button>
 
         <div className="flex items-center gap-3 pr-6">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-white shadow-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-on-clay shadow-sm">
             <Smartphone className="h-5 w-5" />
           </div>
           <div>

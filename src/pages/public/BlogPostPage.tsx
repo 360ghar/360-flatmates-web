@@ -373,7 +373,7 @@ function LegacyBlogPostPage() {
       <main id="main" className="page-fade bg-paper">
         <article className="mx-auto max-w-3xl px-5 py-16 md:px-6">
           <div className="text-center mb-12">
-            <span className="text-eyebrow text-accent uppercase tracking-widest">{post.category}</span>
+            <span className="text-eyebrow text-accent">{post.category}</span>
             <h1 className="mt-4 text-display text-4xl md:text-5xl text-ink leading-tight tracking-tight">
               {post.title}
             </h1>

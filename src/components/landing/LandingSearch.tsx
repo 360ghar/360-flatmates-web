@@ -20,7 +20,7 @@ export function LandingSearch() {
     <div className="w-full max-w-3xl">
       <form
         onSubmit={submit}
-        className="rounded-[32px] border border-line bg-surface p-2 shadow-lg sm:rounded-full"
+        className="rounded-cut-xl border border-line bg-surface p-2 shadow-lg sm:rounded-full"
         role="search"
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { useStore } from "zustand";
 import { AppShell, type ShellUser } from "@/components/organisms/AppShell";
@@ -69,7 +68,6 @@ export function AppLayout() {
   const { user, loading: authLoading } = useAuth();
   const { data: profile } = useMyProfile();
   const { pathname } = useLocation();
-  const [offline, setOffline] = useState(false);
 
   const collapsed = useStore(uiStore, (s) => s.sidebar === "collapsed");
   const setSidebar = useStore(uiStore, (s) => s.setSidebar);
@@ -82,18 +80,6 @@ export function AppLayout() {
     ? { name: profile.full_name, avatarUrl: profile.profile_image_url, mode, city: profile.city }
     : undefined;
 
-  // Online/offline detection — surface a banner when the connection drops.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const update = () => setOffline(!navigator.onLine);
-    update();
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
-    return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
-    };
-  }, []);
 
   if (authLoading) {
     return <PageSpinner />;
@@ -107,7 +93,7 @@ export function AppLayout() {
 
   return (
     <>
-      <OfflineBanner visible={offline} />
+      <OfflineBanner />
       <AppShell
         mode={mode}
         activeHref={pathname}

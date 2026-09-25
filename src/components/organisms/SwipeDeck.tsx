@@ -303,7 +303,7 @@ export function SwipeDeck({
                   onMultiSelectAction?.(selectedIds);
                 }
               }}
-              className="rounded-full bg-red-600 px-4 py-2 text-label-md font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-11 rounded-cut-md bg-danger px-4 py-2 text-label-md font-semibold text-on-clay transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
             >
               {multiSelectActionLabel}
             </button>
@@ -347,7 +347,7 @@ function SwipeCard({
           width={800}
           wrapperClassName="h-full w-full"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-accent/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           {profile.mode ? <Badge mode={profile.mode} variant="mode" /> : null}
         </div>

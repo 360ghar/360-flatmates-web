@@ -169,7 +169,7 @@ export function SwipeableCard({
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors",
                 isSelected
-                  ? "border-accent bg-accent text-white"
+                  ? "border-accent bg-accent text-on-clay"
                   : "border-line bg-surface/80 text-ink-2"
               )}
             >

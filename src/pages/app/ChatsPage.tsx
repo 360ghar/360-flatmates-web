@@ -172,7 +172,7 @@ function MatchesBar({
               key={match.id}
               type="button"
               className={cn(
-                "flex flex-col items-center shrink-0 rounded-[8px] p-1.5 gap-1 w-16",
+                "flex flex-col items-center shrink-0 rounded-cut-md p-1.5 gap-1 w-16",
                 "hover:bg-accent-soft transition-colors duration-150 ease-out",
                 "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
               )}
@@ -245,7 +245,7 @@ function MatchesList({
             key={match.id}
             type="button"
             className={cn(
-              "flex items-center gap-3 rounded-[8px] p-2 text-left",
+              "flex items-center gap-3 rounded-cut-md p-2 text-left",
               "hover:bg-accent-soft transition-colors duration-150 ease-out",
               "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
             )}
@@ -370,7 +370,7 @@ function MatchAvatar({
       className={cn(
         "inline-flex items-center justify-center overflow-hidden rounded-full shrink-0",
         sizeClass,
-        "bg-gradient-to-br from-accent to-accent/70 font-semibold text-white shadow-md"
+        "bg-pine-soft font-display text-ink shadow-xs"
       )}
     >
       {src ? (

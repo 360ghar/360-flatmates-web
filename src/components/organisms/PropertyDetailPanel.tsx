@@ -31,7 +31,7 @@ export function PropertyDetailPanel({
         <button
           type="button"
           aria-label="Close"
-          className={cn("rounded-[8px] p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink transition-colors", focusRing)}
+          className={cn("rounded-cut-md p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink transition-colors", focusRing)}
           onClick={onClose}
         >
           <X aria-hidden="true" className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function PropertyDetailPanel({
 
           <div className="grid grid-cols-3 gap-2">
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
-              <span className="text-[9px] uppercase font-sans tracking-wider text-ink-3 block">Rent</span>
+              <span className="text-[9px] font-sans text-ink-3 block">Rent</span>
               <PriceText
                 value={fullProperty.monthly_rent}
                 variant="inline"
@@ -105,13 +105,13 @@ export function PropertyDetailPanel({
               />
             </div>
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
-              <span className="text-[9px] uppercase font-sans tracking-wider text-ink-3 block">Deposit</span>
+              <span className="text-[9px] font-sans text-ink-3 block">Deposit</span>
               <p className="text-body-md font-sans font-normal text-ink mt-0.5">
                 {fullProperty.security_deposit ? formatCurrencyINR(fullProperty.security_deposit) : "TBD"}
               </p>
             </div>
             <div className="rounded-xl border border-line bg-paper/20 p-2.5 text-center">
-              <span className="text-[9px] uppercase font-sans tracking-wider text-ink-3 block">Maint.</span>
+              <span className="text-[9px] font-sans text-ink-3 block">Maint.</span>
               <p className="text-body-md font-sans font-normal text-ink mt-0.5">
                 {fullProperty.maintenance_charges ? formatCurrencyINR(fullProperty.maintenance_charges) : "None"}
               </p>
@@ -158,7 +158,7 @@ export function PropertyDetailPanel({
 
           {fullProperty.description && (
             <div className="border-t border-line pt-3">
-              <h4 className="text-caption uppercase font-sans tracking-wider text-ink-3">About this flat</h4>
+              <h4 className="text-caption font-sans text-ink-3">About this flat</h4>
               <p className="mt-1 text-body-md text-ink-2 leading-relaxed whitespace-pre-line">
                 {fullProperty.description}
               </p>
@@ -167,7 +167,7 @@ export function PropertyDetailPanel({
 
           {fullProperty.features && fullProperty.features.length > 0 && (
             <div className="border-t border-line pt-3">
-              <h4 className="text-caption uppercase font-sans tracking-wider text-ink-3 mb-2">Amenities</h4>
+              <h4 className="text-caption font-sans text-ink-3 mb-2">Amenities</h4>
               <div className="flex flex-wrap gap-1.5">
                 {fullProperty.features.map(f => (
                   <Chip key={f} className="bg-paper border-[0.5px] border-line px-2.5 py-1 text-caption text-ink-2 font-medium">
@@ -185,7 +185,7 @@ export function PropertyDetailPanel({
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-surface animate-pulse" />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="text-[8px] uppercase font-sans tracking-wider text-ink-3 leading-none block">Verified Host</span>
+                <span className="text-[8px] font-sans text-ink-3 leading-none block">Verified Host</span>
                 <h4 className="text-body-md font-semibold text-ink leading-tight flex items-center gap-0.5 mt-0.5">
                   {fullProperty.owner.full_name}
                   <ShieldCheck className="h-3.5 w-3.5 text-accent" />

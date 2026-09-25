@@ -6,7 +6,7 @@ import type {
 } from "react";
 import { useId } from "react";
 import { AlertCircle, ChevronDown } from "lucide-react";
-import { cn, focusRing, interactiveMotion } from "./component-utils";
+import { cn, interactiveMotion } from "./component-utils";
 
 /* -------------------------------------------------------------------------- */
 /*  FieldChrome – shared props for all field components                       */
@@ -41,7 +41,7 @@ export interface FieldWrapperProps {
 function FieldLabel({ id, label }: { id: string; label?: string }) {
   if (!label) return null;
   return (
-    <label className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3" htmlFor={id}>
+    <label className="text-label-md text-ink-2" htmlFor={id}>
       {label}
     </label>
   );
@@ -127,9 +127,9 @@ export function Input({
       {({ controlId, helperId, errorId }) => (
         <div
           className={cn(
-            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[8px] border border-line bg-surface px-3 focus-within:border-ink focus-within:border-2 focus-within:shadow-focus",
+            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[var(--radius-control)] border border-line bg-surface px-3 shadow-xs focus-within:border-accent focus-within:shadow-[0_0_0_1px_var(--color-accent)]",
             interactiveMotion,
-            error && "border-error focus-within:border-error",
+            error && "border-error shadow-[0_0_0_1px_var(--color-error)] focus-within:border-error focus-within:shadow-[0_0_0_1px_var(--color-error)]",
             props.disabled && "bg-surface-soft"
           )}
         >
@@ -140,7 +140,7 @@ export function Input({
             id={controlId}
             aria-describedby={error ? errorId : helperText ? helperId : undefined}
             aria-invalid={error ? true : undefined}
-            className={cn("min-w-0 flex-1 bg-transparent py-3 outline-none", controlClasses, "border-0 p-0", className)}
+            className={cn("min-w-0 flex-1 bg-transparent py-3 outline-none focus-visible:outline-none", controlClasses, "border-0 p-0 shadow-none", className)}
             {...props}
           />
           {trailingIcon ? <span className="text-ink-3">{trailingIcon}</span> : null}
@@ -176,10 +176,9 @@ export function TextArea({
           aria-invalid={error ? true : undefined}
           className={cn(
             controlClasses,
-            focusRing,
-            "min-h-[120px] max-h-[240px] resize-y rounded-[8px] px-3 py-3 outline-none focus:border-ink focus:border-2 focus:shadow-focus",
+            "min-h-[120px] max-h-[240px] resize-y rounded-[var(--radius-control)] px-3 py-3 shadow-xs outline-none focus-visible:outline-none focus:border-accent focus:shadow-[0_0_0_1px_var(--color-accent)]",
             interactiveMotion,
-            error && "border-error focus:border-error",
+            error && "border-error shadow-[0_0_0_1px_var(--color-error)] focus:border-error",
             className
           )}
           {...props}
@@ -223,9 +222,9 @@ export function SelectField({
       {({ controlId, helperId, errorId }) => (
         <div
           className={cn(
-            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[8px] border border-line bg-surface px-3 focus-within:border-ink focus-within:border-2 focus-within:shadow-focus",
+            "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[var(--radius-control)] border border-line bg-surface px-3 shadow-xs focus-within:border-accent focus-within:shadow-[0_0_0_1px_var(--color-accent)]",
             interactiveMotion,
-            error && "border-error focus-within:border-error",
+            error && "border-error shadow-[0_0_0_1px_var(--color-error)] focus-within:border-error focus-within:shadow-[0_0_0_1px_var(--color-error)]",
             props.disabled && "bg-surface-soft"
           )}
         >
@@ -237,7 +236,7 @@ export function SelectField({
             aria-describedby={error ? errorId : helperText ? helperId : undefined}
             aria-invalid={error ? true : undefined}
             className={cn(
-              "min-w-0 flex-1 appearance-none bg-transparent py-3 text-body-md text-ink outline-none disabled:cursor-not-allowed disabled:text-ink-4",
+              "min-w-0 flex-1 appearance-none bg-transparent py-3 text-body-md text-ink outline-none focus-visible:outline-none disabled:cursor-not-allowed disabled:text-ink-4",
               className
             )}
             {...props}

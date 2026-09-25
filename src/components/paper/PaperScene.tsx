@@ -75,7 +75,16 @@ function HeroLayer({
  * opacity 1 from the first paint; scrolling only shifts them (parallax),
  * and reduced motion keeps them still. A torn paper edge closes the bottom.
  */
-export function PaperScene({ className, children }: { className?: string; children?: ReactNode }) {
+export function PaperScene({
+  className,
+  children,
+  edgeClassName = "bg-paper"
+}: {
+  className?: string;
+  children?: ReactNode;
+  /** Colour of the torn paper that closes the scene: match what sits below. */
+  edgeClassName?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion() ?? false;
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -92,7 +101,7 @@ export function PaperScene({ className, children }: { className?: string; childr
       {children ? <div className="relative z-10 h-full">{children}</div> : null}
       <div
         aria-hidden="true"
-        className="paper-edge-torn-top absolute inset-x-0 bottom-0 z-10 h-[calc(var(--torn-depth)+2px)] bg-paper paper-grain"
+        className={cn("paper-edge-torn-top paper-grain absolute inset-x-0 bottom-0 z-10 h-[calc(var(--torn-depth)+2px)]", edgeClassName)}
       />
     </div>
   );

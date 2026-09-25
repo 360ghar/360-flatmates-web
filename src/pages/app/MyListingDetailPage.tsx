@@ -123,8 +123,8 @@ export function MyListingDetailPage() {
     return (
       <div className="flex flex-col gap-5 page-fade">
         <div className="flex items-center justify-between">
-          <Skeleton className="h-9 w-9 rounded-[8px]" />
-          <Skeleton className="h-8 w-16 rounded-[8px]" />
+          <Skeleton className="h-9 w-9 rounded-cut-md" />
+          <Skeleton className="h-8 w-16 rounded-cut-md" />
         </div>
         {/* Loaded layout is ListingCard + status/manage cards — not public listingDetail */}
         <Skeleton variant="listingCard" />
@@ -140,9 +140,9 @@ export function MyListingDetailPage() {
         <div className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
           <Skeleton className="mb-3 h-5 w-32 rounded-full" />
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Skeleton className="h-10 w-24 rounded-[8px]" />
-            <Skeleton className="h-10 w-24 rounded-[8px]" />
-            <Skeleton className="h-10 w-24 rounded-[8px]" />
+            <Skeleton className="h-10 w-24 rounded-cut-md" />
+            <Skeleton className="h-10 w-24 rounded-cut-md" />
+            <Skeleton className="h-10 w-24 rounded-cut-md" />
           </div>
         </div>
       </div>

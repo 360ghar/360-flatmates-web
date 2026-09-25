@@ -67,7 +67,7 @@ export function LoginSetPasswordStep({
       <button
         type="button"
         onClick={onUseDifferentIdentifier}
-        className="mt-3 block w-full rounded-[8px] py-2 text-center text-caption text-ink-3 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-3 block w-full rounded-cut-md py-2 text-center text-caption text-ink-3 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
         disabled={submitting}
         aria-label="Use a different identifier"
       >

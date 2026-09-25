@@ -25,7 +25,7 @@ export function CancelVisitModal({
           </Button>
           <Button
             variant="primary"
-            className="bg-error text-white shadow-none hover:bg-error/90"
+            className="bg-error text-on-clay shadow-none hover:bg-error/90"
             loading={submitting}
             onClick={onConfirm}
           >

@@ -122,7 +122,7 @@ export function BlogAdminPage() {
                 <span className="truncate text-body-md text-ink font-semibold">
                   {post.title}
                 </span>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-eyebrow text-ink-3 uppercase">
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-eyebrow text-ink-3">
                   <span
                     className={`rounded-full px-2 py-0.5 ${statusPill(post.status)}`}
                   >

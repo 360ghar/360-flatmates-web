@@ -44,7 +44,7 @@ export function PhoneInput({
     <div className={cn("flex flex-col gap-2", className)}>
       {label && (
         <label
-          className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3"
+          className="text-eyebrow font-semibold text-ink-3"
           htmlFor={inputId}
         >
           {label}
@@ -52,9 +52,9 @@ export function PhoneInput({
       )}
       <div
         className={cn(
-          "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[8px] border border-line bg-surface px-3 focus-within:border-accent focus-within:border-2",
+          "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[var(--radius-control)] border border-line bg-surface px-3 shadow-xs focus-within:border-accent focus-within:shadow-[0_0_0_1px_var(--color-accent)]",
           interactiveMotion,
-          error && "border-error",
+          error && "border-error shadow-[0_0_0_1px_var(--color-error)]",
           disabled && "bg-paper-4"
         )}
       >

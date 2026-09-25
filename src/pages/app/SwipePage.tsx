@@ -307,7 +307,7 @@ function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
       transition={{ duration: 0.2 }}
     >
       <m.div
-        className="pointer-events-auto relative w-[min(380px,calc(100vw-32px))] rounded-2xl border border-line bg-surface/95 p-5 shadow-2xl backdrop-blur-md"
+        className="pointer-events-auto relative w-[min(380px,calc(100vw-32px))] rounded-hand bg-surface-elevated paper-grain p-5 shadow-lg"
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 12, opacity: 0 }}
@@ -440,7 +440,7 @@ function MatchCelebration({
       ref={dialogRef}
       aria-label="Match celebration"
       onClick={(e) => handleDialogBackdropClick(e, onDismiss)}
-      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none flex items-center justify-center bg-transparent p-0 backdrop:bg-ink/75 backdrop:backdrop-blur-md"
+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none flex items-center justify-center bg-transparent p-0 backdrop:bg-[rgb(18_24_20/0.72)]"
     >
       <div className="relative flex flex-col items-center justify-center">
         {/* Confetti Explosion Group */}
@@ -496,7 +496,7 @@ function MatchCelebration({
 
           <div>
             <h2 className="text-display text-4xl text-ink leading-none">
-              It&apos;s a <span className="text-serif-italic text-accent italic font-normal text-4xl md:text-5xl">Match!</span>
+              It&apos;s a <span className="text-serif-italic text-4xl md:text-5xl">Match!</span>
             </h2>
             <p className="mt-3 text-body-md text-ink-2 px-4 leading-relaxed">
               You and <strong className="text-ink font-semibold">{profile.name}</strong> liked each other.

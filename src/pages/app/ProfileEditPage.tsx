@@ -324,7 +324,7 @@ export function ProfileEditPage() {
             <Button
               variant="primary"
               onClick={() => blocker.proceed?.()}
-              className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+              className="w-full bg-error text-on-clay hover:bg-error/95 md:w-auto"
             >
               Discard changes
             </Button>

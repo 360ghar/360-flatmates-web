@@ -76,7 +76,7 @@ export function ReportUserModal({
             placeholder="Add any context that helps us review this..."
             value={reportNotes}
             onChange={(e) => onReportNotesChange(e.target.value)}
-            className="w-full resize-y rounded-[8px] border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:focus:outline-none"
+            className="w-full resize-y rounded-cut-md border border-line bg-surface px-3 py-3 text-body-md text-ink placeholder:text-ink-3 focus:border-accent focus:focus:outline-none"
           />
         </div>
       </div>

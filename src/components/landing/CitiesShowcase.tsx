@@ -40,7 +40,7 @@ export function CitiesShowcase() {
               <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/70 bg-surface/94 p-5 text-ink shadow-md backdrop-blur-[9px] transition-all duration-300 group-hover:shadow-hover">
                 <div>
                   <h3 className="mb-1.5 text-h1 text-ink">{city.name}</h3>
-                  <p className="text-caption font-semibold uppercase tracking-wide text-ink-3" suppressHydrationWarning>
+                  <p className="text-caption font-semibold text-ink-3" suppressHydrationWarning>
                     {numberFormatter.format(city.listings)} active listings
                   </p>
                 </div>

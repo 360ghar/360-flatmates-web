@@ -113,8 +113,8 @@ export function VisitDetailPage() {
         </div>
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Skeleton className="h-[52px] flex-1 rounded-[8px]" />
-          <Skeleton className="h-[52px] flex-1 rounded-[8px]" />
+          <Skeleton className="h-[52px] flex-1 rounded-cut-md" />
+          <Skeleton className="h-[52px] flex-1 rounded-cut-md" />
         </div>
       </div>
     );

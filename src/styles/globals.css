@@ -128,6 +128,12 @@
   --color-interactive: var(--color-primary);
   --color-focus: var(--color-primary);
 
+  /* ── Radius (DESIGN.md §3): generates rounded-cut-sm … rounded-cut-xl ── */
+  --radius-cut-sm: 6px;
+  --radius-cut-md: 12px;
+  --radius-cut-lg: 18px;
+  --radius-cut-xl: 28px;
+
   /* ── Motion (DESIGN.md §7) ── */
   --ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);   /* paper-out */
   --ease-emphasized: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -163,10 +169,6 @@
 :root {
   color-scheme: light;
   /* Radius (DESIGN.md §3). Cards use the hand-cut uneven radius. */
-  --radius-cut-sm: 6px;
-  --radius-cut-md: 12px;
-  --radius-cut-lg: 18px;
-  --radius-cut-xl: 28px;
   --radius-hand: 12px 14px 11px 13px;
   --radius-card: 12px;
   --radius-compact: 6px;
@@ -353,9 +355,13 @@ svg {
   color: var(--color-ink);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+/* In the base layer so component utilities (e.g. focus-visible:outline-none
+   on an input whose wrapper draws the focus stroke) can override it. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 }
 
 /* ── Typography (DESIGN.md §2) ──
@@ -614,36 +620,36 @@ svg {
 /* ── Paper details (DESIGN.md §5) ── */
 
 /* Grain on a surface. Pair with a bg-* colour class. */
-.paper-grain {
+@utility paper-grain {
   background-image: var(--grain);
 }
 
 /* Hand-cut card corners. */
-.rounded-hand {
+@utility rounded-hand {
   border-radius: var(--radius-hand);
 }
 
 /* Torn bottom edge. Give the element bottom padding > var(--torn-depth). */
-.paper-edge-torn-bottom {
+@utility paper-edge-torn-bottom {
   mask:
     linear-gradient(#000 0 0) top / 100% calc(100% - var(--torn-depth) + 1px) no-repeat,
     var(--torn-bottom-tile) bottom / 120px var(--torn-depth) repeat-x;
 }
 
 /* Torn top edge (bottom sheets, where a scene meets content). */
-.paper-edge-torn-top {
+@utility paper-edge-torn-top {
   mask:
     var(--torn-top-tile) top / 120px var(--torn-depth) repeat-x,
     linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--torn-depth) + 1px) no-repeat;
 }
 
 /* Scalloped (bitten) left edge: toasts. Needs left padding > 8px. */
-.paper-edge-scallop-left {
+@utility paper-edge-scallop-left {
   mask: radial-gradient(circle at 0 50%, #0000 5px, #000 5.5px) 0 0 / 100% 14px repeat-y;
 }
 
 /* Scalloped bottom edge: the offline strip. Needs bottom padding > 8px. */
-.paper-edge-scallop-bottom {
+@utility paper-edge-scallop-bottom {
   mask: radial-gradient(circle at 50% 100%, #0000 5px, #000 5.5px) 0 0 / 14px 100% repeat-x;
 }
 

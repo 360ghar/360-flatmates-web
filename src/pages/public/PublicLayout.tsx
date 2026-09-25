@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router";
 import { Instagram, Linkedin, Menu, Twitter } from "lucide-react";
 
@@ -27,7 +27,6 @@ const NAV_LINKS = [
 
 export function PublicLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [offline, setOffline] = useState(false);
   const { pathname } = useLocation();
 
   // Close drawer on route change so navigation isn't blocked.
@@ -39,27 +38,15 @@ export function PublicLayout() {
     if (drawerOpen) setDrawerOpen(false);
   }
 
-  // Online/offline detection — surface a banner when the connection drops.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const update = () => setOffline(!navigator.onLine);
-    update();
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
-    return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
-    };
-  }, []);
 
   return (
-    <div className={cn("flex min-h-screen flex-col bg-paper text-ink", offline && "pt-10")}>
+    <div className="flex min-h-screen flex-col bg-paper text-ink">
       <ScrollProgressBar />
-      <OfflineBanner visible={offline} />
+      <OfflineBanner />
       <header
         className={cn(
-          "sticky z-[var(--z-sticky)] border-b border-line-low bg-surface/92 pt-[env(safe-area-inset-top)] backdrop-blur-xl",
-          offline ? "top-10" : "top-0",
+          "paper-grain sticky z-[var(--z-sticky)] bg-paper-1 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_var(--color-edge)]",
+          "top-0",
         )}
       >
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-5 md:px-12">
@@ -124,7 +111,7 @@ export function PublicLayout() {
               key={link.href}
               to={link.href}
               onClick={() => setDrawerOpen(false)}
-              className="rounded-[8px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="rounded-cut-md px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
             >
               {link.label}
             </Link>
@@ -133,7 +120,7 @@ export function PublicLayout() {
             <Link
               to="/login"
               onClick={() => setDrawerOpen(false)}
-              className="rounded-[8px] px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="rounded-cut-md px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
             >
               Sign in
             </Link>
@@ -219,7 +206,7 @@ export function PublicLayout() {
           </div>
 
           <div className="mt-20 pt-10 border-t border-line-low flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-caption text-ink-4 tracking-widest uppercase" suppressHydrationWarning>
+            <p className="text-caption text-ink-4" suppressHydrationWarning>
               &copy; {new Date().getFullYear()} 360 Flatmates. All rights reserved.
             </p>
             <div className="flex items-center gap-2">

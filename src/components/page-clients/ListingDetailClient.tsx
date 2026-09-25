@@ -266,7 +266,7 @@ export default function ListingDetailClient() {
             {/* Mobile sticky CTA — clear AppShell bottom nav when on /listing/* */}
             <div
               className={cn(
-                "fixed inset-x-0 z-[var(--z-sticky)] border-t border-line bg-surface/95 p-3 backdrop-blur-xl lg:hidden",
+                "paper-grain fixed inset-x-0 z-[var(--z-sticky)] bg-paper-1 p-3 shadow-[0_-1px_0_var(--color-edge),0_-3px_6px_-4px_rgb(35_32_28/0.14)] lg:hidden",
                 hasAppBottomNav
                   ? "bottom-[calc(76px+env(safe-area-inset-bottom))]"
                   : "bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"

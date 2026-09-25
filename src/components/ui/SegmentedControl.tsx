@@ -76,7 +76,7 @@ export function SegmentedControl({
         ref={containerRef}
         role="tablist"
         aria-label={ariaLabel}
-        className={cn("relative inline-flex min-h-11 rounded-full bg-paper-2 p-1", className)}
+        className={cn("relative inline-flex rounded-cut-md bg-paper-2 p-1", className)}
         onKeyDown={handleKeyDown}
         {...props}
       >
@@ -92,7 +92,7 @@ export function SegmentedControl({
               disabled={option.disabled}
               data-index={index}
               className={cn(
-                "relative z-10 min-h-9 rounded-full px-4 text-body-md font-semibold disabled:cursor-not-allowed disabled:text-ink-4",
+                "relative z-10 min-h-11 rounded-cut-md px-4 text-body-md font-semibold disabled:cursor-not-allowed disabled:text-ink-4",
                 interactiveMotion,
                 focusRing,
                 selected ? "text-ink" : "text-ink-3 hover:text-ink",
@@ -103,8 +103,8 @@ export function SegmentedControl({
               {selected ? (
                 <m.span
                   layoutId="segmented-indicator"
-                  className="absolute inset-0 -z-10 rounded-full bg-surface shadow-xs"
-                  transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 35 }}
+                  className="absolute inset-0 -z-10 rounded-cut-md bg-surface shadow-sm"
+                  transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 38 }}
                 />
               ) : null}
               <span className="relative z-10">{option.label}</span>

@@ -122,7 +122,7 @@ export function NeighborhoodPage() {
       <main id="main" className="page-fade">
         {/* Hero */}
         <section className="relative h-64 md:h-80 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-paper to-surface" />
+          <div className="absolute inset-0 bg-paper-1 paper-grain" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-5">
             <p className="text-eyebrow text-accent mb-2">
               <Link to={cityUrl} className="hover:underline">

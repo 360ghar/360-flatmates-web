@@ -38,7 +38,7 @@ export function SearchResultsList({
     <div className="flex flex-col min-w-0 min-h-[550px] gap-4">
       <div className="flex items-center justify-between">
         <span
-          className="flex items-center gap-2 text-eyebrow text-ink-3 tracking-widest uppercase"
+          className="flex items-center gap-2 text-eyebrow text-ink-3"
           aria-live="polite"
           aria-atomic="true"
         >

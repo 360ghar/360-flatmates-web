@@ -4,7 +4,7 @@ import { ONBOARDING_PHASES, phaseForStep } from "@/lib/stores/onboarding-store";
 export function OnboardingPhaseLabel({ currentStep }: { currentStep: number }) {
   const phase = phaseForStep(currentStep);
   return (
-    <p className="text-label-md font-semibold uppercase tracking-wide text-accent">
+    <p className="text-label-md font-semibold text-accent">
       Phase {phase.index} of {ONBOARDING_PHASES.length} · {phase.label}
     </p>
   );

@@ -1,4 +1,3 @@
-import { Bookmark } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState, useCallback } from "react";
 import {
@@ -238,7 +237,7 @@ export function SavedSearchesPage() {
           <EmptyState
             title="No saved searches yet"
             description="Save a search from the search results page to revisit it later."
-            icon={<Bookmark aria-hidden="true" className="h-6 w-6" />}
+            scene="magnifier"
             actionLabel="Start searching"
             onAction={() => navigate("/search")}
           />

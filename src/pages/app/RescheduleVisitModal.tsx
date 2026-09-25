@@ -52,7 +52,7 @@ export function RescheduleVisitModal({
           id="reschedule-date"
           type="date"
           className={cn(
-            "h-12 w-full rounded-[8px] border bg-surface px-3 text-body-md text-ink focus:focus:outline-none",
+            "h-12 w-full rounded-cut-md border bg-surface px-3 text-body-md text-ink focus:focus:outline-none",
             rescheduleInvalid ? "border-error focus:border-error" : "border-line focus:border-accent"
           )}
           value={newDate}

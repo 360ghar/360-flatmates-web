@@ -156,8 +156,8 @@ export function LocationPage() {
           <Skeleton className="h-3 w-20" />
           <Skeleton variant="filterChips" count={6} />
         </div>
-        <Skeleton className="h-[52px] w-full rounded-[8px]" />
-        <Skeleton className="h-[52px] w-full rounded-[8px]" />
+        <Skeleton className="h-[52px] w-full rounded-cut-md" />
+        <Skeleton className="h-[52px] w-full rounded-cut-md" />
       </div>
     );
   }
@@ -195,7 +195,7 @@ export function LocationPage() {
           <ul
             id={listboxId}
             role="listbox"
-            className="absolute left-0 right-0 top-full z-[var(--z-overlay)] mt-1 flex flex-col overflow-hidden rounded-[8px] border border-line bg-surface shadow-md"
+            className="absolute left-0 right-0 top-full z-[var(--z-overlay)] mt-1 flex flex-col overflow-hidden rounded-cut-md border border-line bg-surface shadow-md"
           >
             {suggestions.map((name) => (
               <li

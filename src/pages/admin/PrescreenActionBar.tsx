@@ -11,7 +11,7 @@ export function PrescreenActionBar({
   onApprove: () => void;
 }) {
   return (
-    <div className="sticky bottom-0 z-[var(--z-sticky)] -mx-5 mt-6 border-t border-line bg-paper/88 px-5 py-3 backdrop-blur-[9px] md:-mx-6 md:px-6">
+    <div className="sticky bottom-0 z-[var(--z-sticky)] -mx-5 mt-6 bg-paper-1 paper-grain px-5 py-3 shadow-[0_-1px_0_var(--color-edge)] md:-mx-6 md:px-6">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-end gap-3">
         <Button
           size="compact"

@@ -223,7 +223,7 @@ function CalendarView({
                   <span className={cn(isToday && "font-bold text-accent")}>{cell.day}</span>
                   {visitCount > 0 ? (
                     <span
-                      className="mt-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white"
+                      className="mt-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-on-clay"
                       aria-label={`${dayVisits.length} visit${dayVisits.length === 1 ? "" : "s"} on this day`}
                     >
                       {visitCount}

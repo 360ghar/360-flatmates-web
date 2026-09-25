@@ -38,7 +38,7 @@ export function SwipeCardCollapsedView({
           width={800}
           wrapperClassName="h-full w-full"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-accent/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           {profile.mode ? <Badge mode={profile.mode} variant="mode" /> : null}
         </div>
@@ -79,7 +79,7 @@ export function SwipeCardCollapsedView({
           style={{ opacity: likeOpacity }}
         >
           <span
-            className="border-[3px] border-success text-success select-none rounded-sm px-6 py-2 text-3xl font-bold tracking-widest -rotate-15"
+            className="border-[3px] border-success text-success select-none rounded-sm px-6 py-2 text-3xl font-bold -rotate-15"
             aria-hidden="true"
           >
             LIKE
@@ -92,7 +92,7 @@ export function SwipeCardCollapsedView({
           style={{ opacity: passOpacity }}
         >
           <span
-            className="border-[3px] border-error text-error select-none rounded-sm px-6 py-2 text-3xl font-bold tracking-widest rotate-15"
+            className="border-[3px] border-error text-error select-none rounded-sm px-6 py-2 text-3xl font-bold rotate-15"
             aria-hidden="true"
           >
             PASS
@@ -105,7 +105,7 @@ export function SwipeCardCollapsedView({
           style={{ opacity: superLikeOpacity }}
         >
           <span
-            className="border-[3px] border-warning text-warning select-none rounded-sm px-4 py-2 text-2xl font-bold tracking-widest"
+            className="border-[3px] border-warning text-warning select-none rounded-sm px-4 py-2 text-2xl font-bold"
             aria-hidden="true"
           >
             SUPER LIKE

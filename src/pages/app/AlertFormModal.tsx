@@ -82,7 +82,7 @@ export function AlertFormModal({
         />
 
         <div className="flex flex-col gap-2">
-          <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
+          <p className="text-eyebrow font-semibold text-ink-3">
             Filters
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -126,7 +126,7 @@ export function AlertFormModal({
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
+          <p className="text-eyebrow font-semibold text-ink-3">
             Frequency
           </p>
           <SelectField
@@ -143,7 +143,7 @@ export function AlertFormModal({
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-eyebrow font-semibold uppercase tracking-[0.16em] text-ink-3">
+          <p className="text-eyebrow font-semibold text-ink-3">
             Channels
           </p>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Alert channels">

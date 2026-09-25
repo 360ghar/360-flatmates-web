@@ -22,7 +22,7 @@ export function MaintenancePage() {
         </p>
         <Link
           to="/"
-          className={`mt-8 inline-flex h-12 items-center justify-center rounded-[8px] bg-accent px-6 text-label-lg text-white ${focusRing}`}
+          className={`mt-8 inline-flex h-12 items-center justify-center rounded-cut-md bg-accent px-6 text-label-lg text-on-clay ${focusRing}`}
         >
           Return Home
         </Link>

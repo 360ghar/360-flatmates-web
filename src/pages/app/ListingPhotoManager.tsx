@@ -242,7 +242,7 @@ export function ListingPhotoManager({
           </div>
         </div>
       ) : null}
-      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[8px] border-2 border-dashed border-line bg-paper-2 px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
+      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-cut-md border-2 border-dashed border-line bg-paper-2 px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
         <input
           type="file"
           accept="image/*"

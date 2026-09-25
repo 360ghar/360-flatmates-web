@@ -371,7 +371,7 @@ export function PostPage() {
           </Button>
           <Button
             variant="primary"
-            className="w-full bg-error text-white hover:bg-error/95 md:w-auto"
+            className="w-full bg-error text-on-clay hover:bg-error/95 md:w-auto"
             onClick={() => blocker.proceed?.()}
           >
             Leave page

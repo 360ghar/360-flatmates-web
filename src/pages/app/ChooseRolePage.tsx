@@ -105,7 +105,7 @@ export function ChooseRolePage() {
             </div>
           ))}
         </div>
-        <Skeleton className="h-[52px] w-full rounded-[8px]" />
+        <Skeleton className="h-[52px] w-full rounded-cut-md" />
       </div>
     );
   }

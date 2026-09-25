@@ -23,14 +23,14 @@ export function ErrorPage() {
         <div className="mt-8 flex gap-4">
           <Link
             to="/"
-            className={`inline-flex h-12 items-center justify-center rounded-[8px] bg-accent px-6 text-label-lg text-white hover:shadow-hover ${focusRing}`}
+            className={`inline-flex h-12 items-center justify-center rounded-cut-md bg-accent px-6 text-label-lg text-on-clay hover:shadow-hover ${focusRing}`}
           >
             Return Home
           </Link>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className={`inline-flex h-12 items-center justify-center rounded-[8px] border border-line-low px-6 text-label-lg text-ink-2 hover:border-accent hover:text-accent transition-colors ${focusRing}`}
+            className={`inline-flex h-12 items-center justify-center rounded-cut-md border border-line-low px-6 text-label-lg text-ink-2 hover:border-accent hover:text-accent transition-colors ${focusRing}`}
           >
             Refresh Page
           </button>

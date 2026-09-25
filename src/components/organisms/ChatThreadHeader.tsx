@@ -58,7 +58,7 @@ export function ChatThreadHeader({
           {showMenu ? (
             <div
               role="menu"
-              className="absolute right-0 top-full z-[var(--z-raised)] mt-1 w-44 overflow-hidden rounded-[8px] border border-line bg-surface-elevated py-1 shadow-md"
+              className="absolute right-0 top-full z-[var(--z-raised)] mt-1 w-44 overflow-hidden rounded-cut-md border border-line bg-surface-elevated py-1 shadow-md"
             >
               {onReport ? (
                 <button

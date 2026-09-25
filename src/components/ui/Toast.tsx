@@ -44,26 +44,27 @@ export function Toast({
   const classes = toneClasses[typeTone[type]];
 
   return (
+    // The outer drop-shadow follows the scalloped cut of the inner slip.
     <div
       role={type === "error" || type === "warning" ? "alert" : "status"}
       aria-live={type === "error" || type === "warning" ? "assertive" : "polite"}
       className={cn(
-        "flex w-full max-w-[400px] gap-3 rounded-2xl border border-line bg-surface-elevated p-4 text-ink shadow-lg animate-fade-slide-up",
+        "w-full max-w-[400px] animate-fade-slide-up [filter:drop-shadow(1px_3px_3px_rgb(35_32_28/0.18))]",
         className
       )}
       {...props}
     >
-      <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", classes.soft, classes.text)}>
-        {icon ?? typeIcon[type]}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-body-md font-semibold text-ink">{title}</p>
-        {description ? <p className="mt-1 text-caption text-ink-2">{description}</p> : null}
-        {action ? (
-          <Button className="mt-3" size="compact" variant="tertiary" onClick={action.onClick}>
-            {action.label}
-          </Button>
-        ) : null}
+      <div className="paper-edge-scallop-left paper-grain flex gap-3 rounded-r-cut-md bg-surface-elevated py-4 pl-5 pr-4 text-ink">
+        <span className={cn("mt-0.5 shrink-0", classes.text)}>{icon ?? typeIcon[type]}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-body-md font-semibold text-ink">{title}</p>
+          {description ? <p className="mt-1 text-caption text-ink-2">{description}</p> : null}
+          {action ? (
+            <Button className="-ml-4 mt-2" size="compact" variant="tertiary" onClick={action.onClick}>
+              {action.label}
+            </Button>
+          ) : null}
+        </div>
       </div>
     </div>
   );

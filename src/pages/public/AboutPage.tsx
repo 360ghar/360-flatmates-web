@@ -45,9 +45,9 @@ export function AboutPage() {
       />
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-16 md:px-12">
         <div className="text-center mb-16">
-          <p className="text-eyebrow text-accent uppercase tracking-widest">About</p>
+          <p className="text-eyebrow text-accent">About</p>
           <h1 className="mt-4 text-display text-4xl md:text-6xl text-ink leading-tight tracking-tight max-w-3xl mx-auto">
-            Finding a home starts with <span className="text-serif-italic text-accent italic font-normal text-5xl md:text-7xl">finding your people</span>
+            Finding a home starts with <span className="text-serif-italic text-5xl md:text-7xl">finding your people</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-body-lg text-ink-2">
             We help young professionals find homes and build harmonious lives through compatibility, verified
@@ -84,7 +84,7 @@ export function AboutPage() {
               experience we wished we had. If you have ever moved into a place and realized too late
               that your flatmate keeps the AC on 18 degrees all night, you understand our mission."
             </p>
-            <p className="mt-6 text-eyebrow text-accent uppercase tracking-wider">The 360 Flatmates Team</p>
+            <p className="mt-6 text-eyebrow text-accent">The 360 Flatmates Team</p>
             </div>
           </div>
         </section>

@@ -1,6 +1,5 @@
 import type { HTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle } from "lucide-react";
 import type { UserMode } from "../ui/Badge";
 import { Spinner } from "../ui/Spinner";
 import { EmptyState } from "../ui/StateViews";
@@ -218,7 +217,7 @@ export function ChatThread({
           <EmptyState
             title="Start the conversation"
             description={`Send a message to ${participant.name} to get the conversation going.`}
-            icon={<MessageCircle aria-hidden="true" className="h-6 w-6" />}
+            scene="chat"
             className="mt-8"
           />
         ) : (

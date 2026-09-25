@@ -240,7 +240,7 @@ export function ForgotPasswordPage() {
       <SeoHelmet title="Reset Password" description="Reset your 360 Flatmates account password via a 6-digit OTP." canonicalUrl={`${SITE_URL}/forgot-password`} noindex />
       <h1 className="text-display text-3xl md:text-4xl text-ink tracking-tight">Reset password</h1>
       <p className="mt-2 text-body-md text-ink-2">
-        Verify your credentials to secure your <span className="text-serif-italic text-accent italic font-normal text-[18px]">account access</span>.
+        Verify your credentials to secure your account access.
       </p>
 
       <StepProgress

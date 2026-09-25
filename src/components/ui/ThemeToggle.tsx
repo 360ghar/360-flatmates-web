@@ -23,9 +23,9 @@ export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
   const theme = useStore(uiStore, (s) => s.theme);
   const setTheme = useStore(uiStore, (s) => s.setTheme);
 
-  const btnSize = size === "sm" ? "h-8 w-8" : "h-10 w-10";
+  const btnSize = size === "sm" ? "h-9 w-9" : "h-11 w-11";
   const iconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
-  const btnPx = size === "sm" ? 32 : 40;
+  const btnPx = size === "sm" ? 36 : 44;
   const gapPx = 4;
   const padPx = 4;
   const activeIndex = THEME_OPTIONS.findIndex((o) => o.value === theme);
@@ -34,16 +34,16 @@ export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
   return (
     <div
       className={cn(
-        "relative flex items-center gap-1 rounded-[8px] bg-paper-2 p-1",
+        "relative flex items-center gap-1 rounded-cut-md bg-paper-2 p-1",
         className
       )}
       role="radiogroup"
       aria-label="Theme preference"
     >
-      {/* Active indicator bubble — CSS transition replaces the framer-motion layoutId animation */}
+      {/* Active choice = a paper tab one layer up, sliding between options. */}
       <span
         aria-hidden="true"
-        className="absolute rounded-[7px] bg-accent-soft transition-all duration-300 ease-emphasized"
+        className="absolute rounded-cut-md bg-surface shadow-sm transition-[left] duration-200 ease-[var(--ease-paper-out)] motion-reduce:transition-none"
         style={{
           left: `${indicatorLeft}px`,
           top: `${padPx}px`,
@@ -63,12 +63,12 @@ export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
             aria-label={option.label}
             onClick={() => setTheme(option.value)}
             className={cn(
-              "relative z-10 inline-flex items-center justify-center rounded-[7px] transition-colors duration-200",
+              "relative z-10 inline-flex items-center justify-center rounded-cut-md transition-colors duration-200",
               btnSize,
               focusRing,
               isActive
                 ? "text-accent font-semibold"
-                : "text-ink-3 hover:bg-paper-3/40 hover:text-ink"
+                : "text-ink-2 hover:text-ink"
             )}
           >
             <Icon aria-hidden="true" className={cn(iconSize)} />

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router";
-import { Bell, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   useSearchAlerts,
   useCreateSearchAlert,
@@ -214,7 +214,7 @@ export function AlertsPage() {
           <EmptyState
             title="No alerts yet"
             description="Create an alert to get notified when new listings match your criteria."
-            icon={<Bell aria-hidden="true" className="h-6 w-6" />}
+            scene="bell"
             actionLabel="Create alert"
             onAction={openCreate}
           />
@@ -281,7 +281,7 @@ export function AlertsPage() {
               Keep it
             </Button>
             <Button
-              className="bg-error text-white shadow-none hover:bg-error/90"
+              className="bg-error text-on-clay shadow-none hover:bg-error/90"
               loading={deleteAlert.isPending}
               onClick={() => {
                 if (confirmDeleteId !== null) {

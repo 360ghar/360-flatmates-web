@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { ArrowLeft, WifiOff } from "lucide-react";
 import { Button } from "./Button";
 import { cn } from "./component-utils";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export interface PageLayoutProps extends HTMLAttributes<HTMLElement> {
   children: ReactNode;
@@ -58,7 +59,7 @@ export function PageHeader({
           </Button>
         ) : null}
         <div className="min-w-0">
-          {eyebrow ? <p className="text-eyebrow uppercase tracking-[0.16em] text-ink-3">{eyebrow}</p> : null}
+          {eyebrow ? <p className="text-eyebrow">{eyebrow}</p> : null}
           <h1 className="text-h1 font-normal text-ink">{title}</h1>
           {description ? <p className="mt-2 max-w-[65ch] text-body-md text-ink-2">{description}</p> : null}
         </div>
@@ -76,7 +77,7 @@ export function BottomActionBar({ children, className, ...props }: BottomActionB
   return (
     <div
       className={cn(
-        "sticky bottom-0 z-[var(--z-sticky)] -mx-5 mt-6 border-t border-line bg-paper/88 px-5 py-3 backdrop-blur-[9px] md:-mx-6 md:px-6",
+        "paper-grain sticky bottom-0 z-[var(--z-sticky)] -mx-5 mt-6 bg-paper-1 px-5 py-3 shadow-[0_-1px_0_var(--color-edge),0_-3px_6px_-4px_rgb(35_32_28/0.14)] md:-mx-6 md:px-6",
         className
       )}
       {...props}
@@ -87,27 +88,29 @@ export function BottomActionBar({ children, className, ...props }: BottomActionB
 }
 
 export interface OfflineBannerProps extends HTMLAttributes<HTMLDivElement> {
-  visible?: boolean;
   label?: string;
 }
 
+/** In-flow scalloped strip (DESIGN.md §8). Renders only while offline and
+ *  pushes the page down instead of covering the header. */
 export function OfflineBanner({
-  visible = true,
-  label = "You are offline",
+  label = "You are offline. Showing what was already loaded.",
   className,
   ...props
 }: OfflineBannerProps) {
-  if (!visible) {
-    return null;
-  }
+  const online = useOnlineStatus();
+  if (online) return null;
 
   return (
     <div
       role="status"
-      className={cn("fixed inset-x-0 top-0 z-[var(--z-overlay)] flex h-10 items-center justify-center gap-2 bg-paper-3 text-body-md font-medium text-ink-2", className)}
+      className={cn(
+        "paper-edge-scallop-bottom flex min-h-11 items-center justify-center gap-2 bg-warning-soft px-4 pb-4 pt-2.5 text-center text-body-md font-semibold text-warning-ink",
+        className
+      )}
       {...props}
     >
-      <WifiOff aria-hidden="true" className="h-5 w-5 text-ink-3" />
+      <WifiOff aria-hidden="true" className="h-5 w-5 shrink-0" />
       {label}
     </div>
   );

@@ -81,7 +81,7 @@ export function PostPhotosStep({
                 <button
                   type="button"
                   onClick={() => onRetryImage(img.id)}
-                  className="absolute bottom-2 right-2 min-h-9 rounded-[8px] bg-surface px-3 py-1.5 text-caption font-semibold text-accent shadow-sm hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="absolute bottom-2 right-2 min-h-9 rounded-cut-md bg-surface px-3 py-1.5 text-caption font-semibold text-accent shadow-sm hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   Retry
                 </button>

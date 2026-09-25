@@ -26,7 +26,7 @@ export function LegalPage({
       {helmet}
       <main id="main" className="page-fade mx-auto max-w-3xl px-5 py-16 md:px-6">
         <div className="border-b border-line pb-8 mb-10">
-          <p className="text-eyebrow text-accent uppercase tracking-widest">{eyebrow}</p>
+          <p className="text-eyebrow text-accent">{eyebrow}</p>
           <h1 className="mt-4 text-display text-4xl md:text-5xl text-ink leading-tight tracking-tight">
             {heading}
           </h1>

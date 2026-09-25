@@ -83,7 +83,7 @@ export function ComparisonFlow() {
                   <h3 className="text-h2 text-ink">The Flatmates way</h3>
                   <p className="mt-1 text-body-md text-ink-2">One compatibility-led path from search to visit.</p>
                 </div>
-                <span className="rounded-full bg-accent px-3 py-1 text-caption font-semibold text-white">Clear</span>
+                <span className="rounded-full bg-accent px-3 py-1 text-caption font-semibold text-on-clay">Clear</span>
               </div>
               <div className="flex min-h-[230px] flex-col justify-center gap-5 rounded-2xl bg-surface/72 p-5">
                 <div className="grid items-center justify-items-center gap-3 sm:grid-cols-[auto_minmax(24px,1fr)_auto_minmax(24px,1fr)_auto] sm:gap-4">

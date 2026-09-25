@@ -48,13 +48,13 @@ export function TestimonialsSection() {
                   </div>
                   <div>
                     <p className="text-h3 text-ink font-semibold">{testimonial.name}</p>
-                    <p className="text-label-md text-ink-3 uppercase tracking-wider mt-0.5">{testimonial.city}</p>
+                    <p className="text-label-md text-ink-3 mt-0.5">{testimonial.city}</p>
                   </div>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-success/15 bg-success-soft px-3.5 py-1 text-success shadow-xs">
                   <span className="text-label-lg font-bold tabular">{testimonial.compatibility}%</span>
-                  <span className="text-label-md uppercase tracking-wider">match</span>
+                  <span className="text-label-md">match</span>
                 </div>
               </div>
             </RevealSection>

@@ -93,7 +93,7 @@ export function DashboardPanel({
         <table className="w-full min-w-[760px] border-collapse text-left">
           <caption className="sr-only">Performance by listing</caption>
           <thead>
-            <tr className="border-b border-line text-caption uppercase tracking-[0.16em] text-ink-3">
+            <tr className="border-b border-line text-caption text-ink-3">
               <th className="py-3 pr-4" scope="col">Listing</th>
               <th className="py-3 pr-4" scope="col">Views</th>
               <th className="py-3 pr-4" scope="col">Likes</th>

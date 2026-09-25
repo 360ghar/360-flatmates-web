@@ -16,7 +16,7 @@ export function ListingSocietyVibeCard({ property }: { property: Property }) {
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {property.society_type && (
           <div className="rounded-xl border border-line bg-surface-soft p-4">
-            <p className="text-caption font-medium uppercase tracking-wide text-ink-3">Society type</p>
+            <p className="text-caption font-medium text-ink-3">Society type</p>
             <p className="mt-1 text-body-lg font-medium capitalize text-ink">
               {property.society_type.replace("_", " ")}
             </p>
@@ -24,7 +24,7 @@ export function ListingSocietyVibeCard({ property }: { property: Property }) {
         )}
         {property.society_amenities && property.society_amenities.length > 0 && (
           <div className="rounded-xl border border-line bg-surface-soft p-4 md:col-span-2">
-            <p className="mb-2 text-caption font-medium uppercase tracking-wide text-ink-3">
+            <p className="mb-2 text-caption font-medium text-ink-3">
               Amenities
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -38,7 +38,7 @@ export function ListingSocietyVibeCard({ property }: { property: Property }) {
         )}
         {property.society_vibe_tags && property.society_vibe_tags.length > 0 && (
           <div className="rounded-xl border border-line bg-surface-soft p-4 md:col-span-2">
-            <p className="mb-2 text-caption font-medium uppercase tracking-wide text-ink-3">Vibe</p>
+            <p className="mb-2 text-caption font-medium text-ink-3">Vibe</p>
             <div className="flex flex-wrap gap-1.5">
               {property.society_vibe_tags.map((t) => (
                 <Chip

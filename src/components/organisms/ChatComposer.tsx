@@ -31,7 +31,7 @@ export function ChatComposer({
   onSubmit: () => void;
 }) {
   return (
-    <footer ref={footerRef} className="border-t border-line bg-surface/95 p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+    <footer ref={footerRef} className="paper-grain bg-paper-1 p-3 shadow-[0_-1px_0_var(--color-edge)]">
       <div className="flex items-center gap-2">
         <TrustBadge variant="privacy" className="hidden sm:inline-flex" />
         <div className="relative" ref={emojiPickerRef}>
@@ -47,13 +47,13 @@ export function ChatComposer({
           {showEmojiPicker ? (
             <div
               aria-label="Choose emoji"
-              className="absolute bottom-full left-0 z-[var(--z-raised)] mb-2 grid w-[min(20rem,calc(100vw-2rem))] grid-cols-6 gap-1 rounded-[12px] border border-line bg-surface-elevated p-2 shadow-md"
+              className="absolute bottom-full left-0 z-[var(--z-raised)] mb-2 grid w-[min(20rem,calc(100vw-2rem))] grid-cols-6 gap-1 rounded-cut-md border border-line bg-surface-elevated p-2 shadow-md"
             >
               {EMOJI_OPTIONS.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"
-                  className={cn("flex aspect-square min-h-10 w-full items-center justify-center rounded-[8px] text-xl leading-none hover:bg-lavender", focusRing)}
+                  className={cn("flex aspect-square min-h-10 w-full items-center justify-center rounded-cut-md text-xl leading-none hover:bg-lavender", focusRing)}
                   onClick={() => onInsertEmoji(emoji)}
                 >
                   {emoji}
