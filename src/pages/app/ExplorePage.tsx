@@ -76,7 +76,6 @@ export function ExplorePage() {
       lat: mapCenter.lat,
       lng: mapCenter.lng,
       zoom_level: mapZoom,
-      radius: 10,
       price_min: filters.price_min,
       price_max: filters.price_max,
       sharing_type: filters.sharing_type,

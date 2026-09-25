@@ -17,6 +17,17 @@ function propertyToPin(p: Property): MapPin {
   };
 }
 
+const EARTH_CIRCUMFERENCE_KM = 40_075;
+const ASSUMED_VIEWPORT_TILES = 4; // ~1000 px wide map at 256 px tiles
+
+/** Search radius (km) that covers roughly the visible map at a zoom level. */
+export function radiusForZoom(zoom: number | undefined, lat = 20): number {
+  if (zoom === undefined) return 10;
+  const widthKm =
+    (EARTH_CIRCUMFERENCE_KM * Math.cos((lat * Math.PI) / 180) * ASSUMED_VIEWPORT_TILES) / 2 ** zoom;
+  return Math.min(50, Math.max(1, Math.round(widthKm / 2)));
+}
+
 export function mapViewOptions(filters: MapViewFilters) {
   return queryOptions({
     queryKey: ["map", filters],
@@ -31,7 +42,11 @@ export function mapViewOptions(filters: MapViewFilters) {
         query: {
           lat: filters.lat,
           lng: filters.lng,
-          radius: filters.radius ?? 10,
+          radius: filters.radius ?? radiusForZoom(filters.zoom_level, filters.lat),
+          property_type: filters.property_type,
+          city: filters.city,
+          locality: filters.locality,
+          move_in: filters.move_in?.[0],
           price_min: filters.price_min,
           price_max: filters.price_max,
           sharing_type: filters.sharing_type?.[0],
