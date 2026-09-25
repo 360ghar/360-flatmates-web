@@ -1,6 +1,15 @@
 import type { ImgHTMLAttributes, ReactNode } from "react";
 import { useState } from "react";
-import { ImageIcon } from "lucide-react";
+import { paperArt } from "@/components/paper/art";
+
+/** Missing photo: the cut-paper house on layer-1 paper, not a generic icon. */
+function MissingPhoto() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 160 160" className="w-1/3 max-w-[96px]">
+      <path d={paperArt.house.d} fillRule="evenodd" fill="var(--color-scene-town-far)" />
+    </svg>
+  );
+}
 import { cn } from "./component-utils";
 import { optimizeImageUrl } from "@/lib/image-utils";
 
@@ -33,11 +42,11 @@ function NetworkImageInner({
         aria-label={alt}
         role="img"
         className={cn(
-          "flex items-center justify-center bg-paper-2 text-ink-3",
+          "paper-grain flex items-center justify-center bg-paper-1",
           wrapperClassName ?? "h-full w-full"
         )}
       >
-        {fallback ?? <ImageIcon aria-hidden="true" className="h-6 w-6" />}
+        {fallback ?? <MissingPhoto />}
       </div>
     );
   }
@@ -77,11 +86,11 @@ export function NetworkImage({
         aria-label={alt}
         role="img"
         className={cn(
-          "flex items-center justify-center bg-paper-2 text-ink-3",
+          "paper-grain flex items-center justify-center bg-paper-1",
           wrapperClassName ?? "h-full w-full"
         )}
       >
-        {fallback ?? <ImageIcon aria-hidden="true" className="h-6 w-6" />}
+        {fallback ?? <MissingPhoto />}
       </div>
     );
   }

@@ -115,7 +115,9 @@ export function ListingCard({
           wrapperClassName="h-full w-full rounded-none"
           className="group-hover:scale-[1.03] transition-transform duration-500 ease-out"
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
+        {listing.imageUrl ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
+        ) : null}
 
         {listing.compatibilityScore !== undefined ? (
           <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full border border-white/40 bg-surface/95 px-2 py-0.5 shadow-sm backdrop-blur-sm">

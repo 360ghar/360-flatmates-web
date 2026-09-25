@@ -65,7 +65,7 @@ export function PublicLayout() {
             ))}
           </nav>
           <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
-            <ThemeToggle size="sm" className="hidden lg:flex" />
+            <ThemeToggle size="sm" className="max-lg:hidden" />
             <Link
               to="/login"
               className="hidden whitespace-nowrap text-body-md font-semibold text-ink-2 hover:text-ink transition-colors duration-200 sm:block"
@@ -74,7 +74,7 @@ export function PublicLayout() {
             </Link>
             <Link
               to="/discover"
-              className={buttonClasses("primary", "compact") + " hidden px-5 sm:inline-flex"}
+              className={buttonClasses("primary", "compact") + " px-5 max-sm:hidden"}
             >
               Start matching
             </Link>

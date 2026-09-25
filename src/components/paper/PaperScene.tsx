@@ -61,7 +61,7 @@ function HeroLayer({
       preserveAspectRatio="xMidYMax slice"
       // Bottom-anchored band at the art's own aspect (0.3) on wide screens;
       // never shorter than the container allows on phones, where it crops in.
-      className="absolute inset-x-0 bottom-0 h-[min(100%,max(30vw,300px))] w-full will-change-transform"
+      className="absolute inset-x-0 bottom-0 h-[min(85%,max(30vw,300px))] w-full will-change-transform"
       style={{ y }}
     >
       <defs>

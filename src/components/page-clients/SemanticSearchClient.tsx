@@ -101,7 +101,6 @@ export default function SemanticSearchClient() {
     return (
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
         <PageHeader
-          eyebrow="Semantic search"
           title="Describe your ideal home"
         />
         <Skeleton variant="searchResults" className="mt-6" />
@@ -112,7 +111,6 @@ export default function SemanticSearchClient() {
   return (
     <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
       <PageHeader
-        eyebrow="Semantic search"
         title="Describe your ideal home"
         description="Type naturally: &quot;quiet room near Koramangala under 15k with vegetarian flatmates&quot; and we will find matches."
       />

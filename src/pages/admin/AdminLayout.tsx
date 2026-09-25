@@ -120,7 +120,7 @@ export function AdminLayout() {
               );
             })}
           </nav>
-          <ThemeToggle size="sm" className="ml-auto hidden xl:flex" />
+          <ThemeToggle size="sm" className="ml-auto max-xl:hidden" />
         </header>
         <main id="main" className="min-h-[calc(100dvh-64px)] px-5 py-6 md:px-6">
           <Outlet />

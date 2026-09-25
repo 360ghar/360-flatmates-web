@@ -1,3 +1,4 @@
+import { FLATMATE_MODE_OPTIONS } from "@/lib/data";
 import type { ButtonHTMLAttributes } from "react";
 import { Avatar } from "../ui/Avatar";
 import { Badge, type UserMode } from "../ui/Badge";
@@ -20,33 +21,36 @@ export interface ConversationRowProps
   conversation: ConversationRowData;
 }
 
+const MODE_LABEL = Object.fromEntries(FLATMATE_MODE_OPTIONS.map((o) => [o.value, o.label])) as Record<string, string>;
+
 export function ConversationRow({ conversation, className, ...props }: ConversationRowProps) {
+  const meta = [conversation.mode ? MODE_LABEL[conversation.mode] : null, conversation.propertyPreview]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <button
       type="button"
       className={cn(
-        "flex min-h-[72px] w-full items-center gap-3 rounded-cut-md px-3 py-2.5 text-left hover:bg-surface-soft",
+        "flex min-h-[72px] w-full items-center gap-3 rounded-cut-md px-2 py-2.5 text-left hover:bg-paper-2",
         interactiveMotion,
         focusRing,
-        conversation.highlighted && "bg-accent-soft ring-1 ring-accent/20",
+        conversation.highlighted && "bg-accent-soft",
         className
       )}
       {...props}
     >
-      <Avatar name={conversation.name} src={conversation.avatarUrl} />
+      <Avatar name={conversation.name} src={conversation.avatarUrl} size="sm" />
       <span className="min-w-0 flex-1">
-        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="min-w-0 break-words text-body-md font-semibold text-ink">{conversation.name}</span>
-          {conversation.mode ? <Badge mode={conversation.mode} variant="mode" className="md:max-lg:hidden" /> : null}
+        {/* Name and time share one line so the preview keeps the full width. */}
+        <span className="flex items-baseline gap-2">
+          <span className="min-w-0 flex-1 truncate text-body-md font-semibold text-ink">{conversation.name}</span>
+          <span className="shrink-0 text-caption tabular text-ink-3">{conversation.timestamp}</span>
         </span>
-        <span className="mt-1 line-clamp-1 block text-caption text-ink-2">{conversation.preview}</span>
-        {conversation.propertyPreview ? (
-          <span className="mt-0.5 line-clamp-1 block text-caption text-ink-3">{conversation.propertyPreview}</span>
-        ) : null}
-      </span>
-      <span className="flex shrink-0 flex-col items-end gap-2">
-        <span className="text-eyebrow text-ink-3">{conversation.timestamp}</span>
-        {conversation.unreadCount ? <Badge count={conversation.unreadCount} variant="count" /> : null}
+        <span className="mt-0.5 flex items-center gap-2">
+          <span className="min-w-0 flex-1 truncate text-body-md text-ink-2">{conversation.preview}</span>
+          {conversation.unreadCount ? <Badge count={conversation.unreadCount} variant="count" /> : null}
+        </span>
+        {meta ? <span className="mt-0.5 block truncate text-caption text-ink-3">{meta}</span> : null}
       </span>
     </button>
   );

@@ -149,7 +149,7 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
       />
 
       <Card variant="media" className="relative shadow-md">
-        <PaperScene className="h-28 sm:h-32" edgeClassName="bg-surface" />
+        <PaperScene className="aspect-[25/9] w-full" edgeClassName="bg-surface" />
         <div className="-mt-12 flex flex-col items-center gap-3 px-5 pb-6 text-center sm:-mt-14">
           <div className="relative z-20 rounded-cut-lg ring-4 ring-surface shadow-md">
             <Avatar
@@ -201,22 +201,22 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
             profile.work_style) && (
             <div className="mt-1 flex w-full flex-wrap justify-center gap-1.5">
               {profile.sleep_schedule && (
-                <span className="rounded-full bg-purple-soft px-2.5 py-1 text-caption font-medium text-purple-ink">
+                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.sleep_schedule.replace(/_/g, " ")}
                 </span>
               )}
               {profile.cleanliness && (
-                <span className="rounded-full bg-blue-soft px-2.5 py-1 text-caption font-medium text-blue-ink">
+                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.cleanliness.replace(/_/g, " ")}
                 </span>
               )}
               {profile.food_habits && (
-                <span className="rounded-full bg-green-soft px-2.5 py-1 text-caption font-medium text-green-ink">
+                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.food_habits.replace(/_/g, " ")}
                 </span>
               )}
               {profile.work_style && (
-                <span className="rounded-full bg-teal-soft px-2.5 py-1 text-caption font-medium text-teal-ink">
+                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.work_style.replace(/_/g, " ")}
                 </span>
               )}

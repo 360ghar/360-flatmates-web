@@ -11,6 +11,7 @@ import {
   Users,
   Smartphone,
   Check,
+  Palette,
 } from "lucide-react";
 import { useMyProfile, useDeleteAccount } from "@/hooks/queries";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,7 +23,6 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorState } from "@/components/ui/StateViews";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { usePWA } from "@/hooks/usePWA";
 import { PWAInstallInstructionsModal } from "@/components/organisms/PWAInstallInstructionsModal";
 import { ProfileHeaderCard } from "./ProfileHeaderCard";
@@ -128,10 +128,10 @@ export function ProfilePage() {
       {/* Activity section: profile-dependent */}
       {hasProfile && (
         <section>
-          <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
+          <h2 className="mb-2 px-1 text-h3 text-ink">
             Activity
           </h2>
-          <Card variant="media" className="divide-y divide-line border-line shadow-sm">
+          <Card variant="media" className="shadow-sm">
             <MenuItemRow
               icon={Heart}
               label="Likes"
@@ -151,15 +151,21 @@ export function ProfilePage() {
 
       {/* Preferences: always visible */}
       <section>
-      <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
+      <h2 className="mb-2 px-1 text-h3 text-ink">
         Preferences
       </h2>
-      <Card variant="media" className="divide-y divide-line border-line shadow-sm">
+      <Card variant="media" className="shadow-sm">
         <MenuItemRow
           icon={Bell}
           label="Notifications"
           description="Push, email, and quiet hours"
           onClick={() => navigate("/settings/notifications")}
+        />
+        <MenuItemRow
+          icon={Palette}
+          label="Appearance"
+          description="Light, dark, or match your device"
+          onClick={() => navigate("/settings/appearance")}
         />
         {isInstalled ? (
           <MenuItemRow
@@ -192,19 +198,12 @@ export function ProfilePage() {
 
       </section>
 
-      <Card className="flex items-center justify-between gap-4 border-line p-5 shadow-sm">
-        <div>
-          <h2 className="text-h3">Theme</h2>
-          <p className="mt-0.5 text-caption text-ink-3">Light, dark, or system</p>
-        </div>
-        <ThemeToggle size="md" />
-      </Card>
 
       <section>
-      <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
+      <h2 className="mb-2 px-1 text-h3 text-ink">
         Privacy & safety
       </h2>
-      <Card variant="media" className="divide-y divide-line border-line shadow-sm">
+      <Card variant="media" className="shadow-sm">
         <MenuItemRow
           icon={Shield}
           label="Blocked Users"
@@ -220,10 +219,10 @@ export function ProfilePage() {
       </section>
 
       <section>
-      <h2 className="mb-2 px-1 text-label-md font-semibold text-ink-3">
+      <h2 className="mb-2 px-1 text-h3 text-ink">
         Account
       </h2>
-      <Card variant="media" className="divide-y divide-line border-line shadow-sm">
+      <Card variant="media" className="shadow-sm">
         <MenuItemRow
           icon={LogOut}
           label="Sign Out"

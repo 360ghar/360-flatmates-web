@@ -215,13 +215,11 @@ export function DiscoverPage() {
         jsonLd={collectionLd}
       />
       <main id="main" className="page-fade mx-auto max-w-7xl px-5 py-8 md:px-6">
-        <div className="relative mb-8 overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-6 shadow-xs md:p-8">
-          <div className="absolute inset-0 map-grid-bg opacity-25" aria-hidden="true" />
+        <div className="paper-grain relative mb-8 overflow-hidden rounded-hand bg-paper-1 p-6 shadow-sm md:p-8">
           <div className="relative z-[1]">
           <PageHeader
-            eyebrow="Public discovery"
-            title="Browse Listings"
-            description="Explore curated properties and verified spaces. Contact and like actions open the auth wall for unauthenticated users."
+            title="Browse rooms"
+            description="Verified rooms and flatmates. Sign in to like a room or message the owner."
             actions={
               cityOptions.length > 0 ? (
                 <SelectField

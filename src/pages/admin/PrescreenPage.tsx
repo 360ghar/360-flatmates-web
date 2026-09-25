@@ -99,7 +99,6 @@ export function PrescreenPage() {
   return (
     <PageLayout>
       <PageHeader
-        eyebrow="Moderation"
         title="Listing Review"
         onBack={() => navigate("/admin/moderation/listings")}
       />

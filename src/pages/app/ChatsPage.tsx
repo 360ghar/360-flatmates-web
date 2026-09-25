@@ -63,17 +63,14 @@ export function ChatsPage() {
       {/* ── Mobile: vertical layout (matches bar + conversations) ── */}
       <div className="flex flex-col md:hidden">
         <MatchesBar matches={matches} matchesLoading={matchesLoading} onStartChat={handleStartConversation} />
-        <div className="my-4 border-t border-line" />
         <section
           aria-labelledby="mobile-conversations-heading"
-          className="overflow-hidden rounded-hand bg-surface paper-grain shadow-sm shadow-sm"
+          className="mt-2 overflow-hidden rounded-hand bg-surface paper-grain shadow-sm"
         >
-          <div className="border-b border-line bg-surface-soft/80 px-4 py-3">
-            <h2 id="mobile-conversations-heading" className="text-h3">
-              Conversations
-            </h2>
-          </div>
-          <div className="p-2">
+          <h2 id="mobile-conversations-heading" className="px-4 pt-4 text-h4 text-ink">
+            Conversations
+          </h2>
+          <div>
             <ConversationsPanel
               conversations={conversations}
               isLoading={isLoading}
@@ -92,7 +89,7 @@ export function ChatsPage() {
       <div className="hidden min-h-[65vh] overflow-hidden rounded-hand bg-surface paper-grain shadow-sm shadow-md md:flex">
         <aside className="flex w-72 shrink-0 flex-col border-r border-line bg-surface-soft/40 lg:w-80">
           <div className="border-b border-line px-4 py-3">
-            <h2 className="text-h3">Your matches</h2>
+            <h2 className="text-h4 text-ink">Your matches</h2>
             <p className="mt-0.5 text-caption text-ink-3">Start a new conversation</p>
           </div>
           <MatchesList
@@ -104,7 +101,7 @@ export function ChatsPage() {
 
         <section className="flex min-w-0 flex-1 flex-col bg-surface">
           <div className="border-b border-line px-4 py-3">
-            <h2 className="text-h3">Conversations</h2>
+            <h2 className="text-h4 text-ink">Conversations</h2>
           </div>
           <div className="flex-1 p-2">
             <ConversationsPanel
@@ -140,7 +137,7 @@ function MatchesBar({
   if (matchesLoading) {
     return (
       <section aria-label="Your Matches" className="mb-4">
-        <h2 className="text-h3 mb-3">Your Matches</h2>
+        <h2 className="mb-2 text-h4 text-ink">Your matches</h2>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-1.5 shrink-0 w-16">
@@ -165,7 +162,7 @@ function MatchesBar({
 
   return (
     <section aria-label="Your Matches" className="mb-4">
-      <h2 className="text-h3 mb-3">Your Matches</h2>
+      <h2 className="mb-2 text-h4 text-ink">Your matches</h2>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
         {matches.map((match) => {
           const peer = match.peer;

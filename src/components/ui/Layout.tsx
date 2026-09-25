@@ -35,7 +35,6 @@ export function PageLayout({
 
 export interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
-  eyebrow?: string;
   description?: string;
   onBack?: () => void;
   actions?: ReactNode;
@@ -43,7 +42,6 @@ export interface PageHeaderProps extends HTMLAttributes<HTMLDivElement> {
 
 export function PageHeader({
   title,
-  eyebrow,
   description,
   onBack,
   actions,
@@ -59,7 +57,6 @@ export function PageHeader({
           </Button>
         ) : null}
         <div className="min-w-0">
-          {eyebrow ? <p className="text-eyebrow">{eyebrow}</p> : null}
           <h1 className="text-h1 font-normal text-ink">{title}</h1>
           {description ? <p className="mt-2 max-w-[65ch] text-body-md text-ink-2">{description}</p> : null}
         </div>

@@ -1,17 +1,26 @@
 import { type ComponentType, type FormEvent, type HTMLAttributes, type ReactNode, type SVGProps, useCallback, useMemo, useRef, useState } from "react";
-import { ExploreIcon, HeartIcon, HomeIcon, MoreIcon, PostIcon, ProfileIcon, SwipeIcon } from "../paper/NavIcons";
+import {
+  AlertsIcon,
+  AppearanceIcon,
+  ChatsIcon,
+  DashboardIcon,
+  ExploreIcon,
+  HeartIcon,
+  HomeIcon,
+  MoreIcon,
+  PostIcon,
+  ProfileIcon,
+  SavedIcon,
+  SwipeIcon,
+  VisitsIcon
+} from "../paper/NavIcons";
 import { useNavigate } from "react-router";
 import { PrefetchLink } from "../ui/PrefetchLink";
 import {
-  BarChart3,
   Bell,
-  Bookmark,
-  Calendar,
-  MessageCircle,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
-  Sparkles,
 } from "lucide-react";
 import {
   SIDEBAR_WIDTH_COLLAPSED,
@@ -43,6 +52,8 @@ export interface NavItemConfig {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   showFor: UserMode[];
   badge?: number;
+  /** One-word label for the mobile tab bar; `label` stays the accessible name. */
+  shortLabel?: string;
   /** If true, item only appears in the desktop sidebar — never in the mobile bottom nav */
   sidebarOnly?: boolean;
 }
@@ -67,16 +78,16 @@ const defaultNavItems: NavItemConfig[] = [
   { label: "Home", href: "/home", icon: HomeIcon, showFor: ["room_poster", "co_hunter", "open_to_both"] },
   { label: "Explore", href: "/explore", icon: ExploreIcon, showFor: ["co_hunter", "open_to_both"] },
   { label: "Swipe", href: "/swipe", icon: SwipeIcon, showFor: ["room_poster", "co_hunter", "open_to_both"] },
-  { label: "Saved Searches", href: "/saved-searches", icon: Bookmark, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
+  { label: "Saved Searches", href: "/saved-searches", icon: SavedIcon, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
   /* ── Social ── */
-  { label: "Likes & Matches", href: "/likes", icon: HeartIcon, showFor: ["room_poster", "co_hunter", "open_to_both"] },
-  { label: "Chats", href: "/chats", icon: MessageCircle, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
+  { label: "Likes & Matches", shortLabel: "Likes", href: "/likes", icon: HeartIcon, showFor: ["room_poster", "co_hunter", "open_to_both"] },
+  { label: "Chats", href: "/chats", icon: ChatsIcon, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
   /* ── Management ── */
-  { label: "Post & Manage", href: "/manage", icon: PostIcon, showFor: ["room_poster", "open_to_both"] },
-  { label: "Dashboard", href: "/dashboard", icon: BarChart3, showFor: ["room_poster", "open_to_both"], sidebarOnly: true },
-  { label: "Visits", href: "/visits", icon: Calendar, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
+  { label: "Post & Manage", shortLabel: "Post", href: "/manage", icon: PostIcon, showFor: ["room_poster", "open_to_both"] },
+  { label: "Dashboard", href: "/dashboard", icon: DashboardIcon, showFor: ["room_poster", "open_to_both"], sidebarOnly: true },
+  { label: "Visits", href: "/visits", icon: VisitsIcon, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
   /* ── Alerts & Profile ── */
-  { label: "Alerts", href: "/alerts", icon: Sparkles, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
+  { label: "Alerts", href: "/alerts", icon: AlertsIcon, showFor: ["room_poster", "co_hunter", "open_to_both"], sidebarOnly: true },
   { label: "Profile", href: "/profile", icon: ProfileIcon, showFor: ["room_poster", "co_hunter", "open_to_both"] },
 ];
 
@@ -289,7 +300,7 @@ export function AppShell({
             />
           </form>
           {topBarActions}
-          <ThemeToggle size="sm" className="hidden md:flex" />
+          <ThemeToggle size="sm" className="max-md:hidden" />
           <PrefetchLink
             to="/search"
             aria-label="Search"
@@ -369,10 +380,14 @@ export function AppShell({
         {/* Appearance control, parity with the public layout drawer. Without
             this, theme is unreachable on mobile in the authenticated shell
             (the top-bar toggle is md:flex only). */}
-        <div className="mt-3 flex items-center gap-3 px-3 pt-4">
-          <ThemeToggle size="md" />
-          <span className="text-body-md text-ink-2">Appearance</span>
-        </div>
+        <PrefetchLink
+          to="/settings/appearance"
+          onClick={() => setMoreOpen(false)}
+          className={cn("mt-1 flex min-h-[44px] items-center gap-3 rounded-cut-md px-3 py-2.5 text-body-md text-ink-2 hover:bg-paper-2 hover:text-ink", focusRing)}
+        >
+          <AppearanceIcon aria-hidden="true" className="h-5 w-5" />
+          <span className="truncate">Appearance</span>
+        </PrefetchLink>
       </BottomSheet>
     </div>
   );
@@ -395,6 +410,7 @@ function ShellNavLink({
     <PrefetchLink
       to={item.href}
       aria-current={active ? "page" : undefined}
+      aria-label={mobile && item.shortLabel ? item.label : undefined}
       title={collapsed ? item.label : undefined}
       className={cn(
         // Active tab rises one paper layer (DESIGN.md §8).
@@ -410,7 +426,7 @@ function ShellNavLink({
       )}
     >
       <Icon aria-hidden="true" className={cn(mobile ? "h-5 w-5" : "h-5 w-5")} />
-      {!collapsed ? <span className="truncate">{item.label}</span> : null}
+      {!collapsed ? <span className="truncate">{mobile ? (item.shortLabel ?? item.label) : item.label}</span> : null}
       {item.badge ? (
         <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-accent" />
       ) : null}

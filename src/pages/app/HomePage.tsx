@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useBootstrap, useMyProfile, useWebSearch, usePeers, useSwipeDeck } from "@/hooks/queries";
@@ -96,19 +97,14 @@ export function HomePage() {
 
   return (
     <div className="flex flex-col gap-6 page-fade">
-      <div className="relative overflow-hidden rounded-[var(--radius-promo)] border border-line-low bg-lavender p-6 md:grid md:grid-cols-2 md:items-center md:gap-6 md:p-8">
-        <div className="absolute inset-0 map-grid-bg opacity-30" aria-hidden="true" />
-
+      <div className="paper-grain relative overflow-hidden rounded-hand bg-paper-1 p-6 shadow-sm md:grid md:grid-cols-2 md:items-center md:gap-6 md:p-8">
         <div className="relative z-[1]">
-          <p className="text-eyebrow">Dashboard</p>
-          <h1 className="mt-2 text-h1 text-ink leading-tight">
-            Welcome back,{" "}
-            <span className="text-serif-italic text-accent">
-              {profile?.full_name?.trim().split(/\s+/)[0] || "Friend"}
-            </span>
+          {/* The top bar already greets the user; this heading says what is here. */}
+          <h1 className="text-h1 text-ink">
+            {profile?.city ? `New for you in ${profile.city}` : "New for you"}
           </h1>
-          <p className="mt-3 text-body-md text-ink-2 max-w-[65ch]">
-            Your recommendations, listings, and nearby flatmates are ready to review.
+          <p className="mt-2 max-w-[65ch] text-body-md text-ink-2">
+            Flatmates and rooms picked for how you live.
           </p>
         </div>
 
@@ -192,8 +188,8 @@ export function HomePage() {
             ) : (
               <EmptyState
           scene="heart"
-                title={swipeError ? "Swipe API Error" : "No recommendations yet"}
-                description={swipeError ? String(swipeError) : "Complete your profile for better matches!"}
+                title={swipeError ? "Could not load recommendations" : "No recommendations yet"}
+                description={swipeError ? userMessage(swipeError) : "Complete your profile for better matches."}
               />
             )}
           </FeedSection>
@@ -217,8 +213,8 @@ export function HomePage() {
             ) : (
               <EmptyState
           scene="house"
-                title={propertiesError ? "Properties API Error" : "No new listings"}
-                description={propertiesError ? String(propertiesError) : "No new listings in your area yet."}
+                title={propertiesError ? "Could not load listings" : "No new listings"}
+                description={propertiesError ? userMessage(propertiesError) : "No new listings in your area yet."}
               />
             )}
           </FeedSection>
@@ -241,8 +237,8 @@ export function HomePage() {
             ) : (
               <EmptyState
           scene="magnifier"
-                title={peersError ? "Peers API Error" : "No flatmates nearby"}
-                description={peersError ? String(peersError) : "Expand your search area to find more flatmates."}
+                title={peersError ? "Could not load flatmates" : "No flatmates nearby"}
+                description={peersError ? userMessage(peersError) : "Expand your search area to find more flatmates."}
               />
             )}
           </FeedSection>

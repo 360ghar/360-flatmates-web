@@ -59,7 +59,10 @@ export function ProfileGridCard({
           wrapperClassName={cn("h-full w-full rounded-none", blurred && "blur-sm")}
           className="transition-transform duration-500 group-hover:scale-[1.03]"
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/35 to-transparent" />
+        {/* Scrim only over a real photo; over the paper placeholder it reads as a grey band. */}
+        {profile.photoUrl ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/35 to-transparent" />
+        ) : null}
         <div
           className={cn(
             "absolute rounded-full bg-surface/95 p-0.5 shadow-sm backdrop-blur-sm",

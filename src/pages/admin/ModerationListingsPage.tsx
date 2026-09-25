@@ -146,7 +146,6 @@ export function ModerationListingsPage() {
   return (
     <PageLayout>
       <PageHeader
-        eyebrow="Moderation"
         title="Listing Review Queue"
         description="Review and moderate listings before they go live."
       />

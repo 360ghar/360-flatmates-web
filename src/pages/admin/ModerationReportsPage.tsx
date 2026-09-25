@@ -201,7 +201,6 @@ export function ModerationReportsPage() {
   return (
     <PageLayout>
       <PageHeader
-        eyebrow="Moderation"
         title="Report Review Queue"
         description="Review and act on user-submitted reports."
       />

@@ -81,28 +81,29 @@
   --color-warning: var(--color-warning-ink);
   --color-warning-soft: var(--color-warning-soft);
 
-  /* Categorical tags: muted, drawn from the same earth palette. */
-  --color-blue-soft: #DCE7EC;
-  --color-blue-mid: #3F6F8F;
-  --color-blue-ink: #24465C;
-  --color-purple-soft: #EEE1E4;
-  --color-purple-mid: #8A4A5E;
-  --color-purple-ink: #5E2C3C;
+  /* Categorical tags: one neutral paper treatment. Colour is reserved for
+     meaning (clay = brand/selected, pine = success, warning, danger). */
+  --color-blue-soft: var(--color-paper-2);
+  --color-blue-mid: var(--color-ink-2);
+  --color-blue-ink: var(--color-ink-2);
+  --color-purple-soft: var(--color-paper-2);
+  --color-purple-mid: var(--color-ink-2);
+  --color-purple-ink: var(--color-ink-2);
   --color-green-soft: var(--color-pine-soft);
   --color-green-mid: var(--color-pine);
-  --color-green-ink: #1F4435;
+  --color-green-ink: var(--color-ink);
   --color-yellow-soft: var(--color-warning-soft);
-  --color-yellow-mid: #B07D1F;
-  --color-yellow-ink: #5E3F08;
-  --color-orange-soft: #F6E3DA;
-  --color-orange-mid: #C0643B;
-  --color-orange-ink: #6E2E14;
-  --color-teal-soft: #D6E6E2;
-  --color-teal-mid: #2F6E66;
-  --color-teal-ink: #1E4A44;
-  --color-pink-soft: #F6E3DA;
-  --color-pink-mid: var(--color-clay);
-  --color-pink-ink: #72301A;
+  --color-yellow-mid: var(--color-warning-ink);
+  --color-yellow-ink: var(--color-warning-ink);
+  --color-orange-soft: var(--color-paper-2);
+  --color-orange-mid: var(--color-ink-2);
+  --color-orange-ink: var(--color-ink-2);
+  --color-teal-soft: var(--color-paper-2);
+  --color-teal-mid: var(--color-ink-2);
+  --color-teal-ink: var(--color-ink-2);
+  --color-pink-soft: var(--color-paper-2);
+  --color-pink-mid: var(--color-ink-2);
+  --color-pink-ink: var(--color-ink-2);
 
   --color-action: var(--color-ink);
   --color-action-hover: #000000;
@@ -274,18 +275,6 @@
   --color-lavender-2: #4E3226;
   --color-peach: #3A2A23;
 
-  --color-blue-soft: #1B2A33;
-  --color-blue-ink: #A9C6D8;
-  --color-purple-soft: #2E1F25;
-  --color-purple-ink: #DDB6C3;
-  --color-green-ink: #A9D3BE;
-  --color-yellow-ink: #EBCB8B;
-  --color-orange-soft: #3A2A23;
-  --color-orange-ink: #F0B79E;
-  --color-teal-soft: #17302C;
-  --color-teal-ink: #9FD0C8;
-  --color-pink-soft: #3A2A23;
-  --color-pink-ink: #F0AE95;
 
   --color-google-bg: #131314;
   --color-google-text: #E3E3E3;
