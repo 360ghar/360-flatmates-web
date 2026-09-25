@@ -65,10 +65,10 @@ export function PublicLayout() {
             ))}
           </nav>
           <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
-            <ThemeToggle size="sm" className="hidden sm:block" />
+            <ThemeToggle size="sm" className="hidden lg:flex" />
             <Link
               to="/login"
-              className="hidden text-body-md font-semibold text-ink-2 hover:text-ink transition-colors duration-200 sm:block"
+              className="hidden whitespace-nowrap text-body-md font-semibold text-ink-2 hover:text-ink transition-colors duration-200 sm:block"
             >
               Sign in
             </Link>

@@ -504,7 +504,7 @@ function MatchCelebration({
 
           <div>
             <h2 className="text-display text-4xl text-ink leading-none">
-              It&apos;s a <span className="text-serif-italic text-4xl md:text-5xl">Match!</span>
+              It&apos;s a <span className="text-serif-italic">Match!</span>
             </h2>
             <p className="mt-3 text-body-md text-ink-2 px-4 leading-relaxed">
               You and <strong className="text-ink font-semibold">{profile.name}</strong> liked each other.

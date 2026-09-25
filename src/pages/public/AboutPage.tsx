@@ -47,7 +47,7 @@ export function AboutPage() {
         <div className="text-center mb-16">
           <p className="text-eyebrow text-accent">About</p>
           <h1 className="mt-4 text-display text-4xl md:text-6xl text-ink leading-tight tracking-tight max-w-3xl mx-auto">
-            Finding a home starts with <span className="text-serif-italic text-5xl md:text-7xl">finding your people</span>
+            Finding a home starts with <span className="text-serif-italic">finding your people</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-body-lg text-ink-2">
             We help young professionals find homes and build harmonious lives through compatibility, verified
