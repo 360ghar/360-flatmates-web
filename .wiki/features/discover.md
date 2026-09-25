@@ -38,7 +38,7 @@ Every node in this tree is a prerender target. The build step enumerates the sta
 - `FAQAccordion`, the eight-question FAQ.
 - `BottomCTA`, the closing call to action.
 
-`HeroSection` (`src/components/landing/HeroSection.tsx`) is the editorial hero. The headline pairs Fraunces with an Instrument Serif italic accent, and a layered bento of mock UI cards (a listing card, a compatibility ring, a chat bubble, a verified profile badge) sits to the right on desktop and stacks on mobile. The hero copy leads with "Find your flatmate, not a nightmare" and the supporting sentence names the two differentiators: 6-dimension lifestyle matching and 100% verified rooms. The page also emits FAQ, Service, and Speakable JSON-LD so search engines can pull structured answers.
+`HeroSection` (`src/components/landing/HeroSection.tsx`) is a full-bleed paper diorama: a Gambarino headline ("Find your flatmate, not a nightmare.") over a layered cut-paper neighbourhood (`PaperScene`) with scroll parallax, and a search card that overlaps the scene. The page also emits FAQ, Service, and Speakable JSON-LD so search engines can pull structured answers.
 
 `CompatibilitySection` (`src/components/landing/CompatibilitySection.tsx`) gives the 6-dimension compatibility story its own section. A `ProgressRing` draws an example 92% score when the section scrolls into view (collapsing to a static value under reduced motion), and a grid of the six dimensions (Sleep, Clean, Food, Guests, Work, Lifestyle) sits beside it. The copy argues the core positioning: budget and pin code do not make a home, lifestyle fit does.
 

@@ -45,7 +45,7 @@ npm run generate:static-html # Generate static HTML pages for crawlers (runs aft
 - **Tailwind CSS v4** with custom design tokens defined as CSS custom properties via `@theme` in `globals.css`
 - Use Tailwind semantic utilities (`bg-accent`, `text-ink`, `shadow-sm`) over raw values
 - **Fonts**: Gambarino (display: `text-display`, `text-h1`–`text-h3`, logo), self-hosted `public/fonts/Gambarino-Regular.woff2`, preloaded + `@font-face` in `index.html`. Body/UI uses `system-ui`. One weight only: never add `font-bold` to display text.
-- **Design system**: Paper Diorama (see DESIGN.md). Legacy token names are aliases in `globals.css`: `paper` = page (sky), `paper-2` = soft fill (DESIGN `paper-1`), `surface` = card (DESIGN `paper-2`), `surface-elevated` = raised (DESIGN `paper-3`), `accent`/`primary` = clay. New code may use `bg-sky`, `bg-paper-1`, `bg-clay`, `text-on-clay`, `bg-pine-soft`, `rounded-cut-*`, `rounded-hand`.
+- **Design system**: Paper Diorama (see DESIGN.md). Legacy token names are aliases in `globals.css`: `paper` = page (sky), `surface-soft` = soft fill (DESIGN `paper-1`), `surface` = card (DESIGN `paper-2`), `surface-elevated` = raised (DESIGN `paper-3`), `accent`/`primary` = clay. `paper-1` / `paper-2` / `paper-3` match DESIGN.md exactly. New code may use `bg-sky`, `bg-paper-1`, `bg-paper-2`, `bg-clay`, `text-on-clay`, `bg-pine-soft`, `rounded-cut-*`, `rounded-hand`.
 - **Paper primitives**: `src/components/paper/` — `PaperScene` (layered neighbourhood with scroll parallax), `PaperMiniScene` (empty/error states via `EmptyState scene=`/`ErrorState`), `NavIcons` (cut-paper nav icons). Utilities in `globals.css`: `paper-grain`, `paper-edge-torn-top|bottom`, `paper-edge-scallop-left|bottom`, `paper-press` (buttons), `paper-lift` (cards). Scene art is generated: `npm run generate:paper-art` (writes `src/components/paper/art.ts` AND the mobile repo's `paper_art.dart`). Never edit `art.ts` by hand.
 - **Motion**: content is visible by default — no entrance animation starts at opacity 0. `MotionConfig reducedMotion="user"` wraps the app.
 - **Errors in UI**: show `userMessage(err)` from `src/lib/api/errors.ts` (or `mapSupabaseAuthError` for auth), never raw `err.message`.
@@ -58,7 +58,6 @@ npm run generate:static-html # Generate static HTML pages for crawlers (runs aft
 - **Vitest** + **React Testing Library** for unit/integration tests
 - **Playwright** for E2E flows
 - Test files: co-located (`Component.test.tsx`) or in `__tests__/` directories
-- Integration tests in `tests/integration/`
 
 ## Commit & Pull Request Guidelines
 

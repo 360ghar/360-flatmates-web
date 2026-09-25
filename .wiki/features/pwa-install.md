@@ -22,16 +22,16 @@ The manifest is defined inline in `vite.config.ts` under `VitePWA.manifest`:
 | `name` | `360 Flatmates` | Full name |
 | `short_name` | `360 Flatmates` | Home screen label |
 | `description` | `Find compatible flatmates and verified rooms across India.` | Used by install prompts |
-| `theme_color` | `#F4F3EE` | The light `paper` token, matches `index.html` `theme-color` |
-| `background_color` | `#F4F3EE` | Splash background |
+| `theme_color` | `#E4EBE3` | The light `sky` token, matches `index.html` `theme-color` |
+| `background_color` | `#E4EBE3` | Splash background |
 | `display` | `standalone` | Hides browser chrome, full app feel |
 | `orientation` | `portrait` | Preferred mobile orientation |
 | `start_url` | `/` | Landing page on launch |
 | `icons` | 5 entries | One svg (any), two standard PNGs (192, 512), two maskable PNGs (192, 512) |
 
-The `theme_color` is deliberately the `paper` token (`#F4F3EE`), not the terracotta accent, so the status bar and splash match the warm off-white page background rather than the brand color. The accent (`#C96442`) is reserved for the maskable icon backgrounds and for in-app affordances.
+The `theme_color` is deliberately the `sky` token (`#E4EBE3`), not the clay primary, so the status bar and splash match the pale pine-mist page background rather than the brand color. The accent (`#A94A2B`) is reserved for the maskable icon backgrounds and for in-app affordances.
 
-The icon set follows the standard plus maskable split. Standard icons (`purpose: "any"`) are the logo on a transparent background. Maskable icons (`purpose: "maskable"`) are the logo composited onto a solid terracotta `#C96442` background with 15% padding, so they fill any adaptive icon shape an Android launcher applies. Both are generated from `public/favicon.svg` by the build step.
+The icon set follows the standard plus maskable split. Standard icons (`purpose: "any"`) are the logo on a transparent background. Maskable icons (`purpose: "maskable"`) are the logo composited onto a solid clay `#A94A2B` background with 15% padding, so they fill any adaptive icon shape an Android launcher applies. Both are generated from `public/favicon.svg` by the build step.
 
 ## Service worker caching
 
@@ -40,7 +40,7 @@ With `autoUpdate` and `injectRegister: "auto"`, `vite-plugin-pwa` generates a Wo
 The maskable icon generation script (`scripts/generate-pwa-icons.ts`) is a build-time step that uses `sharp` to read `public/favicon.svg` and emit four WebPs:
 
 - `public/favicon-192.webp` and `public/favicon-512.webp`: the logo resized to square WebPs.
-- `public/favicon-192-maskable.webp` and `public/favicon-512-maskable.webp`: the logo composited onto a solid `#C96442` background with 15% padding, centered.
+- `public/favicon-192-maskable.webp` and `public/favicon-512-maskable.webp`: the logo composited onto a solid `#A94A2B` background with 15% padding, centered.
 
 The script runs as step 2 of the build pipeline (see [SEO and prerendering](seo-prerendering.md)), before `vite build`, so the generated WebPs are present when Vite copies `public/` into `dist/`. The `generate:pwa-icons` npm script wraps it for standalone regeneration.
 
@@ -48,10 +48,10 @@ The script runs as step 2 of the build pipeline (see [SEO and prerendering](seo-
 
 `index.html` is the SPA shell that every route inherits. Its head carries the installability signals:
 
-- `<meta name="theme-color" content="#F4F3EE">`, matching the manifest and giving iOS Safari its status bar tint.
+- `<meta name="theme-color" content="#E4EBE3">` (light) and `#121814` (dark), matching the manifest and giving iOS Safari its status bar tint.
 - `<link rel="icon" href="/favicon.ico" sizes="32x32">` and `<link rel="icon" href="/favicon.svg" type="image/svg+xml">` for the favicon.
 - `<link rel="apple-touch-icon" href="/favicon-192.webp">` for iOS home screen icons (Apple ignores the manifest icons for home screen placement).
-- `<link rel="mask-icon" href="/favicon.svg" color="#C96442">` for the pinned-tab icon in Safari.
+- `<link rel="mask-icon" href="/favicon.svg" color="#A94A2B">` for the pinned-tab icon in Safari.
 
 A pre-paint inline script reads the persisted theme from `localStorage` and sets `data-theme` and `data-theme` on `<html>` before first paint, so the installed app does not flash the wrong theme on launch. The `<noscript>` fallback lists the core public links so the app is at least partially usable without JavaScript.
 
@@ -87,7 +87,7 @@ Two components consume `usePWA` to drive the install UX.
 
 ## Source-of-truth docs
 
-For the canonical color tokens (`paper` `#F4F3EE`, accent `#C96442`) referenced by the manifest and theme color, see [DESIGN.md](../../DESIGN.md) section 3. For the build pipeline that generates the icons and precaches the shell, see [SEO and prerendering](seo-prerendering.md). For the local build and dev commands, see [Getting started](../overview/getting-started.md).
+For the canonical color tokens (`sky` `#E4EBE3`, clay `#A94A2B`) referenced by the manifest and theme color, see [DESIGN.md](../../DESIGN.md) section 1. For the build pipeline that generates the icons and precaches the shell, see [SEO and prerendering](seo-prerendering.md). For the local build and dev commands, see [Getting started](../overview/getting-started.md).
 
 ## Key source files
 

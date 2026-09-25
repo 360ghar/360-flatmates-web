@@ -19,8 +19,7 @@ The rules every contributor must follow. These are summarized from [CLAUDE.md](.
 
 ## Fonts
 
-- Fraunces (display, headlines), Inter (body, UI), JetBrains Mono (eyebrow, tabular), Instrument Serif (italic emphasis). Loaded via `<link>` in `index.html` with `display: swap`.
-- Italic emphasis is the Instrument Serif italic of the same headline, never a randomly injected serif word. Audit italic words with descenders.
+- Gambarino (display, headlines, self-hosted woff2, preloaded in `index.html`) and system-ui (body, UI). See DESIGN.md section 2.
 
 ## Async state (mandatory on every data page)
 

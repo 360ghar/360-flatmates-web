@@ -213,7 +213,7 @@ The shell in `index.html` carries fallback meta tags. These are the SPA-shell fa
 
 ### OG image and logo
 
-`scripts/generate-og-image.ts` renders a 1200x630 social preview WebP and a 512x512 brand logo WebP from inline SVG. The brand fonts (Fraunces, Inter, JetBrains Mono) are self-hosted as variable TTFs in `public/fonts/` and embedded into the SVG as base64 `@font-face` blocks, so `sharp`'s librsvg renderer paints the real brand typography deterministically. No reliance on system-installed fonts. Colors are pulled from the DESIGN.md tokens.
+`scripts/generate-og-image.ts` renders a 1200x630 social preview WebP and a 512x512 brand logo WebP. Chrome (Playwright) renders the page so the Gambarino type and the paper scene match the live site. It runs manually (`npm run generate:og-image`) and the output is committed.
 
 ### llms.txt for LLM crawlers
 

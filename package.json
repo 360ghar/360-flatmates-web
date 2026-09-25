@@ -13,7 +13,6 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
     "generate:api-types": "openapi-typescript docs/flatmates-openapi.yaml -o src/lib/api/openapi-types.ts",
     "generate:pwa-icons": "npx tsx scripts/generate-pwa-icons.ts",
