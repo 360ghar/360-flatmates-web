@@ -35,6 +35,7 @@ npm run lint                # ESLint check
 npm test                    # Run Vitest unit tests
 npm run test:e2e            # Playwright end-to-end tests
 npm run generate:pwa-icons  # Generate PWA standard & maskable PNG icons from favicon.svg
+npm run generate:og-image   # Re-render og-image.webp + logo.webp with Chrome (output committed)
 npm run generate:static-html # Generate static HTML pages for crawlers (runs after vite build)
 ```
 
@@ -43,7 +44,11 @@ npm run generate:static-html # Generate static HTML pages for crawlers (runs aft
 - **TypeScript** in strict mode; no `any` types
 - **Tailwind CSS v4** with custom design tokens defined as CSS custom properties via `@theme` in `globals.css`
 - Use Tailwind semantic utilities (`bg-accent`, `text-ink`, `shadow-sm`) over raw values
-- **Fonts**: Inter (all UI — headlines, body, eyebrow, tabular) — loaded via `<link>` in `index.html`
+- **Fonts**: Gambarino (display: `text-display`, `text-h1`–`text-h3`, logo), self-hosted `public/fonts/Gambarino-Regular.woff2`, preloaded + `@font-face` in `index.html`. Body/UI uses `system-ui`. One weight only: never add `font-bold` to display text.
+- **Design system**: Paper Diorama (see DESIGN.md). Legacy token names are aliases in `globals.css`: `paper` = page (sky), `paper-2` = soft fill (DESIGN `paper-1`), `surface` = card (DESIGN `paper-2`), `surface-elevated` = raised (DESIGN `paper-3`), `accent`/`primary` = clay. New code may use `bg-sky`, `bg-paper-1`, `bg-clay`, `text-on-clay`, `bg-pine-soft`, `rounded-cut-*`, `rounded-hand`.
+- **Paper primitives**: `src/components/paper/` — `PaperScene` (layered neighbourhood with scroll parallax), `PaperMiniScene` (empty/error states via `EmptyState scene=`/`ErrorState`), `NavIcons` (cut-paper nav icons). Utilities in `globals.css`: `paper-grain`, `paper-edge-torn-top|bottom`, `paper-edge-scallop-left|bottom`, `paper-press` (buttons), `paper-lift` (cards). Scene art is generated: `npm run generate:paper-art` (writes `src/components/paper/art.ts` AND the mobile repo's `paper_art.dart`). Never edit `art.ts` by hand.
+- **Motion**: content is visible by default — no entrance animation starts at opacity 0. `MotionConfig reducedMotion="user"` wraps the app.
+- **Errors in UI**: show `userMessage(err)` from `src/lib/api/errors.ts` (or `mapSupabaseAuthError` for auth), never raw `err.message`.
 - **Components**: PascalCase files co-located with tests (`Button.tsx` + `Button.test.tsx` or `__tests__/Button.test.tsx`)
 - **Hooks**: camelCase prefixed with `use` (`useCompatibility.ts`)
 - **Dark mode**: default is light; toggled via `[data-theme="dark"]` on `<html>`; never hardcode light-only colors; toggle available on public header, app top bar, profile page, and `/settings/appearance`
@@ -150,7 +155,7 @@ Every page that fetches data must handle all three async states: **loading**, **
 - **Wiki** (`.wiki/`): 58-page codebase wiki auto-published to GitHub Wiki on push to main via `.github/workflows/publish-wiki.yml`.
   - Update wiki pages when architecture, features, systems, or primitives change significantly.
   - Run `npm run wiki:render-video` to re-render the video overview after major changes.
-  - The video source lives in `.wiki/video/source/` and uses HyperFrames with project branding (Rausch `#ff385c`, Inter typography).
+  - The video source lives in `.wiki/video/source/` and uses HyperFrames with the pre-redesign branding (Rausch, Inter); re-render it with the Paper Diorama tokens before the next publish.
 - **CLAUDE.md** and **AGENTS.md** must be updated whenever project structure, conventions, architecture, key commands, or design-system references change.
 - **DESIGN.md** is the single source of truth for UI tokens. Visual changes must update it in the same commit.
 - Before finalizing any change, verify these files still accurately describe the codebase.
