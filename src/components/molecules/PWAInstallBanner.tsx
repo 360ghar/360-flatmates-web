@@ -102,7 +102,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
           )}
         >
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-on-clay">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center text-accent">
               <Smartphone className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -118,7 +118,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
               type="button"
               aria-label="Dismiss banner"
               onClick={handleDismiss}
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-3 hover:bg-paper-3 hover:text-ink"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-ink-2 hover:bg-paper-3 hover:text-ink"
             >
               <X className="h-4 w-4" />
             </button>

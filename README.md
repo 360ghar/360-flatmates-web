@@ -56,7 +56,6 @@ npm run dev             # http://localhost:5173
 ├─ vite.config.ts
 ├─ vitest.config.ts
 ├─ vitest.setup.ts
-├─ WEB_CLIENT_INVENTORY.md
 ├─ docs/
 │  └─ flatmates-openapi.yaml
 ├─ e2e/

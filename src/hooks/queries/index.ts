@@ -6,7 +6,6 @@ export {
   useMyProfile,
   useProfile,
   usePeers,
-  useInfinitePeers,
   useUpdateProfile,
   useCreateProfile,
   useDeleteAccount
@@ -17,7 +16,6 @@ export {
   useMyProperty,
   useAdminProperty,
   useMyProperties,
-  useInfiniteMyProperties,
   useCreateProperty,
   useUpdateProperty,
   useDeleteProperty,

@@ -12,10 +12,6 @@ export interface AuthStoreState {
   /** True while the initial getSession() call is in progress */
   loading: boolean;
 
-  /* ── UI-level auth state ── */
-  isLoginModalOpen: boolean;
-  pendingRedirect: string | null;
-  authError: string | null;
   /**
    * True while a multi-step auth flow is between OTP verification and its
    * final step (mandatory set-password on login, new-password on reset).
@@ -38,12 +34,6 @@ export interface AuthStoreState {
   setAuthStageUnknown: () => void;
   setAuthStageError: (error: string | null) => void;
   resetAuthFlow: () => void;
-  openLoginModal: () => void;
-  closeLoginModal: () => void;
-  setPendingRedirect: (path: string) => void;
-  clearPendingRedirect: () => void;
-  setAuthError: (error: string) => void;
-  clearAuthError: () => void;
 }
 
 export const authStore = createStore<AuthStoreState>()((set) => ({
@@ -51,9 +41,6 @@ export const authStore = createStore<AuthStoreState>()((set) => ({
   session: null,
   loading: true,
 
-  isLoginModalOpen: false,
-  pendingRedirect: null,
-  authError: null,
   midAuthFlow: false,
   authStage: "unknown",
   authStageError: null,
@@ -117,17 +104,5 @@ export const authStore = createStore<AuthStoreState>()((set) => ({
       authStage: "unknown",
       authStageError: null,
       missingProfileFields: [],
-      authError: null,
-      pendingRedirect: null,
-      isLoginModalOpen: false,
     }),
-
-  openLoginModal: () => set({ isLoginModalOpen: true }),
-  closeLoginModal: () => set({ isLoginModalOpen: false }),
-
-  setPendingRedirect: (path) => set({ pendingRedirect: path }),
-  clearPendingRedirect: () => set({ pendingRedirect: null }),
-
-  setAuthError: (error) => set({ authError: error }),
-  clearAuthError: () => set({ authError: null }),
 }));

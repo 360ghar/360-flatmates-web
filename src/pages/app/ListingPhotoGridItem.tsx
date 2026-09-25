@@ -47,7 +47,7 @@ export function ListingPhotoGridItem({
           className="absolute inset-0 z-10 flex items-start justify-end p-2"
         >
           <span
-            className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
+            className={`relative flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors before:absolute before:-inset-2.5 before:content-[''] ${
               isSelected
                 ? "border-accent bg-accent text-on-clay"
                 : "border-line bg-surface/80 text-ink-2"
@@ -78,7 +78,7 @@ export function ListingPhotoGridItem({
           type="button"
           onClick={onRemove}
           disabled={removeDisabled}
-          className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink/60 text-paper opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-40"
+          className="absolute top-0 right-0 flex h-11 w-11 items-center justify-center rounded-full text-paper transition-opacity before:absolute before:inset-2.5 before:-z-10 before:rounded-full before:bg-ink/60 before:content-[''] disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
           aria-label={`Remove photo ${index + 1}`}
         >
           <X aria-hidden="true" className="h-3 w-3" />

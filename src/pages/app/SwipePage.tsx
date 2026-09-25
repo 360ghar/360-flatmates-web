@@ -325,7 +325,7 @@ function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
           type="button"
           aria-label="Dismiss swipe hint"
           onClick={onDismiss}
-          className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-ink"
+          className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 transition-colors hover:bg-paper-2 hover:text-ink"
         >
           <X aria-hidden="true" className="h-4 w-4" />
         </button>

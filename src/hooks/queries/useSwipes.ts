@@ -31,16 +31,6 @@ export function useSwipeDeck(filters?: SwipeDeckParams) {
   return useQuery(swipeDeckOptions(filters));
 }
 
-/**
- * Minimum number of cards left in the cached deck before we trigger a fresh
- * fetch. The number is intentionally low so the user never sees an "empty
- * deck" between the optimistic removal and the network response.
- *
- * NOTE: This threshold is no longer used by `useSwipeAction` (the refill is
- * driven by SwipeDeck's `onNearEnd` callback instead), but it's retained for
- * programmatic callers that may want to check deck size independently.
- */
-export const DECK_REPLENISH_THRESHOLD = 3;
 
 /**
  * Resolve the active deck query key(s) under `["swipes", "deck"]`.

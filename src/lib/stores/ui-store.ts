@@ -4,8 +4,6 @@ import { createSafeJsonStorage } from "./storage";
 
 export const UI_STORE_KEY = "360-flatmates-ui";
 
-export type ModalId = "settings" | "photo-viewer" | "report-user" | "visit-reschedule" | "delete-confirm";
-export type DrawerId = "filters" | "chat-info" | "profile-edit" | "notifications";
 
 export type ThemePreference = "light" | "dark" | "system";
 export type SidebarState = "expanded" | "collapsed";
@@ -36,8 +34,6 @@ export interface UiStoreState {
   theme: ThemePreference;
   sidebar: SidebarState;
   sidebarWidth: number;
-  activeModal: ModalId | null;
-  activeDrawer: DrawerId | null;
   realtimeConnected: boolean;
   realtimeState: RealtimeState;
   reducedMotion: boolean;
@@ -45,10 +41,6 @@ export interface UiStoreState {
   setTheme: (theme: ThemePreference) => void;
   setSidebar: (sidebar: SidebarState) => void;
   setSidebarWidth: (width: number) => void;
-  openModal: (modal: ModalId) => void;
-  closeModal: () => void;
-  openDrawer: (drawer: DrawerId) => void;
-  closeDrawer: () => void;
   setRealtimeState: (state: RealtimeState) => void;
   setReducedMotion: (reduced: boolean) => void;
   pushToast: (toast: Omit<ToastMessage, "id" | "createdAt"> & { id?: string }) => string;
@@ -62,8 +54,6 @@ export type UiStoreInitialState = Partial<
     | "theme"
     | "sidebar"
     | "sidebarWidth"
-    | "activeModal"
-    | "activeDrawer"
     | "realtimeConnected"
     | "realtimeState"
     | "reducedMotion"
@@ -82,8 +72,6 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         theme: "light",
         sidebar: "expanded",
         sidebarWidth: SIDEBAR_WIDTH_DEFAULT,
-        activeModal: null,
-        activeDrawer: null,
         realtimeConnected: false,
         realtimeState: "disconnected",
         reducedMotion: false,
@@ -92,10 +80,6 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         setTheme: (theme) => set((state) => state.theme === theme ? state : { theme }),
         setSidebar: (sidebar) => set({ sidebar }),
         setSidebarWidth: (sidebarWidth) => set({ sidebarWidth }),
-        openModal: (activeModal) => set({ activeModal }),
-        closeModal: () => set({ activeModal: null }),
-        openDrawer: (activeDrawer) => set({ activeDrawer }),
-        closeDrawer: () => set({ activeDrawer: null }),
         setRealtimeState: (realtimeState) =>
           set((s) => {
             const realtimeConnected = realtimeState === "connected";

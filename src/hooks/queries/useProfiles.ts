@@ -1,7 +1,6 @@
 import {
   infiniteQueryOptions,
   queryOptions,
-  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient
@@ -104,13 +103,6 @@ export function useProfile(id: number) {
 export function usePeers(filters?: PeerFilters) {
   return useQuery(peerProfilesOptions(filters));
 }
-
-export function useInfinitePeers(
-  filters?: Omit<PeerFilters, "limit" | "cursor">
-) {
-  return useInfiniteQuery(peersInfiniteOptions(filters));
-}
-
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
 

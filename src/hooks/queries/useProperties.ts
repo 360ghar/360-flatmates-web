@@ -1,6 +1,5 @@
 import {
   queryOptions,
-  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient
@@ -18,7 +17,6 @@ import type {
   RenewListingPayload
 } from "@/lib/api/types";
 
-const MY_PROPERTIES_PAGE_SIZE = 20;
 
 export const myPropertiesOptions = queryOptions({
   queryKey: ["properties", "mine"],
@@ -32,32 +30,6 @@ export const myPropertiesOptions = queryOptions({
     return Array.isArray(response?.items) ? response.items : [];
   }
 });
-
-/**
- * Infinite cursor-paginated "my properties" list.
- *
- * The backend `/properties/me` endpoint returns a `CursorPage<Property>` envelope.
- * Pages are concatenated in order; consumers can either flatten the pages or
- * use the raw `InfiniteData` for virtualized rendering.
- */
-export function useInfiniteMyProperties() {
-  return useInfiniteQuery({
-    queryKey: ["properties", "mine", "infinite"],
-    queryFn: async ({ pageParam, signal }) => {
-      const response = await apiClient.request<PropertyCursorPage>({
-        method: "GET",
-        path: "/properties/me",
-        query: { cursor: pageParam, limit: MY_PROPERTIES_PAGE_SIZE },
-        signal
-      });
-      return response;
-    },
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined
-  });
-}
-
 export function propertyOptions(id: number) {
   return queryOptions({
     queryKey: ["properties", id],

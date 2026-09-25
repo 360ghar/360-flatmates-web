@@ -1,136 +1,96 @@
 /**
- * Generate 1200x630 social preview WebP (og-image.webp) and a square brand
- * logo WebP (logo.webp) for 360 Flatmates.
+ * Generate the 1200x630 social preview (og-image.webp) and the 512 logo
+ * (logo.webp) for 360 Flatmates, in the Paper Diorama style (DESIGN.md).
  *
- * The brand font (Inter) is self-hosted as a variable TTF in public/fonts/.
- * We embed it into the SVG as a base64 @font-face block so sharp's librsvg
- * renderer paints the real brand typography deterministically.
+ * The scene is drawn from the generated cut-paper art (src/components/paper/art.ts).
+ * Chrome (Playwright) renders the page so Gambarino matches the live site;
+ * librsvg and Pango ignore embedded or file fonts on some platforms.
  *
- * Run:  npx tsx scripts/generate-og-image.ts
- *
- * Output:
- *   public/og-image.webp   (1200 x 630, optimized)
- *   public/logo.webp       (512 x 512, brand mark)
+ * Output is committed. Run after changing the art or tokens:
+ *   npm run generate:og-image
  */
-import { readFileSync } from "fs";
 import { resolve } from "path";
+import { readFileSync } from "fs";
+import { chromium } from "@playwright/test";
 import sharp from "sharp";
+import { paperArt, type PaperArtName } from "../src/components/paper/art";
 
-// ── Brand tokens (Airbnb design system) ───────────────────────────────────
+// Light-theme tokens (DESIGN.md §1, §6).
 const C = {
-  canvas: "#ffffff",
-  surfaceSoft: "#f7f7f7",
-  surfaceStrong: "#f2f2f2",
-  ink: "#222222",
-  ink2: "#3f3f3f",
-  ink3: "#6a6a6a",
-  accent: "#ff385c",
-  accentDeep: "#e00b41",
-  accentSoft: "#ffd1da",
+  sky: "#E4EBE3",
+  ink: "#23201C",
+  ink2: "#4A443D",
+  clay: "#A94A2B",
+  hillFar: "#C3D5C8",
+  hillNear: "#93B39F",
+  townFar: "#DDB3A0",
+  window: "#F6EBD9",
+  tree: "#2E5B48",
+  sun: "#E0A034",
+  cloud: "#FFFFFF"
 } as const;
 
 const root = process.cwd();
-const fontsDir = resolve(root, "public", "fonts");
+const fontUrl = `data:font/woff2;base64,${readFileSync(resolve(root, "public", "fonts", "Gambarino-Regular.woff2")).toString("base64")}`;
 
-function fontDataUri(file: string): string {
-  const buf = readFileSync(resolve(fontsDir, file));
-  return `data:font/ttf;base64,${buf.toString("base64")}`;
+const shadow = `<filter id="paper" x="-5%" y="-5%" width="110%" height="115%">
+  <feDropShadow dx="1" dy="2" stdDeviation="0.75" flood-color="${C.ink}" flood-opacity="0.22"/>
+</filter>`;
+
+function layer(name: PaperArtName, fill: string, withShadow = true): string {
+  const shape = paperArt[name];
+  return `<path d="${shape.d}" fill="${fill}" fill-rule="${shape.evenOdd ? "evenodd" : "nonzero"}"${withShadow ? ' filter="url(#paper)"' : ""}/>`;
 }
 
-/**
- * Build the 1200x630 social card as an SVG string with embedded fonts.
- */
-function buildOgSvg(): string {
-  const inter = fontDataUri("Inter-Variable.ttf");
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <defs>
-    <style type="text/css"><![CDATA[
-      @font-face {
-        font-family: "Inter";
-        src: url("${inter}") format("truetype");
-        font-weight: 100 900;
-      }
-    ]]></style>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="${C.accent}"/>
-      <stop offset="100%" stop-color="${C.accentDeep}"/>
-    </linearGradient>
-  </defs>
-
-  <!-- Background -->
-  <rect width="1200" height="630" fill="${C.canvas}"/>
-
-  <!-- Top + bottom accent bars -->
-  <rect x="0" y="0" width="1200" height="8" fill="url(#accent)"/>
-  <rect x="0" y="622" width="1200" height="8" fill="url(#accent)"/>
-
-  <!-- Brand mark: circular "360" arrow -->
-  <g transform="translate(140 130)">
-    <rect x="0" y="0" width="150" height="150" rx="34" fill="${C.accent}"/>
-    <g transform="translate(75 75)">
-      <circle cx="0" cy="0" r="44" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-dasharray="220 276"/>
-      <polyline points="24,-34 41,-47 37,-22" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
-  </g>
-
-  <!-- Wordmark next to mark -->
-  <text x="320" y="220" font-family="Inter, sans-serif" font-size="40" font-weight="700" fill="${C.ink}" letter-spacing="-0.5">360 Flatmates</text>
-
-  <!-- Eyebrow tag -->
-  <text x="92" y="320" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="${C.accent}" letter-spacing="3">VERIFIED ROOMS · COMPATIBLE FLATMATES</text>
-
-  <!-- Headline -->
-  <text x="90" y="408" font-family="Inter, sans-serif" font-size="72" font-weight="700" fill="${C.ink}" letter-spacing="-1">Find your flatmate.</text>
-  <text x="90" y="500" font-family="Inter, sans-serif" font-size="72" font-weight="700" fill="${C.ink}" letter-spacing="-1">Find your <tspan font-style="italic" fill="${C.accent}">vibe.</tspan></text>
-
-  <!-- Subline -->
-  <text x="92" y="556" font-family="Inter, sans-serif" font-size="28" font-weight="400" fill="${C.ink3}">Verified rooms and compatible flatmates across India.</text>
-
-  <!-- Domain -->
-  <text x="1108" y="566" font-family="Inter, sans-serif" font-size="26" font-weight="700" fill="${C.accent}" text-anchor="end" letter-spacing="1">360ghar.com</text>
-</svg>`;
+/** Page wrapper: Chrome renders the Gambarino woff2 exactly like the site. */
+function page(width: number, height: number, body: string): string {
+  return `<!doctype html><html><head><style>
+    @font-face { font-family: "Gambarino"; src: url("${fontUrl}") format("woff2"); }
+    html, body { margin: 0; width: ${width}px; height: ${height}px; overflow: hidden; }
+    body { font-family: "Gambarino", serif; font-synthesis: none; }
+  </style></head><body>${body}</body></html>`;
 }
 
-/** Build the square 512 brand logo SVG (the mark + wordmark). */
-function buildLogoSvg(): string {
-  const inter = fontDataUri("Inter-Variable.ttf");
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <defs>
-    <style type="text/css"><![CDATA[
-      @font-face { font-family: "Inter"; src: url("${inter}") format("truetype"); font-weight: 100 900; }
-    ]]></style>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="${C.canvas}"/>
-  <rect width="512" height="512" rx="112" fill="none" stroke="${C.surfaceStrong}" stroke-width="3"/>
-  <g transform="translate(256 200)">
-    <circle cx="0" cy="0" r="96" fill="none" stroke="${C.accent}" stroke-width="16" stroke-linecap="round" stroke-dasharray="480 603"/>
-    <polyline points="56,-72 96,-104 84,-44" fill="none" stroke="${C.accent}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+function buildOgHtml(): string {
+  return page(1200, 630, `
+<div style="position:absolute;left:80px;top:52px;font-size:38px"><span style="color:${C.clay}">360</span> <span style="color:${C.ink}">Flatmates</span></div>
+<div style="position:absolute;left:80px;top:124px;font-size:68px;line-height:76px;color:${C.ink}">Find your flatmate,<br>not a nightmare.</div>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" style="position:absolute;inset:0;z-index:-1">
+  <defs>${shadow}</defs>
+  <rect width="1200" height="630" fill="${C.sky}"/>
+  <g transform="translate(0 270)">
+    ${layer("sun", C.sun)}${layer("cloudA", C.cloud)}${layer("cloudB", C.cloud)}
+    ${layer("hillsFar", C.hillFar)}${layer("townFar", C.townFar)}${layer("hillsNear", C.hillNear)}
+    ${layer("townWindows", C.window, false)}${layer("townNear", C.clay)}${layer("tree", C.tree)}
   </g>
-  <text x="256" y="372" font-family="Inter, sans-serif" font-size="64" font-weight="700" fill="${C.ink}" text-anchor="middle" letter-spacing="-1">360 Flatmates</text>
-  <text x="256" y="412" font-family="Inter, sans-serif" font-size="22" font-weight="700" fill="${C.accent}" text-anchor="middle" letter-spacing="3">360GHAR.COM</text>
-</svg>`;
+</svg>`);
+}
+
+function buildLogoHtml(): string {
+  return page(512, 512, `
+<div style="width:512px;height:512px;border-radius:112px;background:${C.sky};display:flex;flex-direction:column;align-items:center;justify-content:center">
+  <div style="font-size:176px;line-height:1;color:${C.clay}">360</div>
+  <div style="font-size:64px;line-height:1.2;color:${C.ink}">Flatmates</div>
+</div>`);
 }
 
 async function generateOgImage(): Promise<void> {
-  const svg = Buffer.from(buildOgSvg(), "utf-8");
-  const out = resolve(root, "public", "og-image.webp");
-  await sharp(svg, { density: 144 })
-    .resize(1200, 630, { fit: "cover" })
-    .webp({ quality: 85 })
-    .toFile(out);
-  console.log("Generated og-image.webp (1200x630)");
-
-  // logo.webp
-  const logoSvg = Buffer.from(buildLogoSvg(), "utf-8");
-  const logoOut = resolve(root, "public", "logo.webp");
-  await sharp(logoSvg, { density: 144 })
-    .resize(512, 512, { fit: "cover" })
-    .webp({ quality: 90 })
-    .toFile(logoOut);
-  console.log("Generated logo.webp (512x512)");
+  const browser = await chromium.launch(process.env.CI ? {} : { channel: "chrome" });
+  const shot = async (html: string, width: number, height: number, file: string, quality: number) => {
+    const tab = await browser.newPage({ viewport: { width, height } });
+    await tab.setContent(html);
+    await tab.evaluate(() => document.fonts.ready);
+    const png = await tab.screenshot({ omitBackground: true });
+    await sharp(png).webp({ quality }).toFile(resolve(root, "public", file));
+    await tab.close();
+    console.log(`Generated ${file} (${width}x${height})`);
+  };
+  try {
+    await shot(buildOgHtml(), 1200, 630, "og-image.webp", 85);
+    await shot(buildLogoHtml(), 512, 512, "logo.webp", 90);
+  } finally {
+    await browser.close();
+  }
 }
 
 generateOgImage().catch((err) => {
