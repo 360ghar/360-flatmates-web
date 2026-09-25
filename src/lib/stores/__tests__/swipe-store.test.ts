@@ -1,20 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { swipeStore } from "../swipe-store";
-import type { FlatmatesPeer } from "@/lib/api/types";
-
-const mockPeer: FlatmatesPeer = {
-  id: 1,
-  full_name: "Alice",
-  mode: "co_hunter" as FlatmatesPeer["mode"],
-  profile_image_url: "https://example.com/alice.jpg",
-};
-
-const mockPeer2: FlatmatesPeer = {
-  id: 2,
-  full_name: "Bob",
-  mode: "room_poster" as FlatmatesPeer["mode"],
-};
-
 describe("swipeStore", () => {
   beforeEach(() => {
     swipeStore.setState(swipeStore.getInitialState());
@@ -25,7 +10,6 @@ describe("swipeStore", () => {
     expect(state.currentIndex).toBe(0);
     expect(state.isAnimating).toBe(false);
     expect(state.direction).toBeNull();
-    expect(state.cardQueue).toEqual([]);
     expect(state.isExpanded).toBe(false);
   });
 
@@ -67,27 +51,6 @@ describe("swipeStore", () => {
     swipeStore.getState().setDirection("left");
     swipeStore.getState().clearDirection();
     expect(swipeStore.getState().direction).toBeNull();
-  });
-
-  it("setCardQueue sets the queue and resets currentIndex", () => {
-    swipeStore.getState().incrementIndex();
-    swipeStore.getState().setCardQueue([mockPeer, mockPeer2]);
-    expect(swipeStore.getState().cardQueue).toEqual([mockPeer, mockPeer2]);
-    expect(swipeStore.getState().currentIndex).toBe(0);
-  });
-
-  it("shiftCard removes the first card and resets currentIndex", () => {
-    swipeStore.getState().setCardQueue([mockPeer, mockPeer2]);
-    swipeStore.getState().incrementIndex();
-    swipeStore.getState().shiftCard();
-    expect(swipeStore.getState().cardQueue).toEqual([mockPeer2]);
-    expect(swipeStore.getState().currentIndex).toBe(0);
-  });
-
-  it("pushCards appends cards to the queue", () => {
-    swipeStore.getState().setCardQueue([mockPeer]);
-    swipeStore.getState().pushCards([mockPeer2]);
-    expect(swipeStore.getState().cardQueue).toEqual([mockPeer, mockPeer2]);
   });
 
   it("toggleExpanded flips isExpanded", () => {

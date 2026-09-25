@@ -4,7 +4,6 @@ import { useBootstrap, useMyProfile, useWebSearch, usePeers, useSwipeDeck } from
 import { searchStore } from "@/lib/stores/search-store";
 import { propertyToListingCardProps, profileToProfileGridCardProps } from "@/lib/api/adapters";
 import type { Property } from "@/lib/api/types";
-import { debug } from "@/lib/debug";
 import { Card } from "@/components/ui/Card";
 import { Users, Building2, MapPin } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
@@ -49,8 +48,16 @@ function buildQuickFilterSearch(label: QuickFilter): string {
 export function HomePage() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<string>("Nearby");
-  const { isLoading: bootstrapLoading, error: bootstrapError, refetch: refetchBootstrap } = useBootstrap();
-  const { data: profile } = useMyProfile();
+  const {
+    data: bootstrap,
+    isLoading: bootstrapLoading,
+    error: bootstrapError,
+    refetch: refetchBootstrap
+  } = useBootstrap();
+  const { data: myProfile } = useMyProfile();
+  // Bootstrap already carries the profile, so the feed queries start with the
+  // right city on the first request instead of refiring when /users/me lands (W23).
+  const profile = myProfile ?? bootstrap?.profile;
   // Fire the queries unconditionally. Previously we gated on `profile?.city`,
   // which silently produced empty sections for users whose profile hadn't yet
   // resolved their city. The backend accepts the queries without a city
@@ -74,16 +81,6 @@ export function HomePage() {
   const recommended = swipeDeckProfiles ?? [];
 
   const anyLoading = bootstrapLoading || propertiesLoading || peersLoading || swipeLoading;
-
-  // Debug logging: surface query states and data shapes for diagnostics
-  debug.log("HomePage", "render", {
-    profile: profile ? { id: profile.id, city: profile.city, name: profile.full_name } : null,
-    bootstrap: { loading: bootstrapLoading, error: bootstrapError?.message },
-    properties: { loading: propertiesLoading, error: propertiesError?.message, count: listings.length },
-    peers: { loading: peersLoading, error: peersError?.message, count: nearbyPeers.length },
-    swipe: { loading: swipeLoading, error: swipeError?.message, count: recommended.length },
-    anyLoading,
-  });
 
   useEffect(() => {
     const currentCity = searchStore.getState().filters.city;

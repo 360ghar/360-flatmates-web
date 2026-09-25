@@ -113,6 +113,9 @@ function peerToSwipeProfile(
 /*  SwipePage                                                                  */
 /* -------------------------------------------------------------------------- */
 
+/** Matches the card fly-off animation in SwipeDeck. */
+const SWIPE_FLY_OFF_MS = 320;
+
 export function SwipePage() {
   const navigate = useNavigate();
   const { data: profiles, isLoading, error, refetch } = useSwipeDeck();
@@ -126,7 +129,6 @@ export function SwipePage() {
   const setStoreAnimating = useStore(swipeStore, (s) => s.setAnimating);
   const setStoreDirection = useStore(swipeStore, (s) => s.setDirection);
   const clearStoreDirection = useStore(swipeStore, (s) => s.clearDirection);
-  const setCardQueue = useStore(swipeStore, (s) => s.setCardQueue);
 
   const me = bootstrap?.profile ?? null;
 
@@ -135,25 +137,26 @@ export function SwipePage() {
     [profiles, me]
   );
 
-  /* ----- Sync profiles into the store's cardQueue for any consumer ----- */
-  useEffect(() => {
-    if (profiles && profiles.length > 0) {
-      setCardQueue(profiles);
-    }
-  }, [profiles, setCardQueue]);
-
   /* ----- Card replenishment: refetch when running low ----- */
   const replenishTriggered = useRef(false);
+  const timers = useRef<number[]>([]);
+  useEffect(() => {
+    const pending = timers.current;
+    return () => pending.forEach((id) => window.clearTimeout(id));
+  }, []);
+  const later = useCallback((fn: () => void, ms: number) => {
+    timers.current.push(window.setTimeout(fn, ms));
+  }, []);
+
   const handleNearEnd = useCallback(() => {
     if (replenishTriggered.current) return;
     replenishTriggered.current = true;
     refetch().finally(() => {
-      // Allow re-triggering after some time
-      setTimeout(() => {
+      later(() => {
         replenishTriggered.current = false;
       }, 2000);
     });
-  }, [refetch]);
+  }, [refetch, later]);
 
   /* ----- Swipe action handler ----- */
   const handleSwipeAction = useCallback(
@@ -164,6 +167,12 @@ export function SwipePage() {
       const dir = action === "pass" ? "left" : action === "like" ? "right" : "up";
       setStoreDirection(dir);
       setStoreAnimating(true);
+      // Unlock after the fly-off, not after the network round trip (W24):
+      // the next card is usable while this swipe is still saving.
+      later(() => {
+        setStoreAnimating(false);
+        clearStoreDirection();
+      }, SWIPE_FLY_OFF_MS);
 
       swipeAction.mutate(
         {
@@ -196,15 +205,11 @@ export function SwipePage() {
                     description: "Something went wrong. Please try again."
                   }
             );
-          },
-          onSettled: () => {
-            setStoreAnimating(false);
-            clearStoreDirection();
           }
         }
       );
     },
-    [storeAnimating, swipeAction, swipeProfiles, setStoreAnimating, setStoreDirection, clearStoreDirection]
+    [storeAnimating, swipeAction, swipeProfiles, setStoreAnimating, setStoreDirection, clearStoreDirection, later]
   );
 
   /* ----- First-time hint overlay (F4-18) -----
