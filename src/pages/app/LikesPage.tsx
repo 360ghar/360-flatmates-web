@@ -46,21 +46,22 @@ export function LikesPage() {
           getPeerId={(like) => String(like.peer.id)}
           getProfileProps={(like) => profileToProfileGridCardProps(like.peer)}
           onCta={(like) =>
-            swipeAction.mutate(
-              { target_type: "user", target_user_id: like.peer.id, action: "like" },
-              {
-                onSuccess: (result) => {
+            // mutateAsync: per-call mutate callbacks only run for the latest call,
+            // so two quick like-backs would lose the first result.
+            swipeAction
+              .mutateAsync({ target_type: "user", target_user_id: like.peer.id, action: "like" })
+              .then(
+                (result) => {
                   uiStore.getState().pushToast({
                     type: "success",
                     title: result.did_match ? `You matched with ${like.peer.full_name}` : "Liked back"
                   });
                   if (result.did_match && result.conversation_id) navigate(`/chats/${result.conversation_id}`);
                 },
-                onError: (err) => {
+                (err) => {
                   uiStore.getState().pushToast({ type: "error", title: "Could not match", description: userMessage(err) });
                 }
-              }
-            )
+              )
           }
         />
       ) : (

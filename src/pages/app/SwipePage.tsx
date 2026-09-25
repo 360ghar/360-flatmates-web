@@ -142,7 +142,12 @@ export function SwipePage() {
   const timers = useRef<number[]>([]);
   useEffect(() => {
     const pending = timers.current;
-    return () => pending.forEach((id) => window.clearTimeout(id));
+    return () => {
+      pending.forEach((id) => window.clearTimeout(id));
+      // Leaving mid fly-off must not leave the global store locked.
+      swipeStore.getState().setAnimating(false);
+      swipeStore.getState().clearDirection();
+    };
   }, []);
   const later = useCallback((fn: () => void, ms: number) => {
     timers.current.push(window.setTimeout(fn, ms));
@@ -174,21 +179,23 @@ export function SwipePage() {
         clearStoreDirection();
       }, SWIPE_FLY_OFF_MS);
 
-      swipeAction.mutate(
-        {
+      // mutateAsync, not per-call mutate callbacks: TanStack only runs those for
+      // the latest call, and swipes overlap now, so earlier matches/errors would be lost.
+      const matched = swipeProfiles.find((p) => p.id === profileId);
+      swipeAction
+        .mutateAsync({
           target_type: "user",
           action,
           target_user_id: Number(profileId)
-        },
-        {
-          onSuccess: (result) => {
-            if (result.did_match) {
-              const matched = swipeProfiles.find((p) => p.id === profileId);
-              if (matched) setMatchProfile(matched);
+        })
+        .then(
+          (result) => {
+            if (result.did_match && matched) {
+              setMatchProfile(matched);
               setMatchConversationId(result.conversation_id ?? null);
             }
           },
-          onError: (err) => {
+          (err) => {
             // Super-like daily cap (429) gets a distinct, actionable message.
             const isRateLimited =
               err instanceof ApiClientError && err.status === 429;
@@ -206,8 +213,7 @@ export function SwipePage() {
                   }
             );
           }
-        }
-      );
+        );
     },
     [storeAnimating, swipeAction, swipeProfiles, setStoreAnimating, setStoreDirection, clearStoreDirection, later]
   );

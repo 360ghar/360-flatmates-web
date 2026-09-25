@@ -49,7 +49,8 @@ function getAllDeckKeys(queryClient: ReturnType<typeof useQueryClient>): readonl
 }
 
 type SwipeMutationContext = {
-  snapshots: Map<readonly unknown[], FlatmatesPeer[] | undefined>;
+  /** Per deck key: the removed card and where it was, to put back on error. */
+  removed: Array<{ key: readonly unknown[]; card: FlatmatesPeer; index: number }>;
 };
 
 /**
@@ -59,7 +60,7 @@ type SwipeMutationContext = {
  *   1. `onMutate` removes the swiped profile from every cached deck under
  *      `["swipes", "deck"]`. This lets SwipeDeck's AnimatePresence start the
  *      exit animation immediately, with the next card already in place behind it.
- *   2. On error, we restore the snapshot.
+ *   2. On error, we put back only the failed card (swipes can overlap).
  *   3. On success, we do NOT invalidate the deck. The optimistic removal is
  *      the source of truth. The `onNearEnd` refill mechanism (already wired in
  *      SwipeDeck) handles fetching new pages when the deck is running low.
@@ -88,25 +89,33 @@ export function useSwipeAction() {
           ? payload.target_user_id
           : payload.property_id;
 
-      const snapshots = new Map<readonly unknown[], FlatmatesPeer[] | undefined>();
-      const keys = getAllDeckKeys(queryClient);
+      const removed: SwipeMutationContext["removed"] = [];
+      if (targetId === undefined) return { removed };
 
-      for (const key of keys) {
+      for (const key of getAllDeckKeys(queryClient)) {
         const previous = queryClient.getQueryData<FlatmatesPeer[]>(key);
-        if (!previous) continue;
-        snapshots.set(key, previous);
-        if (targetId === undefined) continue;
-        const next = previous.filter((profile: FlatmatesPeer) => profile.id !== targetId);
-        queryClient.setQueryData<FlatmatesPeer[]>(key, next);
+        const index = previous?.findIndex((profile) => profile.id === targetId) ?? -1;
+        if (!previous || index < 0) continue;
+        removed.push({ key, card: previous[index], index });
+        queryClient.setQueryData<FlatmatesPeer[]>(
+          key,
+          previous.filter((profile) => profile.id !== targetId)
+        );
       }
 
-      return { snapshots };
+      return { removed };
     },
 
     onError: (_err, _payload, context) => {
-      if (!context) return;
-      for (const [key, snapshot] of context.snapshots) {
-        queryClient.setQueryData(key, snapshot);
+      // Swipes can overlap, so put back only the card that failed; a whole
+      // snapshot would also resurrect cards swiped since (W24).
+      for (const { key, card, index } of context?.removed ?? []) {
+        queryClient.setQueryData<FlatmatesPeer[]>(key, (current) => {
+          if (!current || current.some((p) => p.id === card.id)) return current;
+          const next = [...current];
+          next.splice(Math.min(index, next.length), 0, card);
+          return next;
+        });
       }
     },
 
