@@ -184,7 +184,7 @@ export function ForgotPasswordPage() {
       }
       setStep("new-password");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Invalid code. Please try again.");
+      setError(mapSupabaseAuthError(err, "otp"));
     } finally {
       setSubmitting(false);
     }
@@ -209,7 +209,7 @@ export function ForgotPasswordPage() {
     try {
       await updateUser(newPassword);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to reset password. Please try again.");
+      setError(mapSupabaseAuthError(err, "forgot_password"));
       setSubmitting(false);
       return;
     }

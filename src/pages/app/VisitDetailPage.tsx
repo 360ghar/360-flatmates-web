@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useVisit, useCancelVisit, useUpdateVisit } from "@/hooks/queries";
@@ -136,7 +137,7 @@ export function VisitDetailPage() {
         uiStore.getState().pushToast({
           type: "error",
           title: "Couldn't cancel visit",
-          description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+          description: userMessage(error, "Something went wrong. Please try again."),
         });
       },
     });
@@ -156,7 +157,7 @@ export function VisitDetailPage() {
           uiStore.getState().pushToast({
             type: "error",
             title: "Couldn't confirm visit",
-            description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+            description: userMessage(error, "Something went wrong. Please try again."),
           }),
       }
     );
@@ -179,7 +180,7 @@ export function VisitDetailPage() {
           uiStore.getState().pushToast({
             type: "error",
             title: "Couldn't reschedule visit",
-            description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+            description: userMessage(error, "Something went wrong. Please try again."),
           }),
       }
     );
@@ -204,7 +205,7 @@ export function VisitDetailPage() {
           uiStore.getState().pushToast({
             type: "error",
             title: "Couldn't submit feedback",
-            description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+            description: userMessage(error, "Something went wrong. Please try again."),
           }),
       }
     );

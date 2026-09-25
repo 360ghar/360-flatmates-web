@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { ArrowLeft, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
@@ -98,11 +99,7 @@ export function AddPaymentMethodPage() {
           navigate("/payments");
         },
         onError: (error) => {
-          setServerError(
-            error instanceof Error
-              ? error.message
-              : "Could not add payment method"
-          );
+          setServerError(userMessage(error, "Could not add payment method"));
         }
       }
     );

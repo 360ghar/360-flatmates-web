@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
@@ -166,7 +167,7 @@ export function MyListingEditPage() {
         navigate("/manage");
       },
       onError: (err) => {
-        setServerError(err instanceof Error ? err.message : "Failed to update listing");
+        setServerError(userMessage(err, "Failed to update listing"));
       }
     });
   }

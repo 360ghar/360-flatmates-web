@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 
@@ -119,7 +120,7 @@ export default function SemanticSearchClient() {
         <Card className="mt-6 flex items-center justify-center p-8">
           <ErrorState
             title="Could not load listings"
-            description={error instanceof Error ? error.message : "Check your connection and try again."}
+            description={userMessage(error, "Check your connection and try again.")}
             onRetry={() => refetch()}
           />
         </Card>

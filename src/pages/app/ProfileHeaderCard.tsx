@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Pencil, ImageOff, Loader2 } from "lucide-react";
@@ -101,7 +102,7 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
       // hosted URL is not applied — profile_image_url stays as-is and the
       // user can retry.
       const description =
-        err instanceof Error ? err.message : "Could not update your profile photo. Please try again.";
+        userMessage(err, "Could not update your profile photo. Please try again.");
       uiStore.getState().pushToast({
         type: "error",
         title: "Upload failed",
@@ -131,7 +132,7 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
         uiStore.getState().pushToast({
           type: "error",
           title: "Could not remove photo",
-          description: err instanceof Error ? err.message : "Please try again later or contact support.",
+          description: userMessage(err, "Please try again later or contact support."),
         });
       }
     });

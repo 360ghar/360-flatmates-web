@@ -1,3 +1,4 @@
+import { mapSupabaseAuthError } from "@/lib/authErrors";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
@@ -62,7 +63,7 @@ export function AddPhonePage() {
       setStep("verify");
       resendTimer.start();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to send OTP. Please try again.");
+      setError(mapSupabaseAuthError(err, "otp"));
     } finally {
       setSubmitting(false);
     }
@@ -75,7 +76,7 @@ export function AddPhonePage() {
       await addPhone(formatFullPhone(phone));
       resendTimer.start();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to resend code. Please try again.");
+      setError(mapSupabaseAuthError(err, "otp"));
     } finally {
       setResending(false);
     }
@@ -88,7 +89,7 @@ export function AddPhonePage() {
       await verifyPhoneChange(formatFullPhone(phone), otp);
       navigate(nextPath, { replace: true });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to verify. Please try again.");
+      setError(mapSupabaseAuthError(err, "otp"));
     } finally {
       setSubmitting(false);
     }

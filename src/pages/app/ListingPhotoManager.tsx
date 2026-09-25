@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import {
@@ -149,7 +150,7 @@ export function ListingPhotoManager({
             uiStore.getState().pushToast({
               type: "error",
               title: "Upload failed",
-              description: err instanceof Error ? err.message : "Could not upload photo."
+              description: userMessage(err, "Could not upload photo.")
             });
           },
           onSettled: () => {

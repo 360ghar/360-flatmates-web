@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
@@ -212,7 +213,7 @@ export function ProfileEditPage() {
         navigate("/profile");
       },
       onError: (err) => {
-        setServerError(err instanceof Error ? err.message : "Failed to update profile");
+        setServerError(userMessage(err, "Failed to update profile"));
       }
     });
   }

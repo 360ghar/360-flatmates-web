@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
@@ -73,7 +74,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         <Card className="p-8 text-center">
           <p className="text-h3 text-ink-2 font-semibold">Post not found</p>
           <p className="mt-2 text-body-md text-ink-3">
-            {error instanceof Error ? error.message : "The post may have been removed."}
+            {userMessage(error, "The post may have been removed.")}
           </p>
           <Button className="mt-4" onClick={() => navigate("/blog")}>
             Back to blog

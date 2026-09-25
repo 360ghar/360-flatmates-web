@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { ListingCard, type ListingCardData } from "@/components/molecules/ListingCard";
@@ -69,11 +70,7 @@ export function SearchResultsList({
           <Card className="flex items-center justify-center p-8">
             <ErrorState
               title="Could not load listings"
-              description={
-                error instanceof Error
-                  ? error.message
-                  : "Check your connection and try again."
-              }
+              description={userMessage(error, "Check your connection and try again.")}
               onRetry={onRetry}
             />
           </Card>

@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useMemo, useState } from "react";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
 import { useBlogCategories, useBlogPosts, useInfiniteBlogPosts } from "@/hooks/queries";
@@ -141,7 +142,7 @@ export function BlogPage() {
               Could not load blog posts
             </p>
             <p className="mt-2 text-body-md text-ink-3">
-              {error instanceof Error ? error.message : "Try again in a moment."}
+              {userMessage(error, "Try again in a moment.")}
             </p>
             <Button className="mt-4" onClick={() => refetch()}>
               Retry

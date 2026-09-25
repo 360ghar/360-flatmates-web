@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
@@ -87,7 +88,7 @@ export function OnboardingProfilePhotoStep({
         // didn't succeed, so profile_image_url stays as-is and the user can
         // retry. The error toast carries the friendly message.
         const description =
-          err instanceof Error ? err.message : "Could not upload your photo. Please try again.";
+          userMessage(err, "Could not upload your photo. Please try again.");
         uiStore.getState().pushToast({
           type: "error",
           title: "Upload failed",

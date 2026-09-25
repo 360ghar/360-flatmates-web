@@ -1,3 +1,4 @@
+import { mapSupabaseAuthError } from "@/lib/authErrors";
 import { useMemo, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -48,7 +49,7 @@ export function LoginSocialButtons({ redirectTo, highlightedMethod, onError }: L
       await signInWithGoogle(redirectTo);
     } catch (err: unknown) {
       setGoogleLoading(false);
-      onError(err instanceof Error ? err.message : "Google sign-in failed. Please try again.");
+      onError(mapSupabaseAuthError(err, "login"));
     }
   };
 
@@ -59,7 +60,7 @@ export function LoginSocialButtons({ redirectTo, highlightedMethod, onError }: L
       await signInWithApple(redirectTo);
     } catch (err: unknown) {
       setAppleLoading(false);
-      onError(err instanceof Error ? err.message : "Apple sign-in failed. Please try again.");
+      onError(mapSupabaseAuthError(err, "login"));
     }
   };
 

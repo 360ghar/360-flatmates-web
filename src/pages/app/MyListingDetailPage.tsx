@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, Pencil, Rocket, RefreshCw, Trash2 } from "lucide-react";
@@ -69,7 +70,7 @@ export function MyListingDetailPage() {
           uiStore.getState().pushToast({
             type: "error",
             title: "Could not boost listing",
-            description: err instanceof Error ? err.message : "Please try again."
+            description: userMessage(err, "Please try again.")
           })
       }
     );
@@ -94,7 +95,7 @@ export function MyListingDetailPage() {
           uiStore.getState().pushToast({
             type: "error",
             title: "Could not renew listing",
-            description: err instanceof Error ? err.message : "Please try again."
+            description: userMessage(err, "Please try again.")
           })
       }
     );
@@ -113,7 +114,7 @@ export function MyListingDetailPage() {
         uiStore.getState().pushToast({
           type: "error",
           title: "Could not delete listing",
-          description: err instanceof Error ? err.message : "Please try again."
+          description: userMessage(err, "Please try again.")
         });
       }
     });

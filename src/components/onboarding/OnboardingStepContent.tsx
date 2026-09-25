@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
 import { useMyProfile, useCreateProfile, useUpdateProfile } from "@/hooks/queries";
@@ -168,7 +169,7 @@ export function OnboardingStepContent({ stepKey }: OnboardingStepContentProps) {
       };
 
       const onProfileError = (err: unknown) => {
-        const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        const message = userMessage(err, "Something went wrong. Please try again.");
         uiStore.getState().pushToast({
           type: "error",
           title: "Couldn't save your profile",

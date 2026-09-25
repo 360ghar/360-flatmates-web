@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -48,7 +49,7 @@ export function ChatsPage() {
           uiStore.getState().pushToast({
             type: "error",
             title: "Could not start conversation",
-            description: err instanceof Error ? err.message : "Please try again."
+            description: userMessage(err, "Please try again.")
           });
         }
       }

@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Home, Search, Shuffle } from "lucide-react";
@@ -74,8 +75,8 @@ export function ChooseRolePage() {
         } else {
           description = message;
         }
-      } else if (err instanceof Error) {
-        description = err.message;
+      } else {
+        description = userMessage(err);
       }
 
       uiStore.getState().pushToast({ type: "error", title, description });

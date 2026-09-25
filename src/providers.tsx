@@ -1,3 +1,4 @@
+import { userMessage } from "@/lib/api/errors";
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { MotionConfig } from "framer-motion";
@@ -149,10 +150,7 @@ function useAuthStateQuery(isAuthenticated: boolean) {
 
   useEffect(() => {
     if (!isAuthenticated || !query.error) return;
-    const message =
-      query.error instanceof Error
-        ? query.error.message
-        : "Could not verify your account status.";
+    const message = userMessage(query.error, "Could not verify your account status.");
     authStore.getState().setAuthStageError(message);
   }, [isAuthenticated, query.error]);
 }
