@@ -5,22 +5,14 @@ vi.mock("../LandingSearch", () => ({
   LandingSearch: () => <div>Search mock</div>,
 }));
 
-vi.mock("../AppStoreBadges", () => ({
-  AppStoreBadges: () => <div>App badges mock</div>,
-}));
-
-vi.mock("../MascotScene", () => ({
-  MascotScene: () => <div>Scene mock</div>,
-}));
-
 import { HeroSection } from "../HeroSection";
 
 describe("HeroSection", () => {
-  it("keeps the mascot scene out of the accessibility tree", () => {
+  it("renders the headline over the paper scene and keeps the art decorative", () => {
     render(<HeroSection />);
-
-    const scene = screen.getByText("Scene mock");
-    expect(scene.parentElement).toHaveAttribute("aria-hidden", "true");
-    expect(scene.parentElement).toHaveAttribute("inert");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Find your flatmate");
+    const scene = screen.getByTestId("paper-scene");
+    scene.querySelectorAll("svg").forEach((svg) => expect(svg).toHaveAttribute("aria-hidden", "true"));
+    expect(screen.getByText("Search mock")).toBeInTheDocument();
   });
 });

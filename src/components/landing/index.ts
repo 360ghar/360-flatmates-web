@@ -1,10 +1,7 @@
 export { HeroSection } from "./HeroSection";
 export { LandingSearch } from "./LandingSearch";
-export { MascotScene } from "./MascotScene";
-export { ComparisonFlow } from "./ComparisonFlow";
 export { AppStoreBadges } from "./AppStoreBadges";
 export { LandingClientSections } from "./LandingClientSections";
-export { TrustStrip } from "./TrustStrip";
 export { CompatibilitySection } from "./CompatibilitySection";
 export { FeatureBento } from "./FeatureBento";
 export { HowItWorks } from "./HowItWorks";

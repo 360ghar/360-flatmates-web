@@ -74,7 +74,7 @@ export function PublicLayout() {
             </Link>
             <Link
               to="/discover"
-              className={buttonClasses("primary", "compact") + " hidden h-10 rounded-full px-5 sm:inline-flex"}
+              className={buttonClasses("primary", "compact") + " hidden px-5 sm:inline-flex"}
             >
               Start matching
             </Link>
@@ -84,7 +84,7 @@ export function PublicLayout() {
               aria-label="Open navigation menu"
               aria-expanded={drawerOpen}
               className={cn(
-                "inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-2 hover:bg-paper md:hidden",
+                "inline-flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 hover:bg-paper-2 md:hidden",
                 focusRing,
               )}
             >
@@ -102,8 +102,8 @@ export function PublicLayout() {
         className="md:hidden"
         aria-label="Navigation menu"
       >
-        <div className="flex h-16 items-center justify-between border-b border-line px-5">
-          <span className="text-label-lg text-ink">Menu</span>
+        <div className="flex h-16 items-center justify-between px-5">
+          <span className="text-h3 text-ink">Menu</span>
         </div>
         <nav className="flex flex-col gap-1 p-4" aria-label="Mobile navigation">
           {NAV_LINKS.map((link) => (
@@ -111,23 +111,23 @@ export function PublicLayout() {
               key={link.href}
               to={link.href}
               onClick={() => setDrawerOpen(false)}
-              className="rounded-cut-md px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="flex min-h-11 items-center rounded-cut-md px-4 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
             >
               {link.label}
             </Link>
           ))}
-          <div className="mt-3 flex flex-col gap-3 border-t border-line pt-4">
+          <div className="mt-3 flex flex-col gap-3 pt-4">
             <Link
               to="/login"
               onClick={() => setDrawerOpen(false)}
-              className="rounded-cut-md px-4 py-3 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="flex min-h-11 items-center rounded-cut-md px-4 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
             >
               Sign in
             </Link>
             <Link
               to="/discover"
               onClick={() => setDrawerOpen(false)}
-              className={buttonClasses("primary", "compact") + " h-10 text-center"}
+              className={buttonClasses("primary", "compact") + " text-center"}
             >
               Start matching
             </Link>
@@ -143,40 +143,40 @@ export function PublicLayout() {
         <Outlet />
       </div>
 
-      <footer className="bg-paper border-t border-line-low py-20 pb-[env(safe-area-inset-bottom)]">
+      <footer className="paper-edge-torn-top paper-grain bg-paper-1 pb-[calc(24px+env(safe-area-inset-bottom))] pt-20">
         <div className="mx-auto max-w-7xl px-5 md:px-12">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-24">
             <div className="lg:col-span-2 space-y-6">
               <Logo compact />
-              <p className="max-w-md text-body-lg text-ink-3">
+              <p className="max-w-md text-body-lg text-ink-2">
                 Compatibility-first flatmate search for verified rooms, better chats, and visits that stay organized.
               </p>
               <div className="flex flex-col gap-2">
-                <p className="text-label-md text-ink-3">Get the app</p>
+                <p className="text-label-md text-ink-2">Get the app</p>
                 <AppStoreBadges variant="light" />
               </div>
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-eyebrow text-ink">Explore</h3>
+              <h3 className="text-h3 text-ink">Explore</h3>
               <ul className="flex flex-col gap-4">
                 <li>
-                  <Link to="/discover" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/discover" className="text-body-md text-ink-2 hover:text-accent transition-colors">
                     Browse Listings
                   </Link>
                 </li>
                 <li>
-                  <Link to="/search" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/search" className="text-body-md text-ink-2 hover:text-accent transition-colors">
                     Search Flatmates
                   </Link>
                 </li>
                 <li>
-                  <Link to="/blog" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/blog" className="text-body-md text-ink-2 hover:text-accent transition-colors">
                     Guides & Tips
                   </Link>
                 </li>
                 <li>
-                  <Link to="/about" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/about" className="text-body-md text-ink-2 hover:text-accent transition-colors">
                     About
                   </Link>
                 </li>
@@ -184,20 +184,20 @@ export function PublicLayout() {
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-eyebrow text-ink">Company</h3>
+              <h3 className="text-h3 text-ink">Company</h3>
               <ul className="flex flex-col gap-4">
                 <li>
-                  <Link to="/terms" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/terms" className="text-body-md text-ink-2 hover:text-accent transition-colors">
                     Terms & Conditions
                   </Link>
                 </li>
                 <li>
-                  <Link to="/privacy" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/privacy" className="text-body-md text-ink-2 hover:text-accent transition-colors">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#faq-heading" className="text-body-md text-ink-3 hover:text-accent transition-colors">
+                  <Link to="/#faq-heading" className="text-body-md text-ink-2 hover:text-accent transition-colors">
                     Support
                   </Link>
                 </li>
@@ -205,8 +205,8 @@ export function PublicLayout() {
             </div>
           </div>
 
-          <div className="mt-20 pt-10 border-t border-line-low flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-caption text-ink-4" suppressHydrationWarning>
+          <div className="mt-16 flex flex-col items-center justify-between gap-6 md:flex-row">
+            <p className="text-caption text-ink-3" suppressHydrationWarning>
               &copy; {new Date().getFullYear()} 360 Flatmates. All rights reserved.
             </p>
             <div className="flex items-center gap-2">
@@ -217,7 +217,7 @@ export function PublicLayout() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${label} (opens in a new tab)`}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-paper-2 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 transition-colors hover:bg-paper-2 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <Icon className="h-[18px] w-[18px]" />
                 </a>

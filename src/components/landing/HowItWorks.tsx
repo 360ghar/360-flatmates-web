@@ -1,47 +1,38 @@
-import { RevealSection } from "@/components/ui/RevealSection";
+import { PaperMiniScene, type PaperProp } from "@/components/paper/PaperScene";
+import { cn } from "@/components/ui/component-utils";
 import { STEPS } from "./landing-data";
+
+/* Three paper sheets laid on the table in reading order. The slight tilt and
+   overlap carry the sequence, so there are no step numbers or rails. */
+const SHEETS: ReadonlyArray<{ prop: PaperProp; tilt: string }> = [
+  { prop: "heart", tilt: "md:-rotate-[1.2deg]" },
+  { prop: "chat", tilt: "md:rotate-[0.8deg] md:translate-y-6" },
+  { prop: "house", tilt: "md:-rotate-[0.6deg]" }
+];
 
 export function HowItWorks() {
   return (
-    <section
-      className="bg-accent-soft py-20 md:py-28 border-b border-line-low"
-      aria-labelledby="how-it-works-heading"
-    >
-      <div className="mx-auto max-w-7xl px-5 md:px-12">
-        <RevealSection className="mx-auto mb-16 max-w-2xl text-center">
-          <h2 id="how-it-works-heading" className="text-display mx-auto max-w-xl text-ink">
-            From first search to first visit.
-          </h2>
-          <p className="mx-auto mt-5 max-w-[56ch] text-body-lg text-ink-2">
-            The flow stays simple because every step carries the context from the one before it.
-          </p>
-        </RevealSection>
+    <section className="px-5 pb-20 pt-24 md:px-12 md:pb-28 md:pt-32" aria-labelledby="how-it-works-heading">
+      <div className="mx-auto max-w-6xl">
+        <h2 id="how-it-works-heading" className="text-display max-w-[18ch] text-ink">
+          From first search to first visit.
+        </h2>
 
-        <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
-          <div
-            className="pointer-events-none absolute left-[16.67%] right-[16.67%] top-14 hidden h-px bg-line md:block"
-            aria-hidden="true"
-          />
-
-          {STEPS.map((step, idx) => {
-            const StepIcon = step.icon;
-            return (
-              <RevealSection
-                key={step.number}
-                staggerIndex={idx + 1}
-                className="relative rounded-[var(--radius-promo)] border border-line-low bg-surface p-6 text-center"
-              >
-                <div className="relative z-10 mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-surface text-accent shadow-sm">
-                  <StepIcon className="h-6 w-6" aria-hidden="true" />
-                </div>
-                <h3 className="mt-6 text-h2 text-ink leading-snug">{step.title}</h3>
-                <p className="mx-auto mt-3 max-w-xs text-body-md text-ink-3 leading-relaxed">
-                  {step.description}
-                </p>
-              </RevealSection>
-            );
-          })}
-        </div>
+        <ol className="mt-12 grid gap-5 md:grid-cols-3 md:gap-0">
+          {STEPS.map((step, index) => (
+            <li
+              key={step.title}
+              className={cn(
+                "paper-grain rounded-hand bg-surface p-6 shadow-md md:-mx-1",
+                SHEETS[index]?.tilt
+              )}
+            >
+              <PaperMiniScene prop={SHEETS[index]?.prop ?? "house"} className="max-w-[200px]" />
+              <h3 className="mt-5 text-h3 text-ink">{step.title}</h3>
+              <p className="mt-2 text-body-md text-ink-2">{step.description}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

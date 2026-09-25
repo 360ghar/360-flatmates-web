@@ -1,4 +1,5 @@
 import { RevealSection } from "@/components/ui/RevealSection";
+import { cn } from "@/components/ui/component-utils";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { BENTO_FEATURES, type BentoFeatureItem } from "./landing-data";
 
@@ -18,7 +19,7 @@ function FeatureCard({ feature }: { feature: BentoFeatureItem }) {
 
   if (feature.variant === "image") {
     return (
-      <div className="bento-card group relative h-full min-h-[240px] overflow-hidden border border-line-low">
+      <div className="bento-card group relative h-full min-h-[240px] overflow-hidden !p-0">
         <NetworkImage
           src={`https://images.unsplash.com/photo-${feature.image}`}
           alt=""
@@ -29,9 +30,6 @@ function FeatureCard({ feature }: { feature: BentoFeatureItem }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/45 to-ink/10" />
         <div className="absolute inset-0 z-10 flex flex-col justify-end p-6">
-          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-white backdrop-blur-sm">
-            <Icon className="h-5 w-5" aria-hidden="true" />
-          </div>
           <h3 className="text-h3 text-white mb-2">{feature.title}</h3>
           <p className="text-body-md text-white/85 leading-relaxed">{feature.description}</p>
         </div>
@@ -40,33 +38,20 @@ function FeatureCard({ feature }: { feature: BentoFeatureItem }) {
   }
 
   return (
-    <div className="bento-card group relative flex h-full min-h-[200px] flex-col overflow-hidden border border-line-low p-6 transition-all duration-300 hover:border-accent/15">
-      {/* Gradient cells paint their tint on an absolute layer, because .bento-card
-          sets `background` (shorthand), which would otherwise wipe a bg-gradient utility. */}
-      {feature.variant === "gradient" && feature.gradient && (
-        <div className={`pointer-events-none absolute inset-0 ${feature.gradient}`} aria-hidden="true" />
+    <div
+      className={cn(
+        "bento-card paper-grain relative flex h-full min-h-[200px] flex-col overflow-hidden",
+        feature.variant === "gradient" && "!bg-paper-1"
       )}
-      <div className="relative z-[2] flex h-full flex-col gap-4">
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl border border-line-low bg-surface ${feature.tint}`}
-        >
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </div>
+    >
+      <div className="relative flex h-full flex-col gap-4">
+        <Icon className="h-6 w-6 text-accent" aria-hidden="true" />
         <div className="flex-1">
           <h3 className="text-h3 text-ink mb-2">{feature.title}</h3>
-          <p className="text-body-md text-ink-3 leading-relaxed">{feature.description}</p>
+          <p className="text-body-md leading-relaxed text-ink-2">{feature.description}</p>
         </div>
         {feature.tags && (
-          <div className="mt-auto flex flex-wrap gap-2">
-            {feature.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-line-low bg-paper px-3 py-1 text-label-md text-ink-2"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          <p className="mt-auto text-label-md text-ink-2">{feature.tags.join(" · ")}</p>
         )}
       </div>
     </div>
@@ -76,13 +61,13 @@ function FeatureCard({ feature }: { feature: BentoFeatureItem }) {
 export function FeatureBento() {
   return (
     <section
-      className="bg-surface border-b border-line-low overflow-hidden"
+      className="overflow-hidden"
       aria-labelledby="features-heading"
     >
       <div className="mx-auto max-w-7xl px-5 py-20 md:px-12 md:py-28">
         <RevealSection className="mb-14 max-w-2xl">
           <h2 id="features-heading" className="text-display text-ink leading-tight [text-wrap:balance]">
-            Everything you need to move in with confidence.
+            Move in with confidence.
           </h2>
           <p className="mt-5 max-w-xl text-body-lg text-ink-2 [text-wrap:pretty]">
             From verified rooms to context-rich chat, the boring parts are handled so you can focus on the fit.

@@ -59,7 +59,9 @@ function HeroLayer({
       aria-hidden="true"
       viewBox={`0 0 ${shape.w} ${shape.h}`}
       preserveAspectRatio="xMidYMax slice"
-      className="absolute inset-0 h-full w-full will-change-transform"
+      // Bottom-anchored band at the art's own aspect (0.3) on wide screens;
+      // never shorter than the container allows on phones, where it crops in.
+      className="absolute inset-x-0 bottom-0 h-[min(100%,max(30vw,300px))] w-full will-change-transform"
       style={{ y }}
     >
       <defs>

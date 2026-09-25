@@ -1,5 +1,8 @@
 import { Link } from "react-router";
-import { ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
+
+import { PaperMiniScene } from "@/components/paper/PaperScene";
+import { buttonClasses, cn } from "@/components/ui/component-utils";
 
 import { useInView } from "@/hooks/useInView";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -16,13 +19,13 @@ export function CompatibilitySection() {
   const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.35 });
 
   return (
-    <section className="bg-paper border-b border-line-low" aria-labelledby="compatibility-heading">
+    <section aria-labelledby="compatibility-heading">
       <div className="mx-auto max-w-7xl px-5 py-20 md:px-12 md:py-28">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
           <RevealSection className="lg:col-span-6">
             <h2
               id="compatibility-heading"
-              className="text-display text-ink lg:text-[3.5rem] leading-[1.05] tracking-tight"
+              className="text-display max-w-[16ch] text-ink"
             >
               Budget and pin code don't make a home.
             </h2>
@@ -30,34 +33,22 @@ export function CompatibilitySection() {
               Most apps stop at rent and location. We score six lifestyle dimensions,
               so the person across the hall actually fits how you live, not just where.
             </p>
-            <Link
-              to="/discover"
-              className="mt-8 inline-flex items-center gap-1.5 text-label-lg text-accent border-b border-accent/30 hover:border-accent pb-1 transition-colors duration-300 group"
-            >
-              Start matching
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden="true" />
+            <Link to="/discover" className={cn(buttonClasses("secondary"), "mt-8")}>
+              See who fits
             </Link>
           </RevealSection>
 
           <RevealSection className="lg:col-span-6">
             <div
               ref={ref}
-              className="overflow-hidden rounded-[var(--radius-promo)] border border-line bg-surface shadow-sm"
+              className="paper-grain overflow-hidden rounded-hand bg-surface shadow-md"
             >
-              <div className="grid gap-0 md:grid-cols-[1fr_1.08fr]">
-                <div className="flex min-h-[320px] items-center justify-center bg-lavender p-6">
-                  <img
-                    src="/brand/compatibility-scene.webp"
-                    alt="Compatibility dimensions arranged around a shared home"
-                    className="max-h-[300px] w-full object-contain"
-                    width={1536}
-                    height={1024}
-                    loading="lazy"
-                    decoding="async"
-                  />
+              <div className="grid gap-0">
+                <div className="flex items-center justify-center bg-paper-1 p-6">
+                  <PaperMiniScene prop="heart" className="max-w-[240px]" />
                 </div>
                 <div className="p-6 sm:p-8">
-                  <div className="flex items-center gap-5 border-b border-line-low pb-6">
+                  <div className="flex items-center gap-5 pb-6">
                     <div className="flex h-20 w-20 shrink-0 items-center justify-center text-success">
                       {inView ? (
                         <ProgressRing value={92} size="xl" label="Example compatibility score" />
@@ -66,8 +57,8 @@ export function CompatibilitySection() {
                       )}
                     </div>
                     <div>
-                      <p className="text-h2 text-2xl md:text-3xl text-ink leading-tight">92% vibe match</p>
-                      <p className="mt-1 max-w-[28ch] text-body-md text-ink-3">
+                      <p className="text-h2 text-ink">92% vibe match</p>
+                      <p className="mt-1 max-w-[28ch] text-body-md text-ink-2">
                         High alignment across all six dimensions.
                       </p>
                     </div>
@@ -79,11 +70,11 @@ export function CompatibilitySection() {
                       return (
                         <div
                           key={dim.label}
-                          className={`flex items-center gap-2 rounded-xl border border-line/60 p-3 ${dim.tint}`}
+                          className="flex min-h-11 items-center gap-2 rounded-cut-md bg-paper-2 px-3 text-ink"
                         >
-                          <DimIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <DimIcon className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
                           <span className="truncate text-label-md">{dim.label}</span>
-                          <Check className="ml-auto h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+                          <Check className="ml-auto h-4 w-4 shrink-0 text-success" aria-hidden="true" />
                         </div>
                       );
                     })}

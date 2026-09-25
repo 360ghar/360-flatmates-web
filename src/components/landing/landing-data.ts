@@ -50,13 +50,6 @@ export interface StepItem {
   icon: LucideIcon;
 }
 
-export interface TestimonialItem {
-  quote: string;
-  name: string;
-  city: string;
-  compatibility: number;
-}
-
 export interface CityItem {
   name: string;
   listings: number;
@@ -155,29 +148,6 @@ export const STEPS: StepItem[] = [
   },
 ];
 
-export const TESTIMONIALS: TestimonialItem[] = [
-  {
-    quote:
-      "The compatibility score saved me from moving in with someone who'd blast music at midnight. Found my person on the first try.",
-    name: "Priya M.",
-    city: "Bangalore",
-    compatibility: 86,
-  },
-  {
-    quote:
-      "I'm veg and found a flat where that's actually respected. No awkward convos, no fridge wars. Already told three friends.",
-    name: "Rohan K.",
-    city: "Delhi NCR",
-    compatibility: 92,
-  },
-  {
-    quote:
-      "Booked a visit on a Tuesday, moved in by the weekend. The chat already had the listing pinned at the top, so it never felt like cold-messaging a stranger.",
-    name: "Ananya S.",
-    city: "Gurugram",
-    compatibility: 89,
-  },
-];
 
 export const CITIES: CityItem[] = [
   { name: "Gurugram", listings: 860 },
