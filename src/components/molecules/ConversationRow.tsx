@@ -31,7 +31,7 @@ export function ConversationRow({ conversation, className, ...props }: Conversat
     <button
       type="button"
       className={cn(
-        "flex min-h-[72px] w-full items-center gap-3 rounded-cut-md px-2 py-2.5 text-left hover:bg-paper-2",
+        "flex min-h-[72px] w-full items-center gap-3 rounded-cut-md px-2 py-2.5 text-left hover:bg-surface-soft",
         interactiveMotion,
         focusRing,
         conversation.highlighted && "bg-accent-soft",

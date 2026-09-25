@@ -140,7 +140,7 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
                 if (!value) return null;
                 const label = formatLifestyleLabel(dim.key, value);
                 return (
-                  <Chip key={dim.key} variant="info" className="bg-paper-2">
+                  <Chip key={dim.key} variant="info" className="bg-surface-soft">
                     {label.charAt(0).toUpperCase() + label.slice(1)}
                   </Chip>
                 );
@@ -155,13 +155,13 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
             <h3 className="text-h4 text-ink mb-2">Preferences</h3>
             <div className="flex flex-wrap gap-2">
               {genderPrefLabel ? (
-                <Chip variant="info" className="bg-paper-2">
+                <Chip variant="info" className="bg-surface-soft">
                   <UserCircle aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
                   {genderPrefLabel}
                 </Chip>
               ) : null}
               {profile.has_pets !== undefined ? (
-                <Chip variant="info" className="bg-paper-2">
+                <Chip variant="info" className="bg-surface-soft">
                   <PawPrint aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
                   {profile.has_pets ? "Has pets" : "No pets"}
                 </Chip>
@@ -215,23 +215,23 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
 
           <div className="flex flex-wrap gap-2">
             {profile.flat_config ? (
-              <Chip variant="info" className="bg-paper-2">
+              <Chip variant="info" className="bg-surface-soft">
                 <Home aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
                 {profile.flat_config}
               </Chip>
             ) : null}
             {profile.room_type ? (
-              <Chip variant="info" className="bg-paper-2">
+              <Chip variant="info" className="bg-surface-soft">
                 {humanizeSnakeCase(profile.room_type)}
               </Chip>
             ) : null}
             {profile.floor ? (
-              <Chip variant="info" className="bg-paper-2">
+              <Chip variant="info" className="bg-surface-soft">
                 Floor {profile.floor}
               </Chip>
             ) : null}
             {profile.locality || profile.sub_locality || profile.city ? (
-              <Chip variant="info" className="bg-paper-2">
+              <Chip variant="info" className="bg-surface-soft">
                 <MapPin aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
                 {profile.society_name ??
                   profile.sub_locality ??
@@ -275,7 +275,7 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
           {listingAmenities.length > 0 ? (
             <div className="flex flex-wrap gap-2 border-t border-line/45 pt-4">
               {listingAmenities.slice(0, 8).map((a) => (
-                <Chip key={a} variant="info" className="bg-paper-2">
+                <Chip key={a} variant="info" className="bg-surface-soft">
                   {a}
                 </Chip>
               ))}
@@ -312,7 +312,7 @@ function CostLine({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-cut-md bg-paper-2 px-3 py-2">
+    <div className="flex items-center gap-2 rounded-cut-md bg-surface-soft px-3 py-2">
       <span className="text-ink-3">{icon}</span>
       <span className="text-label-md text-ink-2">{label}</span>
       <span className="text-label-md font-semibold text-ink">{value}</span>

@@ -213,7 +213,7 @@ export function ListingPhotoManager({
         </div>
       )}
       {multiSelect ? (
-        <div className="flex items-center justify-between gap-2 rounded-cut-md bg-paper-2 p-3">
+        <div className="flex items-center justify-between gap-2 rounded-cut-md bg-surface-soft p-3">
           <span className="text-body-sm text-ink-2">
             {selectedPhotoIndexes.size} of {imageUrls.length} selected
           </span>
@@ -243,7 +243,7 @@ export function ListingPhotoManager({
           </div>
         </div>
       ) : null}
-      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-cut-md border-2 border-dashed border-line bg-paper-2 px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
+      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-cut-md border-2 border-dashed border-line bg-surface-soft px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
         <input
           type="file"
           accept="image/*"

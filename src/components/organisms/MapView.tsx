@@ -399,7 +399,7 @@ export function MapView({
   return (
     <section
       className={cn(
-        "relative flex flex-1 flex-col overflow-hidden bg-paper-2",
+        "relative flex flex-1 flex-col overflow-hidden bg-surface-soft",
         className
       )}
     >

@@ -22,7 +22,7 @@ export function ListingPhotoGallery({
     <div className={hasGallery ? "grid gap-2 md:grid-cols-3 md:grid-rows-2 md:h-[420px]" : ""}>
       <div
         className={cn(
-          "relative overflow-hidden rounded-cut-md bg-paper-2 shadow-md",
+          "relative overflow-hidden rounded-cut-md bg-surface-soft shadow-md",
           hasGallery
             ? "aspect-[4/3] md:col-span-2 md:row-span-2 md:aspect-auto md:h-full"
             : "aspect-[16/10] w-full"
@@ -53,7 +53,7 @@ export function ListingPhotoGallery({
         ? extraPhotos.map((url, index) => (
             <div
               key={`${url}-${index}`}
-              className="relative hidden min-h-0 overflow-hidden rounded-cut-md bg-paper-2 shadow-sm md:block md:h-full"
+              className="relative hidden min-h-0 overflow-hidden rounded-cut-md bg-surface-soft shadow-sm md:block md:h-full"
             >
               <NetworkImage
                 alt=""

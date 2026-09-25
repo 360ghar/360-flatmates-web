@@ -172,7 +172,7 @@ function MatchesBar({
               type="button"
               className={cn(
                 "flex flex-col items-center shrink-0 rounded-cut-md p-1.5 gap-1 w-16",
-                "hover:bg-paper-2 transition-colors duration-150 ease-out",
+                "hover:bg-surface-soft transition-colors duration-150 ease-out",
                 "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
               )}
               onClick={() => onStartChat(peer.id)}
@@ -245,7 +245,7 @@ function MatchesList({
             type="button"
             className={cn(
               "flex items-center gap-3 rounded-cut-md p-2 text-left",
-              "hover:bg-paper-2 transition-colors duration-150 ease-out",
+              "hover:bg-surface-soft transition-colors duration-150 ease-out",
               "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
             )}
             onClick={() => onStartChat(peer.id)}

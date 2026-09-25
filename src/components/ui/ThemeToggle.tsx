@@ -30,7 +30,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label={`Theme: ${current.label}. Switch to ${next.label}`}
       title={`Theme: ${current.label}`}
       className={cn(
-        "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-ink-2 hover:bg-paper-2 hover:text-ink",
+        "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-ink-2 hover:bg-surface-soft hover:text-ink",
         interactiveMotion,
         focusRing,
         className

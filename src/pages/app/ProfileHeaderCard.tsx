@@ -201,22 +201,22 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
             profile.work_style) && (
             <div className="mt-1 flex w-full flex-wrap justify-center gap-1.5">
               {profile.sleep_schedule && (
-                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
+                <span className="rounded-cut-sm bg-surface-soft px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.sleep_schedule.replace(/_/g, " ")}
                 </span>
               )}
               {profile.cleanliness && (
-                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
+                <span className="rounded-cut-sm bg-surface-soft px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.cleanliness.replace(/_/g, " ")}
                 </span>
               )}
               {profile.food_habits && (
-                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
+                <span className="rounded-cut-sm bg-surface-soft px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.food_habits.replace(/_/g, " ")}
                 </span>
               )}
               {profile.work_style && (
-                <span className="rounded-cut-sm bg-paper-2 px-2 py-1 text-caption font-semibold text-ink-2">
+                <span className="rounded-cut-sm bg-surface-soft px-2 py-1 text-caption font-semibold text-ink-2">
                   {profile.work_style.replace(/_/g, " ")}
                 </span>
               )}

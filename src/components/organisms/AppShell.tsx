@@ -215,7 +215,7 @@ export function AppShell({
           <PrefetchLink
             to="/profile"
             className={cn(
-              "mb-3 flex items-center gap-3 rounded-cut-md p-2 hover:bg-paper-2",
+              "mb-3 flex items-center gap-3 rounded-cut-md p-2 hover:bg-surface-soft",
               focusRing,
               collapsed && "justify-center"
             )}
@@ -305,13 +305,13 @@ export function AppShell({
             to="/search"
             aria-label="Search"
             className={cn(
-              "flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 hover:bg-paper-2 hover:text-ink md:hidden",
+              "flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 hover:bg-surface-soft hover:text-ink md:hidden",
               focusRing
             )}
           >
             <Search aria-hidden="true" className="h-5 w-5" />
           </PrefetchLink>
-          <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 hover:bg-paper-2 hover:text-ink", focusRing)}>
+          <PrefetchLink to="/notifications" aria-label="Notifications" className={cn("flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 hover:bg-surface-soft hover:text-ink", focusRing)}>
             <span className="relative">
               <Bell aria-hidden="true" className="h-5 w-5" />
               {unreadCount > 0 ? (
@@ -367,7 +367,7 @@ export function AppShell({
               to={item.href}
               onClick={() => setMoreOpen(false)}
               className={cn(
-                "flex min-h-[44px] items-center gap-3 rounded-cut-md px-3 py-2.5 text-body-md text-ink-2 hover:bg-paper-2 hover:text-ink",
+                "flex min-h-[44px] items-center gap-3 rounded-cut-md px-3 py-2.5 text-body-md text-ink-2 hover:bg-surface-soft hover:text-ink",
                 focusRing,
                 isActive(item.href) && "bg-surface font-semibold text-accent shadow-sm"
               )}
@@ -383,7 +383,7 @@ export function AppShell({
         <PrefetchLink
           to="/settings/appearance"
           onClick={() => setMoreOpen(false)}
-          className={cn("mt-1 flex min-h-[44px] items-center gap-3 rounded-cut-md px-3 py-2.5 text-body-md text-ink-2 hover:bg-paper-2 hover:text-ink", focusRing)}
+          className={cn("mt-1 flex min-h-[44px] items-center gap-3 rounded-cut-md px-3 py-2.5 text-body-md text-ink-2 hover:bg-surface-soft hover:text-ink", focusRing)}
         >
           <AppearanceIcon aria-hidden="true" className="h-5 w-5" />
           <span className="truncate">Appearance</span>
@@ -417,7 +417,7 @@ function ShellNavLink({
         "relative flex items-center gap-3 rounded-cut-md text-ink-2 hover:text-ink",
         interactiveMotion,
         focusRing,
-        active ? "bg-surface text-accent shadow-sm" : "hover:bg-paper-2",
+        active ? "bg-surface text-accent shadow-sm" : "hover:bg-surface-soft",
         collapsed
           ? "h-11 justify-center px-0"
           : mobile

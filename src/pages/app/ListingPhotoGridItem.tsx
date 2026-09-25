@@ -24,7 +24,7 @@ export function ListingPhotoGridItem({
 }) {
   return (
     <div
-      className={`group relative aspect-[4/3] overflow-hidden rounded-cut-md border bg-paper-2 ${
+      className={`group relative aspect-[4/3] overflow-hidden rounded-cut-md border bg-surface-soft ${
         isSelected ? "border-accent ring-2 ring-accent" : "border-line"
       }`}
     >
@@ -90,7 +90,7 @@ export function ListingPhotoGridItem({
           type="button"
           onClick={onSetMain}
           disabled={setMainDisabled}
-          className="absolute bottom-1 right-1 rounded bg-surface px-1.5 py-0.5 text-caption font-semibold text-accent shadow-sm opacity-0 transition-opacity group-hover:opacity-100 hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
+          className="absolute bottom-1 right-1 min-h-11 rounded bg-surface px-2 text-caption font-semibold text-accent shadow-sm transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100 hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40"
         >
           Set main
         </button>

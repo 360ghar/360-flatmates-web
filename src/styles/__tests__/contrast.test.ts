@@ -19,9 +19,9 @@ const THEMES = {
       ["#FFFFFF", "#A94A2B"], // on-clay / clay
       ["#FFFFFF", "#8C3B20"], // on-clay / clay-press
       ["#FFFFFF", "#2E5B48"], // on-pine / pine
-      ["#23201C", "#F2DACF"], // ink / clay-soft
+      ["#23201C", "#F6E6DE"], // ink / clay-soft
       ["#23201C", "#D3E2D8"], // ink / pine-soft
-      ["#A94A2B", "#F6E6DE"], // clay / accent-soft
+      ["#A94A2B", "#F6E6DE"], // clay / clay-soft
       ["#B3261E", "#F6DAD7"], // danger / danger-soft
       ["#7E5208", "#F7E8C8"] // warning-ink / warning-soft
     ]

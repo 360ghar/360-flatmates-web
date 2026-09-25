@@ -70,7 +70,7 @@ export function CompatibilitySection() {
                       return (
                         <div
                           key={dim.label}
-                          className="flex min-h-11 items-center gap-2 rounded-cut-md bg-paper-2 px-3 text-ink"
+                          className="flex min-h-11 items-center gap-2 rounded-cut-md bg-surface-soft px-3 text-ink"
                         >
                           <DimIcon className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
                           <span className="truncate text-label-md">{dim.label}</span>

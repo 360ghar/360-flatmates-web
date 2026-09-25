@@ -40,7 +40,7 @@ export function StepProgress({
         className={cn("flex w-full flex-col gap-2", className)}
         {...props}
       >
-        <div className="h-1 overflow-hidden rounded-full bg-paper-3">
+        <div className="h-1 overflow-hidden rounded-full bg-surface-strong">
           <div className="h-full rounded-full bg-accent transition-[width] duration-200 ease-out" style={{ width: `${percentage}%` }} />
         </div>
         {labels?.length ? (

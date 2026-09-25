@@ -52,7 +52,7 @@ export function ShareSheet({ property, open, onClose }: ShareSheetProps) {
           ariaLabel="Share card format"
         />
 
-        <div className="flex justify-center rounded-cut-md bg-paper-2 p-4">
+        <div className="flex justify-center rounded-cut-md bg-surface-soft p-4">
           <ShareListingCard
             ref={cardRef}
             property={property}

@@ -12,7 +12,7 @@
   /* ── Brand ── */
   --color-clay: #A94A2B;
   --color-clay-press: #8C3B20;
-  --color-clay-soft: #F2DACF;
+  --color-clay-soft: #F6E6DE;
   --color-on-clay: #FFFFFF;
   --color-pine: #2E5B48;
   --color-pine-soft: #D3E2D8;
@@ -35,12 +35,12 @@
 
   /* ── Legacy aliases → paper palette ── */
   --color-primary: var(--color-clay);
-  --color-primary-soft: #F6E6DE;
+  --color-primary-soft: var(--color-clay-soft);
   --color-primary-container: var(--color-clay-soft);
   --color-primary-active: var(--color-clay-press);
   --color-primary-disabled: #E7C9BC;
   --color-accent: var(--color-clay);
-  --color-accent-soft: #F6E6DE;  /* clay text on this passes AA */
+  --color-accent-soft: var(--color-clay-soft);
   --color-accent-container: var(--color-clay-soft);
   --color-accent-50: #FBF2EE;
   --color-accent-100: #F6E3DA;
@@ -56,8 +56,9 @@
   --color-legal-link: var(--color-pine);
 
   --color-paper: var(--color-sky);   /* page canvas */
-  --color-paper-2: #EDF1EA;          /* soft fill = paper-1 */
-  --color-paper-3: #E3EAE1;
+  /* DESIGN paper layers by name. Legacy soft fills: surface-soft (= paper-1), surface-strong. */
+  --color-paper-2: var(--color-surface);
+  --color-paper-3: var(--color-surface-elevated);
   --color-paper-4: #D6DFD4;
   --color-surface: #FDFCFA;          /* cards = paper-2 */
   --color-surface-elevated: #FFFFFF; /* raised = paper-3 */
@@ -83,10 +84,10 @@
 
   /* Categorical tags: one neutral paper treatment. Colour is reserved for
      meaning (clay = brand/selected, pine = success, warning, danger). */
-  --color-blue-soft: var(--color-paper-2);
+  --color-blue-soft: var(--color-surface-soft);
   --color-blue-mid: var(--color-ink-2);
   --color-blue-ink: var(--color-ink-2);
-  --color-purple-soft: var(--color-paper-2);
+  --color-purple-soft: var(--color-surface-soft);
   --color-purple-mid: var(--color-ink-2);
   --color-purple-ink: var(--color-ink-2);
   --color-green-soft: var(--color-pine-soft);
@@ -95,13 +96,13 @@
   --color-yellow-soft: var(--color-warning-soft);
   --color-yellow-mid: var(--color-warning-ink);
   --color-yellow-ink: var(--color-warning-ink);
-  --color-orange-soft: var(--color-paper-2);
+  --color-orange-soft: var(--color-surface-soft);
   --color-orange-mid: var(--color-ink-2);
   --color-orange-ink: var(--color-ink-2);
-  --color-teal-soft: var(--color-paper-2);
+  --color-teal-soft: var(--color-surface-soft);
   --color-teal-mid: var(--color-ink-2);
   --color-teal-ink: var(--color-ink-2);
-  --color-pink-soft: var(--color-paper-2);
+  --color-pink-soft: var(--color-surface-soft);
   --color-pink-mid: var(--color-ink-2);
   --color-pink-ink: var(--color-ink-2);
 
@@ -249,8 +250,6 @@
   --color-accent-900: #FADDD2;
   --color-accent-950: #FDEEE8;
 
-  --color-paper-2: #19211C;
-  --color-paper-3: #1E2721;
   --color-paper-4: #27312A;
   --color-surface: #222A24;
   --color-surface-elevated: #2A332C;
@@ -523,7 +522,7 @@ body {
 
 /* Skeleton bones: slow tone pulse, no moving highlight. */
 .shimmer {
-  background: var(--color-paper-2);
+  background: var(--color-surface-soft);
   animation: paper-pulse 1600ms ease-in-out infinite alternate;
 }
 
@@ -584,8 +583,8 @@ body {
 }
 
 @keyframes paper-pulse {
-  from { background-color: var(--color-paper-2); }
-  to { background-color: var(--color-paper-3); }
+  from { background-color: var(--color-surface-soft); }
+  to { background-color: var(--color-surface-strong); }
 }
 
 @keyframes drawer-in {

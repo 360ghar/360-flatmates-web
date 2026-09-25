@@ -52,7 +52,7 @@ function NetworkImageInner({
   }
 
   return (
-    <span className={cn("relative block overflow-hidden bg-paper-2", wrapperClassName ?? "h-full w-full")}>
+    <span className={cn("relative block overflow-hidden bg-surface-soft", wrapperClassName ?? "h-full w-full")}>
       <img
         alt={alt}
         className={cn("object-cover absolute inset-0 h-full w-full", className)}

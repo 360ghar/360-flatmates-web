@@ -32,7 +32,7 @@ export function PostPhotosStep({
         variant="secondary"
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="flex min-h-[160px] w-full flex-col items-center justify-center gap-2 rounded-cut-lg border-2 border-dashed border-line bg-paper-2 text-ink-3 hover:border-accent/50 hover:bg-accent-soft"
+        className="flex min-h-[160px] w-full flex-col items-center justify-center gap-2 rounded-cut-lg border-2 border-dashed border-line bg-surface-soft text-ink-3 hover:border-accent/50 hover:bg-accent-soft"
       >
         <ImagePlus aria-hidden="true" className="h-6 w-6" />
         <span className="text-body-md">Click to upload photos</span>
@@ -57,7 +57,7 @@ export function PostPhotosStep({
           {pendingImages.map((img, index) => (
             <div
               key={img.id}
-              className="group relative aspect-[4/3] overflow-hidden rounded-cut-md bg-paper-2"
+              className="group relative aspect-[4/3] overflow-hidden rounded-cut-md bg-surface-soft"
             >
               {img.preview ? (
                 <NetworkImage
@@ -90,7 +90,7 @@ export function PostPhotosStep({
               <button
                 type="button"
                 onClick={() => onRemoveImage(img.id)}
-                className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full bg-ink/70 text-paper opacity-100 transition-opacity hover:bg-ink/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-ink/70 text-paper opacity-100 transition-opacity hover:bg-ink/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
                 aria-label={`Remove photo ${index + 1}`}
               >
                 <X aria-hidden="true" className="h-4 w-4" />

@@ -208,7 +208,7 @@ export function ChatThread({
         tabIndex={0}
         onScroll={handleScroll}
         className={cn(
-          "flex-1 space-y-3 overflow-y-auto bg-paper-2/50 px-4 py-4 outline-none",
+          "flex-1 space-y-3 overflow-y-auto bg-surface-soft/50 px-4 py-4 outline-none",
           focusRing
         )}
       >

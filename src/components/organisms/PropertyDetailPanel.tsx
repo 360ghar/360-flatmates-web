@@ -31,7 +31,7 @@ export function PropertyDetailPanel({
         <button
           type="button"
           aria-label="Close"
-          className={cn("rounded-cut-md p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink transition-colors", focusRing)}
+          className={cn("rounded-cut-md p-1.5 text-ink-3 hover:bg-surface-soft hover:text-ink transition-colors", focusRing)}
           onClick={onClose}
         >
           <X aria-hidden="true" className="h-4 w-4" />
@@ -56,7 +56,7 @@ export function PropertyDetailPanel({
             <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
               {fullProperty.image_urls && fullProperty.image_urls.length > 0 ? (
                 fullProperty.image_urls.map((url) => (
-                  <div key={url} className="w-full shrink-0 aspect-[16/10] snap-start overflow-hidden rounded-cut-md bg-paper-2">
+                  <div key={url} className="w-full shrink-0 aspect-[16/10] snap-start overflow-hidden rounded-cut-md bg-surface-soft">
                     <NetworkImage
                       alt={fullProperty.title}
                       src={url}
@@ -66,7 +66,7 @@ export function PropertyDetailPanel({
                   </div>
                 ))
               ) : (
-                <div className="w-full shrink-0 aspect-[16/10] overflow-hidden rounded-cut-md bg-paper-2">
+                <div className="w-full shrink-0 aspect-[16/10] overflow-hidden rounded-cut-md bg-surface-soft">
                   <NetworkImage
                     alt={fullProperty.title}
                     src={fullProperty.main_image_url || selectedPin.main_image_url}
@@ -95,7 +95,7 @@ export function PropertyDetailPanel({
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-cut-md bg-paper-2/20 p-2.5 text-center">
+            <div className="rounded-cut-md bg-surface-soft/20 p-2.5 text-center">
               <span className="text-[9px] font-sans text-ink-3 block">Rent</span>
               <PriceText
                 value={fullProperty.monthly_rent}
@@ -104,13 +104,13 @@ export function PropertyDetailPanel({
                 className="mt-0.5 text-body-md font-sans font-normal text-accent"
               />
             </div>
-            <div className="rounded-cut-md bg-paper-2/20 p-2.5 text-center">
+            <div className="rounded-cut-md bg-surface-soft/20 p-2.5 text-center">
               <span className="text-[9px] font-sans text-ink-3 block">Deposit</span>
               <p className="text-body-md font-sans font-normal text-ink mt-0.5">
                 {fullProperty.security_deposit ? formatCurrencyINR(fullProperty.security_deposit) : "TBD"}
               </p>
             </div>
-            <div className="rounded-cut-md bg-paper-2/20 p-2.5 text-center">
+            <div className="rounded-cut-md bg-surface-soft/20 p-2.5 text-center">
               <span className="text-[9px] font-sans text-ink-3 block">Maint.</span>
               <p className="text-body-md font-sans font-normal text-ink mt-0.5">
                 {fullProperty.maintenance_charges ? formatCurrencyINR(fullProperty.maintenance_charges) : "None"}
@@ -120,19 +120,19 @@ export function PropertyDetailPanel({
 
           <div className="flex flex-wrap gap-1.5">
             {fullProperty.bedrooms !== undefined && (
-              <Chip variant="info" className="bg-paper-2 border-0 text-ink-2 px-2.5 py-1 flex items-center gap-1">
+              <Chip variant="info" className="bg-surface-soft border-0 text-ink-2 px-2.5 py-1 flex items-center gap-1">
                 <BedDouble aria-hidden="true" className="h-3.5 w-3.5 text-ink-3 shrink-0" />
                 <span>{fullProperty.bedrooms} BHK</span>
               </Chip>
             )}
             {fullProperty.bathrooms !== undefined && (
-              <Chip variant="info" className="bg-paper-2 border-0 text-ink-2 px-2.5 py-1 flex items-center gap-1">
+              <Chip variant="info" className="bg-surface-soft border-0 text-ink-2 px-2.5 py-1 flex items-center gap-1">
                 <Bath aria-hidden="true" className="h-3.5 w-3.5 text-ink-3 shrink-0" />
                 <span>{fullProperty.bathrooms} Bath</span>
               </Chip>
             )}
             {fullProperty.area_sqft !== undefined && (
-              <Chip variant="info" className="bg-paper-2 border-0 text-ink-2 px-2.5 py-1 flex items-center gap-1">
+              <Chip variant="info" className="bg-surface-soft border-0 text-ink-2 px-2.5 py-1 flex items-center gap-1">
                 <Ruler aria-hidden="true" className="h-3.5 w-3.5 text-ink-3 shrink-0" />
                 <span>{fullProperty.area_sqft} sqft</span>
               </Chip>
@@ -150,7 +150,7 @@ export function PropertyDetailPanel({
           </div>
 
           {fullProperty.available_from && (
-            <div className="flex items-center gap-2 text-body-md text-ink-2 bg-paper-2/40 px-3 py-2 rounded-cut-md border border-line-low">
+            <div className="flex items-center gap-2 text-body-md text-ink-2 bg-surface-soft/40 px-3 py-2 rounded-cut-md border border-line-low">
               <Calendar className="h-4 w-4 text-accent shrink-0" />
               <span>Available from: <strong>{new Date(fullProperty.available_from).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</strong></span>
             </div>

@@ -14,7 +14,7 @@ export function AuthLayout() {
       <div className="absolute left-5 top-5 z-[var(--z-raised)] md:left-8">
         <Link
           to="/"
-          className={`inline-flex min-h-[var(--touch-min)] items-center gap-1.5 rounded-cut-md px-3 text-body-md font-semibold text-ink-2 transition-colors duration-200 hover:bg-paper-2 hover:text-ink ${focusRing}`}
+          className={`inline-flex min-h-[var(--touch-min)] items-center gap-1.5 rounded-cut-md px-3 text-body-md font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-soft hover:text-ink ${focusRing}`}
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Back to home
         </Link>

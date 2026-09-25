@@ -118,7 +118,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
               type="button"
               aria-label="Dismiss banner"
               onClick={handleDismiss}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-ink-2 hover:bg-paper-3 hover:text-ink"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-ink-2 hover:bg-surface-strong hover:text-ink"
             >
               <X className="h-4 w-4" />
             </button>
@@ -147,9 +147,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
         </button>
 
         <div className="flex items-center gap-3 pr-6">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-cut-md bg-accent text-on-clay shadow-sm">
-            <Smartphone className="h-5 w-5" />
-          </div>
+          <Smartphone aria-hidden="true" className="h-6 w-6 shrink-0 text-accent" />
           <div>
             <h3 className="text-body-md font-semibold text-ink">Get the 360 Flatmates App</h3>
             <p className="mt-0.5 text-caption text-ink-2">

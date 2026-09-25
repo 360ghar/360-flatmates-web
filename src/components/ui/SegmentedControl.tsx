@@ -76,7 +76,7 @@ export function SegmentedControl({
         ref={containerRef}
         role="tablist"
         aria-label={ariaLabel}
-        className={cn("relative inline-flex rounded-cut-md bg-paper-2 p-1", className)}
+        className={cn("relative inline-flex rounded-cut-md bg-surface-soft p-1", className)}
         onKeyDown={handleKeyDown}
         {...props}
       >

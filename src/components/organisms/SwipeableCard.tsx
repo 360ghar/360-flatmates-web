@@ -136,7 +136,7 @@ export function SwipeableCard({
       whileHover={
         prefersReducedMotion
           ? undefined
-          : { y: -2, boxShadow: "var(--shadow-hover)" }
+          : { y: -1, boxShadow: "var(--shadow-md)" }
       }
       whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
       initial={{ x: 0, y: 0, rotate: 0, opacity: 1, scale: 1 }}

@@ -34,7 +34,7 @@ export function BlogPostCard({ post, href, index = 0 }: BlogPostCardProps) {
       style={{ animationDelay: `${Math.min(index, 5) * 50}ms` }}
     >
       <Card
-        className="overflow-hidden h-full flex flex-col border border-line-low hover:border-accent/20 hover:shadow-md transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
+        className="overflow-hidden h-full flex flex-col border border-line-low paper-lift"
         style={{ transitionTimingFunction: CARD_HOVER_EASE }}
       >
         <div className="relative h-56 overflow-hidden bg-paper">

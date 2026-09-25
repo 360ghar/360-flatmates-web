@@ -20,7 +20,6 @@ export function SwipeActionBar({
 }: SwipeActionBarProps) {
   const prefersReducedMotion = useReducedMotion() === true;
 
-  const hoverScale = prefersReducedMotion ? undefined : { scale: 1.05 };
   const tapScale = prefersReducedMotion ? undefined : { scale: 0.9 };
 
   return (
@@ -35,7 +34,6 @@ export function SwipeActionBar({
           focusRing
         )}
         onClick={onPass}
-        whileHover={hoverScale}
         whileTap={tapScale}
       >
         <X aria-hidden="true" className="h-6 w-6" />
@@ -50,7 +48,6 @@ export function SwipeActionBar({
           focusRing
         )}
         onClick={onSuperLike}
-        whileHover={hoverScale}
         whileTap={tapScale}
       >
         <Star aria-hidden="true" className="h-5 w-5" />
@@ -65,7 +62,6 @@ export function SwipeActionBar({
           focusRing
         )}
         onClick={onLike}
-        whileHover={hoverScale}
         whileTap={tapScale}
       >
         <Heart aria-hidden="true" className="h-6 w-6" />

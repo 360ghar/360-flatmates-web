@@ -22,7 +22,7 @@ const MapView = React.lazy(
 );
 
 const MapViewFallback = () => (
-  <div className="flex h-full items-center justify-center bg-paper-2">
+  <div className="flex h-full items-center justify-center bg-surface-soft">
     <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
   </div>
 );

@@ -213,7 +213,7 @@ function CalendarView({
               className={cn(
                 "flex min-h-12 cursor-pointer flex-col items-center justify-center rounded-lg border border-transparent py-2 text-body-md outline-none transition-colors",
                 cell.day !== null
-                  ? "text-ink hover:bg-paper-2 focus-visible:bg-paper-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
+                  ? "text-ink hover:bg-surface-soft focus-visible:bg-surface-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
                   : "text-ink-4 cursor-default",
                 isToday && "border-accent/30 bg-accent-soft"
               )}
@@ -351,7 +351,7 @@ export function VisitsPage() {
           }}
           ariaLabel="Visit status filter"
         />
-        <div className="flex gap-1 rounded-full bg-paper-2 p-1">
+        <div className="flex gap-1 rounded-full bg-surface-soft p-1">
           <Button
             aria-label="List view"
             size="icon"

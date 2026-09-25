@@ -273,7 +273,7 @@ function ChatMessageSkeleton({ side = "left" }: { side?: "left" | "right" }) {
       <div
         className={cn(
           "max-w-[75%] rounded-cut-lg p-3",
-          isRight ? "rounded-br-sm bg-accent/20" : "rounded-bl-sm bg-paper-3"
+          isRight ? "rounded-br-sm bg-accent/20" : "rounded-bl-sm bg-surface-strong"
         )}
         style={{ width: "60%" }}
       >

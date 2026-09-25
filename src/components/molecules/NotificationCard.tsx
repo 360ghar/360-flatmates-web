@@ -76,7 +76,7 @@ export function NotificationCard({
       }
       className={cn(
         "relative flex flex-col gap-3 py-3.5",
-        interactive && "hover:bg-paper-2",
+        interactive && "hover:bg-surface-soft",
         notification.unread && "border-l-[3px] border-l-accent",
         className
       )}

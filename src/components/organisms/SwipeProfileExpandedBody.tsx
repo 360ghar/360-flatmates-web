@@ -25,13 +25,13 @@ export function SwipeProfileExpandedBody({ profile }: { profile: SwipeProfile })
       {/* Quick facts strip */}
       <div className="flex flex-wrap gap-2 border-b border-line/45 pb-5">
         {profile.gender ? (
-          <span className="inline-flex items-center gap-1.5 rounded-cut-md bg-paper-2 px-3 py-2 text-label-md font-semibold text-ink">
+          <span className="inline-flex items-center gap-1.5 rounded-cut-md bg-surface-soft px-3 py-2 text-label-md font-semibold text-ink">
             <UserCircle aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
             {profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}
           </span>
         ) : null}
         {profile.profession ? (
-          <span className="inline-flex items-center gap-1.5 rounded-cut-md bg-paper-2 px-3 py-2 text-label-md font-semibold text-ink max-w-[180px] truncate">
+          <span className="inline-flex items-center gap-1.5 rounded-cut-md bg-surface-soft px-3 py-2 text-label-md font-semibold text-ink max-w-[180px] truncate">
             <Briefcase aria-hidden="true" className="h-3.5 w-3.5 text-ink-3 shrink-0" />
             {profile.profession}
           </span>
@@ -48,7 +48,7 @@ export function SwipeProfileExpandedBody({ profile }: { profile: SwipeProfile })
           </span>
         ) : null}
         {profile.availableFrom ? (
-          <span className="inline-flex items-center gap-1.5 rounded-cut-md bg-paper-2 px-3 py-2 text-label-md font-semibold text-ink">
+          <span className="inline-flex items-center gap-1.5 rounded-cut-md bg-surface-soft px-3 py-2 text-label-md font-semibold text-ink">
             <Clock aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
             From {profile.availableFrom.slice(0, 10)}
           </span>
@@ -69,7 +69,7 @@ export function SwipeProfileExpandedBody({ profile }: { profile: SwipeProfile })
       {lifestyleCells.length > 0 ? (
         <section>
           <h3 className="text-h4 text-ink mb-2">Lifestyle</h3>
-          <div className="grid grid-cols-2 gap-2 rounded-cut-md border border-line/45 bg-paper-2 p-3">
+          <div className="grid grid-cols-2 gap-2 rounded-cut-md border border-line/45 bg-surface-soft p-3">
             {lifestyleCells.map((item) => {
               const value = profile[item.key]!;
               const Icon = item.icon;
@@ -97,7 +97,7 @@ export function SwipeProfileExpandedBody({ profile }: { profile: SwipeProfile })
       {profile.genderPreference || profile.hasPets !== undefined ? (
         <section>
           <h3 className="text-h4 text-ink mb-2">Preferences</h3>
-          <div className="rounded-cut-md border border-line/45 bg-paper-2 p-3 space-y-2">
+          <div className="rounded-cut-md border border-line/45 bg-surface-soft p-3 space-y-2">
             {profile.genderPreference ? (
               <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 text-caption text-ink-3">

@@ -123,7 +123,7 @@ export function Avatar({
           type="button"
           aria-label={`Edit ${name} avatar`}
           className={cn(
-            "absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-accent text-on-clay shadow-md transition-transform duration-150 ease-out hover:scale-105",
+            "absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-accent text-on-clay shadow-md transition-colors duration-150 ease-out hover:bg-clay-press",
             focusRing,
             editButtonSize[size]
           )}

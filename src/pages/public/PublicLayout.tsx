@@ -84,7 +84,7 @@ export function PublicLayout() {
               aria-label="Open navigation menu"
               aria-expanded={drawerOpen}
               className={cn(
-                "inline-flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 hover:bg-paper-2 md:hidden",
+                "inline-flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 hover:bg-surface-soft md:hidden",
                 focusRing,
               )}
             >
@@ -111,7 +111,7 @@ export function PublicLayout() {
               key={link.href}
               to={link.href}
               onClick={() => setDrawerOpen(false)}
-              className="flex min-h-11 items-center rounded-cut-md px-4 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="flex min-h-11 items-center rounded-cut-md px-4 text-body-md text-ink-2 hover:bg-surface-soft hover:text-accent"
             >
               {link.label}
             </Link>
@@ -120,7 +120,7 @@ export function PublicLayout() {
             <Link
               to="/login"
               onClick={() => setDrawerOpen(false)}
-              className="flex min-h-11 items-center rounded-cut-md px-4 text-body-md text-ink-2 hover:bg-paper-2 hover:text-accent"
+              className="flex min-h-11 items-center rounded-cut-md px-4 text-body-md text-ink-2 hover:bg-surface-soft hover:text-accent"
             >
               Sign in
             </Link>
@@ -217,7 +217,7 @@ export function PublicLayout() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${label} (opens in a new tab)`}
-                  className="flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 transition-colors hover:bg-paper-2 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 transition-colors hover:bg-surface-soft hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <Icon className="h-[18px] w-[18px]" />
                 </a>

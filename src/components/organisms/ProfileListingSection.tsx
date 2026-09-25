@@ -38,39 +38,39 @@ export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
       ) : null}
       <div className="flex flex-wrap gap-2">
         {profile.flatConfig ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption font-semibold text-ink">
             <Home aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
             {profile.flatConfig}
           </span>
         ) : null}
         {profile.roomType ? (
-          <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+          <span className="rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption font-semibold text-ink">
             {humanizeSnakeCase(profile.roomType)}
           </span>
         ) : null}
         {floorLabel ? (
-          <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+          <span className="rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption font-semibold text-ink">
             {floorLabel}
           </span>
         ) : null}
         {profile.bedrooms != null ? (
-          <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+          <span className="rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption font-semibold text-ink">
             {profile.bedrooms} BR
           </span>
         ) : null}
         {profile.areaSqft != null ? (
-          <span className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+          <span className="rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption font-semibold text-ink">
             {Math.round(profile.areaSqft)} sqft
           </span>
         ) : null}
         {profile.societyName || profile.location ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption font-semibold text-ink">
             <MapPin aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
             {profile.societyName ?? profile.location}
           </span>
         ) : null}
         {profile.availableFrom ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption font-semibold text-ink">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption font-semibold text-ink">
             <Clock aria-hidden="true" className="h-3.5 w-3.5 text-ink-3" />
             Available {profile.availableFrom.slice(0, 10)}
           </span>
@@ -86,13 +86,13 @@ export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
             </div>
           ) : null}
           {profile.securityDeposit != null ? (
-            <div className="rounded-cut-md bg-paper-2 px-3 py-2 text-label-md text-ink-2">
+            <div className="rounded-cut-md bg-surface-soft px-3 py-2 text-label-md text-ink-2">
               Deposit ₹
               {Math.round(profile.securityDeposit).toLocaleString("en-IN")}
             </div>
           ) : null}
           {profile.maintenance != null ? (
-            <div className="rounded-cut-md bg-paper-2 px-3 py-2 text-label-md text-ink-2">
+            <div className="rounded-cut-md bg-surface-soft px-3 py-2 text-label-md text-ink-2">
               Maint. ₹
               {Math.round(profile.maintenance).toLocaleString("en-IN")}
             </div>
@@ -104,7 +104,7 @@ export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
           {uniqueAmenities.slice(0, 12).map((a) => (
             <span
               key={a}
-              className="rounded-full border border-line bg-paper-2 px-2.5 py-1 text-caption text-ink-2"
+              className="rounded-full border border-line bg-surface-soft px-2.5 py-1 text-caption text-ink-2"
             >
               {humanizeSnakeCase(a)}
             </span>

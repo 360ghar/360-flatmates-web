@@ -315,15 +315,13 @@ function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
       className="pointer-events-none fixed inset-0 z-[var(--z-overlay)] flex items-end justify-center pb-32 md:pb-40"
       role="dialog"
       aria-label="Swipe controls overview"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
     >
       <m.div
         className="pointer-events-auto relative w-[min(380px,calc(100vw-32px))] rounded-hand bg-surface-elevated paper-grain p-5 shadow-lg"
-        initial={{ y: 12, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ y: 12 }}
+        animate={{ y: 0 }}
         exit={{ y: 12, opacity: 0 }}
         transition={{ type: "spring", damping: 18, stiffness: 200 }}
       >
@@ -331,7 +329,7 @@ function SwipeHintOverlay({ onDismiss }: { onDismiss: () => void }) {
           type="button"
           aria-label="Dismiss swipe hint"
           onClick={onDismiss}
-          className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 transition-colors hover:bg-paper-2 hover:text-ink"
+          className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-cut-md text-ink-2 transition-colors hover:bg-surface-soft hover:text-ink"
         >
           <X aria-hidden="true" className="h-4 w-4" />
         </button>
@@ -390,7 +388,7 @@ function HintRow({
         <span>{label}</span>
       </span>
       {kbd ? (
-        <kbd className="rounded-md border border-line bg-paper-2 px-2 py-0.5 font-sans text-caption text-ink-2">
+        <kbd className="rounded-md border border-line bg-surface-soft px-2 py-0.5 font-sans text-caption text-ink-2">
           {kbd}
         </kbd>
       ) : null}
@@ -487,18 +485,15 @@ function MatchCelebration({
         {/* Celebration Card Container */}
         <m.div
           className="relative max-w-sm rounded-hand bg-surface paper-grain shadow-sm p-8 text-center shadow-lg flex flex-col items-center gap-6"
-          initial={{ scale: 0.8, opacity: 0, y: 40 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
+          initial={{ scale: 0.8, y: 40 }}
+          animate={{ scale: 1, y: 0 }}
           transition={{ type: "spring", damping: 15, stiffness: 100 }}
         >
-          <div className="absolute inset-0 overflow-hidden rounded-cut-lg" aria-hidden="true">
-            <div className="absolute inset-0 map-grid-bg opacity-20" />
-          </div>
           {/* Match Score Progress Ring with animated delay */}
           <div className="relative flex items-center justify-center">
             <m.div
-              initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
-              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              initial={{ scale: 0.5, rotate: -90 }}
+              animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: 0.2, type: "spring", damping: 12 }}
             >
               <ProgressRing value={profile.matchScore} size="xl" label="Compatibility score" />

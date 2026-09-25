@@ -30,7 +30,7 @@ export function MenuItemRow({
     <button
       type="button"
       className={cn(
-        "group flex min-h-14 w-full items-center gap-3 rounded-cut-md px-3 py-2 text-left hover:bg-paper-2",
+        "group flex min-h-14 w-full items-center gap-3 rounded-cut-md px-3 py-2 text-left hover:bg-surface-soft",
         interactiveMotion,
         focusRing,
         className

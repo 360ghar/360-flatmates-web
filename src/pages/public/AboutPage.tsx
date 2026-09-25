@@ -61,7 +61,7 @@ export function AboutPage() {
             {VALUES.map((value) => (
               <Card
                 key={value.title}
-                className="flex flex-col gap-4 p-6 border border-line-low hover:border-accent/20 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99] transition-all duration-300"
+                className="flex flex-col gap-4 p-6 border border-line-low paper-lift"
                 style={{ transitionTimingFunction: CARD_HOVER_EASE }}
               >
                 <div className="flex justify-between items-start">

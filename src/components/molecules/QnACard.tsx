@@ -29,7 +29,7 @@ export function QnACard({
 
   return (
     <Card as="article" className={cn("flex flex-col gap-3", className)} {...props}>
-      <div className={cn("rounded-full px-3 py-1 text-caption font-semibold", complete ? "bg-accent-soft text-accent" : "bg-paper-2 text-ink-3")}>
+      <div className={cn("rounded-full px-3 py-1 text-caption font-semibold", complete ? "bg-accent-soft text-accent" : "bg-surface-soft text-ink-3")}>
         {complete ? "Both answered" : "Waiting for answers"}
       </div>
       <h3 className="text-[13px] font-semibold text-ink-2">{question}</h3>

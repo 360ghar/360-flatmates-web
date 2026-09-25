@@ -33,7 +33,7 @@ function SelectableCard({
       <div
         className={cn(
           "flex h-12 w-12 shrink-0 items-center justify-center rounded-cut-md",
-          selected ? "bg-accent text-surface" : "bg-paper-3 text-ink-2",
+          selected ? "bg-accent text-surface" : "bg-surface-strong text-ink-2",
         )}
       >
         {icon}

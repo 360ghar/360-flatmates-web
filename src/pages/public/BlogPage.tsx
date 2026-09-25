@@ -87,7 +87,7 @@ export function BlogPage() {
                 key={option.value}
                 type="button"
                 onClick={() => setStatus(option.value)}
-                className={`px-4 py-2 rounded-full text-label-md transition-all duration-300 hover:scale-[1.04] active:scale-95 cursor-pointer ${
+                className={`px-4 py-2 rounded-full text-label-md transition-colors duration-200 active:scale-[0.98] cursor-pointer ${
                   isActive
                     ? "border border-accent bg-accent-soft text-accent shadow-xs"
                     : "border border-line-low bg-paper text-ink-2 hover:border-accent hover:text-accent hover:bg-surface"

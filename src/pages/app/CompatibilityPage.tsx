@@ -73,7 +73,7 @@ function DimensionRow({
       onClick={() => onOpen(dimension)}
       className={cn(
         "flex w-full flex-col gap-1.5 rounded-lg p-2 -mx-2 text-left outline-none",
-        "hover:bg-paper-2 focus-visible:bg-paper-2 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
+        "hover:bg-surface-soft focus-visible:bg-surface-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
       )}
       aria-label={`Open details for ${getDimensionLabel(dimension.name)}`}
     >
@@ -91,7 +91,7 @@ function DimensionRow({
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-paper-2">
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-soft">
           <div
             className={`h-full rounded-full transition-all duration-300 ${SCORE_BAR_COLOR[dimensionBarColor(dimension.match, dimension.score)]}`}
             style={{ width: `${dimension.score}%` }}
@@ -134,7 +134,7 @@ function DimensionDetailModal({
       }
     >
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between rounded-cut-md bg-paper-2 p-3">
+        <div className="flex items-center justify-between rounded-cut-md bg-surface-soft p-3">
           <div>
             <p className="text-caption text-ink-3">Dimension score</p>
             <p className="text-h2 font-semibold text-ink">{score}%</p>
@@ -177,13 +177,13 @@ function DimensionDetailModal({
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-md bg-paper-2 p-3">
+          <div className="rounded-md bg-surface-soft p-3">
             <p className="text-caption text-ink-3">Your value</p>
             <p className="text-body-md font-semibold text-ink">
               {dimension.user_value ? formatLifestyleLabel(dimension.name, dimension.user_value) : "Not set"}
             </p>
           </div>
-          <div className="rounded-md bg-paper-2 p-3">
+          <div className="rounded-md bg-surface-soft p-3">
             <p className="text-caption text-ink-3">Their value</p>
             <p className="text-body-md font-semibold text-ink">
               {dimension.peer_value ? formatLifestyleLabel(dimension.name, dimension.peer_value) : "Not set"}

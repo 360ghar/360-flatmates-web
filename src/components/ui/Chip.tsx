@@ -38,7 +38,7 @@ export function Chip({
       <div
         className={cn(
           "inline-flex min-h-11 shrink-0 items-center justify-center gap-1 rounded-cut-md font-semibold shadow-xs",
-          selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-paper-2",
+          selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-surface-soft",
           sizeClasses[variant],
           className
         )}
@@ -61,7 +61,7 @@ export function Chip({
           type="button"
           aria-label="Remove"
           className={cn(
-            "-my-2 -mr-2 flex h-11 w-10 shrink-0 items-center justify-center rounded-cut-md text-current hover:bg-paper-3",
+            "-my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-current hover:bg-surface-strong",
             focusRing
           )}
           onClick={(event) => {
@@ -82,10 +82,10 @@ export function Chip({
       aria-checked={props["aria-checked"] ?? selected}
       disabled={disabled}
       className={cn(
-        "inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-cut-md font-semibold shadow-xs disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-paper-3 disabled:text-ink-3 disabled:shadow-none",
+        "inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-cut-md font-semibold shadow-xs disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-surface-strong disabled:text-ink-3 disabled:shadow-none",
         "chip-spring",
         focusRing,
-        selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-paper-2",
+        selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-surface-soft",
         sizeClasses[variant],
         className
       )}

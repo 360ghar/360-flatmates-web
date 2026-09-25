@@ -49,7 +49,7 @@ export function LandingSearch() {
             key={item}
             type="button"
             onClick={() => navigate(`/search?q=${encodeURIComponent(item)}`)}
-            className="min-h-11 rounded-cut-sm px-2.5 text-body-md font-semibold text-ink-2 transition-colors hover:bg-paper-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="min-h-11 rounded-cut-sm px-2.5 text-body-md font-semibold text-ink-2 transition-colors hover:bg-surface-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {item}
           </button>

@@ -43,7 +43,7 @@ function DailyStatsTable({ dailyStats }: { dailyStats: DailyStat[] }) {
         <table className="w-full text-body-md">
           <caption className="sr-only">Daily views and likes for the selected period</caption>
           <thead>
-            <tr className="border-b border-line bg-paper-2">
+            <tr className="border-b border-line bg-surface-soft">
               <th className="px-4 py-2 text-left text-label-md text-ink-3" scope="col">Date</th>
               <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Views</th>
               <th className="px-4 py-2 text-right text-label-md text-ink-3" scope="col">Likes</th>
