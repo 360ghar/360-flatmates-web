@@ -153,7 +153,7 @@ export function PublicProfilePage() {
 
         <FlatmateProfileDetail profile={profile} />
 
-        {compatibility && compatibility.dimensions.length > 0 && (
+        {compatibility?.dimensions?.length ? (
           <Card
             as="button"
             interactive
@@ -178,7 +178,7 @@ export function PublicProfilePage() {
             ))}
             <p className="text-label-md text-ink-3 mt-1">Tap for full breakdown</p>
           </Card>
-        )}
+        ) : null}
 
         <div className="flex flex-col gap-2">
           <Button

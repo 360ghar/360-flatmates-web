@@ -60,7 +60,7 @@ test.describe("App pages — authenticated page structure", () => {
 
   test("Home page renders greeting and feed sections", async ({ page }) => {
     await page.goto("/home");
-    await expect(page.getByRole("heading", { name: /hi/i })).toBeVisible();
+    await expect(page.getByText(/^Hi, .+!$/).filter({ visible: true }).first()).toBeVisible();
     await expect(page.getByRole("checkbox", { name: "Nearby" })).toBeVisible();
   });
 
@@ -75,7 +75,7 @@ test.describe("App pages — authenticated page structure", () => {
     await expect(page.getByText("1BHK")).toBeVisible();
     await expect(page.getByText("Furnished")).toBeVisible();
     await expect(page.getByText("Budget+")).toBeVisible();
-    await expect(page.getByText("Vegetarian")).toBeVisible();
+    await expect(page.getByRole("checkbox", { name: "Vegetarian" })).toBeVisible();
   });
 
   test("Swipe page renders SwipeDeck", async ({ page }) => {
@@ -158,38 +158,35 @@ test.describe("App page — loading and error states", () => {
   });
 
   test("Home page shows loading skeletons before data loads", async ({ page }) => {
-    await delayApiResponse(page, "/flatmates/bootstrap");
+    // Long enough to outlast the lazy Home chunk loading in dev.
+    await delayApiResponse(page, "/flatmates/bootstrap", 3_000);
     await page.goto("/home");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Swipe page shows loading skeleton before profiles load", async ({ page }) => {
     await delayApiResponse(page, "/flatmates/profiles");
     await page.goto("/swipe");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Chats page shows loading skeletons before conversations load", async ({ page }) => {
     await delayApiResponse(page, "/flatmates/conversations");
     await page.goto("/chats");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Visits page shows loading skeletons before visits load", async ({ page }) => {
     await delayApiResponse(page, "/visits");
     await page.goto("/visits");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 });

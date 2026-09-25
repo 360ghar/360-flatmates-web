@@ -254,8 +254,10 @@ export function CompatibilityPage() {
     return null;
   }
 
-  const opportunity = data ? findTopOpportunity(data.dimensions) : null;
-  const incomplete = data ? findIncompleteDimensions(data.dimensions) : [];
+  // A partial response (no dimensions) must render, not crash the route.
+  const dimensions = data?.dimensions ?? [];
+  const opportunity = findTopOpportunity(dimensions);
+  const incomplete = findIncompleteDimensions(dimensions);
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 max-w-lg mx-auto">
@@ -291,7 +293,7 @@ export function CompatibilityPage() {
             <Card className="flex flex-col items-center gap-4 p-6 text-center">
               <ProgressRing
                 size="xl"
-                value={breakdown.overall_percentage}
+                value={breakdown.overall_percentage ?? 0}
                 label="Overall compatibility"
               />
               <div>
@@ -300,18 +302,21 @@ export function CompatibilityPage() {
                 </Badge>
               </div>
               <p className="text-body-md text-ink-2 max-w-sm">
-                {breakdown.overall_percentage}% overall compatibility based on
-                lifestyle preferences
+                {breakdown.overall_percentage == null
+                  ? "Add your lifestyle details to see a score."
+                  : `${breakdown.overall_percentage}% overall compatibility based on lifestyle preferences`}
               </p>
             </Card>
 
             <Card className="flex flex-col gap-3 p-5">
               <h2 className="text-h3">Summary</h2>
               <ul className="flex flex-col gap-2">
-                {(breakdown.summary.length > 0
+                {(breakdown.summary?.length
                   ? breakdown.summary
                   : [
-                      `${breakdown.overall_percentage}% compatibility based on the lifestyle details both profiles have shared.`,
+                      breakdown.overall_percentage == null
+                        ? "Not enough shared lifestyle details to score yet."
+                        : `${breakdown.overall_percentage}% compatibility based on the lifestyle details both profiles have shared.`,
                     ]
                 ).map((line) => (
                   <li key={line} className="flex items-start gap-2 text-body-md text-ink-2">
@@ -323,7 +328,7 @@ export function CompatibilityPage() {
             </Card>
 
             {/* Top opportunity */}
-            {opportunity ? (
+            {opportunity && breakdown.overall_percentage != null ? (
               <Card className="flex flex-col gap-2 p-5">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full text-accent">
@@ -346,7 +351,7 @@ export function CompatibilityPage() {
             {/* Dimension breakdown */}
             <Card className="flex flex-col gap-4 p-5">
               <h2 className="text-h3">Breakdown</h2>
-              {breakdown.dimensions.map((dim) => (
+              {(breakdown.dimensions ?? []).map((dim) => (
                 <DimensionRow
                   key={dim.name}
                   dimension={dim}

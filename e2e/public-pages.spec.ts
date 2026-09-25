@@ -142,9 +142,9 @@ test.describe("Privacy page — /privacy", () => {
 });
 
 test.describe("Discover page — /discover", () => {
-  test("loads and renders the Browse Listings heading", async ({ page }) => {
+  test("loads and renders the Browse rooms heading", async ({ page }) => {
     await page.goto("/discover");
-    await expect(page.getByRole("heading", { name: /browse listings/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /browse rooms/i })).toBeVisible();
   });
 
   test("renders quick filter chips", async ({ page }) => {

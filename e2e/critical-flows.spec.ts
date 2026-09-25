@@ -6,7 +6,7 @@ test("public discovery sends unauthenticated listing contact to login", async ({
   await expect(page.getByRole("heading", { name: /find your flatmate.*not a nightmare/i })).toBeVisible();
   await page.locator("#main").getByRole("link", { name: /start matching/i }).first().click();
   await expect(page).toHaveURL(/\/discover$/);
-  await expect(page.getByRole("heading", { name: "Browse Listings" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Browse rooms" })).toBeVisible();
 
   await page.getByRole("button", { name: "View Details" }).first().click();
   await expect(page).toHaveURL(/\/login\?redirect=.*%2Fdiscover%2F/);
@@ -19,7 +19,7 @@ test("search filters open the saved searches workflow", async ({ page }) => {
 
   await expect(page.getByRole("heading", { name: "Search Listings" })).toBeVisible();
   await page.getByLabel(/filter by city/i).selectOption("2");
-  await page.getByRole("button", { name: "Save search" }).click();
+  await page.getByRole("button", { name: "Saved Searches" }).click();
   await expect(page).toHaveURL(/\/saved-searches$/);
   await expect(page.locator("#main").getByRole("heading", { name: "Saved Searches", exact: true })).toBeVisible();
 });

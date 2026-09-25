@@ -40,8 +40,10 @@ export interface CompatibilityDimension {
 export interface CompatibilityBreakdown {
   user_id: number;
   peer_id: number;
-  overall_percentage: number;
+  /** Null when no dimensions are comparable (incomplete profiles). */
+  overall_percentage: number | null;
   color: CompatibilityColor;
-  dimensions: CompatibilityDimension[];
-  summary: string[];
+  /** Optional in the API spec; treat a missing list as empty. */
+  dimensions?: CompatibilityDimension[];
+  summary?: string[];
 }

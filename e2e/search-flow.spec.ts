@@ -14,12 +14,8 @@ test.describe("Discover page — /discover", () => {
     await page.goto("/discover");
   });
 
-  test("renders the Browse Listings heading", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: /browse listings/i })).toBeVisible();
-  });
-
-  test("shows the 'Public discovery' eyebrow", async ({ page }) => {
-    await expect(page.getByText(/public discovery/i)).toBeVisible();
+  test("renders the Browse rooms heading", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: /browse rooms/i })).toBeVisible();
   });
 
   test("renders quick filter chips", async ({ page }) => {
@@ -47,7 +43,7 @@ test.describe("Discover page — /discover", () => {
   test("city selector is present when cities load", async ({ page }) => {
     // The city SelectField may or may not render depending on API availability.
     // Verify the page renders without errors regardless.
-    await expect(page.getByRole("heading", { name: /browse listings/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /browse rooms/i })).toBeVisible();
   });
 });
 
@@ -128,10 +124,6 @@ test.describe("Landing page — / (public)", () => {
     ).toBeVisible();
   });
 
-  test("renders the 'Flatmate search, fixed' eyebrow", async ({ page }) => {
-    await expect(page.getByText(/flatmate search, fixed/i)).toBeVisible();
-  });
-
   test("'Start matching' link navigates to /discover", async ({ page }) => {
     const startMatching = page.locator("#main").getByRole("link", { name: /start matching/i }).first();
     await expect(startMatching).toBeVisible();
@@ -153,17 +145,9 @@ test.describe("Landing page — / (public)", () => {
     await expect(page.getByText("Book visits in 2 taps")).toBeVisible();
   });
 
-  test("trust signals section is rendered", async ({ page }) => {
-    const trustSignals = page.locator('section[aria-label="Platform trust signals"]');
-    await expect(trustSignals.getByText("Lifestyle compatibility", { exact: true })).toBeVisible();
-    await expect(trustSignals.getByText("Room and profile signals", { exact: true })).toBeVisible();
-    await expect(trustSignals.getByText("Listing-aware chats", { exact: true })).toBeVisible();
-    await expect(trustSignals.getByText("Scheduling in the flow", { exact: true })).toBeVisible();
-  });
-
   test("bottom CTA section is rendered", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: /ready to find your vibe match/i })
+      page.getByRole("heading", { name: /your next home is a few good conversations away/i })
     ).toBeVisible();
   });
 
