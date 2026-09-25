@@ -184,7 +184,7 @@ describe("useAuth", () => {
     });
   });
 
-  it("calls signOut and throws on error", async () => {
+  it("calls signOut once when the revoke succeeds", async () => {
     mockSignOut.mockResolvedValue({ error: null });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
@@ -195,13 +195,15 @@ describe("useAuth", () => {
   });
 
   it("signOut still clears the local session when the server revoke fails (W18)", async () => {
-    mockSignOut.mockResolvedValue({ error: new Error("network") });
+    mockSignOut.mockResolvedValueOnce({ error: new Error("network") }).mockResolvedValue({ error: null });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
     await act(async () => {
       await result.current.signOut();
     });
     expect(result.current.session).toBeNull();
+    // supabase-js keeps the stored session after a failed revoke; drop it locally.
+    expect(mockSignOut).toHaveBeenLastCalledWith({ scope: "local" });
   });
 
   it("signInWithEmailOtp sends a 6-digit OTP with shouldCreateUser:false by default", async () => {

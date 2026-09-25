@@ -287,14 +287,21 @@ export function useAuth(): UseAuthReturn {
     // Stop push to this device while the session can still authorise it (W17).
     const pushToken = readPushToken();
     if (pushToken) {
-      await unregisterDevice(pushToken).catch(() => undefined);
+      // Sign-out must not hang on a slow backend: give unregister 5 s.
+      await Promise.race([
+        unregisterDevice(pushToken),
+        new Promise((resolve) => setTimeout(resolve, 5_000))
+      ]).catch(() => undefined);
     }
     const { error } = await supabase.auth.signOut();
+    // On a network/5xx revoke failure supabase-js keeps the stored session, so
+    // a reload would sign the user back in. Drop it locally.
+    if (error) await supabase.auth.signOut({ scope: "local" });
     clearPlaywrightSession();
     authStore.getState().resetAuthFlow();
     authStore.getState().setSession(null);
-    // The local session is gone either way, so the user IS signed out. A
-    // server-side revoke failure is logged, not surfaced as "sign out failed" (W18).
+    // The local session is gone either way (scope "local" above), so the user
+    // IS signed out. A server-side revoke failure is logged, not surfaced (W18).
     if (error) debug.warn("Auth", "Server sign-out failed; local session cleared", error);
   }, [supabase]);
 

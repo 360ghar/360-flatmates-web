@@ -52,6 +52,8 @@ function ProviderInternals({
           /* storage unavailable */
         }
       }
+      // An older service worker may still be caching /api/ responses (W1).
+      if ("caches" in window) void caches.delete("api").catch(() => undefined);
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);
