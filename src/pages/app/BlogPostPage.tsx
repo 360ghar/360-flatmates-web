@@ -1,6 +1,6 @@
 import { userMessage } from "@/lib/api/errors";
 import { useMemo } from "react";
-import { useNavigate, useParams, Link } from "react-router";
+import { useLocation, useNavigate, useParams, Link } from "react-router";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { SeoHelmet, SITE_URL, DEFAULT_OG_IMAGE, buildArticleSchema } from "@/lib/seo";
 import { useBlogPost, useBlogPreview } from "@/hooks/queries";
@@ -32,6 +32,8 @@ function formatDate(iso?: string | null): string {
 export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
   const params = useParams<{ id?: string; token?: string; slug?: string }>();
   const navigate = useNavigate();
+  // Opened from a shared preview link: Back must stay in the app (W22).
+  const location = useLocation();
 
   const identifier = previewMode
     ? params.token
@@ -66,7 +68,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         <Button
           variant="icon"
           size="compact"
-          onClick={() => navigate(-1)}
+          onClick={() => (location.key === "default" ? navigate("/blog") : navigate(-1))}
           className="mb-4"
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4 mr-1" /> Back

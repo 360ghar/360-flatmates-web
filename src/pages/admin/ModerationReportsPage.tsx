@@ -191,7 +191,9 @@ export function ModerationReportsPage() {
       ? "No open reports"
       : "No reports";
   const emptyDescription = hasSearch
-    ? `No reports match "${search}".`
+    ? hasNextPage
+      ? `No loaded reports match "${search}". Load more to search further.`
+      : `No reports match "${search}".`
     : statusFilter === "open"
       ? "All reports have been reviewed. Check back later."
       : "Try a different status filter.";

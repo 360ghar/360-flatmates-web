@@ -136,7 +136,9 @@ export function ModerationListingsPage() {
       ? "No pending listings"
       : "No listings";
   const emptyDescription = hasSearch
-    ? `No listings match "${search}".`
+    ? hasNextPage
+      ? `No loaded listings match "${search}". Load more to search further.`
+      : `No listings match "${search}".`
     : statusFilter === "pending_review"
       ? "All listings have been reviewed. Check back later."
       : "Try a different status filter.";

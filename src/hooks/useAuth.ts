@@ -12,6 +12,9 @@ import {
   stashOAuthNext,
 } from "@/lib/auth/oauth-redirect";
 import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
+import { unregisterDevice } from "@/lib/push/fcm";
+import { readPushToken } from "@/lib/push/token";
+import { debug } from "@/lib/debug";
 import { isAuthRetryableFetchError, type Session, type User } from "@supabase/supabase-js";
 import {
   mapSupabaseAuthError,
@@ -284,11 +287,18 @@ export function useAuth(): UseAuthReturn {
   );
 
   const signOut = useCallback(async () => {
+    // Stop push to this device while the session can still authorise it (W17).
+    const pushToken = readPushToken();
+    if (pushToken) {
+      await unregisterDevice(pushToken).catch(() => undefined);
+    }
     const { error } = await supabase.auth.signOut();
     clearPlaywrightSession();
     authStore.getState().resetAuthFlow();
     authStore.getState().setSession(null);
-    if (error) throwMapped(error);
+    // The local session is gone either way, so the user IS signed out. A
+    // server-side revoke failure is logged, not surfaced as "sign out failed" (W18).
+    if (error) debug.warn("Auth", "Server sign-out failed; local session cleared", error);
   }, [supabase]);
 
   const recordAuthSuccess = useCallback(

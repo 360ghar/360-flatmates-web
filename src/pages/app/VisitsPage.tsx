@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Calendar, ChevronLeft, ChevronRight, List, Monitor } from "lucide-react";
-import { useVisits } from "@/hooks/queries";
+import { useInfiniteVisits } from "@/hooks/queries";
 import { visitToVisitCardProps, visitStatusToCardStatus } from "@/lib/api/adapters";
 import type { Visit } from "@/lib/api/types";
 import { SegmentedControl, type SegmentedControlOption } from "@/components/ui/SegmentedControl";
@@ -318,8 +318,10 @@ export function VisitsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
-  const { data: visitList, isLoading, error, refetch } = useVisits();
-  const allVisits = useMemo(() => visitList ?? [], [visitList]);
+  // Cursor-paginated so older visits stay reachable (W14).
+  const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteVisits();
+  const allVisits = useMemo(() => data?.pages.flatMap((page) => page.items ?? []) ?? [], [data]);
 
   const filteredVisits = useMemo(
     () => filterVisitsByTab(allVisits, activeTab),
@@ -471,6 +473,16 @@ export function VisitsPage() {
           />
         </div>
       )}
+      {hasNextPage ? (
+        <Button
+          variant="secondary"
+          className="self-center"
+          loading={isFetchingNextPage}
+          onClick={() => void fetchNextPage()}
+        >
+          Load more visits
+        </Button>
+      ) : null}
     </div>
   );
 }

@@ -119,6 +119,7 @@ export function SwipePage() {
   const { data: bootstrap } = useBootstrap();
   const swipeAction = useSwipeAction();
   const [matchProfile, setMatchProfile] = useState<SwipeProfile | null>(null);
+  const [matchConversationId, setMatchConversationId] = useState<number | null>(null);
 
   /* ----- Zustand swipe store ----- */
   const storeAnimating = useStore(swipeStore, (s) => s.isAnimating);
@@ -175,6 +176,7 @@ export function SwipePage() {
             if (result.did_match) {
               const matched = swipeProfiles.find((p) => p.id === profileId);
               if (matched) setMatchProfile(matched);
+              setMatchConversationId(result.conversation_id ?? null);
             }
           },
           onError: (err) => {
@@ -283,7 +285,8 @@ export function SwipePage() {
           onDismiss={handleKeyboardDismiss}
           onChat={() => {
             setMatchProfile(null);
-            navigate("/chats");
+            // Open the new match's conversation directly (W22).
+            navigate(matchConversationId ? `/chats/${matchConversationId}` : "/chats");
           }}
         />
       )}

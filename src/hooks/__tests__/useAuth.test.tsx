@@ -194,16 +194,14 @@ describe("useAuth", () => {
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
-  it("signOut re-throws Supabase error", async () => {
-    const error = new Error("Sign out failed");
-    mockSignOut.mockResolvedValue({ error });
+  it("signOut still clears the local session when the server revoke fails (W18)", async () => {
+    mockSignOut.mockResolvedValue({ error: new Error("network") });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
-    await expect(
-      act(async () => {
-        await result.current.signOut();
-      })
-    ).rejects.toThrow("Sign out failed");
+    await act(async () => {
+      await result.current.signOut();
+    });
+    expect(result.current.session).toBeNull();
   });
 
   it("signInWithEmailOtp sends a 6-digit OTP with shouldCreateUser:false by default", async () => {

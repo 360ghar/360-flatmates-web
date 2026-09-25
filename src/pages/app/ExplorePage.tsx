@@ -1,3 +1,4 @@
+import { uiStore } from "@/lib/stores/ui-store";
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useStore } from "zustand";
@@ -161,14 +162,27 @@ export function ExplorePage() {
 
   // Handle locate me
   const handleLocate = useCallback(() => {
-    navigator.geolocation?.getCurrentPosition(
+    if (!navigator.geolocation) {
+      uiStore.getState().pushToast({ type: "info", title: "Location is not available in this browser" });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
       (position) => {
         setMapCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
         setMapZoom(14);
       },
-      () => {
-        // On error, stay at default center
-      }
+      (geoError) => {
+        // Tell the user why the map did not move (W16).
+        uiStore.getState().pushToast({
+          type: "info",
+          title: "Could not find your location",
+          description:
+            geoError.code === geoError.PERMISSION_DENIED
+              ? "Allow location access for this site in your browser settings."
+              : "Try again in a moment, or move the map yourself."
+        });
+      },
+      { timeout: 10_000 }
     );
   }, [setMapCenter, setMapZoom]);
 
@@ -201,7 +215,9 @@ export function ExplorePage() {
     );
   }
 
-  if (error) {
+  // Full-page error only when there is nothing to show. A failed refetch
+  // after a pan keeps the previous pins and shows an inline strip instead.
+  if (error && !mapData) {
     return (
       <div className="-mx-5 -mt-6 -mb-6 flex h-[calc(100dvh-64px-76px-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)] items-center justify-center md:-mx-6">
         <ErrorState
@@ -238,6 +254,16 @@ export function ExplorePage() {
         {/* Empty-state CTA: when the map query resolves successfully but
             there are no pins in the visible area, prompt the user to either
             widen the search radius, clear filters, or use their location. */}
+        {error ? (
+          <div className="pointer-events-none absolute inset-x-4 top-20 z-10 flex justify-center">
+            <div role="alert" className="pointer-events-auto flex items-center gap-3 rounded-hand bg-surface-elevated paper-grain px-4 py-2 shadow-md">
+              <p className="text-body-md text-ink">Could not update this area.</p>
+              <Button size="compact" variant="tertiary" onClick={() => refetch()}>
+                Try again
+              </Button>
+            </div>
+          </div>
+        ) : null}
         {!isLoading && !error && (mapData?.pins?.length ?? 0) === 0 && (mapData?.clusters?.length ?? 0) === 0 ? (
           <div className="pointer-events-none absolute inset-x-4 bottom-24 z-10 flex justify-center md:inset-x-auto md:left-1/2 md:bottom-12 md:-translate-x-1/2">
             <div className="pointer-events-auto flex max-w-sm flex-col items-center gap-3 rounded-hand bg-surface-elevated paper-grain p-4 shadow-md">

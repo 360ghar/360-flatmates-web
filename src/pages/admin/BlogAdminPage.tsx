@@ -28,6 +28,15 @@ function statusPill(status: BlogPostStatus): string {
   }
 }
 
+/** Resolves true only when the text reached the clipboard (W20). */
+function copyText(text: string): Promise<boolean> {
+  if (!navigator.clipboard) return Promise.resolve(false);
+  return navigator.clipboard.writeText(text).then(
+    () => true,
+    () => false
+  );
+}
+
 export function BlogAdminPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<BlogPostStatus | "all">("all");
@@ -42,13 +51,12 @@ export function BlogAdminPage() {
       { id: post.id, payload: { ttl_hours: 72 } },
       {
         onSuccess: (response) => {
-          navigator.clipboard
-            ?.writeText(response.url)
-            .catch(() => undefined);
-          uiStore.getState().pushToast({
-            type: "success",
-            title: "Preview link generated",
-            description: response.url
+          void copyText(response.url).then((copied) => {
+            uiStore.getState().pushToast({
+              type: "success",
+              title: copied ? "Preview link generated and copied" : "Preview link generated",
+              description: response.url
+            });
           });
         },
         onError: () =>
@@ -138,12 +146,13 @@ export function BlogAdminPage() {
                   variant="secondary"
                   size="compact"
                   onClick={() => {
-                    navigator.clipboard
-                      ?.writeText(`${window.location.origin}/blog/${post.slug}`)
-                      .catch(() => undefined);
-                    uiStore.getState().pushToast({
-                      type: "success",
-                      title: "Public URL copied"
+                    const url = `${window.location.origin}/blog/${post.slug}`;
+                    void copyText(url).then((copied) => {
+                      uiStore.getState().pushToast(
+                        copied
+                          ? { type: "success", title: "Public URL copied" }
+                          : { type: "warning", title: "Could not copy", description: url }
+                      );
                     });
                   }}
                 >

@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/queries";
+import { useInfiniteNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/queries";
 import { notificationToNotificationCardProps } from "@/lib/api/adapters";
 import type { FlatmatesNotification } from "@/lib/api/types";
 import { formatRelativeTime } from "@/lib/utils";
@@ -7,7 +8,7 @@ import { resolveRedirect } from "@/lib/redirect";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { AsyncView } from "@/components/ui/StateViews";
+import { AsyncView, EmptyState } from "@/components/ui/StateViews";
 import { NotificationCard, type NotificationCardData } from "@/components/molecules/NotificationCard";
 
 function getNotificationActionLabel(
@@ -34,7 +35,17 @@ function getNotificationActionLabel(
 
 export function NotificationsPage() {
   const navigate = useNavigate();
-  const { data: notifications, isLoading, error, refetch } = useNotifications();
+  // Cursor-paginated so older notifications stay reachable (W14).
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteNotifications();
+  const notifications = useMemo(() => data?.pages.flatMap((page) => page.items ?? []), [data]);
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
@@ -95,9 +106,11 @@ export function NotificationsPage() {
           />
         }
         empty={
-          <p className="py-8 text-center text-body-md text-ink-3">
-            No notifications yet. You will see matches, messages, and updates here.
-          </p>
+          <EmptyState
+            scene="bell"
+            title="All quiet for now"
+            description="Matches, messages and visit updates will appear here."
+          />
         }
         onRetry={() => refetch()}
       >
@@ -136,6 +149,16 @@ export function NotificationsPage() {
           </ul>
         )}
       </AsyncView>
+      {hasNextPage ? (
+        <Button
+          variant="secondary"
+          className="self-center"
+          loading={isFetchingNextPage}
+          onClick={() => void fetchNextPage()}
+        >
+          Load older notifications
+        </Button>
+      ) : null}
     </div>
   );
 }

@@ -17,6 +17,9 @@ import type { ThemePreference } from "@/lib/stores/ui-store";
 import { searchStore } from "@/lib/stores/search-store";
 import { onboardingStore } from "@/lib/stores/onboarding-store";
 import { chatStore } from "@/lib/stores/chat-store";
+import { LISTING_DRAFT_STORAGE_KEY } from "@/lib/schemas/listing-builder";
+import { SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY } from "@/lib/storage/saved-searches";
+import { PUSH_TOKEN_KEY } from "@/lib/push/token";
 import { Toast, ToastViewport } from "@/components/ui/Toast";
 
 
@@ -40,6 +43,15 @@ function ProviderInternals({
       onboardingStore.getState().clearDraft();
       authStore.getState().resetAuthFlow();
       chatStore.getState().reset();
+      searchStore.getState().clearRecentSearches();
+      // Per-user data kept in localStorage must not leak to the next user (W17).
+      for (const key of [LISTING_DRAFT_STORAGE_KEY, SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY, PUSH_TOKEN_KEY]) {
+        try {
+          localStorage.removeItem(key);
+        } catch {
+          /* storage unavailable */
+        }
+      }
     }
     wasAuthenticated.current = isAuthenticated;
   }, [isAuthenticated, queryClient]);

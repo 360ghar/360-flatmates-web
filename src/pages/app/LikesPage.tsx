@@ -4,7 +4,10 @@ import { useIncomingLikesInfinite, useMatches, useUnmatchMutation } from "@/hook
 import { useSwipeAction } from "@/hooks/queries/useSwipes";
 import { profileToProfileGridCardProps } from "@/lib/api/adapters";
 import { PeopleGridPage } from "@/components/organisms/PeopleGridPage";
-import { cn } from "@/components/ui/component-utils";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { useCreateConversation } from "@/hooks/queries/useConversations";
+import { uiStore } from "@/lib/stores/ui-store";
+import { userMessage } from "@/lib/api/errors";
 
 type Tab = "likes" | "matches";
 
@@ -15,33 +18,22 @@ export function LikesPage() {
   const navigate = useNavigate();
   const swipeAction = useSwipeAction();
   const unmatch = useUnmatchMutation();
+  const createConversation = useCreateConversation();
 
   return (
     <div className="flex flex-col gap-5 page-fade">
       <h1 className="text-h1">Likes & Matches</h1>
 
-      <div className="flex gap-1 rounded-full border border-line bg-surface-soft p-1 shadow-xs">
-        <button
-          type="button"
-          onClick={() => setTab("likes")}
-          className={cn(
-            "flex-1 rounded-full px-4 py-2 text-body-md font-semibold transition-colors",
-            tab === "likes" ? "bg-surface text-ink shadow-sm" : "text-ink-3 hover:text-ink"
-          )}
-        >
-          Likes
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("matches")}
-          className={cn(
-            "flex-1 rounded-full px-4 py-2 text-body-md font-semibold transition-colors",
-            tab === "matches" ? "bg-surface text-ink shadow-sm" : "text-ink-3 hover:text-ink"
-          )}
-        >
-          Matches
-        </button>
-      </div>
+      <SegmentedControl
+        ariaLabel="Likes and matches"
+        className="self-start"
+        options={[
+          { value: "likes", label: "Likes" },
+          { value: "matches", label: "Matches" }
+        ]}
+        value={tab}
+        onValueChange={(value) => setTab(value as Tab)}
+      />
 
       {tab === "likes" ? (
         <PeopleGridPage
@@ -54,11 +46,21 @@ export function LikesPage() {
           getPeerId={(like) => String(like.peer.id)}
           getProfileProps={(like) => profileToProfileGridCardProps(like.peer)}
           onCta={(like) =>
-            swipeAction.mutate({
-              target_type: "user",
-              target_user_id: like.peer.id,
-              action: "like"
-            })
+            swipeAction.mutate(
+              { target_type: "user", target_user_id: like.peer.id, action: "like" },
+              {
+                onSuccess: (result) => {
+                  uiStore.getState().pushToast({
+                    type: "success",
+                    title: result.did_match ? `You matched with ${like.peer.full_name}` : "Liked back"
+                  });
+                  if (result.did_match && result.conversation_id) navigate(`/chats/${result.conversation_id}`);
+                },
+                onError: (err) => {
+                  uiStore.getState().pushToast({ type: "error", title: "Could not match", description: userMessage(err) });
+                }
+              }
+            )
           }
         />
       ) : (
@@ -71,7 +73,16 @@ export function LikesPage() {
           ctaLabel="Chat"
           getPeerId={(match) => String(match.peer.id)}
           getProfileProps={(match) => profileToProfileGridCardProps(match.peer)}
-          onCta={() => navigate("/chats")}
+          onCta={(match) =>
+            createConversation.mutate(
+              { match_id: match.id, peer_user_id: match.peer.id },
+              {
+                // Open the conversation with this match, not the inbox (W22).
+                onSuccess: (conversation) => navigate(`/chats/${conversation.id}`),
+                onError: () => navigate("/chats")
+              }
+            )
+          }
           onUnmatch={(match) => unmatch.mutate(match.id)}
         />
       )}

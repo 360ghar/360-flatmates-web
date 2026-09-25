@@ -1,3 +1,4 @@
+import { PUSH_TOKEN_KEY } from "@/lib/push/token";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -136,7 +137,7 @@ export function SettingsNotificationsPage() {
                 return;
               }
               try {
-                localStorage.setItem("flatmates_web_push_token", token);
+                localStorage.setItem(PUSH_TOKEN_KEY, token);
               } catch {
                 /* private mode / quota — registration still succeeded */
               }
@@ -147,14 +148,14 @@ export function SettingsNotificationsPage() {
             } else {
               let token: string | null = null;
               try {
-                token = localStorage.getItem("flatmates_web_push_token");
+                token = localStorage.getItem(PUSH_TOKEN_KEY);
               } catch {
                 token = null;
               }
               if (token) {
                 await unregisterDevice(token);
                 try {
-                  localStorage.removeItem("flatmates_web_push_token");
+                  localStorage.removeItem(PUSH_TOKEN_KEY);
                 } catch {
                   /* ignore */
                 }

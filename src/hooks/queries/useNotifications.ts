@@ -50,7 +50,9 @@ export function useNotifications(filters?: NotificationFilters) {
 export function useInfiniteNotifications(
   filters?: Omit<NotificationFilters, "limit" | "cursor">
 ) {
+  const refetchInterval = useRealtimeFallbackInterval();
   return useInfiniteQuery({
+    refetchInterval,
     queryKey: ["notifications", "infinite", filters],
     queryFn: async ({ pageParam, signal }) => {
       const response = await apiClient.request<NotificationCursorPage>({
