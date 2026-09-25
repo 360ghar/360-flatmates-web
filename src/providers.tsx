@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { MotionConfig } from "framer-motion";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -233,11 +234,13 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <NuqsAdapter>
-      <QueryClientProvider client={queryClient}>
-        <ProviderInternals>{children}</ProviderInternals>
-        <ToastContainer />
-      </QueryClientProvider>
-    </NuqsAdapter>
+    <MotionConfig reducedMotion="user">
+      <NuqsAdapter>
+        <QueryClientProvider client={queryClient}>
+          <ProviderInternals>{children}</ProviderInternals>
+          <ToastContainer />
+        </QueryClientProvider>
+      </NuqsAdapter>
+    </MotionConfig>
   );
 }

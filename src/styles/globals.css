@@ -1,111 +1,123 @@
 @import "tailwindcss";
 
+/* Paper Diorama design system. Source of truth: DESIGN.md (identical in the
+   mobile repo). Legacy token names (paper, surface, accent, line, ...) are
+   kept as aliases so existing call sites pick up the paper palette. */
 @theme {
-  /* ── Brand & Accent (Airbnb Rausch) ── */
-  --color-primary: #ff385c;
-  --color-primary-soft: rgba(255, 56, 92, 0.12);
-  --color-primary-container: #ffd1da;
-  --color-primary-active: #e00b41;
-  --color-primary-disabled: #ffd1da;
-  --color-accent: #ff385c;
-  --color-accent-soft: rgba(255, 56, 92, 0.12);
-  --color-accent-container: #ffd1da;
-  /* Airbnb-derived Rausch ramp */
-  --color-accent-50: #fff1f3;
-  --color-accent-100: #ffe0e5;
-  --color-accent-200: #ffc6cf;
-  --color-accent-300: #ff9ba9;
-  --color-accent-400: #ff6b7e;
-  --color-accent-500: #ff385c;
-  --color-accent-600: #e00b41;
-  --color-accent-700: #c80036;
-  --color-accent-800: #a30030;
-  --color-accent-900: #82002b;
-  --color-accent-950: #5e0020;
-  /* Sub-brand accents */
-  --color-luxe: #460479;
-  --color-plus: #92174d;
-  /* Legal / link */
-  --color-legal-link: #428bff;
+  /* ── Paper layers (DESIGN.md §1) ── */
+  --color-sky: #E4EBE3;          /* layer 0: page */
+  --color-paper-1: #EDF1EA;      /* layer 1: sections, nav rail */
+  --color-edge: rgb(35 32 28 / 0.10);
 
-  /* ── Surfaces (Airbnb white canvas) ── */
-  --color-paper: #ffffff;
-  --color-paper-2: #f7f7f7;
-  --color-paper-3: #f2f2f2;
-  --color-paper-4: #ebebeb;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
-  --color-surface-soft: #f7f7f7;
-  --color-surface-strong: #f2f2f2;
+  /* ── Brand ── */
+  --color-clay: #A94A2B;
+  --color-clay-press: #8C3B20;
+  --color-clay-soft: #F2DACF;
+  --color-on-clay: #FFFFFF;
+  --color-pine: #2E5B48;
+  --color-pine-soft: #D3E2D8;
+  --color-on-pine: #FFFFFF;
+  --color-marigold: #E0A034;
+  --color-danger: #B3261E;
+  --color-danger-soft: #F6DAD7;
+  --color-warning-ink: #7E5208;
+  --color-warning-soft: #F7E8C8;
 
-  /* ── Text (Airbnb ink ramp) ── */
-  --color-ink: #222222;
-  --color-ink-2: #3f3f3f;
-  --color-ink-3: #6a6a6a;
-  --color-ink-4: #929292;
+  /* ── Scene art (DESIGN.md §6) ── */
+  --color-scene-hill-far: #C3D5C8;
+  --color-scene-hill-near: #93B39F;
+  --color-scene-town-far: #DDB3A0;
+  --color-scene-town: #A94A2B;
+  --color-scene-window: #F6EBD9;
+  --color-scene-tree: #2E5B48;
+  --color-scene-sun: #E0A034;
+  --color-scene-cloud: #FFFFFF;
 
-  /* ── Lines & Borders ── */
-  --color-line: #dddddd;
-  --color-line-2: #ebebeb;
-  --color-line-low: #ebebeb;
-  --color-border-strong: #c1c1c1;
+  /* ── Legacy aliases → paper palette ── */
+  --color-primary: var(--color-clay);
+  --color-primary-soft: #F6E6DE;
+  --color-primary-container: var(--color-clay-soft);
+  --color-primary-active: var(--color-clay-press);
+  --color-primary-disabled: #E7C9BC;
+  --color-accent: var(--color-clay);
+  --color-accent-soft: #F6E6DE;  /* clay text on this passes AA */
+  --color-accent-container: var(--color-clay-soft);
+  --color-accent-50: #FBF2EE;
+  --color-accent-100: #F6E3DA;
+  --color-accent-200: #EFCDBE;
+  --color-accent-300: #E2A78F;
+  --color-accent-400: #CF7B5C;
+  --color-accent-500: #A94A2B;
+  --color-accent-600: #8C3B20;
+  --color-accent-700: #72301A;
+  --color-accent-800: #582515;
+  --color-accent-900: #3F1A0F;
+  --color-accent-950: #2A110A;
+  --color-legal-link: var(--color-pine);
 
-  /* ── Status colors (Airbnb-compatible) ── */
-  --color-success: #008a05;
-  --color-success-soft: rgba(0, 138, 5, 0.12);
-  --color-error: #c13515;
-  --color-error-soft: rgba(193, 53, 21, 0.10);
-  --color-warning: #b32505;
-  --color-warning-soft: rgba(179, 37, 5, 0.10);
+  --color-paper: var(--color-sky);   /* page canvas */
+  --color-paper-2: #EDF1EA;          /* soft fill = paper-1 */
+  --color-paper-3: #E3EAE1;
+  --color-paper-4: #D6DFD4;
+  --color-surface: #FDFCFA;          /* cards = paper-2 */
+  --color-surface-elevated: #FFFFFF; /* raised = paper-3 */
+  --color-surface-soft: #EDF1EA;
+  --color-surface-strong: #E3EAE1;
 
-  /* ── Categorical colors (muted Airbnb-compatible) ── */
-  --color-blue-soft: #e7f0ff;
-  --color-blue-mid: #428bff;
-  --color-purple-soft: #f0eaff;
-  --color-purple-mid: #7b61ff;
-  --color-green-soft: #e8f5e0;
-  --color-green-mid: #008a05;
-  --color-yellow-soft: #fff4b8;
-  --color-yellow-mid: #b3921c;
-  --color-orange-soft: #fff0e0;
-  --color-orange-mid: #d9742e;
-  --color-teal-soft: #e0f0ee;
-  --color-teal-mid: #0e8a8a;
-  --color-pink-soft: #ffe0e8;
-  --color-pink-mid: #ff385c;
-  /* Categorical "ink" tier — accessible text on the matching soft background */
-  --color-blue-ink: #1a4d8f;
-  --color-purple-ink: #4a2db3;
-  --color-green-ink: #145a14;
-  --color-yellow-ink: #574711;
-  --color-orange-ink: #7a3e0e;
-  --color-teal-ink: #0a5050;
-  --color-pink-ink: #a01030;
+  --color-ink: #23201C;
+  --color-ink-2: #4A443D;
+  --color-ink-3: #6B6359;
+  --color-ink-4: #8A8278;  /* decorative only (icons, disabled), not body text */
 
-  /* Secondary emphasis + section rhythm.
-     action = Airbnb ink-filled secondary CTA (distinct from Rausch primary).
-     lavender/peach/sky/mint = soft tinted bands for alternating sections —
-     not flat identical greys, not the old violet/cream system. */
-  --color-action: #222222;
+  --color-line: rgb(35 32 28 / 0.12);
+  --color-line-2: rgb(35 32 28 / 0.08);
+  --color-line-low: rgb(35 32 28 / 0.07);
+  --color-border-strong: rgb(35 32 28 / 0.24);
+
+  --color-success: var(--color-pine);
+  --color-success-soft: var(--color-pine-soft);
+  --color-error: var(--color-danger);
+  --color-error-soft: var(--color-danger-soft);
+  --color-warning: var(--color-warning-ink);
+  --color-warning-soft: var(--color-warning-soft);
+
+  /* Categorical tags: muted, drawn from the same earth palette. */
+  --color-blue-soft: #DCE7EC;
+  --color-blue-mid: #3F6F8F;
+  --color-blue-ink: #24465C;
+  --color-purple-soft: #EEE1E4;
+  --color-purple-mid: #8A4A5E;
+  --color-purple-ink: #5E2C3C;
+  --color-green-soft: var(--color-pine-soft);
+  --color-green-mid: var(--color-pine);
+  --color-green-ink: #1F4435;
+  --color-yellow-soft: var(--color-warning-soft);
+  --color-yellow-mid: #B07D1F;
+  --color-yellow-ink: #5E3F08;
+  --color-orange-soft: #F6E3DA;
+  --color-orange-mid: #C0643B;
+  --color-orange-ink: #6E2E14;
+  --color-teal-soft: #D6E6E2;
+  --color-teal-mid: #2F6E66;
+  --color-teal-ink: #1E4A44;
+  --color-pink-soft: #F6E3DA;
+  --color-pink-mid: var(--color-clay);
+  --color-pink-ink: #72301A;
+
+  --color-action: var(--color-ink);
   --color-action-hover: #000000;
-  --color-action-ink: #ffffff;
-  --color-lavender: #fff1f3;
-  --color-lavender-2: #ffe0e5;
-  --color-peach: #faf6f3;
-  --color-sky: #f5f7fa;
-  --color-mint: #f3f8f5;
-  --color-map-line: rgba(34, 34, 34, 0.07);
+  --color-action-ink: #FFFFFF;
+  --color-lavender: #F6E6DE;
+  --color-lavender-2: #EFCDBE;
+  --color-peach: #F6E6DE;
+  --color-mint: var(--color-pine-soft);
+  --color-map-line: rgb(35 32 28 / 0.07);
 
-  /* Google "Sign in with Google" brand palette (Material 3).
-     Light = white pill with subtle grey border; dark = near-black pill.
-     Used by the `google` Button variant. */
-  --color-google-bg: #ffffff;
-  --color-google-text: #3c4043;
-  --color-google-border: #dadce0;
-  --color-google-hover: #f8f9fa;
+  --color-google-bg: #FFFFFF;
+  --color-google-text: #3C4043;
+  --color-google-border: #DADCE0;
+  --color-google-hover: #F8F9FA;
 
-  /* Semantic role aliases — intent-named layer mapped onto the palette.
-     These re-resolve automatically in dark mode because they hold var() refs. */
   --color-content: var(--color-ink);
   --color-content-muted: var(--color-ink-2);
   --color-content-subtle: var(--color-ink-3);
@@ -116,52 +128,58 @@
   --color-interactive: var(--color-primary);
   --color-focus: var(--color-primary);
 
-  /* Motion easing — generates ease-standard / ease-emphasized / ease-spring utilities */
-  --ease-standard: cubic-bezier(0, 0, 0.2, 1);
-  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* ── Motion (DESIGN.md §7) ── */
+  --ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);   /* paper-out */
+  --ease-emphasized: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.3, 1.3, 0.5, 1);     /* paper-settle */
+  --ease-paper-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-paper-settle: cubic-bezier(0.3, 1.3, 0.5, 1);
 
-  /* ── Fonts — Inter for everything (Airbnb Cereal replacement) ── */
-  --font-display: var(--font-inter);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-inter);
-  --font-serif: var(--font-inter);
-  --font-serif-italic: var(--font-inter);
+  /* ── Fonts (DESIGN.md §2) ── */
+  --font-display: "Gambarino", Georgia, "Times New Roman", serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-serif: var(--font-display);
+  --font-serif-italic: var(--font-display);
 
-  /* ── Shadows — Airbnb float ladder (flat default → progressive elevation) ── */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-cta: 0 2px 12px rgba(255, 56, 92, 0.28);
-  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(255, 56, 92, 0.22);
+  /* ── Elevation = paper layers, lit from the top-left (DESIGN.md §4) ── */
+  --shadow-xs: 0 1px 0 var(--color-edge), 0 1px 2px rgb(35 32 28 / 0.08);                /* e1 */
+  --shadow-sm: 0 1px 0 var(--color-edge), 1px 3px 4px -2px rgb(35 32 28 / 0.14);         /* e2 */
+  --shadow-md: 0 1px 0 var(--color-edge), 2px 6px 8px -4px rgb(35 32 28 / 0.18);         /* e3 */
+  --shadow-lg: 0 1px 0 var(--color-edge), 3px 10px 14px -6px rgb(35 32 28 / 0.22);
+  --shadow-cta: var(--shadow-sm);
+  --shadow-hover: var(--shadow-md);
+  --shadow-focus: 0 0 0 3px rgb(169 74 43 / 0.28);
 
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1440px;
-  --animate-drawer-in: drawer-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-bottom-sheet-in: bottom-sheet-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-slide-up: slide-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-fade-slide-up: fade-slide-up 300ms cubic-bezier(0, 0, 0.2, 1) both;
+  --animate-drawer-in: drawer-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-bottom-sheet-in: bottom-sheet-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-slide-up: slide-up 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade-slide-up: fade-slide-up 200ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 :root {
   color-scheme: light;
-  --font-inter: Inter, -apple-system, system-ui, "Helvetica Neue", sans-serif;
-  --radius-card: 14px;
-  --radius-compact: 8px;
-  --radius-button: 8px;
-  --radius-control: 8px;
-  --radius-promo: 32px;
-  --radius-panel: 20px;
+  /* Radius (DESIGN.md §3). Cards use the hand-cut uneven radius. */
+  --radius-cut-sm: 6px;
+  --radius-cut-md: 12px;
+  --radius-cut-lg: 18px;
+  --radius-cut-xl: 28px;
+  --radius-hand: 12px 14px 11px 13px;
+  --radius-card: 12px;
+  --radius-compact: 6px;
+  --radius-button: 12px;
+  --radius-control: 12px;
+  --radius-promo: 28px;
+  --radius-panel: 18px;
   --frost-blur: 9px;
-  /* Motion durations (CSS-var layer; use via duration-[var(--duration-fast)] or in keyframes) */
   --duration-fast: 120ms;
   --duration-normal: 200ms;
-  --duration-slow: 300ms;
+  --duration-slow: 320ms;
   --duration-slowest: 400ms;
-  /* Z-index scale — single source of stacking order */
+  --layer-stagger: 40ms;
   --z-base: 0;
   --z-raised: 10;
   --z-sticky: 30;
@@ -172,93 +190,113 @@
   --z-modal: 1100;
   --z-toast: 1200;
   --z-max: 9999;
-  /* Control sizing — formalizes interactive heights and the min touch target */
-  --control-h-sm: 42px;
+  --control-h-sm: 44px;
   --control-h-md: 48px;
   --control-h-lg: 52px;
   --control-h-xl: 56px;
   --touch-min: 44px;
-  /* Subtle grid for decorative hero / promo bands only (body stays white canvas) */
-  --map-grid-bg:
-    linear-gradient(var(--color-map-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-map-line) 1px, transparent 1px),
-    var(--color-paper);
-  --map-grid-bg-size: 96px 96px, 96px 96px, auto;
+  /* Paper grain: fractal noise at ~5 % alpha, painted behind content. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .14 0 0 0 0 .12 0 0 0 0 .1 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --torn-depth: 10px;
+  --scene-shadow: rgb(35 32 28 / 0.22);
+  --torn-bottom-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10' preserveAspectRatio='none'%3E%3Cpath d='M0 0H120V6.8L120.0 6.8 L114.8 8.3 L109.6 2.9 L104.4 8.0 L99.1 9.3 L94.0 3.9 L88.7 3.3 L83.5 1.6 L78.2 6.4 L73.1 6.1 L67.8 3.6 L62.6 5.5 L57.4 2.5 L52.2 9.2 L46.9 7.0 L41.8 9.5 L36.5 5.5 L31.3 1.8 L26.0 9.3 L20.9 7.8 L15.6 9.5 L10.4 8.3 L5.2 7.8 L0.0 6.8Z'/%3E%3C/svg%3E");
+  --torn-top-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10' preserveAspectRatio='none'%3E%3Cpath d='M0 3.2L0.0 3.2 L5.2 2.2 L10.4 1.7 L15.6 0.5 L20.9 2.2 L26.0 0.7 L31.3 8.2 L36.5 4.5 L41.8 0.5 L46.9 3.0 L52.2 0.8 L57.4 7.5 L62.6 4.5 L67.8 6.4 L73.1 3.9 L78.2 3.6 L83.5 8.4 L88.7 6.7 L94.0 6.1 L99.1 0.7 L104.4 2.0 L109.6 7.1 L114.8 1.7 L120.0 3.2V10H0Z'/%3E%3C/svg%3E");  /* Legacy "map-grid-bg" now paints a grained paper band (no graph-paper grid). */
+  --map-grid-bg: var(--grain), var(--color-paper-1);
+  --map-grid-bg-size: 180px 180px, auto;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-primary: #ff5572;
-  --color-primary-soft: rgba(255, 85, 114, 0.18);
-  --color-primary-container: rgba(255, 85, 114, 0.24);
-  /* Dark-legible CTA states — must not inherit light #ffd1da / white-on-pink */
-  --color-primary-active: #ff7088;
-  --color-primary-disabled: #3d1822;
-  --color-accent: #ff5572;
-  --color-accent-soft: rgba(255, 85, 114, 0.18);
-  --color-accent-container: rgba(255, 85, 114, 0.24);
-  --color-accent-50: #2a0a12;
-  --color-accent-100: #3a0d18;
-  --color-accent-200: rgba(255, 85, 114, 0.18);
-  --color-accent-300: rgba(255, 85, 114, 0.30);
-  --color-accent-400: rgba(255, 85, 114, 0.46);
-  --color-accent-500: #ff5572;
-  --color-accent-600: #ff7088;
-  --color-accent-700: #ff8a9d;
-  --color-accent-800: #ffaab8;
-  --color-accent-900: #ffc6d0;
-  --color-accent-950: #ffe0e6;
-  --color-paper: #1a1a1a;
-  --color-paper-2: #242424;
-  --color-paper-3: #2e2e2e;
-  --color-paper-4: #3a3a3a;
-  --color-surface: #2a2a2a;
-  --color-surface-elevated: #333333;
-  --color-surface-soft: #242424;
-  --color-surface-strong: #2e2e2e;
-  --color-ink: #ffffff;
-  --color-ink-2: #e0e0e0;
-  --color-ink-3: #a0a0a0;
-  --color-ink-4: #6e6e6e;
-  --color-line: rgba(255, 255, 255, 0.15);
-  --color-line-2: rgba(255, 255, 255, 0.08);
-  --color-line-low: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.25);
-  --color-map-line: rgba(255, 255, 255, 0.08);
-  --color-action: #ffffff;
-  --color-action-hover: #e0e0e0;
-  --color-action-ink: #222222;
-  --color-lavender: #2a1218;
-  --color-lavender-2: #3a1820;
-  --color-peach: #2a221c;
-  --color-sky: #1c2228;
-  --color-mint: #1a2420;
-  --color-blue-soft: #1a2438;
-  --color-purple-soft: #241e30;
-  --color-green-soft: #1a2818;
-  --color-yellow-soft: #2e2410;
-  --color-orange-soft: #2e1c10;
-  --color-teal-soft: #102828;
-  --color-pink-soft: #2e1018;
-  --color-blue-ink: #a0c0e8;
-  --color-purple-ink: #c4b0e8;
-  --color-green-ink: #a8d0a0;
-  --color-yellow-ink: #e6d08e;
-  --color-orange-ink: #f0bc8a;
-  --color-teal-ink: #8ec8c4;
-  --color-pink-ink: #e8a8b8;
-  /* Google brand palette — dark mode override */
+  --color-sky: #121814;
+  --color-paper-1: #19211C;
+  --color-edge: rgb(241 237 230 / 0.10);
+  --color-clay: #E27E5A;
+  --color-clay-press: #C9694A;
+  --color-clay-soft: #3A2A23;
+  --color-on-clay: #1A120E;
+  --color-pine: #86B9A0;
+  --color-pine-soft: #22352C;
+  --color-on-pine: #1A120E;
+  --color-marigold: #E8B458;
+  --color-danger: #F2A097;
+  --color-danger-soft: #3B2220;
+  --color-warning-ink: #E8B458;
+  --color-warning-soft: #352B19;
+  --color-scene-hill-far: #1D2A22;
+  --color-scene-hill-near: #26392E;
+  --color-scene-town-far: #3A2A23;
+  --color-scene-town: #8A4128;
+  --color-scene-window: #E8B458;
+  --color-scene-tree: #3F6F58;
+  --color-scene-sun: #E8B458;
+  --color-scene-cloud: #2A332C;
+
+  --color-primary-soft: #3A2A23;
+  --color-primary-disabled: #3A2A23;
+  --color-accent-soft: #3A2A23;
+  --color-accent-50: #2A1B15;
+  --color-accent-100: #3A2A23;
+  --color-accent-200: #4E3226;
+  --color-accent-300: #6E3F2C;
+  --color-accent-400: #A35A3E;
+  --color-accent-500: #E27E5A;
+  --color-accent-600: #EA9677;
+  --color-accent-700: #F0AE95;
+  --color-accent-800: #F5C6B4;
+  --color-accent-900: #FADDD2;
+  --color-accent-950: #FDEEE8;
+
+  --color-paper-2: #19211C;
+  --color-paper-3: #1E2721;
+  --color-paper-4: #27312A;
+  --color-surface: #222A24;
+  --color-surface-elevated: #2A332C;
+  --color-surface-soft: #19211C;
+  --color-surface-strong: #1E2721;
+
+  --color-ink: #F1EDE6;
+  --color-ink-2: #CBC4B9;
+  --color-ink-3: #A39C91;
+  --color-ink-4: #7C766C;
+
+  --color-line: rgb(241 237 230 / 0.14);
+  --color-line-2: rgb(241 237 230 / 0.08);
+  --color-line-low: rgb(241 237 230 / 0.08);
+  --color-border-strong: rgb(241 237 230 / 0.26);
+  --color-map-line: rgb(241 237 230 / 0.08);
+
+  --color-action: #F1EDE6;
+  --color-action-hover: #FFFFFF;
+  --color-action-ink: #1A120E;
+  --color-lavender: #3A2A23;
+  --color-lavender-2: #4E3226;
+  --color-peach: #3A2A23;
+
+  --color-blue-soft: #1B2A33;
+  --color-blue-ink: #A9C6D8;
+  --color-purple-soft: #2E1F25;
+  --color-purple-ink: #DDB6C3;
+  --color-green-ink: #A9D3BE;
+  --color-yellow-ink: #EBCB8B;
+  --color-orange-soft: #3A2A23;
+  --color-orange-ink: #F0B79E;
+  --color-teal-soft: #17302C;
+  --color-teal-ink: #9FD0C8;
+  --color-pink-soft: #3A2A23;
+  --color-pink-ink: #F0AE95;
+
   --color-google-bg: #131314;
-  --color-google-text: #e3e3e3;
-  --color-google-border: #8e918f;
-  --color-google-hover: #1e1f20;
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.48), 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-cta: 0 2px 14px rgba(255, 85, 114, 0.35);
-  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.45);
-  --shadow-focus: 0 0 0 3px rgba(255, 85, 114, 0.28);
+  --color-google-text: #E3E3E3;
+  --color-google-border: #8E918F;
+  --color-google-hover: #1E1F20;
+
+  --shadow-xs: 0 1px 0 var(--color-edge), 0 1px 2px rgb(0 0 0 / 0.40);
+  --shadow-sm: 0 1px 0 var(--color-edge), 1px 3px 4px -2px rgb(0 0 0 / 0.50);
+  --shadow-md: 0 1px 0 var(--color-edge), 2px 6px 8px -4px rgb(0 0 0 / 0.60);
+  --shadow-lg: 0 1px 0 var(--color-edge), 3px 10px 14px -6px rgb(0 0 0 / 0.65);
+  --shadow-focus: 0 0 0 3px rgb(226 126 90 / 0.32);
+  --scene-shadow: rgb(0 0 0 / 0.5);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .93 0 0 0 0 .9 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 * {
@@ -274,12 +312,15 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--color-paper);
+  /* Layer 0: the sky, with paper grain painted behind all content. */
+  background-color: var(--color-paper);
+  background-image: var(--grain);
   color: var(--color-ink);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   letter-spacing: 0;
   position: relative;
+  font-synthesis: none;
 }
 
 .hairline {
@@ -308,7 +349,7 @@ svg {
 }
 
 ::selection {
-  background: rgba(255, 56, 92, 0.20);
+  background: rgb(169 74 43 / 0.22);
   color: var(--color-ink);
 }
 
@@ -317,70 +358,62 @@ svg {
   outline-offset: 2px;
 }
 
-/* ── Typography (Airbnb-inspired scale on Inter) ──
-   Display sizes restore the old visual impact of Fraunces while using
-   Inter 600 — modest weight, large size, tight tracking. Pages that
-   force font-normal on display titles should prefer this base weight. */
+/* ── Typography (DESIGN.md §2) ──
+   Display roles use Gambarino (one weight, never synthesised). Small roles
+   use the platform font. No tracked-uppercase labels. */
 
-.text-display {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 4vw, 2.75rem);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-}
-
-.text-hero-display {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(2.25rem, 5.5vw, 3.75rem);
-  font-weight: 600;
-  line-height: 1.06;
-  letter-spacing: -0.025em;
+.text-hero-display,
+.text-display,
+.text-h1,
+.text-h2,
+.text-h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0;
   text-wrap: balance;
 }
 
+.text-hero-display {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  line-height: 1.05;
+}
+
+.text-display {
+  font-size: clamp(2rem, 4.2vw, 2.5rem);
+  line-height: 1.1;
+}
+
 .text-h1 {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(1.5rem, 3vw, 2.125rem);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  font-size: clamp(1.75rem, 3vw, 2rem);
+  line-height: 1.18;
 }
 
 .text-h2 {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: clamp(1.25rem, 2.5vw, 1.625rem);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-size: clamp(1.375rem, 2.4vw, 1.625rem);
+  line-height: 1.22;
 }
 
 .text-h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: 0;
+  font-size: 1.3125rem;
+  line-height: 1.24;
 }
 
 .text-h4 {
-  font-size: 0.875rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   line-height: 1.3;
-  letter-spacing: 0;
 }
 
 .text-h5 {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: 0;
+  line-height: 1.3;
 }
 
 .text-h6 {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: 0;
+  line-height: 1.35;
 }
 
 .text-body-lg {
@@ -398,62 +431,38 @@ svg {
 .text-label-lg {
   font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 1.3;
 }
 
 .text-label-md {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.4;
-  letter-spacing: 0.02em;
 }
 
 .text-caption {
-  font-size: 0.75rem;
-  line-height: 1.5;
+  font-size: 0.8125rem;
+  line-height: 1.4;
   color: var(--color-ink-3);
 }
 
+/* Former uppercase eyebrow: now a quiet sentence-case label. */
 .text-eyebrow {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-size: 0.8125rem;
+  font-weight: 600;
   line-height: 1.4;
-  text-transform: uppercase;
-  color: var(--color-accent);
+  color: var(--color-ink-3);
 }
 
+/* Emphasis inside a Gambarino headline: tonal colour, same face. */
 .text-serif-italic {
-  /* Accent name / highlight word — Inter italic, slightly heavier for presence */
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-style: italic;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-clay);
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
-}
-
-.page-fade {
-  animation: page-fade 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.breathing {
-  animation: breathe 2s linear infinite alternate;
-}
-
-.shimmer {
-  background: linear-gradient(90deg, var(--color-surface-soft), var(--color-surface), var(--color-surface-soft));
-  background-size: 220% 100%;
-  animation: shimmer 1200ms linear infinite;
-}
-
-.frosted {
-  background: color-mix(in srgb, var(--color-paper) 88%, transparent);
-  backdrop-filter: blur(var(--frost-blur));
 }
 
 .map-grid-bg {
@@ -461,11 +470,6 @@ svg {
   background-size: var(--map-grid-bg-size);
 }
 
-.promo-panel {
-  border-radius: var(--radius-promo);
-  border: 1px solid var(--color-line-2);
-  background: color-mix(in srgb, var(--color-surface) 72%, var(--color-lavender));
-}
 
 .content-grid {
   display: grid;
@@ -507,235 +511,166 @@ svg {
   white-space: normal;
 }
 
-@keyframes page-fade {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
+/* ── Motion (DESIGN.md §7) ──
+   Content is always visible: entrance motion moves layers that are already
+   painted at opacity 1. Nothing here starts at opacity 0. */
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.page-fade {
+  animation: paper-rise 320ms var(--ease-paper-out) both;
 }
 
-@keyframes fade-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.fade-slide-up,
+.card-appear {
+  animation: paper-rise 200ms var(--ease-paper-out) both;
 }
 
-.fade-slide-up {
-  animation: fade-slide-up 300ms cubic-bezier(0, 0, 0.2, 1) both;
+/* Skeleton bones: slow tone pulse, no moving highlight. */
+.shimmer {
+  background: var(--color-paper-2);
+  animation: paper-pulse 1600ms ease-in-out infinite alternate;
 }
 
-@keyframes breathe {
-  from {
-    transform: scale(1);
-  }
-
-  to {
-    transform: scale(1.05);
-  }
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 220% 0;
-  }
-
-  to {
-    background-position: -220% 0;
-  }
-}
-
-@keyframes drawer-in {
-  from {
-    transform: translateX(100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes bottom-sheet-in {
-  from {
-    transform: translateY(100%);
-  }
-
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 800ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.reveal.in-view {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.stagger-1 {
-  transition-delay: 80ms;
-}
-
-.stagger-2 {
-  transition-delay: 160ms;
-}
-
-.stagger-3 {
-  transition-delay: 240ms;
-}
-
-.stagger-4 {
-  transition-delay: 320ms;
-}
-
-.stagger-5 {
-  transition-delay: 400ms;
-}
-
-.stagger-6 {
-  transition-delay: 480ms;
-}
-
-.hero-stagger-1 {
-  animation-delay: 0ms;
-}
-
-.hero-stagger-2 {
-  animation-delay: 60ms;
-}
-
-.hero-stagger-3 {
-  animation-delay: 120ms;
-}
-
-.hero-stagger-4 {
-  animation-delay: 180ms;
-}
-
-.hero-stagger-5 {
-  animation-delay: 260ms;
-}
-
-.hero-stagger-6 {
-  animation-delay: 340ms;
-}
-
-@keyframes hero-fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.hero-animate {
-  opacity: 0;
-  animation: hero-fade-up 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Chip selection spring animation — scale bounce on select */
 .chip-spring {
-  transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    background-color 150ms ease-out,
-    border-color 150ms ease-out,
-    color 150ms ease-out;
+  transition: transform 120ms var(--ease-paper-out),
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out,
+    box-shadow 120ms ease-out;
 }
 
 .chip-spring:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-/* ProgressRing SVG draw animation */
 .ring-draw {
-  transition: stroke-dashoffset 300ms ease-out;
+  transition: stroke-dashoffset 320ms var(--ease-paper-out);
 }
 
-/* Feed card stagger appear */
-.card-appear {
-  opacity: 0;
-  transform: translateY(12px);
-  animation: card-appear 300ms ease-out both;
-}
-
-@keyframes card-appear {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Scale-in animation for ProfileGridCard Match button bounce */
-.animate-scale-in {
-  animation: scale-in 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes scale-in {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Match celebration overlay */
+.animate-scale-in,
 .match-celebration {
-  animation: match-pop 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: paper-settle 320ms var(--ease-paper-settle) both;
 }
 
-@keyframes match-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
+/* Scroll reveal: the section is visible from the first paint and only
+   settles 12 px into place when it enters the viewport. */
+.reveal {
+  transform: translateY(12px);
+  transition: transform 320ms var(--ease-paper-out);
+}
+
+.reveal.in-view {
+  transform: none;
+}
+
+.stagger-1 { transition-delay: 40ms; }
+.stagger-2 { transition-delay: 80ms; }
+.stagger-3 { transition-delay: 120ms; }
+.stagger-4 { transition-delay: 160ms; }
+.stagger-5 { transition-delay: 200ms; }
+.stagger-6 { transition-delay: 240ms; }
+
+.hero-stagger-1 { animation-delay: 0ms; }
+.hero-stagger-2 { animation-delay: 40ms; }
+.hero-stagger-3 { animation-delay: 80ms; }
+.hero-stagger-4 { animation-delay: 120ms; }
+.hero-stagger-5 { animation-delay: 160ms; }
+.hero-stagger-6 { animation-delay: 200ms; }
+
+@keyframes paper-rise {
+  from { transform: translateY(12px); }
+  to { transform: none; }
+}
+
+@keyframes paper-settle {
+  from { transform: scale(0.94); }
+  to { transform: none; }
+}
+
+@keyframes paper-pulse {
+  from { background-color: var(--color-paper-2); }
+  to { background-color: var(--color-paper-3); }
+}
+
+@keyframes drawer-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes bottom-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fade-slide-up {
+  from { transform: translateY(12px); }
+  to { transform: none; }
+}
+
+/* ── Paper details (DESIGN.md §5) ── */
+
+/* Grain on a surface. Pair with a bg-* colour class. */
+.paper-grain {
+  background-image: var(--grain);
+}
+
+/* Hand-cut card corners. */
+.rounded-hand {
+  border-radius: var(--radius-hand);
+}
+
+/* Torn bottom edge. Give the element bottom padding > var(--torn-depth). */
+.paper-edge-torn-bottom {
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--torn-depth) + 1px) no-repeat,
+    var(--torn-bottom-tile) bottom / 120px var(--torn-depth) repeat-x;
+}
+
+/* Torn top edge (bottom sheets, where a scene meets content). */
+.paper-edge-torn-top {
+  mask:
+    var(--torn-top-tile) top / 120px var(--torn-depth) repeat-x,
+    linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--torn-depth) + 1px) no-repeat;
+}
+
+/* Scalloped (bitten) left edge: toasts. Needs left padding > 8px. */
+.paper-edge-scallop-left {
+  mask: radial-gradient(circle at 0 50%, #0000 5px, #000 5.5px) 0 0 / 100% 14px repeat-y;
+}
+
+/* Scalloped bottom edge: the offline strip. Needs bottom padding > 8px. */
+.paper-edge-scallop-bottom {
+  mask: radial-gradient(circle at 50% 100%, #0000 5px, #000 5.5px) 0 0 / 14px 100% repeat-x;
+}
+
+/* Tactile press for buttons: sink one layer. No hover movement. */
+.paper-press {
+  transition: transform 120ms var(--ease-paper-out), box-shadow 120ms var(--ease-paper-out),
+    background-color 120ms ease-out, color 120ms ease-out;
+}
+
+.paper-press:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Card lift on hover (pointer devices only): one layer up. */
+@media (hover: hover) {
+  .paper-lift {
+    transition: transform 200ms var(--ease-paper-out), box-shadow 200ms var(--ease-paper-out);
   }
 
-  to {
-    opacity: 1;
-    transform: scale(1);
+  .paper-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -745,56 +680,11 @@ svg {
     transition-duration: 0.01ms !important;
   }
 
-  .chip-spring {
-    transition: none;
-  }
-
-  .ring-draw {
-    transition: none;
-  }
-
-  .card-appear {
-    opacity: 1;
-    transform: none;
-    animation: none;
-  }
-
-  .animate-scale-in {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  .match-celebration {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  .animate-float-subtle,
-  .animate-counter-up,
-  .animate-fade-in-up,
-  .animate-slide-in-right,
-  .animate-gradient-shift::before,
-  .hero-animate,
   .reveal,
-  .stagger-reveal>* {
-    animation: none;
-    opacity: 1;
+  .paper-lift:hover,
+  .paper-press:active:not(:disabled),
+  .chip-spring:active {
     transform: none;
-  }
-
-  .stagger-cascade>* {
-    animation: none;
-    opacity: 1;
-  }
-
-  .faq-item-content {
-    transition: none;
-  }
-
-  .faq-chevron {
-    transition: none;
   }
 
   .scroll-progress-bar {
@@ -804,211 +694,22 @@ svg {
 
 @media (prefers-contrast: more) {
   :root {
-    --color-line: rgba(34, 34, 34, 0.2);
-    --color-ink-3: #4a4a4a;
+    --color-line: rgb(35 32 28 / 0.28);
+    --color-ink-3: #4A443D;
   }
 }
-
-/* ── Animation Keyframes ── */
-
-/* Gentle float animation for hero mockup */
-@keyframes float-subtle {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-/* Animated counter for stats */
-@keyframes counter-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Slow atmospheric gradient shift — compositor-only transform animation */
-@keyframes gradient-shift {
-
-  0%,
-  100% {
-    transform: translate(-10%, -10%);
-  }
-
-  50% {
-    transform: translate(10%, 10%);
-  }
-}
-
-/* Premium entrance animation */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Slide in from right for step cards */
-@keyframes slide-in-right {
-  from {
-    opacity: 0;
-    transform: translateX(32px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Primary glow pulse for CTA hover */
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 2px 12px rgba(255, 56, 92, 0.12);
-  }
-
-  50% {
-    box-shadow: 0 8px 32px rgba(255, 56, 92, 0.20);
-  }
-}
-
-/* SVG ring draw animation */
-@keyframes draw-ring {
-  from {
-    stroke-dashoffset: var(--ring-circumference);
-  }
-
-  to {
-    stroke-dashoffset: var(--ring-offset);
-  }
-}
-
-/* Cascade-in entrance with subtle scale */
-@keyframes cascade-in {
-  from {
-    opacity: 0;
-    transform: translateY(24px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Accordion content fade */
-@keyframes accordion-content {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-/* ── Animation Utility Classes ── */
-
-/* Float animation for hero mockup */
-.animate-float-subtle {
-  animation: float-subtle 4s ease-in-out infinite;
-}
-
-/* Counter entrance */
-.animate-counter-up {
-  animation: counter-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Premium entrance */
-.animate-fade-in-up {
-  animation: fade-in-up 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Slide in right */
-.animate-slide-in-right {
-  animation: slide-in-right 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* Gradient shift for atmospheric backgrounds — applied to ::before pseudo-element */
-.animate-gradient-shift::before {
-  animation: gradient-shift 12s ease-in-out infinite;
-}
-
-/* ── Stagger Reveal Utility ── */
-
-/* Stagger delay using CSS custom property --i */
-.stagger-reveal>* {
-  opacity: 0;
-  animation: fade-in-up 300ms cubic-bezier(0, 0, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
-}
-
-.stagger-reveal.in-view>* {
-  opacity: 1;
-}
-
-/* ── Cascade Stagger Utility ── */
-
-.stagger-cascade>* {
-  opacity: 0;
-  animation: cascade-in 300ms cubic-bezier(0, 0, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
-}
-
-/* ── Bento Card Utility ── */
 
 .bento-card {
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-hand);
   background: var(--color-surface);
-  border: 1px solid var(--color-line-2);
   padding: 1rem;
-  transition: all 300ms cubic-bezier(0, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
 }
 
 @media (min-width: 640px) {
   .bento-card {
     padding: 1.5rem;
   }
-}
-
-.bento-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-/* ── Accent Pill (step numbers) ── */
-
-.accent-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 0.25rem 0.75rem;
-  line-height: 1.4;
 }
 
 /* ── FAQ Accordion Styles ── */
