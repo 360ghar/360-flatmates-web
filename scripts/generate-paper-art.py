@@ -333,6 +333,164 @@ def prop_bell():
     return s
 
 
+# -- SVG path parser (for hand-drawn icons) --------------------------------
+def svg_path(d: str, w: float, h: float, even_odd: bool = True) -> Shape:
+    """Parse an SVG path `d` (M L H V C S A Z, absolute or relative) into a
+    Shape. Arcs become cubic curves, so the Dart decoder stays tiny."""
+    import re as _re
+    tokens = _re.findall(r"[MmLlHhVvCcSsAaZz]|-?(?:\d+\.?\d*|\.\d+)(?:e-?\d+)?", d)
+    s = Shape(w, h, even_odd=even_odd)
+    i = 0
+    cmd = ""
+    x = y = sx = sy = 0.0
+    last_c2 = None  # second control point of the previous cubic (for S)
+
+    def num():
+        nonlocal i
+        v = float(tokens[i])
+        i += 1
+        return v
+
+    def flag():
+        # Arc flags may be packed ("10" = large-arc 1, sweep 0).
+        nonlocal i
+        t = tokens[i]
+        if len(t) > 1 and t[0] in "01" and not t.startswith("0."):
+            tokens[i] = t[1:]
+            return float(t[0])
+        i += 1
+        return float(t)
+
+    while i < len(tokens):
+        if _re.match(r"[A-Za-z]", tokens[i]):
+            cmd = tokens[i]
+            i += 1
+        rel = cmd.islower()
+        c = cmd.upper()
+        if c == "Z":
+            s.close()
+            x, y = sx, sy
+            last_c2 = None
+            continue
+        if c == "M":
+            nx, ny = num(), num()
+            if rel:
+                nx, ny = x + nx, y + ny
+            s.move(nx, ny)
+            x, y, sx, sy = nx, ny, nx, ny
+            cmd = "l" if rel else "L"  # implicit lineto after moveto
+            last_c2 = None
+        elif c in "LHV":
+            if c == "L":
+                nx, ny = num(), num()
+                if rel:
+                    nx, ny = x + nx, y + ny
+            elif c == "H":
+                nx, ny = num(), y
+                if rel:
+                    nx = x + nx
+            else:
+                nx, ny = x, num()
+                if rel:
+                    ny = y + ny
+            s.line(nx, ny)
+            x, y = nx, ny
+            last_c2 = None
+        elif c in "CS":
+            if c == "C":
+                x1, y1 = num(), num()
+                if rel:
+                    x1, y1 = x + x1, y + y1
+            else:
+                x1, y1 = (2 * x - last_c2[0], 2 * y - last_c2[1]) if last_c2 else (x, y)
+            x2, y2, nx, ny = num(), num(), num(), num()
+            if rel:
+                x2, y2, nx, ny = x + x2, y + y2, x + nx, y + ny
+            s.cubic(x1, y1, x2, y2, nx, ny)
+            last_c2 = (x2, y2)
+            x, y = nx, ny
+        elif c == "A":
+            rx, ry, rot = num(), num(), num()
+            large, sweep = flag(), flag()
+            nx, ny = num(), num()
+            if rel:
+                nx, ny = x + nx, y + ny
+            for seg in _arc_to_cubics(x, y, rx, ry, rot, large, sweep, nx, ny):
+                s.cubic(*seg)
+            x, y = nx, ny
+            last_c2 = None
+        else:
+            raise ValueError(f"unsupported path command {cmd!r}")
+    return s
+
+
+def _arc_to_cubics(x1, y1, rx, ry, rot, large, sweep, x2, y2):
+    """SVG endpoint arc to cubic Bezier segments (each <= 90 degrees)."""
+    if rx == 0 or ry == 0:
+        return [(x1, y1, x2, y2, x2, y2)]
+    phi = math.radians(rot)
+    cp, sp = math.cos(phi), math.sin(phi)
+    dx, dy = (x1 - x2) / 2, (y1 - y2) / 2
+    x1p, y1p = cp * dx + sp * dy, -sp * dx + cp * dy
+    rx, ry = abs(rx), abs(ry)
+    lam = x1p ** 2 / rx ** 2 + y1p ** 2 / ry ** 2
+    if lam > 1:
+        rx, ry = rx * math.sqrt(lam), ry * math.sqrt(lam)
+    num_ = rx ** 2 * ry ** 2 - rx ** 2 * y1p ** 2 - ry ** 2 * x1p ** 2
+    den = rx ** 2 * y1p ** 2 + ry ** 2 * x1p ** 2
+    co = math.sqrt(max(0.0, num_ / den)) * (-1 if large == sweep else 1)
+    cxp, cyp = co * rx * y1p / ry, -co * ry * x1p / rx
+    cx = cp * cxp - sp * cyp + (x1 + x2) / 2
+    cy = sp * cxp + cp * cyp + (y1 + y2) / 2
+
+    def ang(ux, uy, vx, vy):
+        a = math.atan2(ux * vy - uy * vx, ux * vx + uy * vy)
+        return a
+
+    t1 = ang(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry)
+    dt = ang((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry)
+    if not sweep and dt > 0:
+        dt -= 2 * math.pi
+    elif sweep and dt < 0:
+        dt += 2 * math.pi
+    n = max(1, math.ceil(abs(dt) / (math.pi / 2)))
+    step = dt / n
+    k = 4 / 3 * math.tan(step / 4)
+    out = []
+    t = t1
+    for _ in range(n):
+        c1, s1 = math.cos(t), math.sin(t)
+        c2, s2 = math.cos(t + step), math.sin(t + step)
+        p1 = (c1 - k * s1, s1 + k * c1)
+        p2 = (c2 + k * s2, s2 - k * c2)
+        p3 = (c2, s2)
+        pts = []
+        for px, py in (p1, p2, p3):
+            px, py = px * rx, py * ry
+            pts += [cp * px - sp * py + cx, sp * px + cp * py + cy]
+        out.append(tuple(pts))
+        t += step
+    return out
+
+
+# Cut-paper nav icons on a 24 grid (DESIGN.md section 9). Holes are even-odd.
+NAV_ICONS = {
+    "navHome": "M14 2.5h4.5v3.2H14zM3 7.2h18.2v1.6H20V21.3H4V8.8H3zM7 11.2v3h3v-3zm7 0v3h3v-3zm-4 10.1h4v-5.1h-4z",
+    "navExplore": "M2.5 5.2 8.6 3l6.8 2.4 6.1-2.2v15.6l-6.1 2.2-6.8-2.4-6.1 2.2zM15 9.3a2.3 2.3 0 1 0-4.6 0c0 1.7 2.3 4.3 2.3 4.3S15 11 15 9.3z",
+    "navSwipe": "M4.2 6.9 12.6 4l4.9 14.3-8.4 2.9zM13.6 3.6l5.7 1.5c.9.2 1.4 1.1 1.2 2l-2.4 9.4z",
+    "navHeart": "M12 21c-4.4-3.2-9-6.6-9-11.3C3 6.6 5.2 4.3 8 4.3c1.7 0 3.1.9 4 2.3.9-1.4 2.3-2.3 4-2.3 2.8 0 5 2.3 5 5.4 0 4.7-4.6 8.1-9 11.3z",
+    "navPost": "M5 2.5h9.5L19.5 7.5V21.5H5zM14 3.5v4.5h4.5zM11.2 10.5v2.8H8.4v1.8h2.8v2.8H13v-2.8h2.8v-1.8H13v-2.8z",
+    "navProfile": "M12 2.8a4.3 4.3 0 1 1 0 8.6 4.3 4.3 0 0 1 0-8.6zM3.5 21.2c.4-4.6 4-7.6 8.5-7.6s8.1 3 8.5 7.6z",
+    "navMore": "M3.4 3.6h7.3v7.2H3.2zM13.3 3.3h7.4v7.3h-7.3zM3.3 13.4h7.2v7.3H3.5zM13.4 13.3h7.3l-.1 7.4h-7.2z",
+    "navSaved": "M6 2.8h12.2V21.4l-6.1-4.3-6.1 4.3z",
+    "navChats": "M4.6 3.6h14.8c.9 0 1.6.7 1.6 1.6v10.2c0 .9-.7 1.6-1.6 1.6H11l-4.8 3.9.4-3.9h-2c-.9 0-1.6-.7-1.6-1.6V5.2c0-.9.7-1.6 1.6-1.6zM8.2 8.7h2.4v2.4H8.2zm5.2 0h2.4v2.4h-2.4z",
+    "navDashboard": "M3.4 13.4h4.4v7.4H3.3zM9.8 8.3h4.4l.1 12.5H9.7zM16.3 3.4h4.4v17.4h-4.5z",
+    "navVisits": "M3.2 5.2h17.6v16.2H3.2zM6.8 2.6h2.2v4.4H6.8zm8.2 0h2.2v4.4H15zM13.6 13.2v4.2h4.2v-4.2z",
+    "navAlerts": "M12 2.6c.8 0 1.4.6 1.4 1.3 2.8.7 4.4 3 4.4 6.2v4.2l2 2.5H4.2l2-2.5v-4.2c0-3.2 1.6-5.5 4.4-6.2 0-.7.6-1.3 1.4-1.3zM9.8 18.4h4.4a2.2 2.2 0 0 1-4.4 0z",
+    "navAppearance": "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zm0 2.2v13.6a6.8 6.8 0 0 0 0-13.6z",
+}
+
+
 def build():
     W, H = 1200, 360
     near_town, near_windows = skyline(W, H, 7, 0.62, (0, 0, 40, 120, 220), 20.0)
@@ -357,13 +515,17 @@ def build():
         "rainCloud": prop_rain_cloud(),
         "bell": prop_bell(),
     }
+    for name, d in NAV_ICONS.items():
+        icon = svg_path(d, 24, 24)
+        icon.web_d = d  # web keeps the hand-written path
+        shapes[name] = icon
     edge = torn_edge()
 
     header = "// GENERATED by scripts/generate-paper-art.py. Do not edit by hand.\n"
     ts = [header, "export interface PaperShape {\n  w: number;\n  h: number;\n  d: string;\n  evenOdd: boolean;\n}\n\n"]
     ts.append("export const paperArt = {\n")
     for name, s in shapes.items():
-        ts.append(f"  {name}: {{ w: {s.w}, h: {s.h}, evenOdd: {'true' if s.even_odd else 'false'}, d: \"{s.svg_d()}\" }},\n")
+        ts.append(f"  {name}: {{ w: {s.w}, h: {s.h}, evenOdd: {'true' if s.even_odd else 'false'}, d: \"{getattr(s, 'web_d', None) or s.svg_d()}\" }},\n")
     ts.append("} satisfies Record<string, PaperShape>;\n\n")
     ts.append("export type PaperArtName = keyof typeof paperArt;\n\n")
     ts.append("/** One torn-edge tile, normalised 0..1. Repeat along an edge. */\n")
