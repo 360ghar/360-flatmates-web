@@ -366,8 +366,8 @@ export function buildStaticRoutes(): RouteContent[] {
       <p>Browse verified room and flatmate listings across Indian cities. Every listing is reviewed before going live — real photos, real rent, real availability.</p>
       <h2>Browse by City</h2>
       <ul>
-        <li><a href="/cities/bangalore">Bangalore — 1,200+ listings</a></li>
-        <li><a href="/cities/gurugram">Gurugram — 860+ listings</a></li>
+        <li><a href="/cities/bangalore">Rooms and flatmates in Bangalore</a></li>
+        <li><a href="/cities/gurugram">Rooms and flatmates in Gurugram</a></li>
       </ul>
       <p><a href="/discover">Browse all listings →</a></p>
     `,

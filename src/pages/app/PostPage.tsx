@@ -157,6 +157,8 @@ export function PostPage() {
      photos must be re-added after a refresh. */
   const draftWarned = useRef(false);
   useEffect(() => {
+    // After publish the draft is deleted; a save still pending must not restore it.
+    if (hasPublished) return;
     const timer = window.setTimeout(() => {
       if (!saveDraft({ form, currentStep }) && !draftWarned.current) {
         draftWarned.current = true;
@@ -168,7 +170,16 @@ export function PostPage() {
       }
     }, DRAFT_SAVE_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [form, currentStep]);
+  }, [form, currentStep, hasPublished]);
+
+  // Uploads can outlast the page; do not pull a user who left back to review.
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const createProperty = useCreateProperty();
   const uploadImage = useUploadPropertyImage();
@@ -259,15 +270,23 @@ export function PostPage() {
     let failed = 0;
     if (toUpload.length > 0) {
       setUploadingPhotos(true);
-      const results = await Promise.allSettled(
-        toUpload.map((img, index) =>
-          uploadImage.mutateAsync({
-            propertyId,
-            payload: { image_url: img.preview, is_main: index === 0 }
-          })
-        )
-      );
-      failed = results.filter((r) => r.status === "rejected").length;
+      // Two at a time: each base64 body is large, and a slow uplink would
+      // otherwise time out every upload together.
+      let next = 0;
+      const worker = async () => {
+        while (next < toUpload.length) {
+          const index = next++;
+          try {
+            await uploadImage.mutateAsync({
+              propertyId,
+              payload: { image_url: toUpload[index].preview, is_main: index === 0 }
+            });
+          } catch {
+            failed += 1;
+          }
+        }
+      };
+      await Promise.all([worker(), worker()]);
       setUploadingPhotos(false);
     }
     uiStore.getState().pushToast(
@@ -279,7 +298,9 @@ export function PostPage() {
             description: `${failed} of ${toUpload.length} photos did not upload. Add them again from your listing.`
           }
     );
-    navigate(`/post/review/${propertyId}`, { state: { listingId: propertyId } });
+    if (mounted.current) {
+      navigate(`/post/review/${propertyId}`, { state: { listingId: propertyId } });
+    }
   }
 
   function handleBack() {
