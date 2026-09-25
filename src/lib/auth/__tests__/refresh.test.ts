@@ -1,3 +1,4 @@
+import { authSessionLifecycle } from "../session-lifecycle";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockRefreshSession = vi.fn();
@@ -45,6 +46,18 @@ describe("refresh module", () => {
   });
 
   describe("refreshAccessToken", () => {
+    it("discards a refresh that completes after sign-out", async () => {
+      let resolve!: (value: unknown) => void;
+      mockRefreshSession.mockReturnValue(new Promise((done) => { resolve = done; }));
+      const refresh = refreshAccessToken();
+      authSessionLifecycle.beginSignOut();
+      authSessionLifecycle.finishSignOut();
+      resolve({ data: { session: { access_token: "stale-token" } }, error: null });
+      expect(await refresh).toBeNull();
+      expect(mockSetAccessToken).not.toHaveBeenCalled();
+      expect(assignSpy).not.toHaveBeenCalled();
+    });
+
     it("returns the new token and writes it via setAccessToken on success", async () => {
       mockRefreshSession.mockResolvedValue({
         data: { session: { access_token: "new-token" } },

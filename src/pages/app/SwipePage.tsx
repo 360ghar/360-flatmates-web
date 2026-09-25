@@ -6,7 +6,6 @@ import {
   useSwipeAction,
   useBootstrap
 } from "@/hooks/queries";
-import { useKeyboardSwipe } from "@/hooks/useKeyboardSwipe";
 import { useStore } from "zustand";
 import { swipeStore } from "@/lib/stores/swipe-store";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -117,13 +116,19 @@ function peerToSwipeProfile(
 /** Matches the card fly-off animation in SwipeDeck. */
 const SWIPE_FLY_OFF_MS = 320;
 
+interface PendingMatch {
+  profile: SwipeProfile;
+  conversationId: number | null;
+}
+
 export function SwipePage() {
   const navigate = useNavigate();
   const { data: profiles, isLoading, error, refetch } = useSwipeDeck();
   const { data: bootstrap } = useBootstrap();
   const swipeAction = useSwipeAction();
-  const [matchProfile, setMatchProfile] = useState<SwipeProfile | null>(null);
-  const [matchConversationId, setMatchConversationId] = useState<number | null>(null);
+  const [matches, setMatches] = useState<PendingMatch[]>([]);
+  const activeMatch = matches[0];
+  const mounted = useRef(false);
 
   /* ----- Zustand swipe store ----- */
   const storeAnimating = useStore(swipeStore, (s) => s.isAnimating);
@@ -142,8 +147,10 @@ export function SwipePage() {
   const replenishTriggered = useRef(false);
   const timers = useRef<number[]>([]);
   useEffect(() => {
+    mounted.current = true;
     const pending = timers.current;
     return () => {
+      mounted.current = false;
       pending.forEach((id) => window.clearTimeout(id));
       // Leaving mid fly-off must not leave the global store locked.
       swipeStore.getState().setAnimating(false);
@@ -191,9 +198,11 @@ export function SwipePage() {
         })
         .then(
           (result) => {
-            if (result.did_match && matched) {
-              setMatchProfile(matched);
-              setMatchConversationId(result.conversation_id ?? null);
+            if (mounted.current && result.did_match && matched) {
+              setMatches((queued) => [...queued, {
+                profile: matched,
+                conversationId: result.conversation_id ?? null
+              }]);
             }
           },
           (err) => {
@@ -233,22 +242,11 @@ export function SwipePage() {
     }
   }, []);
 
-  /* ----- Keyboard support -----
-   * Swipe keys (ArrowLeft/Right/Up, Space) are owned solely by SwipeDeck's
-   * focusable <section> onKeyDown handler, which both fires the action callback
-   * AND advances the visual deck. We deliberately do NOT also wire those keys
-   * through the global `useKeyboardSwipe` here: doing so double-fires the swipe
-   * (window listener + section handler) and the global path could not advance
-   * the uncontrolled deck. This hook is retained only to let Escape dismiss the
-   * match-celebration overlay from anywhere on the page. */
-  const handleKeyboardDismiss = useCallback(() => {
-    setMatchProfile(null);
+  // The native match dialog handles Escape. A second window listener would
+  // remove two queued matches for the same key press.
+  const dismissMatch = useCallback(() => {
+    setMatches((queued) => queued.slice(1));
   }, []);
-
-  useKeyboardSwipe({
-    onDismiss: handleKeyboardDismiss,
-    enabled: !!matchProfile
-  });
 
   /* ----- Rendering ----- */
   // Multi-select batch-unswipe is intentionally omitted for the flatmate deck:
@@ -291,14 +289,15 @@ export function SwipePage() {
       </AnimatePresence>
 
       {/* Match celebration overlay */}
-      {matchProfile && (
+      {activeMatch && (
         <MatchCelebration
-          profile={matchProfile}
-          onDismiss={handleKeyboardDismiss}
+          key={activeMatch.profile.id}
+          profile={activeMatch.profile}
+          onDismiss={dismissMatch}
           onChat={() => {
-            setMatchProfile(null);
+            dismissMatch();
             // Open the new match's conversation directly (W22).
-            navigate(matchConversationId ? `/chats/${matchConversationId}` : "/chats");
+            navigate(activeMatch.conversationId ? `/chats/${activeMatch.conversationId}` : "/chats");
           }}
         />
       )}

@@ -26,6 +26,10 @@ const mockSupabaseAuth = {
 };
 
 vi.mock("@/lib/supabase/client", () => ({
+  signOutBrowserSession: async () => {
+    const { error } = await mockSignOut();
+    return error;
+  },
   getSupabaseBrowserClient: () => ({
     auth: mockSupabaseAuth
   })
@@ -119,6 +123,18 @@ describe("useAuth", () => {
     expect(result.current.session).toEqual(mockSession);
   });
 
+  it("does not restore a bootstrap session after a signed-out event", async () => {
+    let resolve!: (value: unknown) => void;
+    mockGetSession.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+    await act(async () => {
+      mockOnAuthStateChange.mock.calls[0][0]("SIGNED_OUT", null);
+      resolve({ data: { session: { user: { id: "old-account" }, access_token: "old", expires_at: Date.now() / 1000 + 3600 } } });
+    });
+    expect(result.current.session).toBeNull();
+    expect(result.current.loading).toBe(false);
+  });
+
   it("calls signInWithPhone with shouldCreateUser:false by default (login/reset safe)", async () => {
     mockSignInWithOtp.mockResolvedValue({ error: null });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
@@ -202,8 +218,8 @@ describe("useAuth", () => {
       await result.current.signOut();
     });
     expect(result.current.session).toBeNull();
-    // supabase-js keeps the stored session after a failed revoke; drop it locally.
-    expect(mockSignOut).toHaveBeenLastCalledWith({ scope: "local" });
+    // Storage and SDK cleanup are covered with the real SDK in session-storage.test.
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
   it("signInWithEmailOtp sends a 6-digit OTP with shouldCreateUser:false by default", async () => {

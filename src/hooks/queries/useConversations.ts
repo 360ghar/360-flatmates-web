@@ -48,7 +48,9 @@ const CONVERSATIONS_PAGE_SIZE = 30;
  * use this hook to grow the visible set without forcing a refetch.
  */
 export function useInfiniteConversations() {
+  const refetchInterval = useRealtimeFallbackInterval();
   return useInfiniteQuery({
+    refetchInterval,
     queryKey: ["conversations", "infinite"],
     queryFn: async ({ pageParam, signal }) => {
       const response = await apiClient.request<ConversationCursorPage>({

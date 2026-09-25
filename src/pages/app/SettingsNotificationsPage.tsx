@@ -58,77 +58,87 @@ export function SettingsNotificationsPage() {
   const baseToggles = useMemo(() => buildInitialToggles(savedPrefs), [savedPrefs]);
   const toggles = userEdits ?? baseToggles;
 
-  const flushPrefs = useCallback(() => {
-    if (pendingPrefs.current) {
-      updateProfile.mutate(
-        { preferences: pendingPrefs.current },
-        {
-          onSuccess: () => {
-            uiStore.getState().pushToast({
-              type: "success",
-              title: "Notification preferences saved"
-            });
-          },
-          onError: () => {
-            uiStore.getState().pushToast({
-              type: "error",
-              title: "Could not save preferences",
-              description: "Please try again."
-            });
-          }
-        }
-      );
-      pendingPrefs.current = null;
-    }
-  }, [updateProfile]);
-
-  // Flush any pending preferences on unmount. mutate() callbacks do not run
-  // once the component is gone, so use the mutateAsync promise (W12).
+  const latestPrefs = useRef<Record<string, boolean> | null>(null);
+  const mounted = useRef(false);
+  const pushAttempt = useRef(0);
+  const pendingWrites = useRef<Promise<void>>(Promise.resolve());
   const updateProfileRef = useRef(updateProfile);
   useEffect(() => {
     updateProfileRef.current = updateProfile;
   });
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      const pending = pendingPrefs.current;
-      if (!pending) return;
-      pendingPrefs.current = null;
-      updateProfileRef.current.mutateAsync({ preferences: pending }).catch(() => {
+
+  const flushPrefs = useCallback(() => {
+    const preferences = pendingPrefs.current;
+    if (!preferences) return;
+    pendingPrefs.current = null;
+    // Preserve write order: a slow opt-in save must not overwrite its rollback.
+    pendingWrites.current = pendingWrites.current
+      .then(() => updateProfileRef.current.mutateAsync({ preferences }))
+      .then(() => {
+        if (mounted.current) {
+          uiStore.getState().pushToast({ type: "success", title: "Notification preferences saved" });
+        }
+      })
+      .catch(() => {
         uiStore.getState().pushToast({
           type: "error",
           title: "Could not save preferences",
           description: "Please reopen settings to retry."
         });
       });
-    };
   }, []);
+
+  const queuePreferences = useCallback((next: Record<string, boolean>) => {
+    latestPrefs.current = next;
+    pendingPrefs.current = next;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (mounted.current) {
+      setUserEdits(next);
+      debounceRef.current = setTimeout(flushPrefs, 500);
+    } else {
+      // A permission prompt can finish after navigating away from settings.
+      flushPrefs();
+    }
+  }, [flushPrefs]);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      flushPrefs();
+    };
+  }, [flushPrefs]);
 
   const handleToggle = useCallback(
     (key: string) => {
-      const base = userEdits ?? baseToggles;
+      const base = latestPrefs.current ?? baseToggles;
       const wasOn = base[key] ?? false;
       const next = { ...base, [key]: !base[key] };
 
-      pendingPrefs.current = next;
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(flushPrefs, 500);
-
-      setUserEdits(next);
+      queuePreferences(next);
 
       // Opt-in browser push: register/unregister when the master toggle flips.
       if (key === "push_notifications") {
         const enabling = !wasOn;
+        const attempt = ++pushAttempt.current;
         void (async () => {
           try {
             if (enabling) {
               const token = await requestAndRegisterPush();
+              if (attempt !== pushAttempt.current) {
+                if (token && !latestPrefs.current?.push_notifications) {
+                  await unregisterDevice(token);
+                }
+                return;
+              }
               if (!token) {
                 // Permission denied or unsupported: put the toggle back off
                 // so the saved preference matches reality.
-                const reverted = { ...next, push_notifications: false };
-                pendingPrefs.current = reverted;
-                setUserEdits(reverted);
+                queuePreferences({
+                  ...latestPrefs.current,
+                  push_notifications: false
+                });
                 uiStore.getState().pushToast({
                   type: "info",
                   title: "Push not enabled",
@@ -155,13 +165,17 @@ export function SettingsNotificationsPage() {
               if (token) {
                 await unregisterDevice(token);
                 try {
-                  localStorage.removeItem(PUSH_TOKEN_KEY);
+                  if (attempt === pushAttempt.current) localStorage.removeItem(PUSH_TOKEN_KEY);
                 } catch {
                   /* ignore */
                 }
               }
             }
           } catch {
+            if (attempt !== pushAttempt.current) return;
+            if (enabling) {
+              queuePreferences({ ...latestPrefs.current, push_notifications: false });
+            }
             uiStore.getState().pushToast({
               type: "error",
               title: "Could not update push registration",
@@ -171,7 +185,7 @@ export function SettingsNotificationsPage() {
         })();
       }
     },
-    [baseToggles, flushPrefs, userEdits]
+    [baseToggles, queuePreferences]
   );
 
   if (isLoading) {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useStore } from "zustand";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, signOutBrowserSession } from "@/lib/supabase/client";
+import { authSessionLifecycle } from "@/lib/auth/session-lifecycle";
 import { authStore } from "@/lib/stores/auth-store";
 import {
   checkIdentifierStatus as checkIdentifierStatusApi,
@@ -98,6 +99,7 @@ function initAuthSubscription() {
   _initialized = true;
 
   const supabase = getSupabaseBrowserClient();
+  const sessionRevision = authSessionLifecycle.revision;
 
   // Safety timeout: force loading to false after 5s even if getSession hangs
   const timeout = setTimeout(() => {
@@ -108,6 +110,7 @@ function initAuthSubscription() {
     .getSession()
     .then(async (result: { data: { session: Session | null } }) => {
       clearTimeout(timeout);
+      if (!authSessionLifecycle.isCurrent(sessionRevision)) return;
       let currentSession = result.data.session;
 
       if (currentSession && isTokenExpired(currentSession)) {
@@ -124,6 +127,7 @@ function initAuthSubscription() {
         }
       }
 
+      if (!authSessionLifecycle.isCurrent(sessionRevision)) return;
       const testSession =
         currentSession ??
         (import.meta.env.DEV ? getPlaywrightSession() : null);
@@ -138,7 +142,9 @@ function initAuthSubscription() {
 
   // Subscribe to auth state changes — single subscription for the entire app
   supabase.auth.onAuthStateChange(
-    (_event: string, newSession: Session | null) => {
+    (event: string, newSession: Session | null) => {
+      if (event === "SIGNED_OUT") authSessionLifecycle.signedOut();
+      if (newSession && authSessionLifecycle.signingOut) return;
       const currentSession =
         newSession ?? (import.meta.env.DEV ? getPlaywrightSession() : null);
       authStore.getState().setSession(currentSession);
@@ -293,17 +299,13 @@ export function useAuth(): UseAuthReturn {
         new Promise((resolve) => setTimeout(resolve, 5_000))
       ]).catch(() => undefined);
     }
-    const { error } = await supabase.auth.signOut();
-    // On a network/5xx revoke failure supabase-js keeps the stored session, so
-    // a reload would sign the user back in. Drop it locally.
-    if (error) await supabase.auth.signOut({ scope: "local" });
     clearPlaywrightSession();
+    const error = await signOutBrowserSession();
     authStore.getState().resetAuthFlow();
     authStore.getState().setSession(null);
-    // The local session is gone either way (scope "local" above), so the user
-    // IS signed out. A server-side revoke failure is logged, not surfaced (W18).
+    // Only report local cleanup after both storage and SDK sign-out succeed.
     if (error) debug.warn("Auth", "Server sign-out failed; local session cleared", error);
-  }, [supabase]);
+  }, []);
 
   const recordAuthSuccess = useCallback(
     async (method: AuthMethod, identifier?: string) => {
