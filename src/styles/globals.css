@@ -424,6 +424,13 @@ body {
   line-height: 1.43;
 }
 
+/* DESIGN body-sm (14 / 20). Was used but never defined. */
+.text-body-sm {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.43;
+}
+
 .text-label-lg {
   font-size: 0.875rem;
   font-weight: 600;
