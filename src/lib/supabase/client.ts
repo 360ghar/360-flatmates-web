@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getEnv } from "@/lib/env";
+import { AuthSessionStorage, signOutWithLocalCleanup } from "./session-storage";
 
 /**
  * Singleton browser Supabase client.
@@ -9,6 +10,8 @@ import { getEnv } from "@/lib/env";
  * client instance across the app.
  */
 let browserClient: ReturnType<typeof createClient> | undefined;
+let sessionStorage: AuthSessionStorage;
+let signOutPromise: Promise<unknown> | undefined;
 
 export function getSupabaseBrowserClient() {
   if (browserClient) {
@@ -16,11 +19,17 @@ export function getSupabaseBrowserClient() {
   }
 
   const env = getEnv();
+  sessionStorage = new AuthSessionStorage(
+    `sb-${new URL(env.VITE_SUPABASE_URL).hostname.split(".")[0]}-auth-token`
+  );
   browserClient = createClient(
     env.VITE_SUPABASE_URL,
     env.VITE_SUPABASE_PUBLISHABLE_KEY,
     {
       auth: {
+        storageKey: sessionStorage.key,
+        storage: sessionStorage,
+        lock: sessionStorage.lock,
         // PKCE flow: OAuth providers (Google/Apple) redirect back with a
         // `?code=` param that AuthCallbackPage exchanges via
         // `exchangeCodeForSession`. The supabase-js default is `implicit`,
@@ -39,4 +48,11 @@ export function getSupabaseBrowserClient() {
   );
 
   return browserClient;
+}
+
+export function signOutBrowserSession(): Promise<unknown> {
+  const client = getSupabaseBrowserClient();
+  signOutPromise ??= signOutWithLocalCleanup(client.auth, sessionStorage)
+    .finally(() => { signOutPromise = undefined; });
+  return signOutPromise;
 }

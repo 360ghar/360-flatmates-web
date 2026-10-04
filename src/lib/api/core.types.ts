@@ -46,3 +46,11 @@ export interface BugReportOut {
   created_at?: string;
   updated_at?: string | null;
 }
+
+/** Onboarding gate stage from GET /users/me/auth-state (see lib/api/auth.ts). */
+export type AuthStage =
+  | "identifier_verification"
+  | "password_setup"
+  | "profile_completion"
+  | "app_onboarding"
+  | "active";

@@ -86,12 +86,9 @@ export async function reportLastMethod(method: AuthMethod): Promise<void> {
 // -> APP_ONBOARDING -> ACTIVE.  Computed on the backend; the client reads it
 // from GET /users/me/auth-state and routes accordingly.
 
-export type AuthStage =
-  | "identifier_verification"
-  | "password_setup"
-  | "profile_completion"
-  | "app_onboarding"
-  | "active";
+import type { AuthStage } from "./core.types";
+
+export type { AuthStage };
 
 export interface AuthStateResponse {
   stage: AuthStage;

@@ -40,7 +40,7 @@ The appearance-named tokens (`ink`, `paper`, `surface`, `line`, `accent`) remain
 graph TD
     subgraph Primitive["Primitive tier (raw values in :root)"]
         P1["--color-ink #1F1A14"]
-        P2["--color-accent-500 #C96442"]
+        P2["--color-accent-500 #A94A2B"]
         P3["--color-surface-elevated #FFFFFF"]
         P4["--shadow-md 0 6px 18px / .08"]
     end
@@ -69,50 +69,24 @@ Dark mode works by re-pointing the **primitive** tokens; the semantic `var()` ch
 
 ## Color
 
-Terracotta `#C96442` is the one brand accent. Used with intent for CTAs, active states, links, and icons. The full light and dark values for every ramp, paper, surface, ink, and line token live in [DESIGN.md](../../DESIGN.md) section 3. What matters here is how the system is structured.
+The palette is "Paper Diorama": clay `#A94A2B` (primary), pine `#2E5B48` (secondary), marigold `#E0A034` (accent for art only). Pages are stacked paper layers: `sky` (page), `paper-1` (bands), `paper-2` (cards), `paper-3` (raised). Dark mode is night on pine-black, never blue-charcoal. Every value is in [DESIGN.md](../../DESIGN.md) section 1; `src/styles/__tests__/contrast.test.ts` enforces WCAG AA for every text pair.
 
-**Accent ramp.** A full `accent-50` through `accent-950` ramp exists for gradients and dark surfaces. In **dark mode the ramp inverts** (50 becomes darkest, 950 becomes lightest) so `accent-*` utilities keep their light-to-dark intent across themes. `--color-accent-soft` (10% accent) is the selected and tint background; `--color-accent-container` (`#F8D5C8` light) is the filled chip and hover fill.
-
-**Paper, surface, line.** Four paper tiers (`paper` through `paper-4`) carry the page scaffold and progressively deeper surfaces. `surface` is the card and input fill; `surface-elevated` is genuinely lighter than `surface` so raised UI reads as depth. Lines use the warm-ink hue in light mode and the **warm-white ink hue** in dark mode, so borders stay visible on dark surfaces.
-
-**Ink.** Four text tiers (`ink` through `ink-4`). `ink` hits ~14:1 contrast on surface (AAA). `ink-3` is the AA body minimum. `ink-4` is decorative and disabled only, never body text.
-
-**Semantic status.** `success` (green, `#5B8C44`), `warning` (amber, `#B57828`), `error` (red, `#B4452C`). Each has a `-soft` variant. Info reuses the accent. Color is never the only signal: every status is paired with an icon or text. Compatibility scores map to these tiers: 70%+ success, 40 to 69% warning, below 40% error.
-
-**Categorical palette.** Seven families (blue, purple, green, yellow, orange, teal, pink) for data viz, feature pills, and dimension labels. Each family ships three tiers, accessed in code via `toneClasses[tone]` in `src/components/ui/component-utils.ts`:
-
-- `soft` (the background fill)
-- `mid` / `text` (the icon or text on a plain paper or surface background)
-- `inkText` (the **accessible** text color for use on the matching `soft` background)
-
-> Use the `inkText` tier for text sitting on a `soft` fill, not the `text` tier. This is what gives chips and badges accessible contrast. For example, a teal badge uses `bg-teal-soft` with `text-teal-ink`, never `text-teal-mid`.
-
-Palette themes (`[data-palette]`) swap the accent only. Default terracotta, optional Ember (`#D17847`) and Monsoon Teal (`#5A9DA8`); paper and ink are unchanged.
+Legacy names stay as aliases so older code keeps working: `paper` = sky, `surface-soft` = paper-1, `surface` = paper-2, `surface-elevated` = paper-3, `accent` / `primary` = clay. The categorical blue/purple/teal/pink families now resolve to neutral paper tones; do not use colour for labels unless it encodes meaning (status, compatibility tier).
 
 ## Typography
 
-Four families, all loaded via `<link>` in `index.html` with `display: swap`:
+- **Gambarino** (Fontshare, one weight, self-hosted `public/fonts/Gambarino-Regular.woff2`) for display and headlines: `text-display`, `text-h1` to `text-h3`, the logo. Never bold or italic (`font-synthesis: none`).
+- **system-ui** for body and UI text.
 
-- **Fraunces** (variable optical-size serif) for display and headlines. Never bold; weight 400. Editorial and confident.
-- **Inter** for body and UI.
-- **JetBrains Mono** for eyebrows and tabular numbers.
-- **Instrument Serif** (italic) for inline emphasis and pull quotes, in place of bold.
-
-**Fraunces variation settings** are tuned per headline size: `text-display` uses `'opsz' 144, 'SOFT' 50, 'WONK' 0`; `text-h1` uses `'opsz' 112, 'SOFT' 40, 'WONK' 0`; `text-h2` uses `'opsz' 96, 'SOFT' 30, 'WONK' 0`. `WONK: 0` keeps letterforms readable.
-
-The type scale is fluid: `text-display`, `text-h1`, and `text-h2` scale with the viewport via `clamp()`, so there is no per-breakpoint size override. Body line length targets roughly 65 to 70 characters (`max-w-[65ch]`). The full scale (sizes, weights, line heights, tracking per class) is in [DESIGN.md](../../DESIGN.md) section 4. Italic emphasis is always the Instrument Serif italic of the same headline, never a randomly injected serif word.
+No mono or uppercase-tracked label voice. The scale is in [DESIGN.md](../../DESIGN.md) section 2.
 
 ## Dark mode
 
-Dual-mode by default. Every visual change is designed and tested in both light and dark. Theme is applied via `[data-theme="dark"]` on `<html>`, set pre-paint by an inline script in `index.html` that reads `localStorage` then `prefers-color-scheme`. State lives in `uiStore` (`src/lib/stores/ui-store.ts`) and the reusable toggle is `src/components/ui/ThemeToggle.tsx`.
-
-What changes in dark mode: paper and surface darken to warm equivalents, ink lightens, shadows reduce, categorical soft tiers darken and pair with the light `inkText` tier, and the accent ramp inverts (while the accent itself stays `#C96442`). What stays: the accent value, the `var()` indirection of the semantic roles, and the warm hue family of the borders. Default theme is **light**, not system, unless the brand insists otherwise.
+Theme is applied via `[data-theme="dark"]` on `<html>`, set before paint by an inline script in `index.html`. State lives in `uiStore` (`src/lib/stores/ui-store.ts`); the header control is `src/components/ui/ThemeToggle.tsx` (cycles Light, Dark, System) and the full choice is on `/settings/appearance`. Default theme is **light**.
 
 ## Motion tokens and choreography
 
-Motion is motivated: it communicates hierarchy, feedback, or a state change, and it always collapses under `prefers-reduced-motion` (already enforced globally in `src/styles/globals.css`).
-
-**Durations** (`--duration-*`): `fast` 120ms, `normal` 200ms, `slow` 300ms, `slowest` 400ms. **Easings** (`--ease-*`): `standard` (general deceleration), `emphasized` (entrances and overlays), `spring` (chips, FAB, celebration overshoot only).
+Durations `fast` 120 ms, `base` 200 ms, `slow` 320 ms, `layer-stagger` 40 ms; curves `paper-out` and `paper-settle` ([DESIGN.md](../../DESIGN.md) section 7). Content is always visible: entrances only translate (never start at opacity 0). Buttons press down (`paper-press`), cards lift 1 px on hover (`paper-lift`), scene layers move with scroll (`PaperScene`). `<MotionConfig reducedMotion="user">` and a global `prefers-reduced-motion` block turn all of it off.
 
 Shared helpers in `src/components/ui/component-utils.ts`:
 
@@ -125,7 +99,7 @@ Choreography is CSS-driven: press is `:active { scale(0.97) }` (150ms), inputs g
 
 ## Shared primitives
 
-Pages compose these instead of re-implementing chrome or state handling. All live in `src/components/ui/` and are re-exported from `src/components/ui/index.ts`. Every interactive primitive implements the full state matrix: rest, hover, active, focus-visible, disabled, loading, selected, error.
+Pages compose these instead of re-implementing chrome or state handling. All live in `src/components/ui/` and are re-exported from `src/components/ui/`. Every interactive primitive implements the full state matrix: rest, hover, active, focus-visible, disabled, loading, selected, error.
 
 | Primitive | File | Purpose |
 | --- | --- | --- |
@@ -153,7 +127,7 @@ Pages compose these instead of re-implementing chrome or state handling. All liv
 | `TrustBadge` | `src/components/ui/TrustBadge.tsx` | trust pill |
 | `PriceText` | `src/components/ui/PriceText.tsx` | formatted price |
 | `OrDivider` | `src/components/ui/OrDivider.tsx` | auth divider |
-| `GoogleIcon` | `src/components/ui/GoogleIcon.tsx` | Google Material Symbols glyph for the nav |
+| `GoogleIcon` | `src/features/auth/components/GoogleIcon.tsx` | Google Material Symbols glyph for the nav |
 | `Layout`, `FullPageMessage`, `PrefetchLink` | respective files in `src/components/ui/` | page scaffold, full-viewport message, prefetching link |
 | `RevealSection`, `ScrollProgressBar` | respective files in `src/components/ui/` | IntersectionObserver-driven reveal and top reading-progress bar |
 
@@ -191,7 +165,7 @@ Beyond the Tailwind-generated utilities, `src/styles/globals.css` defines these 
 | `DESIGN.md` | Canonical source of truth for all tokens, component specs, and visual targets |
 | `src/styles/globals.css` | The token definitions, type scale, keyframes, and utility classes |
 | `src/components/ui/component-utils.ts` | `cn`, `focusRing`, `interactiveMotion`, `elevation`, `controlHeight`, `toneClasses`, `Tone` |
-| `src/components/ui/index.ts` | Barrel export for every shared primitive |
+| `src/components/ui/` | Barrel export for every shared primitive |
 | `src/components/ui/Button.tsx` | Button variants and the `buttonClasses` helper for link styling |
 | `src/components/ui/Card.tsx` | Card variants and the interactive and selected states |
 | `src/components/ui/Chip.tsx` | Chip variants and the selected spring |

@@ -25,7 +25,7 @@ The store is a vanilla `createStore()` so it can be read from React-free code pa
 
 ## The identifier check (backend decides password vs OTP)
 
-The login form (`src/pages/auth/LoginPage.tsx`) starts at an `identifier` step. When the user enters an email or phone and taps Continue, the page calls `checkIdentifierStatus(resolvedIdentifier)` which hits the public, rate-limited `POST /api/v1/auth/identifier-status` endpoint (`src/lib/api/auth.ts`). The backend returns a neutral shape designed not to leak user existence:
+The login form (`src/features/auth/pages/LoginPage.tsx`) starts at an `identifier` step. When the user enters an email or phone and taps Continue, the page calls `checkIdentifierStatus(resolvedIdentifier)` which hits the public, rate-limited `POST /api/v1/auth/identifier-status` endpoint (`src/lib/api/auth.ts`). The backend returns a neutral shape designed not to leak user existence:
 
 ```ts
 interface IdentifierStatus {
@@ -55,7 +55,7 @@ Because OTP verify and password reset both create a session before the flow is d
 
 ## Password reset flow
 
-`ForgotPasswordPage` (`src/pages/auth/ForgotPasswordPage.tsx`) is a three-step wizard: `request` (identifier) to `verify` (OTP) to `new-password`. It uses the same OTP send as login but with `shouldCreateUser: false` hardcoded, so a mistyped or unknown identifier can never silently create an account. The OTP is sent on both channels (phone `sms` or email `email`) and verified the same way. On success it calls `updateUser(newPassword)` and keeps the user signed in (the OTP verify already created the session), then navigates to `/home` with a success toast. There is no magic-link or `resetPasswordForEmail` path; both channels are unified through verify then set-password.
+`ForgotPasswordPage` (`src/features/auth/pages/ForgotPasswordPage.tsx`) is a three-step wizard: `request` (identifier) to `verify` (OTP) to `new-password`. It uses the same OTP send as login but with `shouldCreateUser: false` hardcoded, so a mistyped or unknown identifier can never silently create an account. The OTP is sent on both channels (phone `sms` or email `email`) and verified the same way. On success it calls `updateUser(newPassword)` and keeps the user signed in (the OTP verify already created the session), then navigates to `/home` with a success toast. There is no magic-link or `resetPasswordForEmail` path; both channels are unified through verify then set-password.
 
 ## Google and Apple OAuth
 
@@ -65,7 +65,7 @@ The OAuth flow is passwordless by design and **does not** go through the mandato
 
 ### The callback page
 
-`AuthCallbackPage` (`src/pages/auth/AuthCallbackPage.tsx`) exchanges the `code` query param for a session via `supabase.auth.exchangeCodeForSession(code)`. On success it:
+`AuthCallbackPage` (`src/features/auth/pages/AuthCallbackPage.tsx`) exchanges the `code` query param for a session via `supabase.auth.exchangeCodeForSession(code)`. On success it:
 
 1. Detects the provider from the user identities (`apple` or `google`) and records the correct `AuthMethod` via `setLastAuthMethod` + `reportLastMethod`.
 2. Checks whether the user already has a phone (`user.phone`).
@@ -74,7 +74,7 @@ The OAuth flow is passwordless by design and **does not** go through the mandato
 
 ### The add-phone interstitial (skippable)
 
-Google (and sometimes Apple) sign-ups land without a phone. `AddPhonePage` (`src/pages/auth/AddPhonePage.tsx`) is the post-OAuth interstitial that lets them add and verify one. It uses `addPhone(phone)` (which calls `supabase.auth.updateUser({ phone })`) to trigger a phone-change OTP, then `verifyPhoneChange(phone, token)` (which calls `supabase.auth.verifyOtp({ type: "phone_change" })`) to confirm it. Unlike the login set-password step, this page is **always skippable**: a "Skip for now" button navigates straight to `/home`. If a user with an existing phone navigates here manually, the page redirects them to `/home` immediately. The midAuthFlow hold is not needed here because the OAuth callback already routed past the auth routes.
+Google (and sometimes Apple) sign-ups land without a phone. `AddPhonePage` (`src/features/auth/pages/AddPhonePage.tsx`) is the post-OAuth interstitial that lets them add and verify one. It uses `addPhone(phone)` (which calls `supabase.auth.updateUser({ phone })`) to trigger a phone-change OTP, then `verifyPhoneChange(phone, token)` (which calls `supabase.auth.verifyOtp({ type: "phone_change" })`) to confirm it. Unlike the login set-password step, this page is **always skippable**: a "Skip for now" button navigates straight to `/home`. If a user with an existing phone navigates here manually, the page redirects them to `/home` immediately. The midAuthFlow hold is not needed here because the OAuth callback already routed past the auth routes.
 
 ## The last-auth-method memory
 
@@ -101,9 +101,9 @@ The full backend gate model is: `identifier_verification` then `password_setup` 
 
 ### How the gate is fetched and cached
 
-`ProviderInternals` in `src/providers.tsx` runs a `useEffect` keyed on `isAuthenticated`. When the user is authenticated and not in a mid-auth flow, it calls `getAuthState("flatmates")` and writes the result into `authStore` via `setAuthStage(data.stage, data.missing_fields)`. The fetch is non-fatal: on failure the stage stays at its default `"active"`, so the user proceeds rather than being blocked by a transient backend error.
+`ProviderInternals` in `src/app/providers.tsx` runs a `useEffect` keyed on `isAuthenticated`. When the user is authenticated and not in a mid-auth flow, it calls `getAuthState("flatmates")` and writes the result into `authStore` via `setAuthStage(data.stage, data.missing_fields)`. The fetch is non-fatal: on failure the stage stays at its default `"active"`, so the user proceeds rather than being blocked by a transient backend error.
 
-`GateGuard` in `src/pages/guards.tsx` reads `authStage` and routes accordingly:
+`GateGuard` in `src/app/guards.tsx` reads `authStage` and routes accordingly:
 
 - `profile_completion` redirects to `/complete-profile`.
 - `app_onboarding` redirects to `/onboarding`.
@@ -139,11 +139,11 @@ stateDiagram-v2
 
 ## Token refresh on 401
 
-The API client does not long-lived-poll the Supabase session. Instead it relies on the access token that `ProviderInternals` pushes into the client via `setAccessToken(session.access_token)` whenever the session changes. When a request comes back with a 401, the client calls the refresh handler registered by `setRefreshTokenHandler`. That handler (also in `src/providers.tsx`) calls `supabase.auth.refreshSession()`, pushes the fresh token back into the client, and returns it so the original request can be retried. The handler is deduped through a module-level `refreshPromise`, so a burst of 401s only triggers one refresh. If the refresh itself fails, the handler returns `null` and the request fails, at which point the QueryClient retry policy (which treats `auth`-typed `ApiClientError` specially) backs off. See [API client](../systems/api-client.md) for the full request and retry lifecycle.
+The API client does not long-lived-poll the Supabase session. Instead it relies on the access token that `ProviderInternals` pushes into the client via `setAccessToken(session.access_token)` whenever the session changes. When a request comes back with a 401, the client calls the refresh handler registered by `setRefreshTokenHandler`. That handler (also in `src/app/providers.tsx`) calls `supabase.auth.refreshSession()`, pushes the fresh token back into the client, and returns it so the original request can be retried. The handler is deduped through a module-level `refreshPromise`, so a burst of 401s only triggers one refresh. If the refresh itself fails, the handler returns `null` and the request fails, at which point the QueryClient retry policy (which treats `auth`-typed `ApiClientError` specially) backs off. See [API client](../systems/api-client.md) for the full request and retry lifecycle.
 
 ## Guards summary
 
-`src/pages/guards.tsx` exports three guards the auth flow depends on:
+`src/app/guards.tsx` exports three guards the auth flow depends on:
 
 | Guard | Purpose |
 | --- | --- |
@@ -166,9 +166,9 @@ For the product spec of the login, OTP, OAuth, and add-phone flows, see [plans/u
 | `src/lib/api/auth.ts` | `checkIdentifierStatus`, `getAuthState`, `reportLastMethod`, `IdentifierStatus` and `AuthStage` types |
 | `src/lib/lastAuthMethod.ts` | Local last-method persistence with masked identifier hints |
 | `src/lib/stores/auth-store.ts` | Zustand auth store: user, session, loading, `midAuthFlow`, `authStage` |
-| `src/pages/auth/LoginPage.tsx` | Identifier check, password, OTP, mandatory set-password, Google, Apple |
-| `src/pages/auth/ForgotPasswordPage.tsx` | Three-step OTP reset flow (request, verify, new-password) |
-| `src/pages/auth/AuthCallbackPage.tsx` | OAuth code exchange, provider detection, add-phone routing |
-| `src/pages/auth/AddPhonePage.tsx` | Skippable post-OAuth phone add and verify |
-| `src/pages/guards.tsx` | `AuthGuard`, `AuthRedirectGuard`, `GateGuard`, `AdminGuard` |
-| `src/providers.tsx` | Token injection, gate-state fetch, 401 refresh handler |
+| `src/features/auth/pages/LoginPage.tsx` | Identifier check, password, OTP, mandatory set-password, Google, Apple |
+| `src/features/auth/pages/ForgotPasswordPage.tsx` | Three-step OTP reset flow (request, verify, new-password) |
+| `src/features/auth/pages/AuthCallbackPage.tsx` | OAuth code exchange, provider detection, add-phone routing |
+| `src/features/auth/pages/AddPhonePage.tsx` | Skippable post-OAuth phone add and verify |
+| `src/app/guards.tsx` | `AuthGuard`, `AuthRedirectGuard`, `GateGuard`, `AdminGuard` |
+| `src/app/providers.tsx` | Token injection, gate-state fetch, 401 refresh handler |

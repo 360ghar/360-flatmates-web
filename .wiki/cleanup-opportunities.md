@@ -10,18 +10,18 @@ The largest files by line count are the natural refactor candidates. None of the
 
 | File | Lines | What could be extracted |
 | --- | --- | --- |
-| `src/components/organisms/SwipeDeck.tsx` | 918 | The clear outlier. Split the gesture/animation logic, the card stack state machine, and the empty/match resolution UI into separate modules. The deck itself should compose them. |
-| `src/pages/app/PostPage.tsx` | 666 | The listing builder entry point. Likely co-locates multi-step form state, validation, and submission. Extract per-step components and a dedicated `useListingBuilder` hook. |
-| `src/pages/auth/LoginPage.tsx` | 639 | Auth flows were overhauled in early June. The identifier-status state machine (password vs OTP) and each auth method's UI are candidates for extraction into smaller components. |
+| `src/features/swipe/components/SwipeDeck.tsx` | 918 | The clear outlier. Split the gesture/animation logic, the card stack state machine, and the empty/match resolution UI into separate modules. The deck itself should compose them. |
+| `src/features/hosting/pages/PostPage.tsx` | 666 | The listing builder entry point. Likely co-locates multi-step form state, validation, and submission. Extract per-step components and a dedicated `useListingBuilder` hook. |
+| `src/features/auth/pages/LoginPage.tsx` | 639 | Auth flows were overhauled in early June. The identifier-status state machine (password vs OTP) and each auth method's UI are candidates for extraction into smaller components. |
 | `src/components/ui/Skeleton.tsx` | 585 | Large because it carries one variant per content layout, not because of deep logic. Splitting would not reduce complexity, only file length. A lower-priority target. |
-| `src/components/onboarding/OnboardingStepContent.tsx` | 519 | One branch per onboarding step. Extract each step into its own component file behind a shared layout. |
-| `src/pages/app/ProfileEditPage.tsx` | 507 | Form state, field validation, and image upload likely co-located. Extract a `useProfileEdit` hook and per-section form components. |
-| `src/components/organisms/MapView.tsx` | 498 | Map rendering, marker logic, and viewport state. Extract the marker layer and the viewport store bridge. |
-| `src/components/organisms/ChatThread.tsx` | 498 | Message list rendering, composition input, and realtime-driven optimistic updates. Extract the message list and the composer. |
-| `src/pages/app/MyListingEditPage.tsx` | 447 | Mirrors `PostPage` for editing. Share the form schema and per-step components with the builder. |
-| `src/pages/app/ProfilePage.tsx` | 440 | Profile display, compatibility breakdown, and actions. Extract the compatibility section and the actions cluster. |
-| `src/pages/app/SearchPage.tsx` | 435 | Search input, filter state, and results layout. Extract the filter bar and the results grid. |
-| `src/pages/app/VisitDetailPage.tsx` | 435 | Visit details, status actions, and reschedule flow. Extract the status actions and the reschedule modal. |
+| `src/features/onboarding/components/OnboardingStepContent.tsx` | 519 | One branch per onboarding step. Extract each step into its own component file behind a shared layout. |
+| `src/features/profile/pages/ProfileEditPage.tsx` | 507 | Form state, field validation, and image upload likely co-located. Extract a `useProfileEdit` hook and per-section form components. |
+| `src/features/explore/components/MapView.tsx` | 498 | Map rendering, marker logic, and viewport state. Extract the marker layer and the viewport store bridge. |
+| `src/features/chat/components/ChatThread.tsx` | 498 | Message list rendering, composition input, and realtime-driven optimistic updates. Extract the message list and the composer. |
+| `src/features/hosting/pages/MyListingEditPage.tsx` | 447 | Mirrors `PostPage` for editing. Share the form schema and per-step components with the builder. |
+| `src/features/profile/pages/ProfilePage.tsx` | 440 | Profile display, compatibility breakdown, and actions. Extract the compatibility section and the actions cluster. |
+| `src/features/listings/pages/SearchPage.tsx` | 435 | Search input, filter state, and results layout. Extract the filter bar and the results grid. |
+| `src/features/visits/pages/VisitDetailPage.tsx` | 435 | Visit details, status actions, and reschedule flow. Extract the status actions and the reschedule modal. |
 
 The pattern across the page files is the same: a single component owns form state, validation, submission, and the full layout. Splitting each into a hook (state) plus a layout (presentational) plus per-section components would bring them closer to the 213-line mean without changing behavior. `SwipeDeck.tsx` is the highest-value target because it is the product's hero surface and the most-changed file in the repo's history.
 
@@ -70,9 +70,9 @@ Spot checks for obviously unused exports did not surface any clear candidates. T
 | File | Role |
 | --- | --- |
 | `package.json` | Dependency versions and the build/lint/test scripts |
-| `src/components/organisms/SwipeDeck.tsx` | Largest file (918 lines), highest-value refactor target |
-| `src/pages/app/PostPage.tsx` | Listing builder, candidate for hook plus per-step extraction |
-| `src/pages/auth/LoginPage.tsx` | Auth UI, candidate for per-method component extraction |
+| `src/features/swipe/components/SwipeDeck.tsx` | Largest file (918 lines), highest-value refactor target |
+| `src/features/hosting/pages/PostPage.tsx` | Listing builder, candidate for hook plus per-step extraction |
+| `src/features/auth/pages/LoginPage.tsx` | Auth UI, candidate for per-method component extraction |
 | `src/components/ui/Skeleton.tsx` | 585 lines of layout variants, low logic complexity |
 | `vite.config.ts` | Build target, manual chunking, and the `ws` override context |
 

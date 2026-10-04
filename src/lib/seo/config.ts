@@ -6,6 +6,8 @@ export const DEFAULT_DESCRIPTION =
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.webp`;
 export const TWITTER_HANDLE = "@360ghar";
 export const SUPPORT_EMAIL = "hello@360ghar.com";
+export const APP_STORE_URL = "https://apps.apple.com/in/app/360-flatmates/id6771899300";
+export const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.the360ghar.flatmates360";
 
 export const SUPPORTED_CITIES = [
   { slug: "bangalore", name: "Bangalore", state: "Karnataka", listings: 1200 },

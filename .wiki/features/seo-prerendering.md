@@ -135,12 +135,12 @@ The prerender step, the sitemap generator, and `robots.txt` all agree on the sam
 
 | Bucket | Source | Examples |
 | --- | --- | --- |
-| Static public routes | Hardcoded in `scripts/prerender.ts` `STATIC_ROUTES` (verified against `<PublicLayout>` in `src/App.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, `/stats`, comparison and blog slugs |
+| Static public routes | Hardcoded in `scripts/prerender.ts` `STATIC_ROUTES` (verified against `<PublicLayout>` in `src/app/routes.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, `/stats`, comparison and blog slugs |
 | City landing routes | Derived from `SUPPORTED_CITIES` in `src/lib/seo/config.ts` | `/cities/bangalore`, `/cities/gurugram` |
 | Neighborhood routes | Derived from `CITY_NEIGHBORHOODS` in `src/lib/seo/neighborhoods.ts` | `/cities/bangalore/koramangala`, `/cities/gurugram/cyber-city` |
 | Discoverable listing routes | Fetched at build time from `/properties` via `scripts/lib/listings.ts` | `/discover/:id` per active listing |
 
-Authenticated routes (`/search`, `/search/semantic`, `/app/*`, `/admin/*`, `/auth/*`) are deliberately excluded. They sit under `<AuthGuard>` or `<AdminGuard>` in `src/App.tsx`, they are disallowed in `public/robots.txt`, and they would render a login redirect at build time. Only `<PublicLayout>` routes are eligible.
+Authenticated routes (`/search`, `/search/semantic`, `/app/*`, `/admin/*`, `/auth/*`) are deliberately excluded. They sit under `<AuthGuard>` or `<AdminGuard>` in `src/app/routes.tsx`, they are disallowed in `public/robots.txt`, and they would render a login redirect at build time. Only `<PublicLayout>` routes are eligible.
 
 Adding a new city is a one-line change to `SUPPORTED_CITIES` and a neighborhood list entry, and the prerender step and sitemap pick it up automatically on the next build. Adding a new static public route means adding it to both `scripts/prerender.ts` `STATIC_ROUTES` and the static-route list in `scripts/generate-sitemap.ts`.
 
@@ -213,7 +213,7 @@ The shell in `index.html` carries fallback meta tags. These are the SPA-shell fa
 
 ### OG image and logo
 
-`scripts/generate-og-image.ts` renders a 1200x630 social preview WebP and a 512x512 brand logo WebP from inline SVG. The brand fonts (Fraunces, Inter, JetBrains Mono) are self-hosted as variable TTFs in `public/fonts/` and embedded into the SVG as base64 `@font-face` blocks, so `sharp`'s librsvg renderer paints the real brand typography deterministically. No reliance on system-installed fonts. Colors are pulled from the DESIGN.md tokens.
+`scripts/generate-og-image.ts` renders a 1200x630 social preview WebP and a 512x512 brand logo WebP. Chrome (Playwright) renders the page so the Gambarino type and the paper scene match the live site. It runs manually (`npm run generate:og-image`) and the output is committed.
 
 ### llms.txt for LLM crawlers
 

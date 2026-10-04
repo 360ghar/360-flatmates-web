@@ -101,3 +101,40 @@ export function mapStatusToAppError(
   return { type: "unknown", message };
 }
 
+
+const FRIENDLY_MESSAGES: Record<AppError["type"], string> = {
+  network: "You seem to be offline. Check your connection and try again.",
+  timeout: "The server took too long to respond. Try again.",
+  auth: "Your session has ended. Sign in again.",
+  forbidden: "You do not have access to this.",
+  bad_request: "That request could not be completed.",
+  server: "Something went wrong on our side. Try again in a moment.",
+  not_found: "We could not find that.",
+  validation: "Some details need fixing.",
+  rate_limit: "Too many attempts. Wait a moment and try again.",
+  conflict: "This changed in the meantime. Refresh and try again.",
+  unknown: "Something went wrong. Try again."
+};
+
+// Backend 4xx messages for these types are written for people. Everything
+// else (network text, 5xx detail, zod dumps) is replaced by a friendly line.
+const SHOW_SERVER_MESSAGE = new Set<AppError["type"]>([
+  "bad_request",
+  "conflict",
+  "validation",
+  "forbidden"
+]);
+
+/** Human-readable message for any thrown value. Never returns raw stack or network text. */
+export function userMessage(error: unknown, fallback?: string): string {
+  const appError = toAppError(error);
+  const serverText = appError.message.trim();
+  if (
+    SHOW_SERVER_MESSAGE.has(appError.type) &&
+    serverText.length > 0 &&
+    serverText.length <= 160
+  ) {
+    return serverText;
+  }
+  return fallback ?? FRIENDLY_MESSAGES[appError.type];
+}

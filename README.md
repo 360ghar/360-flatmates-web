@@ -42,133 +42,20 @@ npm run dev             # http://localhost:5173
 ## Project Structure
 
 ```
-360-flatmates-web/
-├─ AGENTS.md
-├─ CLAUDE.md
-├─ DESIGN.md
-├─ README.md
-├─ index.html
-├─ netlify.toml
-├─ package.json
-├─ playwright.config.ts
-├─ postcss.config.mjs
-├─ tsconfig.json
-├─ vite.config.ts
-├─ vitest.config.ts
-├─ vitest.setup.ts
-├─ WEB_CLIENT_INVENTORY.md
-├─ docs/
-│  └─ flatmates-openapi.yaml
-├─ e2e/
-│  ├─ app-navigation.spec.ts
-│  ├─ auth-flow.spec.ts
-│  ├─ auth-setup.ts
-│  ├─ chat-flow.spec.ts
-│  ├─ compatibility-flow.spec.ts
-│  ├─ critical-flows.spec.ts
-│  ├─ explore-flow.spec.ts
-│  ├─ profile-interaction-flow.spec.ts
-│  ├─ public-pages.spec.ts
-│  ├─ search-flow.spec.ts
-│  └─ visit-flow.spec.ts
-├─ plans/
-│  ├─ prd.md
-│  └─ ui_ux.md
-├─ public/
-│  ├─ _redirects
-│  ├─ llms.txt
-│  ├─ robots.txt
-│  ├─ sitemap.xml
-│  ├─ fonts/
-│  │  ├─ fonts.css
-│  │  └─ screenshots/
-│  └─ screenshots/
-├─ scripts/
-│  ├─ generate-favicon-ico.ts
-│  ├─ generate-og-image.ts
-│  ├─ generate-pwa-icons.ts
-│  ├─ generate-sitemap.ts
-│  ├─ generate-static-html.ts
-│  ├─ prerender.ts
-│  └─ lib/
-│     ├─ blog-content.ts
-│     ├─ listings.ts
-│     └─ route-content.ts
-├─ src/
-│  ├─ App.tsx
-│  ├─ entry.tsx
-│  ├─ providers.tsx
-│  ├─ test-utils.tsx
-│  ├─ vite-env.d.ts
-│  ├─ __mocks__/
-│  │  └─ framer-motion.tsx
-│  ├─ components/
-│  │  ├─ ErrorBoundary.tsx
-│  │  ├─ index.ts
-│  │  ├─ analytics/
-│  │  │  └─ Plausible.tsx
-│  │  ├─ landing/
-│  │  │  ├─ AppStoreBadges.tsx
-│  │  │  ├─ BottomCTA.tsx
-│  │  │  └─ ...
-│  │  ├─ molecules/
-│  │  ├─ onboarding/
-│  │  ├─ organisms/
-│  │  ├─ page-clients/
-│  │  └─ ui/
-│  ├─ hooks/
-│  │  ├─ useAuth.ts
-│  │  ├─ useCountUp.ts
-│  │  ├─ useDirtyFormGuard.ts
-│  │  ├─ useImageUpload.ts
-│  │  ├─ useInView.ts
-│  │  ├─ useKeyboardSwipe.ts
-│  │  ├─ usePWA.ts
-│  │  ├─ useResendTimer.ts
-│  │  ├─ useScrollProgress.ts
-│  │  ├─ useFlatmatesRealtime.ts
-│  │  ├─ useRealtimeStatus.ts
-│  │  ├─ useWebOtp.ts
-│  │  └─ __tests__/
-│  │     └─ queries/
-│  ├─ lib/
-│  │  ├─ config.ts
-│  │  ├─ debug.ts
-│  │  ├─ env.ts
-│  │  ├─ image-utils.ts
-│  │  ├─ lastAuthMethod.ts
-│  │  ├─ prefetch.ts
-│  │  ├─ redirect.ts
-│  │  ├─ route-inventory.ts
-│  │  ├─ __tests__/
-│  │  ├─ api/
-│  │  ├─ auth/
-│  │  ├─ compatibility/
-│  │  ├─ data/
-│  │  ├─ push/
-│  │  ├─ schemas/
-│  │  ├─ seo/
-│  │  ├─ storage/
-│  │  ├─ stores/
-│  │  ├─ supabase/
-│  │  └─ utils/
-│  ├─ pages/
-│  │  ├─ ErrorFallback.tsx
-│  │  ├─ guards.tsx
-│  │  ├─ __tests__/
-│  │  ├─ admin/
-│  │  ├─ app/
-│  │  ├─ auth/
-│  │  └─ public/
-│  └─ styles/
-│     └─ globals.css
-├─ tests/
-│  └─ integration/
-│     ├─ compatibility-engine.test.ts
-│     ├─ query-keys.test.ts
-│     └─ route-contracts.test.ts
-└─ skills-lock.json
+src/
+  components/   ui/ (primitives), molecules/, organisms/, landing/, onboarding/, page-clients/
+  components/paper/   PaperScene, PaperMiniScene, NavIcons, generated art.ts
+  hooks/        custom hooks; queries/ holds the TanStack Query hooks
+  lib/          API client, auth, stores (zustand), schemas, SEO, compatibility engine
+  pages/        routes by domain: app/, auth/, admin/, public/
+  styles/       globals.css (Tailwind v4 @theme tokens, dark mode, paper utilities)
+public/          fonts/Gambarino-Regular.woff2, icons, OG image, sitemap
+scripts/         build scripts; generate-paper-art.py (scene art for web + Flutter)
+e2e/             Playwright specs
+docs/            OpenAPI mirror, audit-2026-09.md
+DESIGN.md        design tokens (identical in the Flutter repo)
 ```
+
 
 ## Key Documents
 

@@ -2,22 +2,22 @@
 
 Active contributors: Saksham
 
-The route tree is declared once in `src/App.tsx` and is the canonical map of every URL in the app. It composes four layouts with four guards to produce five route families: public, auth, authenticated-auth-flow, authenticated app, and admin. Every page component is lazy-loaded through `React.lazy` and wrapped in a single `<Suspense fallback={<PageSpinner />}>` so code-splitting is automatic.
+The route tree is declared once in `src/app/routes.tsx` and is the canonical map of every URL in the app. It composes four layouts with four guards to produce five route families: public, auth, authenticated-auth-flow, authenticated app, and admin. Every page component is lazy-loaded through `React.lazy` and wrapped in a single `<Suspense fallback={<PageSpinner />}>` so code-splitting is automatic.
 
 ## The four layouts
 
 | Layout | File | Wraps | Chrome |
 | --- | --- | --- | --- |
-| `PublicLayout` | `src/pages/public/PublicLayout.tsx` | Marketing, discover, cities, blog, comparison, legal | Sticky header with logo, nav, theme toggle, sign-in/join; footer; scroll progress bar; mobile drawer |
-| `AuthLayout` | `src/pages/auth/AuthLayout.tsx` | Login, forgot-password, auth callback, add-phone | Centered card on `bg-paper` with decorative accent blurs, logo, and a "Back to home" link |
-| `AppLayout` | `src/pages/app/AppLayout.tsx` | The authenticated app (under `AuthGuard` + `GateGuard`) | `AppShell` with mode-aware sidebar/bottom nav, PWA install banner; reads `useMyProfile` for the user chip |
-| `AdminLayout` | `src/pages/admin/AdminLayout.tsx` | Admin moderation (under `AdminGuard`) | Fixed 240px sidebar on `xl`, top bar with compact nav on smaller screens |
+| `PublicLayout` | `src/app/layouts/PublicLayout.tsx` | Marketing, discover, cities, blog, comparison, legal | Sticky header with logo, nav, theme toggle, sign-in/join; footer; scroll progress bar; mobile drawer |
+| `AuthLayout` | `src/app/layouts/AuthLayout.tsx` | Login, forgot-password, auth callback, add-phone | Centered card on `bg-paper` with decorative accent blurs, logo, and a "Back to home" link |
+| `AppLayout` | `src/app/layouts/AppLayout.tsx` | The authenticated app (under `AuthGuard` + `GateGuard`) | `AppShell` with mode-aware sidebar/bottom nav, PWA install banner; reads `useMyProfile` for the user chip |
+| `AdminLayout` | `src/app/layouts/AdminLayout.tsx` | Admin moderation (under `AdminGuard`) | Fixed 240px sidebar on `xl`, top bar with compact nav on smaller screens |
 
 `AppLayout` is the only layout that reads server state (the current user's profile) to drive the navigation mode (Room Poster, Co-Hunter, Open to Both). While `useMyProfile` loads it renders nothing rather than a mode-mismatched shell.
 
 ## The four guards
 
-All guards live in `src/pages/guards.tsx`. Each renders `<PageSpinner />` while `useAuth().loading` is true, then makes a single redirect decision and otherwise renders `<Outlet />`.
+All guards live in `src/app/guards.tsx`. Each renders `<PageSpinner />` while `useAuth().loading` is true, then makes a single redirect decision and otherwise renders `<Outlet />`.
 
 ### `AuthGuard`
 
@@ -35,7 +35,7 @@ The `midAuthFlow` exception is critical here. OTP verification signs the user in
 
 ### `GateGuard`
 
-Sits between `AuthGuard` and `AppLayout` and enforces the backend-computed gate stage. The stage is fetched once per authenticated session by `src/providers.tsx` via `getAuthState("flatmates")` and cached in `authStore.authStage` (defaulting to `"active"` so the guard does not fire until the first fetch completes). The recognized stages are `identifier_verification`, `password_setup`, `profile_completion`, `app_onboarding`, `active`.
+Sits between `AuthGuard` and `AppLayout` and enforces the backend-computed gate stage. The stage is fetched once per authenticated session by `src/app/providers.tsx` via `getAuthState("flatmates")` and cached in `authStore.authStage` (defaulting to `"active"` so the guard does not fire until the first fetch completes). The recognized stages are `identifier_verification`, `password_setup`, `profile_completion`, `app_onboarding`, `active`.
 
 `GateGuard` skips enforcement when:
 
@@ -74,11 +74,11 @@ graph TD
     GateGuard -. app_onboarding .-> Onb["/onboarding"]
 ```
 
-The full list of concrete URLs is maintained in `src/lib/route-inventory.ts` and verified end-to-end by `tests/integration/route-contracts.test.ts`, which asserts that every inventory entry has a matching React Router route and vice-versa.
+The full list of concrete URLs is maintained in `src/app/route-inventory.ts` and verified end-to-end by `tests/integration/route-contracts.test.ts`, which asserts that every inventory entry has a matching React Router route and vice-versa.
 
 ## Lazy loading
 
-Every page is loaded through `React.lazy(() => import(...).then((m) => ({ default: m.X })))`. The single top-level `<Suspense fallback={<PageSpinner />}>` in `src/App.tsx` catches the first paint of every route. Layouts and guards are imported eagerly because they are needed before the first route can render. This keeps the initial bundle small (the architecture overview in [Architecture](../overview/architecture.md) notes a 200KB gzip budget) while still giving every page its own chunk.
+Every page is loaded through `React.lazy(() => import(...).then((m) => ({ default: m.X })))`. The single top-level `<Suspense fallback={<PageSpinner />}>` in `src/app/routes.tsx` catches the first paint of every route. Layouts and guards are imported eagerly because they are needed before the first route can render. This keeps the initial bundle small (the architecture overview in [Architecture](../overview/architecture.md) notes a 200KB gzip budget) while still giving every page its own chunk.
 
 ## Where guards connect to the rest of the system
 
@@ -91,13 +91,13 @@ Every page is loaded through `React.lazy(() => import(...).then((m) => ({ defaul
 
 | File | Role |
 | --- | --- |
-| `src/App.tsx` | The `<Routes>` tree: layouts, guards, lazy pages, catch-all |
-| `src/pages/guards.tsx` | `AuthGuard`, `AdminGuard`, `AuthRedirectGuard`, `GateGuard`, `resolveRedirect` |
-| `src/pages/public/PublicLayout.tsx` | Public chrome (header, nav, footer, mobile drawer) |
-| `src/pages/auth/AuthLayout.tsx` | Centered auth card with decorative blurs |
-| `src/pages/app/AppLayout.tsx` | `AppShell` wrapper, reads profile for nav mode |
-| `src/pages/admin/AdminLayout.tsx` | Admin sidebar + responsive top bar |
-| `src/lib/route-inventory.ts` | Canonical list of concrete URLs (consumed by route-contracts test) |
+| `src/app/routes.tsx` | The `<Routes>` tree: layouts, guards, lazy pages, catch-all |
+| `src/app/guards.tsx` | `AuthGuard`, `AdminGuard`, `AuthRedirectGuard`, `GateGuard`, `resolveRedirect` |
+| `src/app/layouts/PublicLayout.tsx` | Public chrome (header, nav, footer, mobile drawer) |
+| `src/app/layouts/AuthLayout.tsx` | Centered auth card with decorative blurs |
+| `src/app/layouts/AppLayout.tsx` | `AppShell` wrapper, reads profile for nav mode |
+| `src/app/layouts/AdminLayout.tsx` | Admin sidebar + responsive top bar |
+| `src/app/route-inventory.ts` | Canonical list of concrete URLs (consumed by route-contracts test) |
 | `src/lib/stores/auth-store.ts` | `midAuthFlow`, `authStage`, `missingProfileFields` |
 | `src/lib/api/auth.ts` | `getAuthState` (the backend gate stage fetch) |
-| `src/providers.tsx` | Triggers the gate-stage fetch on authentication |
+| `src/app/providers.tsx` | Triggers the gate-stage fetch on authentication |

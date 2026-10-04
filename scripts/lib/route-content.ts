@@ -317,7 +317,7 @@ export function buildStaticRoutes(): RouteContent[] {
       <h2>Why 360 Flatmates?</h2>
       <ul>
         <li><strong>6-dimension compatibility scoring</strong> — sleep, cleanliness, food, guests, work, and lifestyle</li>
-        <li><strong>Verified listings</strong> — every room is reviewed before it goes live. Real photos, real rent, real availability.</li>
+        <li><strong>Verified listings</strong> — every room is reviewed before it goes live. Real rent, real availability.</li>
         <li><strong>Book visits in 2 taps</strong> — no WhatsApp ping-pong. Pick a slot, show up, done.</li>
         <li><strong>Chat that starts with context</strong> — every chat already carries the listing, the match score, and visit details.</li>
         <li><strong>Safety built in</strong> — phone OTP, profile checks, and in-app reporting.</li>
@@ -337,7 +337,7 @@ export function buildStaticRoutes(): RouteContent[] {
       </ul>
       <h2>Frequently Asked Questions</h2>
       <details><summary>How do you actually match people?</summary><p>We compare 6 lifestyle dimensions (sleep schedule, cleanliness, food habits, guests policy, work style, and general vibe) alongside budget and location.</p></details>
-      <details><summary>Are the listings legit?</summary><p>Every listing gets reviewed before it goes live. Real photos, real rent, real availability.</p></details>
+      <details><summary>Are the listings legit?</summary><p>Every listing gets reviewed before it goes live. Rent and availability are checked.</p></details>
       <details><summary>Is it free?</summary><p>Searching and matching is 100% free. Optional paid plans exist for priority listings.</p></details>
       <details><summary>Which cities are you in?</summary><p>We're live in Gurugram and Bangalore right now, with more cities dropping every month.</p></details>
     `,
@@ -348,7 +348,7 @@ export function buildStaticRoutes(): RouteContent[] {
       serviceSchema(),
       faqSchema([
         { question: "How do you actually match people?", answer: "We compare 6 lifestyle dimensions alongside budget and location." },
-        { question: "Are the listings legit?", answer: "Every listing gets reviewed before it goes live. Real photos, real rent, real availability." },
+        { question: "Are the listings legit?", answer: "Every listing gets reviewed before it goes live. Rent and availability are checked." },
         { question: "Is it free?", answer: "Searching and matching is 100% free." },
         { question: "Which cities are you in?", answer: "We're live in Gurugram and Bangalore right now." },
       ]),
@@ -363,11 +363,11 @@ export function buildStaticRoutes(): RouteContent[] {
     description: "Browse verified room and flatmate listings across Indian cities with compatibility scores, society vibe tags, and visit scheduling.",
     h1: "Discover Verified Rooms & Flatmates",
     bodyHtml: `
-      <p>Browse verified room and flatmate listings across Indian cities. Every listing is reviewed before going live — real photos, real rent, real availability.</p>
+      <p>Browse verified room and flatmate listings across Indian cities. Every listing is reviewed before going live — real rent, real availability.</p>
       <h2>Browse by City</h2>
       <ul>
-        <li><a href="/cities/bangalore">Bangalore — 1,200+ listings</a></li>
-        <li><a href="/cities/gurugram">Gurugram — 860+ listings</a></li>
+        <li><a href="/cities/bangalore">Rooms and flatmates in Bangalore</a></li>
+        <li><a href="/cities/gurugram">Rooms and flatmates in Gurugram</a></li>
       </ul>
       <p><a href="/discover">Browse all listings →</a></p>
     `,

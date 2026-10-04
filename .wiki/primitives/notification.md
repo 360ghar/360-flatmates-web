@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-A notification is a transient in-app alert: a new match, a new message, a visit update, a listing status change. Its canonical type is `FlatmatesNotification` in `src/lib/api/notification.types.ts` (re-exported from `src/lib/api/types.ts`), and the TanStack Query hooks that fetch and mutate it live in `src/hooks/queries/useNotifications.ts`. A notification crosses the notifications bell, the push layer (via Firebase Cloud Messaging), and the Supabase Broadcast layer (which delivers new notification invalidations live). See [push notifications](../features/push-notifications.md) and [real-time updates](../features/real-time.md).
+A notification is a transient in-app alert: a new match, a new message, a visit update, a listing status change. Its canonical type is `FlatmatesNotification` in `src/lib/api/notification.types.ts` (re-exported from `src/lib/api/types.ts`), and the TanStack Query hooks that fetch and mutate it live in `src/features/notifications/hooks/useNotifications.ts`. A notification crosses the notifications bell, the push layer (via Firebase Cloud Messaging), and the Supabase Broadcast layer (which delivers new notification invalidations live). See [push notifications](../features/push-notifications.md) and [real-time updates](../features/real-time.md).
 
 ## Shape
 
@@ -29,7 +29,7 @@ The `type` field is a free-form string rather than a closed enum because the bac
 
 ## Mutations
 
-The notifications hooks live in `src/hooks/queries/useNotifications.ts`:
+The notifications hooks live in `src/features/notifications/hooks/useNotifications.ts`:
 
 - `useNotifications(filters?)` lists notifications, optionally filtered.
 - `useMarkNotificationRead()` puts to `PUT /flatmates/notifications/{id}` with a `MarkNotificationReadPayload` (`{ is_read: boolean }`).
@@ -62,5 +62,5 @@ Notifications are also delivered live through the bootstrap-configured Supabase 
 | --- | --- |
 | `src/lib/api/notification.types.ts` | `FlatmatesNotification`, `MarkNotificationReadPayload`, `MarkAllNotificationsReadPayload`, `NotificationFilters` |
 | `src/lib/api/types.ts` | Re-exports notification types |
-| `src/hooks/queries/useNotifications.ts` | `useNotifications`, `useMarkNotificationRead`, `useMarkAllNotificationsRead` |
+| `src/features/notifications/hooks/useNotifications.ts` | `useNotifications`, `useMarkNotificationRead`, `useMarkAllNotificationsRead` |
 | `src/hooks/useFlatmatesRealtime.ts` | Broadcast event handling and notification query invalidation |

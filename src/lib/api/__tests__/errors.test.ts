@@ -240,3 +240,18 @@ describe("toAppError", () => {
     });
   });
 });
+
+describe("userMessage", () => {
+  it("hides raw network and server text", async () => {
+    const { userMessage, ApiClientError } = await import("../errors");
+    expect(userMessage(new TypeError("Failed to fetch"))).not.toContain("fetch");
+    expect(userMessage(new ApiClientError({ type: "server", status: 500, message: "psycopg2 boom" }))).not.toContain("psycopg2");
+    expect(userMessage(new Error("ZodError: expected string"))).not.toContain("Zod");
+  });
+
+  it("keeps human 4xx messages and honours a fallback", async () => {
+    const { userMessage, ApiClientError } = await import("../errors");
+    expect(userMessage(new ApiClientError({ type: "conflict", message: "Phone already in use" }))).toBe("Phone already in use");
+    expect(userMessage(new Error("x"), "Could not save")).toBe("Could not save");
+  });
+});

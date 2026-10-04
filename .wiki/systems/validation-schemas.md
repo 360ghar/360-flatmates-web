@@ -16,7 +16,7 @@ Each schema file corresponds to a backend resource family. Field names use the b
 | `src/lib/schemas/onboarding.ts` | `OnboardingDraft`, `CompletedOnboarding`, per-step schemas | Onboarding flow, `onboardingStore` |
 | `src/lib/schemas/listing-builder.ts` | `PropertyCreate`, `Property`, `ListingDraft`, per-step schemas | Listing builder, manage pages |
 | `src/lib/schemas/search.ts` | `SearchFilters`, `WebSearchResponse`, `SavedSearch`, `SearchAlert` | Search page, saved searches, alerts |
-| `src/lib/schemas/search-params.ts` | nuqs parsers for `/search` and `/discover` URL state | Search and discover pages |
+| `src/features/listings/lib/search-params.ts` | nuqs parsers for `/search` and `/discover` URL state | Search and discover pages |
 | `src/lib/schemas/visit.ts` | `VisitCreate`, `VisitUpdate`, `Visit`, `VisitList` | Visit scheduling and management |
 
 ## Enum re-exports
@@ -53,11 +53,11 @@ Multi-step flows define a strict "completed" schema and a loose "draft" schema. 
 - `onboardingDraftSchema` composes every step as `.partial().optional()` plus a `current_step` counter, so a half-finished draft can be persisted and reloaded.
 - `completedOnboardingSchema` re-declares the same fields as required, and is what the final submit is validated against.
 
-The `onboardingStore` (`src/lib/stores/onboarding-store.ts`) runs `onboardingDraftSchema.safeParse` on every hydration, so a corrupted `localStorage` entry is silently discarded instead of crashing the flow. The listing builder follows the same draft/completed split (`listingDraftSchema` vs the step schemas that compose into `propertyCreateSchema`). See [Profile and onboarding](../features/profile-onboarding.md) and [Listing management](../features/listing-management.md).
+The `onboardingStore` (`src/features/onboarding/store.ts`) runs `onboardingDraftSchema.safeParse` on every hydration, so a corrupted `localStorage` entry is silently discarded instead of crashing the flow. The listing builder follows the same draft/completed split (`listingDraftSchema` vs the step schemas that compose into `propertyCreateSchema`). See [Profile and onboarding](../features/profile-onboarding.md) and [Listing management](../features/listing-management.md).
 
 ## URL state with nuqs
 
-`src/lib/schemas/search-params.ts` defines the URL query-string contract for the search and discover pages using `nuqs` parsers (`parseAsString`, `parseAsInteger`, `parseAsArrayOf`). These are not Zod schemas, but they live alongside the schemas because they serve the same role for URL state: they define the shape of `?q=Delhi&city=1&amenities=WiFi,Parking&page=1`, provide defaults, and make the URL deep-linkable and shareable. The search page reads them with `useQueryStates(searchPageParams)` and the discover page with `useQueryStates(discoverPageParams)`. See [Search and explore](../features/search-explore.md).
+`src/features/listings/lib/search-params.ts` defines the URL query-string contract for the search and discover pages using `nuqs` parsers (`parseAsString`, `parseAsInteger`, `parseAsArrayOf`). These are not Zod schemas, but they live alongside the schemas because they serve the same role for URL state: they define the shape of `?q=Delhi&city=1&amenities=WiFi,Parking&page=1`, provide defaults, and make the URL deep-linkable and shareable. The search page reads them with `useQueryStates(searchPageParams)` and the discover page with `useQueryStates(discoverPageParams)`. See [Search and explore](../features/search-explore.md).
 
 ## The `FlatmatesPeer` shape
 
@@ -73,6 +73,6 @@ The `onboardingStore` (`src/lib/stores/onboarding-store.ts`) runs `onboardingDra
 | `src/lib/schemas/onboarding.ts` | `onboardingDraftSchema`, `completedOnboardingSchema`, per-step schemas, `ONBOARDING_DRAFT_STORAGE_KEY` |
 | `src/lib/schemas/listing-builder.ts` | `propertyCreateSchema`, `propertySchema`, `listingDraftSchema`, per-step schemas |
 | `src/lib/schemas/search.ts` | `searchFiltersSchema`, `webSearchResponseSchema`, `savedSearchSchema`, `searchAlertSchema` |
-| `src/lib/schemas/search-params.ts` | `searchPageParams`, `discoverPageParams` (nuqs parsers) |
+| `src/features/listings/lib/search-params.ts` | `searchPageParams`, `discoverPageParams` (nuqs parsers) |
 | `src/lib/schemas/visit.ts` | `visitCreateSchema`, `visitUpdateSchema`, `visitSchema`, `visitListSchema` |
 | `src/lib/schemas/index.ts` | Barrel re-export of every schema and inferred type |

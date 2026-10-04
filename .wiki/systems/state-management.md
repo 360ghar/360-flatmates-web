@@ -13,7 +13,7 @@ import { createStore } from "zustand/vanilla";
 export const uiStore = createUiStore(); // returns a vanilla store, not a hook
 ```
 
-The reason is that vanilla stores are plain objects with `.getState()`, `.setState()`, and `.subscribe()`, so they can be read and mutated from anywhere: React components, realtime integration hooks, provider effects in `src/providers.tsx`, and unit tests. A `create()`-based hook store would force every non-React caller to either mount a React tree or reach into internals.
+The reason is that vanilla stores are plain objects with `.getState()`, `.setState()`, and `.subscribe()`, so they can be read and mutated from anywhere: React components, realtime integration hooks, provider effects in `src/app/providers.tsx`, and unit tests. A `create()`-based hook store would force every non-React caller to either mount a React tree or reach into internals.
 
 React components consume a store through the `useStore` binding from `zustand`:
 
@@ -42,10 +42,10 @@ The one exception is auth: `authStore` does hold the Supabase `Session` and `Use
 | `authStore` | `src/lib/stores/auth-store.ts` | Supabase `user`/`session`, `loading`, login modal state, `pendingRedirect`, `midAuthFlow`, backend `authStage` + `missingProfileFields` | No |
 | `uiStore` | `src/lib/stores/ui-store.ts` | `theme`, `palette`, sidebar state + width, active modal/drawer, realtime connection flags, `reducedMotion`, toast queue | Yes (theme, palette, sidebar, sidebarWidth, reducedMotion) |
 | `searchStore` | `src/lib/stores/search-store.ts` | `filters` (defaults in `DEFAULT_SEARCH_FILTERS`), `recentSearches`, `viewMode` (`grid`/`list`/`map`), active-filter counter | Yes (filters, recentSearches, viewMode) |
-| `mapStore` | `src/lib/stores/map-store.ts` | Map `center`, `zoom`, `selectedPinId`, `bounds`, `MapFilters` | No |
-| `swipeStore` | `src/lib/stores/swipe-store.ts` | `currentIndex`, `isAnimating`, swipe `direction`, `cardQueue`, `isExpanded` | No |
-| `onboardingStore` | `src/lib/stores/onboarding-store.ts` | `currentStep`, `OnboardingDraft` (validated through `onboardingDraftSchema`), `lastSavedAt` | Yes (currentStep, draft, lastSavedAt) |
-| `chatStore` | `src/lib/stores/chat-store.ts` | `activeConversationId`, per-conversation `draftMessages`, `isTyping` flags, `showInfoPanel` | No |
+| `mapStore` | `src/features/explore/store.ts` | Map `center`, `zoom`, `selectedPinId`, `bounds`, `MapFilters` | No |
+| `swipeStore` | `src/features/swipe/store.ts` | `currentIndex`, `isAnimating`, swipe `direction`, `cardQueue`, `isExpanded` | No |
+| `onboardingStore` | `src/features/onboarding/store.ts` | `currentStep`, `OnboardingDraft` (validated through `onboardingDraftSchema`), `lastSavedAt` | Yes (currentStep, draft, lastSavedAt) |
+| `chatStore` | `src/features/chat/store.ts` | `activeConversationId`, per-conversation `draftMessages`, `isTyping` flags, `showInfoPanel` | No |
 
 Each store is created through a `createXStore()` factory and exported as a singleton, so tests can build an isolated instance if they need to.
 
@@ -53,15 +53,15 @@ Each store is created through a `createXStore()` factory and exported as a singl
 
 - **Equality guards before `set`.** Most actions check whether the new value equals the old and return the previous state object (`set((s) => s.theme === theme ? s : { theme })`). This prevents spurious re-renders when a no-op action fires.
 - **Typed state shapes.** Every store exports its `*State` interface; actions live alongside data in the same object so `useStore(store, (s) => s.setTheme)` returns a stable reference.
-- **Reset hooks.** Stores that hold user-scoped data expose a reset action (`searchStore.resetFilters`, `onboardingStore.clearDraft`) that `src/providers.tsx` calls on sign-out, alongside `queryClient.clear()`.
+- **Reset hooks.** Stores that hold user-scoped data expose a reset action (`searchStore.resetFilters`, `onboardingStore.clearDraft`) that `src/app/providers.tsx` calls on sign-out, alongside `queryClient.clear()`.
 - **Drafts validated on hydrate.** `onboardingStore.hydrateDraft` runs the candidate through `onboardingDraftSchema.safeParse` before accepting it, so a corrupted localStorage entry cannot crash the onboarding flow (see [Validation schemas](validation-schemas.md)).
 
 ## Where each store is consumed
 
 - `searchStore` drives the FilterPanel and the URL-synced search page (see [Search and explore](../features/search-explore.md)).
 - `onboardingStore` drives the multi-step onboarding flow (see [Profile and onboarding](../features/profile-onboarding.md)).
-- `uiStore` is read from `src/providers.tsx` to apply the `data-theme` and `data-palette` attributes, and from the Toast viewport.
-- `authStore` is read by every guard in `src/pages/guards.tsx` (see [Routing and guards](routing-guards.md)).
+- `uiStore` is read from `src/app/providers.tsx` to apply the `data-theme` and `data-palette` attributes, and from the Toast viewport.
+- `authStore` is read by every guard in `src/app/guards.tsx` (see [Routing and guards](routing-guards.md)).
 - `mapStore` and `swipeStore` are scoped to the map and swipe surfaces respectively.
 
 For the broader architectural split between Zustand and TanStack Query, see [Architecture](../overview/architecture.md) and [CLAUDE.md](../../CLAUDE.md).
@@ -73,9 +73,9 @@ For the broader architectural split between Zustand and TanStack Query, see [Arc
 | `src/lib/stores/auth-store.ts` | Supabase session, login modal, `midAuthFlow`, backend gate stage |
 | `src/lib/stores/ui-store.ts` | Theme, palette, sidebar, modals, drawers, realtime flags, toasts |
 | `src/lib/stores/search-store.ts` | Search filters, recent searches, view mode, active-filter counter |
-| `src/lib/stores/map-store.ts` | Map viewport center/zoom/bounds, selected pin, map filters |
-| `src/lib/stores/swipe-store.ts` | Swipe deck index, animation direction, card queue, expanded flag |
-| `src/lib/stores/onboarding-store.ts` | Onboarding step pointer and validated draft |
-| `src/lib/stores/chat-store.ts` | Active conversation, draft messages, typing flags, info panel |
+| `src/features/explore/store.ts` | Map viewport center/zoom/bounds, selected pin, map filters |
+| `src/features/swipe/store.ts` | Swipe deck index, animation direction, card queue, expanded flag |
+| `src/features/onboarding/store.ts` | Onboarding step pointer and validated draft |
+| `src/features/chat/store.ts` | Active conversation, draft messages, typing flags, info panel |
 | `src/lib/stores/storage.ts` | `createSafeJsonStorage()` with in-memory fallback |
-| `src/lib/stores/index.ts` | Barrel re-export of all stores |
+| `src/lib/stores/` | Barrel re-export of all stores |

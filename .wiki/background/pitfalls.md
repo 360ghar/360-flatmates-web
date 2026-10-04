@@ -50,7 +50,7 @@ The no-SSE contract test (`tests/contracts/no-sse.contract.test.ts`) guards agai
 
 **Symptom.** A user verifying their phone OTP during login is bounced to `/home` before they reach the mandatory set-password step, leaving their account in a half-finished state.
 
-**Cause.** Supabase creates a real session the moment the OTP is verified, which is *before* the set-password (login) or new-password (reset) step that closes the flow. The `AuthRedirectGuard` and `GateGuard` in `src/pages/guards.tsx` see an authenticated user and redirect away from `/login` and `/forgot-password` immediately.
+**Cause.** Supabase creates a real session the moment the OTP is verified, which is *before* the set-password (login) or new-password (reset) step that closes the flow. The `AuthRedirectGuard` and `GateGuard` in `src/app/guards.tsx` see an authenticated user and redirect away from `/login` and `/forgot-password` immediately.
 
 **Fix.** The `authStore` holds a `midAuthFlow` flag (`src/lib/stores/auth-store.ts`). The auth pages set it to `true` when entering the post-OTP step and clear it when the flow completes. Both guards read this flag and skip the redirect while it is set:
 
@@ -122,7 +122,7 @@ So a client request to `/api/flatmates/catalogs` is rewritten to `https://api.36
 | `src/lib/api/index.ts` | Module-level token getter and refresh handler wiring |
 | `src/hooks/queries/useCatalogs.ts` | Example of the `auth: false` pattern on a public endpoint |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast auth, event subscription, reconnect, and cleanup |
-| `src/pages/guards.tsx` | `AuthRedirectGuard`, `GateGuard`, and the `midAuthFlow` hold |
+| `src/app/guards.tsx` | `AuthRedirectGuard`, `GateGuard`, and the `midAuthFlow` hold |
 | `src/lib/stores/auth-store.ts` | `midAuthFlow` flag definition |
 | `vite.config.ts` | Dev proxy `/api` to `/app/v1` rewrite |
 | `src/hooks/useAuth.ts` | Dev-only `getPlaywrightSession()` synthetic session |

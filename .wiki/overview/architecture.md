@@ -25,15 +25,17 @@ graph LR
 | --- | --- |
 | `index.html` | Document shell, font links, flash-prevention theme script, PWA manifest link |
 | `src/entry.tsx` | Validates env, mounts `<App />` into `#root`, registers the service worker |
-| `src/App.tsx` | Declares the `<Routes>` tree with lazy-loaded pages and four layouts |
-| `src/providers.tsx` | Wraps the app in QueryClientProvider, NuqsAdapter, auth/realtime/theme wiring |
+| `src/app/routes.tsx` | Declares route objects (consumed by `createBrowserRouter` in `src/app/router.tsx`, rendered via `RouterProvider` in `src/entry.tsx`) with lazy-loaded pages and six layouts |
+| `src/app/providers.tsx` | Wraps the app in QueryClientProvider, NuqsAdapter, auth/realtime/theme wiring |
 
-`src/App.tsx` is the canonical map of every route in the app. It declares four layout wrappers:
+`src/app/routes.tsx` is the canonical map of every route in the app. It declares six layout wrappers:
 
 - `PublicLayout` for marketing, discover, cities, blog, comparison, legal pages.
 - `AuthLayout` for login, forgot-password, auth callback, add-phone.
 - `AppLayout` for the authenticated app (wrapped in `AuthGuard` and `GateGuard`).
 - `AdminLayout` for moderation and admin stats (wrapped in `AdminGuard`).
+- `AdaptiveLayout` for `/discover` and `/search` (app shell when signed in, public layout otherwise).
+- `FocusLayout` for focused single-column tasks (post a listing, onboarding, role, location).
 
 See [Routing and guards](../systems/routing-guards.md) for the guard logic.
 
@@ -67,7 +69,7 @@ The codebase enforces a hard boundary between two state stores. Mixing them is a
 | TanStack Query | Server data (anything that comes from `/api/v1`) | `src/hooks/queries/` | `useMyProfile()`, `useSwipeDeck()` |
 | Zustand vanilla stores | Client-only UI state (toggles, drafts, preferences, viewport) | `src/lib/stores/` | `uiStore.theme`, `searchStore.filters` |
 
-Zustand stores use the `createStore()` pattern (not `create()` with a hook wrapper) so they can be consumed from non-React code: realtime integration hooks, provider effects in `src/providers.tsx`, and tests. React components read them with `useStore(store, selector)`. See [State management](../systems/state-management.md).
+Zustand stores use the `createStore()` pattern (not `create()` with a hook wrapper) so they can be consumed from non-React code: realtime integration hooks, provider effects in `src/app/providers.tsx`, and tests. React components read them with `useStore(store, selector)`. See [State management](../systems/state-management.md).
 
 ## Real-time updates
 

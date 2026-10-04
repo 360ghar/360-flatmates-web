@@ -2,7 +2,8 @@ const COUNTRY_CODE = "+91";
 
 export function resolveRedirect(raw: string | null): string {
   if (!raw) return "/home";
-  return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/home";
+  // Same-origin paths only: "//x" and "/\\x" are protocol-relative in browsers (W29).
+  return raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\") ? raw : "/home";
 }
 
 export function normalizePhone(raw: string): string {

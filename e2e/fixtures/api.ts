@@ -166,7 +166,8 @@ const visit = {
   counterparty_user_id: peer.id,
   conversation_id: conversation.id,
   visit_context: "property_tour",
-  scheduled_date: "2026-07-02T11:00:00.000Z",
+  // Relative to today so the visit stays "upcoming" whenever the suite runs.
+  scheduled_date: new Date(Date.now() + 3 * 86_400_000).toISOString(),
   status: "requested",
   special_requirements: "Weekend preferred",
   created_at: now,
@@ -266,7 +267,7 @@ export async function installApiMocks(page: Page) {
         listings: [{ id: property.id, title: property.title, status: "active", views: 120, likes: 12, conversations: 4, days_until_expiry: 24, boost_active: false }],
       });
     }
-    if (/^\/flatmates\/web\/compatibility\/[^/]+$/.test(path)) {
+    if (/^\/flatmates\/profiles\/[^/]+\/compatibility$/.test(path)) {
       return json(route, {
         user_id: 1,
         peer_id: peer.id,

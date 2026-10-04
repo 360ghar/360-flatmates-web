@@ -24,10 +24,10 @@ export function TrustBadge({ variant = "verified", label, className, ...props }:
   return (
     <span
       className={cn(
-        "inline-flex min-h-6 items-center gap-1.5 rounded-full border px-2.5 py-1 text-label-md font-semibold",
-        classes.soft,
+        // Solid surface backing so the badge reads over photos. Cut radius,
+        // never a pill (DESIGN.md §8 bans filled pills for status).
+        "inline-flex items-center gap-1 rounded-cut-sm bg-surface px-1.5 py-0.5 text-label-md shadow-xs",
         classes.text,
-        classes.border,
         className
       )}
       {...props}

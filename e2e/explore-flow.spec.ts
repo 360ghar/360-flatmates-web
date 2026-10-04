@@ -50,11 +50,28 @@ test.describe("Explore page — authenticated access", () => {
     await expect(page.getByRole("button", { name: /zoom in/i })).toBeVisible();
   });
 
-  test("map tile layer loads (CartoDB Positron)", async ({ page }) => {
+  test("map tile layer loads (OpenStreetMap by default)", async ({ page }) => {
     await page.goto("/explore");
     // Leaflet initializes the map shell before external tile images finish
     // loading, so assert the tile pane exists instead of sampling image count.
     await expect(page.locator("#map-container .leaflet-container")).toBeVisible();
     await expect(page.locator("#map-container .leaflet-tile-pane")).toBeAttached();
+  });
+
+  test("the filter button opens exactly one filter sheet", async ({ page }) => {
+    await page.goto("/explore");
+    await page.getByRole("button", { name: /^filters/i }).click();
+    await expect(page.locator("dialog[open]")).toHaveCount(1);
+    await expect(page.getByRole("dialog", { name: "Filters" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+  });
+
+  test("a pin is a keyboard control that opens the place", async ({ page }) => {
+    await page.goto("/explore");
+    const pin = page.locator(".map-pin").first();
+    await pin.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("region", { name: "Selected place" }).or(page.getByRole("complementary", { name: "Selected place" })).first()).toBeVisible();
   });
 });

@@ -93,9 +93,10 @@ test.describe("Forgot password page", () => {
   });
 
   test("shows the 3-step progress indicator", async ({ page }) => {
-    await expect(page.getByText(/enter identifier/i)).toBeVisible();
-    await expect(page.getByText(/enter otp/i)).toBeVisible();
-    await expect(page.getByText(/new password/i)).toBeVisible();
+    const progress = page.getByRole("progressbar");
+    await expect(progress).toHaveAttribute("aria-valuemax", "3");
+    await expect(progress).toHaveAttribute("aria-valuetext", /step 1 of 3/i);
+    await expect(page.getByText(/step 1 of 3/i)).toBeVisible();
   });
 
   test("request step shows the identifier input and Send OTP button", async ({ page }) => {

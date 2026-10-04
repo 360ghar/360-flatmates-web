@@ -28,10 +28,11 @@ export function Toggle({
       aria-label={label}
       disabled={disabled}
       className={cn(
-        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent",
+        // 28 px track with an invisible 44 px hit area around it.
+        "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent before:absolute before:-inset-2 before:content-['']",
         interactiveMotion,
         focusRing,
-        checked ? "bg-accent" : "bg-paper-3",
+        checked ? "bg-accent" : "bg-ink-3",
         disabled && "cursor-not-allowed opacity-50",
         className
       )}
@@ -41,7 +42,7 @@ export function Toggle({
       <span
         aria-hidden="true"
         className={cn(
-          "pointer-events-none inline-block h-[22px] w-[22px] rounded-full bg-surface-elevated shadow-sm ring-0 transition-transform duration-200 ease-in-out",
+          "pointer-events-none inline-block h-[22px] w-[22px] rounded-full bg-surface-elevated shadow-xs ring-0 transition-transform duration-200 ease-[var(--ease-paper-out)] motion-reduce:transition-none",
           checked ? "translate-x-[22px]" : "translate-x-0"
         )}
       />

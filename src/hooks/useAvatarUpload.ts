@@ -43,7 +43,7 @@ async function readErrorMessage(response: Response): Promise<string> {
   // backend hasn't shipped it yet. Surface a friendly, actionable message
   // instead of the raw "Not Found" status text.
   if (response.status === 404) {
-    return "Photo upload isn't available right now. Your selection is saved — please try again later.";
+    return "Photo upload isn't available right now. Your photo is kept here. Try again later.";
   }
   try {
     const payload = (await response.json()) as unknown;

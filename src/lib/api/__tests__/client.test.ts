@@ -518,14 +518,77 @@ describe("HttpApiClient.request", () => {
   });
 
   it("passes AbortSignal through to fetch", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({ data: "ok" }));
     const controller = new AbortController();
-    await createTestClient().request({
-      path: "/test",
-      signal: controller.signal,
+    // Aborting the caller while fetch is in flight must abort what fetch got.
+    mockFetch.mockImplementation((_url: string, init: RequestInit) => {
+      controller.abort();
+      return init.signal?.aborted
+        ? Promise.reject(new DOMException("aborted", "AbortError"))
+        : Promise.resolve(jsonResponse({ data: "ok" }));
     });
+    await expect(
+      createTestClient().request({ path: "/test", signal: controller.signal })
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
 
-    const requestInit = mockFetch.mock.calls[0][1] as RequestInit;
-    expect(requestInit.signal).toBe(controller.signal);
+  it("works where AbortSignal.any and AbortSignal.timeout are missing (Safari < 17.4)", async () => {
+    const signalStatics = AbortSignal as unknown as Record<string, unknown>;
+    const any = signalStatics.any;
+    const timeout = signalStatics.timeout;
+    delete signalStatics.any;
+    delete signalStatics.timeout;
+    try {
+      mockFetch.mockResolvedValue(jsonResponse({ data: "ok" }));
+      await expect(
+        createTestClient().request({ path: "/test", signal: new AbortController().signal })
+      ).resolves.toEqual({ data: "ok" });
+    } finally {
+      signalStatics.any = any;
+      signalStatics.timeout = timeout;
+    }
+  });
+});
+
+describe("HttpApiClient transport errors", () => {
+  it("maps a fetch TypeError to a network AppError", async () => {
+    mockFetch.mockRejectedValue(new TypeError("Failed to fetch"));
+    await expect(createTestClient().request({ path: "/x" })).rejects.toMatchObject({
+      appError: { type: "network" },
+    });
+  });
+
+  it("maps an elapsed timeout to a timeout AppError", async () => {
+    vi.useFakeTimers();
+    try {
+      mockFetch.mockImplementation(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () =>
+              reject(new DOMException("aborted", "AbortError"))
+            );
+          })
+      );
+      const pending = createTestClient().request({ path: "/slow" });
+      const assertion = expect(pending).rejects.toMatchObject({
+        appError: { type: "timeout" },
+      });
+      await vi.advanceTimersByTimeAsync(60_000);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rethrows caller aborts unchanged", async () => {
+    const controller = new AbortController();
+    mockFetch.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        init.signal?.aborted
+          ? Promise.reject(new DOMException("aborted", "AbortError"))
+          : Promise.resolve(jsonResponse({}))
+    );
+    controller.abort();
+    const pending = createTestClient().request({ path: "/x", signal: controller.signal });
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
   });
 });

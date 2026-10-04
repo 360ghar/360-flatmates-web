@@ -38,7 +38,7 @@ Build-time listing fetches (sitemap + per-listing prerender) gate themselves on 
 
 | File | Purpose | Key settings |
 | --- | --- | --- |
-| `vite.config.ts` | Vite build and dev config. Wires React, PWA, path aliases, the dev proxy, and manual chunking. | `server.port` 5173; `server.proxy` rewrites `/api` to `/app/v1` on the backend host; `build.target` `es2022`, `sourcemap` true; `rollupOptions.output.manualChunks` splits `vendor`, `query`, `supabase`, and `map` chunks; `VitePWA` registers `autoUpdate` with manifest theme color `#F4F3EE`. |
+| `vite.config.ts` | Vite build and dev config. Wires React, PWA, path aliases, the dev proxy, and manual chunking. | `server.port` 5173; `server.proxy` rewrites `/api` to `/app/v1` on the backend host; `build.target` `es2022`, `sourcemap` true; `rollupOptions.output.manualChunks` splits `vendor`, `query`, `supabase`, and `map` chunks; `VitePWA` registers with `prompt` (users confirm updates) and manifest theme color `#E4EBE3`. |
 | `vitest.config.ts` | Vitest unit and integration test config. Separate from `vite.config.ts` so test-only aliasing (the `framer-motion` mock) does not leak into the production build. | `environment` `jsdom`; `globals` true; `setupFiles` `["./vitest.setup.ts"]`; `include` covers `src/**/__tests__/**`, `src/**/*.test.{ts,tsx}`, and `tests/integration/**`; `resolve.alias` maps `@` to `src` and stubs `framer-motion` to `src/__mocks__/framer-motion.tsx`. |
 | `vitest.setup.ts` | Vitest global setup. Single line that registers `@testing-library/jest-dom/vitest` matchers (`toBeInTheDocument`, `toHaveTextContent`, etc.) for every test. | Imports `@testing-library/jest-dom/vitest`. |
 | `tsconfig.json` | TypeScript compiler config for type-checking and editor support. Strict mode is non-negotiable. | `target`/`lib` `ES2022`; `strict` true; `noEmit` true; `moduleResolution` `bundler`; `jsx` `react-jsx`; `paths` `@/*` to `./src/*`; `exclude` drops `node_modules`, `dist`, and all test files from the type-check program. |
@@ -47,7 +47,7 @@ Build-time listing fetches (sitemap + per-listing prerender) gate themselves on 
 | `postcss.config.mjs` | PostCSS config. The only plugin is Tailwind v4's PostCSS integration. | `@tailwindcss/postcss` with no options (Tailwind v4 reads its config from CSS `@theme`, not a JS file). |
 | `netlify.toml` | Netlify deploy config. Runs `npm run build` and publishes `dist/`. | `build.command` `npm run build`; `build.publish` `dist`; `build.environment` sets `VITE_API_BASE_URL`. Build-time listing fetches gate on the auto-set `CONTEXT` variable, so no `PRERENDER_*` env var is needed. |
 | `src/lib/env.ts` | The runtime env validator. The single source of truth for what env vars exist and which are required. | `envSchema` is a Zod object; `getEnv()` parses `import.meta.env` once, caches, and throws a readable error on failure; `validateEnv()` is the bootstrap-friendly wrapper. |
-| `src/lib/config.ts` | Derived runtime config. A single exported constant for the public base URL. | `BASE_URL` resolves to `window.location.origin` in the browser, or `https://360ghar.com` as a fallback (used during prerender). |
+| `src/lib/seo/config.ts` | Derived runtime config. A single exported constant for the public base URL. | `SITE_URL` is hardcoded to `https://360ghar.com` (consumed via `DEFAULT_OG_IMAGE` and the prerender/sitemap scripts). |
 | `.env.example` | The template for local `.env`. Documents the four `VITE_` vars plus the commented-out `VITE_AUTH_REDIRECT_URL`. | Copy to `.env` (or `.env.local`) and fill in real keys. |
 
 ### Build pipeline order
@@ -84,5 +84,5 @@ See [SEO and prerendering](../features/seo-prerendering.md) for the full prerend
 | `postcss.config.mjs` | Tailwind v4 PostCSS plugin |
 | `netlify.toml` | Netlify build command and environment |
 | `src/lib/env.ts` | Zod env schema, `getEnv()`, `validateEnv()` |
-| `src/lib/config.ts` | Derived `BASE_URL` constant |
+| `src/lib/seo/config.ts` | Derived `SITE_URL` constant |
 | `.env.example` | Documented env var template |

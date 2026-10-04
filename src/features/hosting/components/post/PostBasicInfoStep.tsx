@@ -1,0 +1,97 @@
+import { Input } from "@/components/ui/Input";
+import type { PropertyCreate } from "@/lib/api/types";
+import { optionalNumberValue } from "@/lib/utils/format";
+
+export function PostBasicInfoStep({
+  form,
+  showStepError,
+  onChange
+}: {
+  form: Partial<PropertyCreate>;
+  showStepError: boolean;
+  onChange: (patch: Partial<PropertyCreate>) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-5">
+      <h2 className="text-h2 text-ink">Basic information</h2>
+      <div className="flex flex-col gap-3">
+        <label className="flex flex-col gap-1.5">
+          <span className="text-label-md text-ink-2">Title</span>
+          <Input
+            placeholder="e.g. Spacious 1BHK in DLF Phase 1"
+            value={form.title ?? ""}
+            aria-invalid={
+              showStepError &&
+              (!form.title?.trim() || (form.title?.trim().length ?? 0) < 5)
+                ? true
+                : undefined
+            }
+            onChange={(e) => onChange({ title: e.target.value })}
+          />
+          {showStepError && (!form.title?.trim() || (form.title?.trim().length ?? 0) < 5) && (
+            <span className="text-caption text-error">Title must be at least 5 characters.</span>
+          )}
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-label-md text-ink-2">Monthly rent</span>
+          <Input
+            type="number"
+            placeholder="15000"
+            value={form.monthly_rent !== undefined ? String(form.monthly_rent) : ""}
+            aria-invalid={
+              showStepError &&
+              (!Number.isFinite(form.monthly_rent) || (form.monthly_rent ?? 0) < 500)
+                ? true
+                : undefined
+            }
+            onChange={(e) => onChange({ monthly_rent: optionalNumberValue(e.target.value) })}
+          />
+          {showStepError &&
+            (!Number.isFinite(form.monthly_rent) || (form.monthly_rent ?? 0) < 500) && (
+              <span className="text-caption text-error">
+                Enter a monthly rent of at least ₹500.
+              </span>
+            )}
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-label-md text-ink-2">Security deposit</span>
+          <Input
+            type="number"
+            placeholder="30000"
+            value={form.security_deposit !== undefined ? String(form.security_deposit) : ""}
+            onChange={(e) => onChange({ security_deposit: optionalNumberValue(e.target.value) })}
+          />
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label-md text-ink-2">Setup cost</span>
+            <Input
+              type="number"
+              placeholder="5000"
+              value={form.setup_cost !== undefined ? String(form.setup_cost) : ""}
+              onChange={(e) => onChange({ setup_cost: optionalNumberValue(e.target.value) })}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-label-md text-ink-2">Other charges</span>
+            <Input
+              type="number"
+              placeholder="0"
+              value={form.other_charges !== undefined ? String(form.other_charges) : ""}
+              onChange={(e) => onChange({ other_charges: optionalNumberValue(e.target.value) })}
+            />
+          </label>
+        </div>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-label-md text-ink-2">Other charges description</span>
+          <Input
+            placeholder="e.g. maintenance collected separately"
+            maxLength={300}
+            value={form.other_charges_description ?? ""}
+            onChange={(e) => onChange({ other_charges_description: e.target.value })}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}

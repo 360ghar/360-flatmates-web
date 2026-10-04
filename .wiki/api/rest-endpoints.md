@@ -68,7 +68,7 @@ It exists for backward compatibility: older code imports domain types from `@/li
 
 ## Adapters
 
-`src/lib/api/adapters.ts` is the bridge between the raw API shapes and the component prop shapes. It exports pure functions like `propertyToListingCardProps`, `profileToProfileGridCardProps`, `conversationToConversationRowProps`, `visitToVisitCardProps`, `notificationToNotificationCardProps`, and `messageToChatBubbleProps`. They live next to the types because they are the only place that knows both the API shape and the component prop shape, and they keep mapping logic out of components and hooks. See [API client](../systems/api-client.md) for where they sit in the data flow.
+`src/features/*/lib/adapters.ts` is the bridge between the raw API shapes and the component prop shapes. It exports pure functions like `propertyToListingCardProps`, `profileToProfileGridCardProps`, `conversationToConversationRowProps`, `visitToVisitCardProps`, `notificationToNotificationCardProps`, and `messageToChatBubbleProps`. They live next to the types because they are the only place that knows both the API shape and the component prop shape, and they keep mapping logic out of components and hooks. See [API client](../systems/api-client.md) for where they sit in the data flow.
 
 ## How calls are made
 
@@ -94,7 +94,7 @@ The spec marks operations as `security: []` (public) or `security: [{ BearerAuth
 | `src/lib/api/client.ts` | `HttpApiClient`, `buildApiUrl`, the `ApiAdapter` interface, the 401 refresh-and-retry loop |
 | `src/lib/api/errors.ts` | `ApiClientError`, `AppError`, `mapStatusToAppError`, `toAppError`, `isAppError` |
 | `src/lib/api/index.ts` | Module-level token/refresh singletons, the `apiClient` singleton, `setAccessToken` and `setRefreshTokenHandler` |
-| `src/lib/api/adapters.ts` | API-shape to component-prop mappers (`propertyToListingCardProps`, `visitToVisitCardProps`, etc.) |
+| `src/features/*/lib/adapters.ts` | API-shape to component-prop mappers (`propertyToListingCardProps`, `visitToVisitCardProps`, etc.) |
 | `src/lib/api/auth.ts` | Auth-domain helpers: `checkIdentifierStatus`, `reportLastMethod`, `getAuthState` |
 | `src/lib/api/types.ts` | Barrel re-export of every domain type file for backward compatibility |
 | `src/lib/api/common.types.ts` | `CatalogEntry`, `CatalogsResponse`, `RegisterDevicePayload`, `ShareCardResponse` |

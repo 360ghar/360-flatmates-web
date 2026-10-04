@@ -31,7 +31,11 @@ function getOptionLabel(
     return "";
   }
 
-  return options.find((option) => option.value === value)?.label ?? value;
+  const label = options.find((option) => option.value === value)?.label;
+  if (label) return label;
+  // Unknown or legacy value (e.g. "this_month"): readable, never raw snake_case.
+  const words = value.replace(/_/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 export function formatCurrencyINR(amount: number): string {
@@ -40,6 +44,15 @@ export function formatCurrencyINR(amount: number): string {
 
 export function formatRent(amount: number): string {
   return `${formatCurrencyINR(amount)}/mo`;
+}
+
+/** Rent in a map-tag width: ₹22k, ₹1.5L. */
+export function formatRentShort(rent?: number): string {
+  if (rent === undefined || !Number.isFinite(rent) || rent <= 0) return "₹--";
+  const short = (value: number, unit: string) => `₹${Number.isInteger(value) ? value : value.toFixed(1)}${unit}`;
+  if (rent >= 100000) return short(rent / 100000, "L");
+  if (rent >= 1000) return short(rent / 1000, "k");
+  return `₹${rent}`;
 }
 
 export function formatBudgetRange(min?: number, max?: number): string {
@@ -56,6 +69,25 @@ export function formatBudgetRange(min?: number, max?: number): string {
   }
 
   return "Any budget";
+}
+
+const COUNT_FORMATTER = new Intl.NumberFormat("en-IN");
+
+const MONTH_YEAR_FORMATTER = new Intl.DateTimeFormat("en-IN", {
+  month: "long",
+  year: "numeric"
+});
+
+/** Indian digit grouping (1,20,000) for counts and stats. */
+export function formatCount(value: number): string {
+  return COUNT_FORMATTER.format(value);
+}
+
+/** "June 2026"; empty for a missing or invalid date. */
+export function formatMonthYear(value?: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : MONTH_YEAR_FORMATTER.format(date);
 }
 
 export function formatDate(value: string | Date): string {
@@ -134,8 +166,13 @@ export function stripEmptyFields(data: Record<string, unknown>): Record<string, 
 
 /** Coerce a numeric input to a number, mapping empty/NaN to undefined so a
  *  cleared field neither trips min/max validation nor gets sent to the API. */
-export function optionalNumberValue(raw: string): number | undefined {
-  if (raw.trim() === "") return undefined;
+/**
+ * An input's value as an optional number. Accepts numbers too: react-hook-form
+ * runs `setValueAs` on numeric default values (a saved age or budget).
+ */
+export function optionalNumberValue(raw: unknown): number | undefined {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : undefined;
+  if (typeof raw !== "string" || raw.trim() === "") return undefined;
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
 }

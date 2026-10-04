@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-Every value whose source of truth is the FastAPI backend is owned by TanStack React Query. The hooks live in `src/hooks/queries/` and are re-exported as a flat surface from `src/hooks/queries/index.ts`. The `QueryClient` is constructed once in `src/providers.tsx` with project-specific defaults, and the cache is the only place server data is allowed to live (see [State management](state-management.md) for the other half of the boundary).
+Every value whose source of truth is the FastAPI backend is owned by TanStack React Query. The hooks live in `src/hooks/queries/` and are re-exported as a flat surface from `src/hooks/queries/`. The `QueryClient` is constructed once in `src/app/providers.tsx` with project-specific defaults, and the cache is the only place server data is allowed to live (see [State management](state-management.md) for the other half of the boundary).
 
 ## `QueryClient` configuration
 
@@ -32,7 +32,7 @@ The decisions, in plain language:
 - **One retry for transient errors.** A network blip or 5xx gets a single retry. Auth errors are special: the [API client](api-client.md) already attempted a refresh-and-retry inside the request, so a second 401 here means the session is truly gone and we stop.
 - **60-second stale time.** Navigating between routes does not refetch data that was loaded less than a minute ago. High-churn surfaces override this per-query (`useWebSearch` and `useMapView` drop to 30s; `useCatalogs` raises to 30 minutes because the city/locality catalog is effectively static).
 
-On sign-out, `src/providers.tsx` watches the auth state and, when it flips from authenticated to unauthenticated, calls `queryClient.clear()` plus `searchStore.resetFilters()` and `onboardingStore.clearDraft()`. `useDeleteAccount` does the same clear on successful account deletion.
+On sign-out, `src/app/providers.tsx` watches the auth state and, when it flips from authenticated to unauthenticated, calls `queryClient.clear()` plus `searchStore.resetFilters()` and `onboardingStore.clearDraft()`. `useDeleteAccount` does the same clear on successful account deletion.
 
 ## Query key conventions
 
@@ -68,7 +68,7 @@ Because invalidation uses prefix matching, `invalidateQueries({ queryKey: ["visi
 
 ## Export surface
 
-`src/hooks/queries/index.ts` re-exports every hook and the few types callers need (`AnalyticsPeriod`, `BlockedUser`, `ReverseGeocodeResult`). The hooks fall into three shapes:
+`src/hooks/queries/` re-exports every hook and the few types callers need (`AnalyticsPeriod`, `BlockedUser`, `ReverseGeocodeResult`). The hooks fall into three shapes:
 
 - **`useQuery` wrappers** for reads (`useMyProfile`, `useProperty`, `useWebSearch`, `useConversations`, `useVisits`, `useNotifications`, `useMatches`, `useDashboardStats`, `useAdminListings`, `useCities`, `useMapView`, `useShareCard`, `useCompatibility`).
 - **`useInfiniteQuery` wrappers** for paginated feeds (`useInfiniteWebSearch`).
@@ -126,25 +126,25 @@ Real-time events arrive over the Supabase private Broadcast channel from `/flatm
 
 | File | Role |
 | --- | --- |
-| `src/providers.tsx` | `QueryClient` construction, sign-out cache clear, retry policy |
-| `src/hooks/queries/index.ts` | Flat re-export of every query and mutation hook |
+| `src/app/providers.tsx` | `QueryClient` construction, sign-out cache clear, retry policy |
+| `src/hooks/queries/` | Flat re-export of every query and mutation hook |
 | `src/hooks/queries/useProfiles.ts` | Profile read/update/create/delete-account (seed-then-invalidate) |
-| `src/hooks/queries/useProperties.ts` | Property CRUD, image upload, boost, renew |
-| `src/hooks/queries/useSearch.ts` | Web search (query + infinite), saved searches, search alerts |
-| `src/hooks/queries/useSwipes.ts` | Swipe deck + swipe action |
-| `src/hooks/queries/useCompatibility.ts` | Per-peer compatibility breakdown |
-| `src/hooks/queries/useConversations.ts` | Conversations, messages, optimistic send with retry-aware rollback |
-| `src/hooks/queries/useVisits.ts` | Visit list/detail/create/update/cancel |
-| `src/hooks/queries/useNotifications.ts` | Notifications + mark-read mutations |
-| `src/hooks/queries/useDashboard.ts` | Room-poster dashboard stats and per-listing analytics |
-| `src/hooks/queries/useAdmin.ts` | Moderation listings/reports/stats with onMutate/onError rollback |
+| `src/features/listings/hooks/useProperties.ts` | Property CRUD, image upload, boost, renew |
+| `src/features/listings/hooks/useSearch.ts` | Web search (query + infinite), saved searches, search alerts |
+| `src/features/swipe/hooks/useSwipes.ts` | Swipe deck + swipe action |
+| `src/features/profile/hooks/useCompatibility.ts` | Per-peer compatibility breakdown |
+| `src/features/chat/hooks/useConversations.ts` | Conversations, messages, optimistic send with retry-aware rollback |
+| `src/features/visits/hooks/useVisits.ts` | Visit list/detail/create/update/cancel |
+| `src/features/notifications/hooks/useNotifications.ts` | Notifications + mark-read mutations |
+| `src/features/hosting/hooks/useDashboard.ts` | Room-poster dashboard stats and per-listing analytics |
+| `src/features/admin/hooks/useAdmin.ts` | Moderation listings/reports/stats with onMutate/onError rollback |
 | `src/hooks/queries/useCatalogs.ts` | Long-lived catalog query sliced into cities/localities/amenities |
-| `src/hooks/queries/useBlocks.ts` | Blocked users list + unblock |
-| `src/hooks/queries/useMatches.ts` | Matches, incoming likes, unmatch (cross-invalidates conversations) |
+| `src/features/settings/hooks/useBlocks.ts` | Blocked users list + unblock |
+| `src/features/matches/hooks/useMatches.ts` | Matches, incoming likes, unmatch (cross-invalidates conversations) |
 | `src/hooks/queries/useReports.ts` | Fire-and-forget user report |
-| `src/hooks/queries/useProfileViews.ts` | Fire-and-forget profile-view recording |
-| `src/hooks/queries/useSocietyTags.ts` | Fire-and-forget society-tag vote |
-| `src/hooks/queries/useMapView.ts` | Map pins with `keepPreviousData` and signal-based cancellation |
+| `src/features/profile/hooks/useProfileViews.ts` | Fire-and-forget profile-view recording |
+| `src/features/listings/hooks/useSocietyTags.ts` | Fire-and-forget society-tag vote |
+| `src/features/explore/hooks/useMapView.ts` | Map pins with `keepPreviousData` and signal-based cancellation |
 | `src/hooks/queries/useShareCard.ts` | Public share-card payload |
-| `src/hooks/queries/useReverseGeocode.ts` | Mutation wrapper over the Nominatim client |
+| `src/features/onboarding/hooks/useReverseGeocode.ts` | Mutation wrapper over the Nominatim client |
 | `tests/integration/query-keys.test.ts` | Static query-key and invalidation contract tests |

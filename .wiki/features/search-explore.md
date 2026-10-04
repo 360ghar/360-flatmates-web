@@ -10,15 +10,15 @@ Both surfaces talk to the same backend (`GET /properties`) through the same `Sea
 
 | Surface | Route | Page file | Result view | Filter UI |
 | --- | --- | --- | --- | --- |
-| Search | `/search` | `src/pages/public/SearchPage.tsx` | `ListingCard` grid with infinite scroll | Inline search bar, city and bedrooms dropdowns, amenities `BottomSheet` |
-| Semantic search | `/search/semantic` | `src/pages/public/SemanticSearchPage.tsx` (wraps `src/components/page-clients/SemanticSearchClient.tsx`) | `SearchResults` organism | Must-have amenities chips |
-| Explore (map) | `/explore` | `src/pages/app/ExplorePage.tsx` | Leaflet pins and clusters | `FilterPanel` inside `BottomSheet` (mobile) and right-side `Drawer` (tablet and desktop) |
+| Search | `/search` | `src/features/listings/pages/SearchPage.tsx` | `ListingCard` grid with infinite scroll | Inline search bar, city and bedrooms dropdowns, amenities `BottomSheet` |
+| Semantic search | `/search/semantic` | `src/features/listings/pages/SemanticSearchPage.tsx` (wraps `src/features/listings/components/SemanticSearchClient.tsx`) | `SearchResults` organism | Must-have amenities chips |
+| Explore (map) | `/explore` | `src/features/explore/pages/ExplorePage.tsx` | Leaflet pins and clusters | `FilterPanel` inside `BottomSheet` (mobile) and right-side `Drawer` (tablet and desktop) |
 
-The SearchPage route is technically served from `src/pages/public/SearchPage.tsx` but lives behind the `AuthGuard` in `src/App.tsx` (the route is `/search`, rendered inside `AppLayout`). It is "authenticated search": the same component could be reused publicly, but in the current routing it sits behind auth. The `SemanticSearchPage` and `SemanticSearchClient` are the natural-language variant that flips `semantic_search: true` in the filters so the backend can interpret free-text descriptions.
+The SearchPage route is technically served from `src/features/listings/pages/SearchPage.tsx` but lives behind the `AuthGuard` in `src/app/routes.tsx` (the route is `/search`, rendered inside `AppLayout`). It is "authenticated search": the same component could be reused publicly, but in the current routing it sits behind auth. The `SemanticSearchPage` and `SemanticSearchClient` are the natural-language variant that flips `semantic_search: true` in the filters so the backend can interpret free-text descriptions.
 
 ## The search page
 
-`SearchPage` (`src/pages/public/SearchPage.tsx`) is the primary keyword-driven search. URL state is owned by `nuqs` through `searchPageParams` in `src/lib/schemas/search-params.ts`, so every filter change updates the query string and the page is deep-linkable (`/search?q=1BHK&city=1&bedrooms=2&amenities=WiFi,Parking&priceMin=3000&priceMax=15000&page=1`).
+`SearchPage` (`src/features/listings/pages/SearchPage.tsx`) is the primary keyword-driven search. URL state is owned by `nuqs` through `searchPageParams` in `src/features/listings/lib/search-params.ts`, so every filter change updates the query string and the page is deep-linkable (`/search?q=1BHK&city=1&bedrooms=2&amenities=WiFi,Parking&priceMin=3000&priceMax=15000&page=1`).
 
 The page derives a `SearchFilters` object from the URL params, hands it to `useInfiniteWebSearch`, and renders results into a responsive `ListingCard` grid. Infinite scroll is driven by an `IntersectionObserver` watching a sentinel at the bottom of the list, calling `fetchNextPage` when it intersects and `hasNextPage` is true. A non-empty successful text query is recorded into `recentSearches` via `searchStore.addRecentSearch`, which surfaces as quick-relaunch chips above the grid.
 
@@ -26,9 +26,9 @@ The page also pushes the derived filters into `searchStore` on every change, so 
 
 ## The explore page
 
-`ExplorePage` (`src/pages/app/ExplorePage.tsx`) is the map. It is a full-bleed layout: the map fills the available viewport, a filter button opens the `FilterPanel` in a `BottomSheet` (mobile) or `Drawer` (desktop), and selecting a pin surfaces an inline property card. The map itself is `MapView` (`src/components/organisms/MapView.tsx`), a thin React wrapper around `react-leaflet` that is lazy-loaded because Leaflet needs `window`.
+`ExplorePage` (`src/features/explore/pages/ExplorePage.tsx`) is the map. It is a full-bleed layout: the map fills the available viewport, a filter button opens the `FilterPanel` in a `BottomSheet` (mobile) or `Drawer` (desktop), and selecting a pin surfaces an inline property card. The map itself is `MapView` (`src/features/explore/components/MapView.tsx`), a thin React wrapper around `react-leaflet` that is lazy-loaded because Leaflet needs `window`.
 
-The viewport (center and zoom) is persisted in `mapStore` (`src/lib/stores/map-store.ts`), so panning away to a listing detail and back keeps the user where they were. Every pan and zoom fires a debounced `moveend` handler that recomputes bounds, updates the store, and triggers a `useMapView` refetch scoped to the new viewport. Previous pins stay on screen during the refetch (`placeholderData: keepPreviousData`), so the map never flashes blank mid-pan.
+The viewport (center and zoom) is persisted in `mapStore` (`src/features/explore/store.ts`), so panning away to a listing detail and back keeps the user where they were. Every pan and zoom fires a debounced `moveend` handler that recomputes bounds, updates the store, and triggers a `useMapView` refetch scoped to the new viewport. Previous pins stay on screen during the refetch (`placeholderData: keepPreviousData`), so the map never flashes blank mid-pan.
 
 ```mermaid
 graph LR
@@ -46,7 +46,7 @@ Pins are custom `L.DivIcon` rent badges (for example `₹18k`) for room listings
 
 ## Reverse geocoding via Nominatim
 
-`useReverseGeocode` (`src/hooks/queries/useReverseGeocode.ts`) wraps `reverseGeocode` in `src/lib/api/nominatim.ts`, which calls the public OpenStreetMap Nominatim endpoint:
+`useReverseGeocode` (`src/features/onboarding/hooks/useReverseGeocode.ts`) wraps `reverseGeocode` in `src/features/onboarding/lib/nominatim.ts`, which calls the public OpenStreetMap Nominatim endpoint:
 
 ```
 https://nominatim.openstreetmap.org/reverse?lat=...&lon=...&format=json
@@ -65,7 +65,7 @@ Two Zustand stores hold client-only state for the search and explore surfaces. B
 - `viewMode: "grid" | "list" | "map"`, the user's preferred result layout.
 - `setFilter`, `setFilters`, `resetFilters`, `addRecentSearch`, `clearRecentSearches`, `getActiveFilterCount`, and `setSearchType`, which always reset `page` to 1 on any change.
 
-`mapStore` (`src/lib/stores/map-store.ts`) owns:
+`mapStore` (`src/features/explore/store.ts`) owns:
 
 - `center: { lat, lng }` (default New Delhi) and `zoom` (default 12).
 - `bounds: { north, south, east, west } | null`, the last computed viewport.
@@ -75,17 +75,17 @@ Server state (the actual search results) is never mirrored into either store. Th
 
 ## The filter panel and search results
 
-`FilterPanel` (`src/components/molecules/FilterPanel.tsx`) is the shared filter chrome. It renders a `SearchBar`, a stack of `FilterSection` blocks (each a labeled group of `Chip` options), and a sticky bottom bar with Clear and Apply buttons. Sections can declare a `variant` (for example `choice` for radio semantics). The panel is layout-agnostic: the explore page mounts it inside a `BottomSheet` or `Drawer`, and the search results organism mounts it as a left sidebar on large screens.
+`FilterPanel` (`src/features/listings/components/FilterPanel.tsx`) is the shared filter chrome. It renders a `SearchBar`, a stack of `FilterSection` blocks (each a labeled group of `Chip` options), and a sticky bottom bar with Clear and Apply buttons. Sections can declare a `variant` (for example `choice` for radio semantics). The panel is layout-agnostic: the explore page mounts it inside a `BottomSheet` or `Drawer`, and the search results organism mounts it as a left sidebar on large screens.
 
-`SearchResults` (`src/components/organisms/SearchResults.tsx`) is the result grid organism. It pairs an optional left sidebar (`FilterPanel`, hidden below `lg`) with a result column that shows a count eyebrow, a sort slot, the `ListingCard` grid, pagination controls, and a "Save this search" CTA when there is only one page. Mobile filters open via a `BottomSheet`. The organism is dumb: it calls back to the parent on filter toggle, clear, apply, save, page change, and listing open, and the parent owns the data.
+`SearchResults` (`src/features/listings/components/SearchResults.tsx`) is the result grid organism. It pairs an optional left sidebar (`FilterPanel`, hidden below `lg`) with a result column that shows a count eyebrow, a sort slot, the `ListingCard` grid, pagination controls, and a "Save this search" CTA when there is only one page. Mobile filters open via a `BottomSheet`. The organism is dumb: it calls back to the parent on filter toggle, clear, apply, save, page change, and listing open, and the parent owns the data.
 
 ## Saved searches and alerts
 
 Two related features let a user persist a query and get notified when new matches land.
 
-**Saved searches** are managed by `useSavedSearches`, `useCreateSavedSearch`, and `useDeleteSavedSearch` in `src/hooks/queries/useSearch.ts`. They hit `/flatmates/web/saved-searches`. The `SavedSearchesPage` (`src/pages/app/SavedSearchesPage.tsx`) lists them with their active filters as chips, shows a "new results" count when the backend reports fresh matches, and lets the user rerun (by mapping the saved filters back to `/search` query params) or delete (with a confirm modal). Deleting invalidates the `["search", "saved"]` query key so the list refreshes.
+**Saved searches** are managed by `useSavedSearches`, `useCreateSavedSearch`, and `useDeleteSavedSearch` in `src/features/listings/hooks/useSearch.ts`. They hit `/flatmates/web/saved-searches`. The `SavedSearchesPage` (`src/features/alerts/pages/SavedSearchesPage.tsx`) lists them with their active filters as chips, shows a "new results" count when the backend reports fresh matches, and lets the user rerun (by mapping the saved filters back to `/search` query params) or delete (with a confirm modal). Deleting invalidates the `["search", "saved"]` query key so the list refreshes.
 
-**Search alerts** are managed by `useSearchAlerts`, `useCreateSearchAlert`, `useUpdateSearchAlert`, and `useDeleteSearchAlert`, which hit `/flatmates/web/alerts`. The `AlertsPage` (`src/pages/app/AlertsPage.tsx`) lets the user create, pause or resume (via `enabled`), and delete alerts. Each alert carries a `frequency` (for example `daily`) and `channels` (for example `push`). Push delivery is wired through the notifications system, covered in [Push notifications](push-notifications.md).
+**Search alerts** are managed by `useSearchAlerts`, `useCreateSearchAlert`, `useUpdateSearchAlert`, and `useDeleteSearchAlert`, which hit `/flatmates/web/alerts`. The `AlertsPage` (`src/features/alerts/pages/AlertsPage.tsx`) lets the user create, pause or resume (via `enabled`), and delete alerts. Each alert carries a `frequency` (for example `daily`) and `channels` (for example `push`). Push delivery is wired through the notifications system, covered in [Push notifications](push-notifications.md).
 
 Both features follow the same mutation pattern: optimistic toast on success, error toast on failure, and query-key invalidation so the list refetches from the server.
 
@@ -102,30 +102,30 @@ graph LR
 
 ## Semantic search
 
-`SemanticSearchClient` (`src/components/page-clients/SemanticSearchClient.tsx`) is the natural-language entry point. The user types a description like "quiet room near Koramangala under 15k with vegetarian flatmates", selects must-have amenities, and the client sets `semantic_search: true` on the `SearchFilters` before calling `useWebSearch`. The backend interprets the free text and ranks results by lifestyle fit, not just literal keyword match. Results render through the same `SearchResults` organism, so the UX is consistent with keyword search. The page is served at `/search/semantic` by `SemanticSearchPage` (`src/pages/public/SemanticSearchPage.tsx`), which only adds SEO chrome around the client.
+`SemanticSearchClient` (`src/features/listings/components/SemanticSearchClient.tsx`) is the natural-language entry point. The user types a description like "quiet room near Koramangala under 15k with vegetarian flatmates", selects must-have amenities, and the client sets `semantic_search: true` on the `SearchFilters` before calling `useWebSearch`. The backend interprets the free text and ranks results by lifestyle fit, not just literal keyword match. Results render through the same `SearchResults` organism, so the UX is consistent with keyword search. The page is served at `/search/semantic` by `SemanticSearchPage` (`src/features/listings/pages/SemanticSearchPage.tsx`), which only adds SEO chrome around the client.
 
 ## Key source files
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/public/SearchPage.tsx` | Authenticated keyword search, infinite scroll, URL-driven filters |
-| `src/pages/app/ExplorePage.tsx` | Leaflet map explore, viewport-persisted, pin detail surfaces |
-| `src/pages/public/SemanticSearchPage.tsx` | SEO wrapper for `/search/semantic` |
-| `src/components/page-clients/SemanticSearchClient.tsx` | Natural-language search client, `semantic_search: true` |
-| `src/pages/app/SavedSearchesPage.tsx` | Saved searches list, rerun, delete |
-| `src/pages/app/AlertsPage.tsx` | Search alerts CRUD |
-| `src/components/organisms/MapView.tsx` | `react-leaflet` wrapper, custom pin and cluster icons, theme-aware tiles |
+| `src/features/listings/pages/SearchPage.tsx` | Authenticated keyword search, infinite scroll, URL-driven filters |
+| `src/features/explore/pages/ExplorePage.tsx` | Leaflet map explore, viewport-persisted, pin detail surfaces |
+| `src/features/listings/pages/SemanticSearchPage.tsx` | SEO wrapper for `/search/semantic` |
+| `src/features/listings/components/SemanticSearchClient.tsx` | Natural-language search client, `semantic_search: true` |
+| `src/features/alerts/pages/SavedSearchesPage.tsx` | Saved searches list, rerun, delete |
+| `src/features/alerts/pages/AlertsPage.tsx` | Search alerts CRUD |
+| `src/features/explore/components/MapView.tsx` | `react-leaflet` wrapper, custom pin and cluster icons, theme-aware tiles |
 | `src/components/organisms/MapExplorer.tsx` | Non-Leaflet fallback map with mini cards |
-| `src/components/organisms/SearchResults.tsx` | Result grid organism with pagination and save CTA |
-| `src/components/organisms/PropertyDetailPanel.tsx` | Right-rail pin detail on explore |
-| `src/components/organisms/PropertyDetailSheet.tsx` | Mobile bottom strip pin detail on explore |
-| `src/components/molecules/FilterPanel.tsx` | Shared filter chrome (search bar, sections, Clear and Apply) |
-| `src/components/molecules/MapZoomControls.tsx` | Zoom in, zoom out, and locate-me buttons |
-| `src/hooks/queries/useSearch.ts` | `useWebSearch`, `useInfiniteWebSearch`, saved searches, search alerts |
-| `src/hooks/queries/useMapView.ts` | `useMapView`, viewport-scoped pin and cluster fetch |
-| `src/hooks/queries/useReverseGeocode.ts` | Nominatim reverse geocode mutation |
-| `src/lib/api/nominatim.ts` | `reverseGeocode` against the public OSM endpoint |
+| `src/features/listings/components/SearchResults.tsx` | Result grid organism with pagination and save CTA |
+| `src/features/explore/components/PropertyDetailPanel.tsx` | Right-rail pin detail on explore |
+| `src/features/explore/components/PropertyDetailSheet.tsx` | Mobile bottom strip pin detail on explore |
+| `src/features/listings/components/FilterPanel.tsx` | Shared filter chrome (search bar, sections, Clear and Apply) |
+| `src/features/explore/components/MapControls.tsx` | Zoom in, zoom out, and locate-me buttons |
+| `src/features/listings/hooks/useSearch.ts` | `useWebSearch`, `useInfiniteWebSearch`, saved searches, search alerts |
+| `src/features/explore/hooks/useMapView.ts` | `useMapView`, viewport-scoped pin and cluster fetch |
+| `src/features/onboarding/hooks/useReverseGeocode.ts` | Nominatim reverse geocode mutation |
+| `src/features/onboarding/lib/nominatim.ts` | `reverseGeocode` against the public OSM endpoint |
 | `src/lib/api/search.types.ts` | `SearchFilters`, `WebSearchResponse`, `SavedSearch`, `SearchAlert`, `MapPin`, `MapCluster`, `MapViewFilters` |
 | `src/lib/stores/search-store.ts` | `searchStore`: filters, recent searches, view mode |
-| `src/lib/stores/map-store.ts` | `mapStore`: center, zoom, bounds, selected pin |
-| `src/lib/schemas/search-params.ts` | `nuqs` parsers for `/search` and `/discover` URL state |
+| `src/features/explore/store.ts` | `mapStore`: center, zoom, bounds, selected pin |
+| `src/features/listings/lib/search-params.ts` | `nuqs` parsers for `/search` and `/discover` URL state |

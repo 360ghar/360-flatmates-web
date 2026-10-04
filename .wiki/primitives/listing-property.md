@@ -60,7 +60,7 @@ The full `Property` type also carries engagement counters (`interest_count`, `vi
 
 Two mutations extend a listing's reach or lifetime:
 
-- **Boost** (`useBoostListing` in `src/hooks/queries/useProperties.ts`) posts to `POST /properties/{id}/boost` with a `BoostDuration` of `24h`, `7d`, or `30d` (defined by `BOOST_DURATION_VALUES`). The response carries a `boost_until` timestamp. Boost also invalidates the dashboard query so the active-boost flag refreshes.
+- **Boost** (`useBoostListing` in `src/features/listings/hooks/useProperties.ts`) posts to `POST /properties/{id}/boost` with a `BoostDuration` of `24h`, `7d`, or `30d` (defined by `BOOST_DURATION_VALUES`). The response carries a `boost_until` timestamp. Boost also invalidates the dashboard query so the active-boost flag refreshes.
 - **Renew** (`useRenewListing`) posts to `POST /properties/{id}/renew` with a new `available_from` and `expires_at`, extending the listing's window. It returns the updated `Property`.
 
 Both invalidate the `["properties", "mine"]` and the single-property caches on success so the dashboard and detail views reconcile immediately. See [dashboard analytics](../features/dashboard-analytics.md) for how `ListingAnalytics` reports on boost performance.
@@ -83,4 +83,4 @@ The listing builder (`src/lib/schemas/listing-builder.ts`) splits the create flo
 | `src/lib/api/property.types.ts` | `Property`, `PropertyCreate`, `PropertyUpdate`, boost and renew payloads, dashboard types |
 | `src/lib/schemas/listing-builder.ts` | `propertyCreateSchema`, `propertySchema`, per-step builder schemas, `listingDraftSchema` |
 | `src/lib/data/domain.ts` | `PropertyType`, `PropertyPurpose`, `ListingSharingType`, `SocietyType`, lifecycle and moderation statuses, `BoostDuration` |
-| `src/hooks/queries/useProperties.ts` | `useMyProperties`, `useCreateProperty`, `useBoostListing`, `useRenewListing` |
+| `src/features/listings/hooks/useProperties.ts` | `useMyProperties`, `useCreateProperty`, `useBoostListing`, `useRenewListing` |

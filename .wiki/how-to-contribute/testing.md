@@ -44,7 +44,7 @@ it("renders the heading", () => {
 });
 ```
 
-For hook tests, build a local wrapper with `QueryClientProvider` (see `src/hooks/__tests__/useProfiles.test.tsx` for the canonical pattern) and use `renderHook` plus `waitFor` from RTL.
+For hook tests, build a local wrapper with `QueryClientProvider` (see `src/hooks/queries/__tests__/useProfiles.test.tsx` for the canonical pattern) and use `renderHook` plus `waitFor` from RTL.
 
 ### Integration tests
 
@@ -54,11 +54,11 @@ The integration tests live under `tests/integration/` and exercise pure logic ac
 | --- | --- |
 | `tests/integration/compatibility-engine.test.ts` | The six-dimension compatibility math, the DESIGN.md thresholds (70 green, 40 amber, 39 red), and `rankPeersByCompatibility` does not mutate input order. |
 | `tests/integration/query-keys.test.ts` | Every query hook uses a consistent query-key structure, and every mutation invalidates the correct keys. It walks each module's function bodies with regex to extract `queryKey:` and `invalidateQueries` literals, so a renamed key breaks the build. |
-| `tests/integration/route-contracts.test.ts` | Route-level contracts derived from `src/App.tsx`. |
+| `tests/integration/route-contracts.test.ts` | Route-level contracts derived from `src/app/routes.tsx`. |
 
 ### Patterns
 
-**Mocking API calls.** Mock the `apiClient` at the module boundary, not `fetch`. The canonical pattern (from `src/hooks/__tests__/useProfiles.test.tsx`):
+**Mocking API calls.** Mock the `apiClient` at the module boundary, not `fetch`. The canonical pattern (from `src/hooks/queries/__tests__/useProfiles.test.tsx`):
 
 ```tsx
 const mockRequest = vi.fn();
@@ -151,7 +151,7 @@ For common test failures and their fixes, see [debugging](debugging.md). For the
 | `src/test-utils.tsx` | The `render` helper that wraps components in `QueryClientProvider` and `MemoryRouter`. |
 | `src/__mocks__/framer-motion.tsx` | The Proxy mock that strips framer props and renders plain DOM. |
 | `src/hooks/__tests__/useFlatmatesRealtime.test.tsx` | Canonical realtime test pattern: mock Supabase Broadcast, drive subscription status and events. |
-| `src/hooks/__tests__/useProfiles.test.tsx` | Canonical API mock pattern and hook test layout. |
+| `src/hooks/queries/__tests__/useProfiles.test.tsx` | Canonical API mock pattern and hook test layout. |
 | `tests/integration/query-keys.test.ts` | The query-key contract guardrail. |
 | `tests/integration/compatibility-engine.test.ts` | The compatibility math and threshold contract. |
 | `playwright.config.ts` | The four projects, the `webServer` auto-start, the base URL. |

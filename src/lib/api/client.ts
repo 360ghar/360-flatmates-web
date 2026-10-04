@@ -2,6 +2,9 @@ import { getEnv } from "@/lib/env";
 import { debug } from "@/lib/debug";
 import { ApiClientError, mapStatusToAppError } from "./errors";
 
+export const READ_TIMEOUT_MS = 20_000;
+export const WRITE_TIMEOUT_MS = 60_000;
+
 export type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export type QueryValue =
@@ -184,19 +187,24 @@ export class HttpApiClient implements ApiAdapter {
 
   private async doFetch<_TResponse, TBody>(
     req: ApiRequest<TBody>,
-    token: string | null
+    token: string | null,
+    deadline: Deadline
   ): Promise<Response> {
     const headers = this.buildHeaders(
       req.auth !== false ? token : null,
       req.body !== undefined,
       req.headers
     );
-    return this.fetcher(buildApiUrl(this.baseUrl, req.path, req.query), {
-      method: req.method ?? "GET",
-      headers,
-      body: req.body === undefined ? undefined : JSON.stringify(req.body),
-      signal: req.signal
-    });
+    try {
+      return await this.fetcher(buildApiUrl(this.baseUrl, req.path, req.query), {
+        method: req.method ?? "GET",
+        headers,
+        body: req.body === undefined ? undefined : JSON.stringify(req.body),
+        signal: deadline.signal
+      });
+    } catch (error) {
+      throw toTransportError(error, req.signal, deadline);
+    }
   }
 
   async request<TResponse, TBody = unknown>(
@@ -214,7 +222,28 @@ export class HttpApiClient implements ApiAdapter {
     // wrapping `getAccessToken` in an abortable promise. Flag for follow-up.
     const token = await this.getAuthHeader(auth);
 
-    let response = await this.doFetch(req, token);
+    // Uploads send base64 JSON bodies, so writes get a longer budget. The
+    // deadline also covers reading the body.
+    const deadline = createDeadline(
+      req.signal,
+      req.body === undefined ? READ_TIMEOUT_MS : WRITE_TIMEOUT_MS
+    );
+    try {
+      return await this.send<TResponse, TBody>(req, token, deadline, stopTimer);
+    } finally {
+      deadline.clear();
+    }
+  }
+
+  private async send<TResponse, TBody>(
+    req: ApiRequest<TBody>,
+    token: string | null,
+    deadline: Deadline,
+    stopTimer: () => void
+  ): Promise<TResponse> {
+    const { auth = true } = req;
+    const method = req.method ?? "GET";
+    let response = await this.doFetch(req, token, deadline);
 
     // Auth-recoverable contract (verified against the FastAPI auth layer in
     // `backend/app/api/api_v1/dependencies/auth.py` + `app/core/auth.py`):
@@ -241,7 +270,7 @@ export class HttpApiClient implements ApiAdapter {
       const newToken = await this.refreshing;
       if (newToken) {
         debug.log("API", `${method} ${req.path} — retrying with refreshed token`);
-        response = await this.doFetch(req, newToken);
+        response = await this.doFetch(req, newToken, deadline);
       } else {
         debug.error("API", `${method} ${req.path} — token refresh failed`);
       }
@@ -251,7 +280,11 @@ export class HttpApiClient implements ApiAdapter {
       const retryAfterHeader = response.headers.get("Retry-After");
       const retryAfter =
         retryAfterHeader === null ? undefined : Number(retryAfterHeader);
-      const { message, fields, errorCode } = await readErrorBody(response);
+      const { message, fields, errorCode } = await readBody(
+        () => readErrorBody(response),
+        req.signal,
+        deadline
+      );
       const appError = mapStatusToAppError(
         response.status,
         message,
@@ -270,7 +303,70 @@ export class HttpApiClient implements ApiAdapter {
       return undefined as TResponse;
     }
 
-    return (await response.json()) as TResponse;
+    return (await readBody(() => response.json(), req.signal, deadline)) as TResponse;
+  }
+}
+
+interface Deadline {
+  signal: AbortSignal;
+  timedOut: () => boolean;
+  clear: () => void;
+}
+
+/**
+ * Caller signal + timeout in one signal. Built from AbortController and
+ * setTimeout because AbortSignal.any / AbortSignal.timeout are missing on
+ * Safari < 17.4.
+ */
+function createDeadline(callerSignal: AbortSignal | undefined, ms: number): Deadline {
+  const controller = new AbortController();
+  let timedOut = false;
+  const onCallerAbort = () => controller.abort(callerSignal?.reason);
+  if (callerSignal?.aborted) onCallerAbort();
+  else callerSignal?.addEventListener("abort", onCallerAbort, { once: true });
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, ms);
+  return {
+    signal: controller.signal,
+    timedOut: () => timedOut,
+    clear: () => {
+      clearTimeout(timer);
+      callerSignal?.removeEventListener("abort", onCallerAbort);
+    }
+  };
+}
+
+function toTransportError(
+  error: unknown,
+  callerSignal: AbortSignal | undefined,
+  deadline: Deadline
+): unknown {
+  // Caller cancellation (TanStack Query unmount, etc.) must stay an AbortError.
+  if (callerSignal?.aborted) return error;
+  if (deadline.timedOut()) {
+    return new ApiClientError({
+      type: "timeout",
+      message: "The server took too long to respond."
+    });
+  }
+  return new ApiClientError({
+    type: "network",
+    message: "Could not reach the server."
+  });
+}
+
+async function readBody<T>(
+  read: () => Promise<T>,
+  callerSignal: AbortSignal | undefined,
+  deadline: Deadline
+): Promise<T> {
+  try {
+    return await read();
+  } catch (error) {
+    if (error instanceof SyntaxError) throw error;
+    throw toTransportError(error, callerSignal, deadline);
   }
 }
 

@@ -7,7 +7,7 @@
  * ──────────────────────────────────────────────────────────────────────────
  * What is included
  * ──────────────────────────────────────────────────────────────────────────
- *  - Static PUBLIC routes only (verified against `src/App.tsx`'s PublicLayout).
+ *  - Static PUBLIC routes only (verified against `src/app/routes.tsx`'s PublicLayout).
  *  - One URL per supported city (`/cities/:slug`).
  *  - Neighborhood URLs (`/cities/:slug/:neighborhood`) — the route exists in
  *    App.tsx and the data lives in `src/lib/seo/neighborhoods.ts`.
@@ -46,7 +46,7 @@ import { CITY_NEIGHBORHOODS } from "../src/lib/seo/neighborhoods";
 import { fetchDiscoverableListings, shouldFetchListingData } from "./lib/listings";
 
 // ──────────────────────────────────────────────────────────────────────────
-// Static PUBLIC routes (verified against src/App.tsx → PublicLayout).
+// Static PUBLIC routes (verified against src/app/routes.tsx → PublicLayout).
 // Kept free of authenticated routes and noindex public routes.
 // ──────────────────────────────────────────────────────────────────────────
 interface StaticRoute {
@@ -199,7 +199,7 @@ async function generateSitemap(): Promise<void> {
   }
 
   // 5) Neighborhood pages (`/cities/:slug/:neighborhood`). The route exists in
-  //    src/App.tsx and the data is maintained in src/lib/seo/neighborhoods.ts.
+  //    src/app/routes.tsx and the data is maintained in src/lib/seo/neighborhoods.ts.
   for (const city of CITY_NEIGHBORHOODS) {
     for (const n of city.neighborhoods) {
       entries.push({
@@ -245,7 +245,7 @@ async function generateSitemap(): Promise<void> {
     });
 
     // TODO: blocked on ADR-001 A-9. The /share/:id route does not exist in
-    // src/App.tsx yet, so emitting it in the sitemap would 404 every click.
+    // src/app/routes.tsx yet, so emitting it in the sitemap would 404 every click.
     // Once the ShareListingPage route lands, re-enable the entry below and
     // add the same route to scripts/prerender.ts so prerender and sitemap
     // stay in sync.

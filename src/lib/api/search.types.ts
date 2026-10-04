@@ -159,6 +159,8 @@ export interface MapViewFilters {
   price_min?: number;
   price_max?: number;
   move_in?: MoveInTimeline[];
+  city?: string;
+  locality?: string;
   sharing_type?: ListingSharingType[];
   gender_preference?: GenderPreference[];
   amenities?: string[];

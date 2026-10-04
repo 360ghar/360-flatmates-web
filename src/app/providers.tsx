@@ -1,0 +1,251 @@
+import { userMessage } from "@/lib/api/errors";
+import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from "@tanstack/react-query";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { MotionConfig } from "framer-motion";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+
+import { useAuth } from "@/hooks/useAuth";
+import { useFlatmatesRealtime } from "@/hooks/useFlatmatesRealtime";
+import { bootstrapOptions } from "@/hooks/queries/useBootstrap";
+import { ApiClientError, setRefreshTokenHandler } from "@/lib/api";
+import { getAuthState } from "@/lib/api/auth";
+import { refreshAccessToken } from "@/lib/auth/refresh";
+import { authStore } from "@/lib/stores/auth-store";
+import { useStore } from "zustand";
+import { uiStore } from "@/lib/stores/ui-store";
+import type { ThemePreference } from "@/lib/stores/ui-store";
+import { searchStore } from "@/lib/stores/search-store";
+import { onboardingStore } from "@/features/onboarding/store";
+import { chatStore } from "@/features/chat/store";
+import { LISTING_DRAFT_STORAGE_KEY } from "@/lib/schemas/listing-builder";
+import { SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY } from "@/lib/storage/saved-searches";
+import { PUSH_TOKEN_KEY } from "@/lib/push/token";
+import { toast } from "sonner";
+import { Toast, Toaster } from "@/components/ui/Toast";
+
+
+function ProviderInternals({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const { session, loading } = useAuth();
+
+  const isAuthenticated = !loading && !!session;
+  const authStage = useStore(authStore, (s) => s.authStage);
+
+  const queryClient = useQueryClient();
+  const wasAuthenticated = useRef(isAuthenticated);
+
+  useEffect(() => {
+    if (wasAuthenticated.current && !isAuthenticated) {
+      queryClient.clear();
+      searchStore.getState().resetFilters();
+      onboardingStore.getState().clearDraft();
+      authStore.getState().resetAuthFlow();
+      chatStore.getState().reset();
+      searchStore.getState().clearRecentSearches();
+      // Per-user data kept in localStorage must not leak to the next user (W17).
+      for (const key of [LISTING_DRAFT_STORAGE_KEY, SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY, PUSH_TOKEN_KEY]) {
+        try {
+          localStorage.removeItem(key);
+        } catch {
+          /* storage unavailable */
+        }
+      }
+      // An older service worker may still be caching /api/ responses (W1).
+      if ("caches" in window) void caches.delete("api").catch(() => undefined);
+    }
+    wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated, queryClient]);
+
+  // Fetch the backend-computed auth gate stage when the user is authenticated.
+  // Routed through TanStack Query so retries, dedup, and refetch-on-focus are
+  // handled by the cache. `useAuthStateQuery` re-checks `midAuthFlow` after the
+  // response resolves so a multi-step auth flow that started while the request
+  // was in flight is not stomped on.
+  useAuthStateQuery(isAuthenticated);
+
+  // Wire the API client's 401-recovery path to the shared refresh module.
+  // This keeps concurrent 401 failures deduped onto one refreshSession() call
+  // and one recovery path for a dead session.
+  useEffect(() => {
+    setRefreshTokenHandler(() => refreshAccessToken());
+    return () => setRefreshTokenHandler(null);
+  }, []);
+
+  const { data: realtimeConfig } = useQuery({
+    ...bootstrapOptions,
+    enabled: isAuthenticated && authStage === "active",
+    select: (data) => data.realtime ?? null
+  });
+
+  useFlatmatesRealtime({
+    enabled: isAuthenticated && authStage === "active",
+    accessToken: session?.access_token ?? null,
+    realtime: realtimeConfig ?? null
+  });
+
+  useEffect(() => {
+    const applyTheme = (theme: ThemePreference) => {
+      const isDark =
+        theme === "dark" ||
+        (theme === "system" &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+      if (isDark) {
+        document.documentElement.dataset.theme = "dark";
+      } else {
+        delete document.documentElement.dataset.theme;
+      }
+    };
+
+    applyTheme(uiStore.getState().theme);
+
+    let prevTheme = uiStore.getState().theme;
+    const unsub = uiStore.subscribe((state) => {
+      if (state.theme !== prevTheme) {
+        prevTheme = state.theme;
+        applyTheme(state.theme);
+      }
+    });
+
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const onSystemChange = () => {
+      if (uiStore.getState().theme === "system") {
+        applyTheme("system");
+      }
+    };
+    mql.addEventListener("change", onSystemChange);
+
+    return () => {
+      unsub();
+      mql.removeEventListener("change", onSystemChange);
+    };
+  }, []);
+
+  return children;
+}
+
+/**
+ * Fetch the backend-computed auth gate stage while the user is authenticated.
+ * The `midAuthFlow` post-resolve check (F10 fix #4) prevents the gate from
+ * stomping on a multi-step auth flow that started after the request was
+ * issued.
+ */
+function useAuthStateQuery(isAuthenticated: boolean) {
+  const query = useQuery({
+    queryKey: ["auth-state", "flatmates"],
+    queryFn: ({ signal }) => getAuthState("flatmates", signal),
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (query.isPending || (query.isFetching && !query.data)) {
+      authStore.getState().setAuthStageUnknown();
+    }
+  }, [isAuthenticated, query.data, query.isFetching, query.isPending]);
+
+  useEffect(() => {
+    if (!query.data) return;
+    if (authStore.getState().midAuthFlow) return;
+    authStore.getState().setAuthStage(query.data.stage, query.data.missing_fields);
+  }, [query.data]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !query.error) return;
+    const message = userMessage(query.error, "Could not verify your account status.");
+    authStore.getState().setAuthStageError(message);
+  }, [isAuthenticated, query.error]);
+}
+
+/** Hands toasts pushed through uiStore.pushToast to the Toaster. The store
+ *  stays the one API for the whole app; the Toaster owns timing and focus. */
+function ToastContainer() {
+  const toasts = useStore(uiStore, (s) => s.toasts);
+
+  useEffect(() => {
+    for (const item of toasts) {
+      toast.custom(
+        (id) => (
+          <Toast type={item.type} title={item.title} description={item.description} onDismiss={() => toast.dismiss(id)} />
+        ),
+        { id: item.id, duration: item.persistent ? Infinity : item.type === "error" ? 8000 : 5000 }
+      );
+      uiStore.getState().dismissToast(item.id);
+    }
+  }, [toasts]);
+
+  return <Toaster />;
+}
+
+export function Providers({ children }: { children: ReactNode }) {
+  const [queryClient] = useState(
+    () => {
+      const client = new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+            retry: (failureCount, error) => {
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "auth"
+              ) {
+                if (failureCount === 0) return true;
+                return false;
+              }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "forbidden"
+              ) {
+                return false;
+              }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "rate_limit"
+              ) {
+                return failureCount < 1;
+              }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "validation"
+              ) {
+                return false;
+              }
+              if (
+                error instanceof ApiClientError &&
+                error.appError.type === "bad_request"
+              ) {
+                return false;
+              }
+              return failureCount < 1;
+            },
+            staleTime: 60_000
+          }
+        }
+      });
+
+      // Catalog queries (cities, amenities, localities) are static-feeling and
+      // rarely change. Override the global `staleTime` so we don't re-fetch
+      // them on every consumer mount. 30 min matches the per-query override
+      // on `useCatalogs`.
+      client.setQueryDefaults(["catalogs"], { staleTime: 30 * 60 * 1000 });
+      return client;
+    }
+  );
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <NuqsAdapter>
+        <QueryClientProvider client={queryClient}>
+          <ProviderInternals>{children}</ProviderInternals>
+          <ToastContainer />
+        </QueryClientProvider>
+      </NuqsAdapter>
+    </MotionConfig>
+  );
+}

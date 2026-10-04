@@ -10,17 +10,17 @@ Room poster mode is one of three modes a user picks during onboarding (`room_pos
 
 | Route | File | Purpose |
 | --- | --- | --- |
-| `/post` | `src/pages/app/PostPage.tsx` | Eight-step post wizard |
-| `/post/review` | `src/pages/app/PostReviewPage.tsx` | "Under review" confirmation screen |
-| `/manage` | `src/pages/app/ManagePage.tsx` | Grid of the user's own listings |
-| `/my-listings/:id` | `src/pages/app/MyListingDetailPage.tsx` | Single listing detail with boost, renew, delete |
-| `/my-listings/:id/edit` | `src/pages/app/MyListingEditPage.tsx` | Edit form (react-hook-form + Zod) |
+| `/post` | `src/features/hosting/pages/PostPage.tsx` | Eight-step post wizard |
+| `/post/review` | `src/features/hosting/pages/PostReviewPage.tsx` | "Under review" confirmation screen |
+| `/manage` | `src/features/hosting/pages/ManagePage.tsx` | Grid of the user's own listings |
+| `/my-listings/:id` | `src/features/hosting/pages/MyListingDetailPage.tsx` | Single listing detail with boost, renew, delete |
+| `/my-listings/:id/edit` | `src/features/hosting/pages/MyListingEditPage.tsx` | Edit form (react-hook-form + Zod) |
 
 The manage list is the home base. From there the user can post a new listing, open a listing's detail, edit it, or jump to analytics.
 
 ## The post wizard
 
-`PostPage` is the biggest page in the app (666 lines). It wraps a shared `ListingBuilder` chrome (`src/components/organisms/ListingBuilder.tsx`) around eight steps, each rendered as a `<Card>` with the relevant fields. `ListingBuilder` provides the header (back button, logo, spacer), the `StepProgress` indicator, the scrollable content area, and a `BottomActionBar` with Back and Next buttons.
+`PostPage` is the biggest page in the app (666 lines). It wraps a shared `ListingBuilder` chrome (`src/features/hosting/components/ListingBuilder.tsx`) around eight steps, each rendered as a `<Card>` with the relevant fields. `ListingBuilder` provides the header (back button, logo, spacer), the `StepProgress` indicator, the scrollable content area, and a `BottomActionBar` with Back and Next buttons.
 
 The eight steps, defined in `PostPage.tsx`:
 
@@ -43,7 +43,7 @@ The wizard autosaves the form to `localStorage` under `flatmates:post-draft` on 
 
 ### Photo upload
 
-Photos are converted to WebP (1600px max, 0.82 quality) client-side via `useImageUpload` (`src/hooks/useImageUpload.ts`) before being sent. Each pending image tracks an `uploaded`, `uploading`, and `preview` state. The first photo is badged "Main". A photo that fails conversion shows a "Retry" button. On publish, the property is created first, then each unuploaded photo is sent as a separate `POST /properties/{id}/images` call with `is_main: imgIndex === 0`. A background toast tells the user photos are uploading, and the user is routed to the review screen immediately.
+Photos are converted to WebP (1600px max, 0.82 quality) client-side via `useImageUpload` (`src/features/hosting/hooks/useImageUpload.ts`) before being sent. Each pending image tracks an `uploaded`, `uploading`, and `preview` state. The first photo is badged "Main". A photo that fails conversion shows a "Retry" button. On publish, the property is created first, then each unuploaded photo is sent as a separate `POST /properties/{id}/images` call with `is_main: imgIndex === 0`. A background toast tells the user photos are uploading, and the user is routed to the review screen immediately.
 
 ```mermaid
 sequenceDiagram
@@ -65,7 +65,7 @@ sequenceDiagram
 
 ## The review gate
 
-After publish, `PostPage` navigates to `/post/review` with `state.listingId`. `PostReviewPage` (`src/pages/app/PostReviewPage.tsx`) renders a centered card with a three-step "Submitted, Under Review, Published" tracker, a note that review happens within 24 hours, and three explainer lines:
+After publish, `PostPage` navigates to `/post/review` with `state.listingId`. `PostReviewPage` (`src/features/hosting/pages/PostReviewPage.tsx`) renders a centered card with a three-step "Submitted, Under Review, Published" tracker, a note that review happens within 24 hours, and three explainer lines:
 
 1. AI pre-screen checks photos, pricing, and required fields.
 2. Moderation reviews the listing context.
@@ -75,13 +75,13 @@ The card offers "Edit Listing" (deep-linking to `/my-listings/{id}/edit`) and "B
 
 ## The manage list
 
-`ManagePage` (`src/pages/app/ManagePage.tsx`) calls `useMyProperties()` and renders the results through the shared `ListingCard` (`src/components/molecules/ListingCard.tsx`). Each card is adapted from the API `Property` shape to `ListingCardData` via `propertyToListingCardProps` in `src/lib/api/adapters.ts`. The card's CTA label is "Manage", and clicking it navigates to `/my-listings/{id}`.
+`ManagePage` (`src/features/hosting/pages/ManagePage.tsx`) calls `useMyProperties()` and renders the results through the shared `ListingCard` (`src/features/listings/components/ListingCard.tsx`). Each card is adapted from the API `Property` shape to `ListingCardData` via `propertyToListingCardProps` in `src/features/*/lib/adapters.ts`. The card's CTA label is "Manage", and clicking it navigates to `/my-listings/{id}`.
 
 The page uses `AsyncView` for loading, error, and empty states. Loading renders three `listingCard` skeletons in a 3-column grid that matches the real layout. Empty renders a card with a "Post your first listing" CTA. Error renders an inline `ErrorState` with retry inside a card, never a full-page error, per the async-state rules in [DESIGN.md](../../DESIGN.md) section 12.1.
 
 ## Listing detail and lifecycle actions
 
-`MyListingDetailPage` (`src/pages/app/MyListingDetailPage.tsx`) fetches a single property with `useProperty(id)` and renders the card plus two management cards. The "Listing Status" card shows the moderation status (`approved` -> "Published", `pending_review` -> "Under Review", else "Draft"), the view count, and the interest count. The "Manage Listing" card exposes three actions:
+`MyListingDetailPage` (`src/features/hosting/pages/MyListingDetailPage.tsx`) fetches a single property with `useProperty(id)` and renders the card plus two management cards. The "Listing Status" card shows the moderation status (`approved` -> "Published", `pending_review` -> "Under Review", else "Draft"), the view count, and the interest count. The "Manage Listing" card exposes three actions:
 
 | Action | Hook | Endpoint | Effect |
 | --- | --- | --- | --- |
@@ -104,7 +104,7 @@ The detail page reads `property_status` to label the status card. The analytics 
 
 ## The edit form
 
-`MyListingEditPage` (`src/pages/app/MyListingEditPage.tsx`, 447 lines) is a react-hook-form form validated by a local Zod schema. Unlike the post wizard (which is a controlled state machine), the edit page uses `useForm` with `zodResolver(listingSchema)` and registers inputs directly.
+`MyListingEditPage` (`src/features/hosting/pages/MyListingEditPage.tsx`, 447 lines) is a react-hook-form form validated by a local Zod schema. Unlike the post wizard (which is a controlled state machine), the edit page uses `useForm` with `zodResolver(listingSchema)` and registers inputs directly.
 
 The schema (`listingSchema`) enforces:
 
@@ -125,7 +125,7 @@ The canonical create schema lives in `src/lib/schemas/listing-builder.ts` as `pr
 
 ## Mutations and cache invalidation
 
-All listing mutations live in `src/hooks/queries/useProperties.ts`. Each mutation invalidates the minimal set of query keys on success:
+All listing mutations live in `src/features/listings/hooks/useProperties.ts`. Each mutation invalidates the minimal set of query keys on success:
 
 | Hook | Invalidates |
 | --- | --- |
@@ -169,15 +169,15 @@ stateDiagram-v2
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/app/PostPage.tsx` | Eight-step post wizard, draft persistence, photo upload, publish |
-| `src/pages/app/PostReviewPage.tsx` | "Under review" confirmation screen after publish |
-| `src/pages/app/ManagePage.tsx` | Grid of the user's own listings with async states |
-| `src/pages/app/MyListingDetailPage.tsx` | Single listing detail, boost, renew, delete |
-| `src/pages/app/MyListingEditPage.tsx` | Edit form with react-hook-form and Zod |
-| `src/hooks/queries/useProperties.ts` | All listing query and mutation hooks |
+| `src/features/hosting/pages/PostPage.tsx` | Eight-step post wizard, draft persistence, photo upload, publish |
+| `src/features/hosting/pages/PostReviewPage.tsx` | "Under review" confirmation screen after publish |
+| `src/features/hosting/pages/ManagePage.tsx` | Grid of the user's own listings with async states |
+| `src/features/hosting/pages/MyListingDetailPage.tsx` | Single listing detail, boost, renew, delete |
+| `src/features/hosting/pages/MyListingEditPage.tsx` | Edit form with react-hook-form and Zod |
+| `src/features/listings/hooks/useProperties.ts` | All listing query and mutation hooks |
 | `src/lib/api/property.types.ts` | `Property`, `PropertyCreate`, `PropertyUpdate`, boost and renew payloads |
 | `src/lib/schemas/listing-builder.ts` | Canonical `propertyCreateSchema` and `propertySchema` |
 | `src/lib/data/domain.ts` | `PropertyLifecycleStatus` and `PropertyModerationStatus` enums |
-| `src/components/organisms/ListingBuilder.tsx` | Shared wizard chrome (header, step progress, bottom bar) |
-| `src/components/molecules/ListingCard.tsx` | Reusable listing card used in manage, discover, search |
-| `src/hooks/useImageUpload.ts` | WebP conversion before upload |
+| `src/features/hosting/components/ListingBuilder.tsx` | Shared wizard chrome (header, step progress, bottom bar) |
+| `src/features/listings/components/ListingCard.tsx` | Reusable listing card used in manage, discover, search |
+| `src/features/hosting/hooks/useImageUpload.ts` | WebP conversion before upload |

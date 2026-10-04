@@ -6,7 +6,7 @@ A signed-in user is not a usable user until they have chosen a mode, filled in t
 
 ## The gate progression
 
-After sign-in, `ProviderInternals` in `src/providers.tsx` fetches `GET /api/v1/users/me/auth-state?app=flatmates` and writes the `stage` into `authStore`. `GateGuard` in `src/pages/guards.tsx` reads that stage and routes the user to the right screen. The progression is linear, and each step writes back to the profile before the next gate can advance.
+After sign-in, `ProviderInternals` in `src/app/providers.tsx` fetches `GET /api/v1/users/me/auth-state?app=flatmates` and writes the `stage` into `authStore`. `GateGuard` in `src/app/guards.tsx` reads that stage and routes the user to the right screen. The progression is linear, and each step writes back to the profile before the next gate can advance.
 
 | Stage | What it means | Where the user lands |
 | --- | --- | --- |
@@ -29,18 +29,18 @@ stateDiagram-v2
 
 ## Choose role
 
-`ChooseRolePage` (`src/pages/app/ChooseRolePage.tsx`) is the first profile-dependent screen. It renders a `SelectableCardGrid` of the three user modes (`room_poster`, `seeker`/`co_hunter`, `open_to_both`) with icons, pre-selects the saved `profile.mode` if one exists, and on Continue calls `updateProfile.mutateAsync({ mode: selected })` then navigates to `/home`. The mode is the single field that controls which navigation tabs and features the user sees across the app, so it is collected early and can be changed later from the profile page. The page seeds the selected value from the profile once it loads (without clobbering an in-progress choice) and lands focus on the heading for keyboard and screen-reader users.
+`ChooseRolePage` (`src/features/onboarding/pages/ChooseRolePage.tsx`) is the first profile-dependent screen. It renders a `SelectableCardGrid` of the three user modes (`room_poster`, `seeker`/`co_hunter`, `open_to_both`) with icons, pre-selects the saved `profile.mode` if one exists, and on Continue calls `updateProfile.mutateAsync({ mode: selected })` then navigates to `/home`. The mode is the single field that controls which navigation tabs and features the user sees across the app, so it is collected early and can be changed later from the profile page. The page seeds the selected value from the profile once it loads (without clobbering an in-progress choice) and lands focus on the heading for keyboard and screen-reader users.
 
 ## The onboarding wizard
 
-The wizard is a 10-step flow driven by the `onboardingStore` (`src/lib/stores/onboarding-store.ts`). The steps are defined in `ONBOARDING_STEPS`:
+The wizard is a 10-step flow driven by the `onboardingStore` (`src/features/onboarding/store.ts`). The steps are defined in `ONBOARDING_STEPS`:
 
 ```
 splash, mode, location, basic_info, profile_photo, lifestyle,
 smoking_guests, work_style, budget_timeline, preferences
 ```
 
-Two pages render the wizard. `OnboardingPage` (`src/pages/app/OnboardingPage.tsx`) is the canonical entry at `/onboarding`: it advances through steps by mutating the store, not the URL. `OnboardingStepPage` (`src/pages/app/OnboardingStepPage.tsx`) is the deep-link entry at `/onboarding/:step`: on mount it syncs the URL step into the store, then renders from `currentStep` so the heading and nav stay in lockstep. Both render `OnboardingStepContent` (`src/components/onboarding/OnboardingStepContent.tsx`) inside a `Card` with a `StepProgress` bar.
+Two pages render the wizard. `OnboardingPage` (`src/features/onboarding/pages/OnboardingPage.tsx`) is the canonical entry at `/onboarding`: it advances through steps by mutating the store, not the URL. `OnboardingStepPage` (`src/features/onboarding/pages/OnboardingPage.tsx`) is the deep-link entry at `/onboarding/:step`: on mount it syncs the URL step into the store, then renders from `currentStep` so the heading and nav stay in lockstep. Both render `OnboardingStepContent` (`src/features/onboarding/components/OnboardingStepContent.tsx`) inside a `Card` with a `StepProgress` bar.
 
 Both pages redirect to `/home` once `profile.onboarding_completed` is true. This is a belt-and-braces check: the gate model should already have moved the user past onboarding, but a stale cache or a manual navigation should not strand them on a completed wizard.
 
@@ -73,7 +73,7 @@ On the last step (`preferences`), the "Complete Setup" button assembles a single
 
 ## Location page
 
-`LocationPage` (`src/pages/app/LocationPage.tsx`) is a standalone city selector used outside the wizard (for example, when a user has no city set). It seeds its field from `profile.city`, offers the same reverse-geocode "Use My Location" button, and shows popular-city chips for one-tap selection. On Continue it calls `updateProfile.mutateAsync({ city })`, seeds `searchStore` with the city so search results scope correctly, and navigates to `/home`.
+`LocationPage` (`src/features/onboarding/pages/LocationPage.tsx`) is a standalone city selector used outside the wizard (for example, when a user has no city set). It seeds its field from `profile.city`, offers the same reverse-geocode "Use My Location" button, and shows popular-city chips for one-tap selection. On Continue it calls `updateProfile.mutateAsync({ city })`, seeds `searchStore` with the city so search results scope correctly, and navigates to `/home`.
 
 ## Verification
 
@@ -81,7 +81,7 @@ On the last step (`preferences`), the "Complete Setup" button assembles a single
 
 ## The profile page
 
-`ProfilePage` (`src/pages/app/ProfilePage.tsx`) is the account hub. It loads the profile via `useMyProfile()` and renders:
+`ProfilePage` (`src/features/profile/pages/ProfilePage.tsx`) is the account hub. It loads the profile via `useMyProfile()` and renders:
 
 - A header card with the avatar (editable via `useImageUpload`, which PATCHes `profile_image_url`), name, profession, mode badge, and a `TrustBadge`.
 - A profile-completion banner (with a `ProgressRing`) when `onboarding_completed` is false, linking to `/onboarding`.
@@ -103,7 +103,7 @@ Delete account is the destructive counterpart. The confirmation modal requires t
 
 ## Profile edit
 
-`ProfileEditPage` (`src/pages/app/ProfileEditPage.tsx`) is a `react-hook-form` + Zod form over the full profile schema. The schema (`profileSchema` in the page) covers contact info, basic info, location and budget, and the six lifestyle preferences, with a refine that `budget_max >= budget_min`. The form populates from the profile once it loads (and only when not dirty, so an in-progress edit is not clobbered). On submit it strips empty fields, drops email and phone when already set (they are read-only on the form), normalizes a new phone to `+91XXXXXXXXXX`, and calls `updateProfile.mutate`. On success it resets the form to the submitted values (clearing `isDirty` so the unsaved-changes guard does not fire on the post-save nav), pushes a success toast, and navigates to `/profile`.
+`ProfileEditPage` (`src/features/profile/pages/ProfileEditPage.tsx`) is a `react-hook-form` + Zod form over the full profile schema. The schema (`profileSchema` in the page) covers contact info, basic info, location and budget, and the six lifestyle preferences, with a refine that `budget_max >= budget_min`. The form populates from the profile once it loads (and only when not dirty, so an in-progress edit is not clobbered). On submit it strips empty fields, drops email and phone when already set (they are read-only on the form), normalizes a new phone to `+91XXXXXXXXXX`, and calls `updateProfile.mutate`. On success it resets the form to the submitted values (clearing `isDirty` so the unsaved-changes guard does not fire on the post-save nav), pushes a success toast, and navigates to `/profile`.
 
 ### Unsaved-changes guard
 
@@ -111,7 +111,7 @@ The page wires two guards so an accidental navigation never silently drops edits
 
 ## Public profile
 
-`PublicProfilePage` (`src/pages/app/PublicProfilePage.tsx`) is the read-only view of another user at `/profile/:id`. It loads the peer via `useProfile(id)` and the compatibility breakdown via `useCompatibility(id)`, renders a header card with the avatar, a `ProgressRing` for the match score (when > 0), a mode badge, and a `TrustBadge`, then renders `FlatmateProfileDetail` for the full specifications, about, budget and move-in, lifestyle, and preferences sections. When a compatibility breakdown exists it renders a tappable card linking to `/compatibility/:id` for the full dimension-by-dimension view. A "Start Conversation" button calls `useCreateConversation` and navigates to the new chat.
+`PublicProfilePage` (`src/features/profile/pages/PublicProfilePage.tsx`) is the read-only view of another user at `/profile/:id`. It loads the peer via `useProfile(id)` and the compatibility breakdown via `useCompatibility(id)`, renders a header card with the avatar, a `ProgressRing` for the match score (when > 0), a mode badge, and a `TrustBadge`, then renders `FlatmateProfileDetail` for the full specifications, about, budget and move-in, lifestyle, and preferences sections. When a compatibility breakdown exists it renders a tappable card linking to `/compatibility/:id` for the full dimension-by-dimension view. A "Start Conversation" button calls `useCreateConversation` and navigates to the new chat.
 
 ### Profile view tracking
 
@@ -123,8 +123,8 @@ Three molecule components render profile data across the app:
 
 | Component | File | Used by |
 | --- | --- | --- |
-| `FlatmateProfileDetail` | `src/components/molecules/FlatmateProfileDetail.tsx` | `PublicProfilePage` (full detail with optional listing summary) |
-| `ProfileGridCard` | `src/components/molecules/ProfileGridCard.tsx` | Likes and matches grids (photo, match ring, name, location, CTA) |
+| `FlatmateProfileDetail` | `src/features/profile/components/FlatmateProfileDetail.tsx` | `PublicProfilePage` (full detail with optional listing summary) |
+| `ProfileGridCard` | `src/features/matches/components/ProfileGridCard.tsx` | Likes and matches grids (photo, match ring, name, location, CTA) |
 | `ProfileDetailsCard` | `src/components/molecules/ProfileDetailsCard.tsx` | Deprecated wrapper around `ProfileDetailsTab` + `ProfileLifestyleTab` |
 
 `FlatmateProfileDetail` mirrors the swipe card's expanded view: a specifications grid, an about section, budget and move-in chips, lifestyle chips, preferences (gender preference, pets, non-negotiables), and an optional listing summary (photos, flat config, rent, deposit, maintenance, amenities) when the peer has an active flatmate or PG listing. `ProfileGridCard` is the compact card used in grid surfaces, with a `ProgressRing` overlaid on the photo and a CTA button. See [Flatmate profile](../primitives/flatmate-profile.md) for the underlying data shape.
@@ -152,19 +152,19 @@ For the page-by-page spec of the profile, edit, onboarding, and verification scr
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/app/ProfilePage.tsx` | Profile hub: header, completion banner, activity, preferences, sign-out, delete |
-| `src/pages/app/ProfileEditPage.tsx` | Full profile edit form with unsaved-changes guard |
-| `src/pages/app/PublicProfilePage.tsx` | Read-only peer profile with view tracking and conversation start |
-| `src/pages/app/ChooseRolePage.tsx` | Mode selection (room poster, co-hunter, open to both) |
-| `src/pages/app/OnboardingPage.tsx` | Wizard host at `/onboarding` (store-driven step advance) |
-| `src/pages/app/OnboardingStepPage.tsx` | Wizard deep-link host at `/onboarding/:step` |
+| `src/features/profile/pages/ProfilePage.tsx` | Profile hub: header, completion banner, activity, preferences, sign-out, delete |
+| `src/features/profile/pages/ProfileEditPage.tsx` | Full profile edit form with unsaved-changes guard |
+| `src/features/profile/pages/PublicProfilePage.tsx` | Read-only peer profile with view tracking and conversation start |
+| `src/features/onboarding/pages/ChooseRolePage.tsx` | Mode selection (room poster, co-hunter, open to both) |
+| `src/features/onboarding/pages/OnboardingPage.tsx` | Wizard host at `/onboarding` (store-driven step advance) |
+| `src/features/onboarding/pages/OnboardingPage.tsx` | Wizard deep-link host at `/onboarding/:step` |
 | `src/pages/app/VerifyPage.tsx` | Three-step verification checklist |
-| `src/pages/app/LocationPage.tsx` | Standalone city selector with reverse geocode |
-| `src/components/onboarding/OnboardingStepContent.tsx` | Per-step inputs and the final complete-setup payload assembly |
-| `src/components/molecules/FlatmateProfileDetail.tsx` | Rich read-only profile detail (specifications, lifestyle, listing summary) |
+| `src/features/onboarding/pages/LocationPage.tsx` | Standalone city selector with reverse geocode |
+| `src/features/onboarding/components/OnboardingStepContent.tsx` | Per-step inputs and the final complete-setup payload assembly |
+| `src/features/profile/components/FlatmateProfileDetail.tsx` | Rich read-only profile detail (specifications, lifestyle, listing summary) |
 | `src/components/molecules/ProfileDetailsCard.tsx` | Deprecated detail/lifestyle tab wrapper |
-| `src/components/molecules/ProfileGridCard.tsx` | Compact grid card with match ring and CTA |
-| `src/lib/stores/onboarding-store.ts` | Persisted onboarding draft store with step navigation |
+| `src/features/matches/components/ProfileGridCard.tsx` | Compact grid card with match ring and CTA |
+| `src/features/onboarding/store.ts` | Persisted onboarding draft store with step navigation |
 | `src/hooks/queries/useProfiles.ts` | `useMyProfile`, `useProfile`, `usePeers`, `useUpdateProfile`, `useCreateProfile`, `useDeleteAccount` |
 | `src/lib/schemas/profile.ts` | `flatmatesProfileSchema`, `flatmatesProfileUpdateSchema`, `flatmatesPeerSchema` |
 | `src/lib/schemas/onboarding.ts` | `onboardingDraftSchema`, `completedOnboardingSchema`, draft storage key |

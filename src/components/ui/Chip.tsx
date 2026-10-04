@@ -14,9 +14,20 @@ export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const sizeClasses: Record<ChipVariant, string> = {
   filter: "px-3.5 py-2 text-label-md",
   choice: "px-3.5 py-2 text-label-md",
-  info: "px-2.5 py-1.5 text-caption",
+  info: "px-3 py-1.5 text-caption",
   removable: "px-3.5 py-2 text-label-md"
 };
+
+/** Paper chip look (DESIGN.md §8): paper-2 + e1; selected = clay-soft. */
+export function chipClasses(selected: boolean, variant: ChipVariant = "filter"): string {
+  return cn(
+    "inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-cut-md font-semibold shadow-xs disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-surface-strong disabled:text-ink-3 disabled:shadow-none",
+    "chip-spring",
+    focusRing,
+    selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-surface-soft",
+    sizeClasses[variant]
+  );
+}
 
 export function Chip({
   variant = "filter",
@@ -37,10 +48,8 @@ export function Chip({
     return (
       <div
         className={cn(
-          "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border font-semibold",
-          selected
-            ? "scale-[1.03] border-accent bg-accent-container text-accent"
-            : "border-line bg-paper-2 text-ink-2 hover:bg-paper-3",
+          "inline-flex min-h-11 shrink-0 items-center justify-center gap-1 rounded-cut-md font-semibold shadow-xs",
+          selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-surface-soft",
           sizeClasses[variant],
           className
         )}
@@ -51,8 +60,8 @@ export function Chip({
           aria-checked={props["aria-checked"] ?? selected}
           disabled={disabled}
           className={cn(
-            "flex-1 cursor-pointer rounded-full text-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2",
-            "active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-paper-4 disabled:text-ink-3"
+            "flex flex-1 cursor-pointer items-center gap-1.5 rounded-cut-md text-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2",
+            "disabled:pointer-events-none disabled:cursor-not-allowed disabled:text-ink-3"
           )}
           {...props}
         >
@@ -63,7 +72,7 @@ export function Chip({
           type="button"
           aria-label="Remove"
           className={cn(
-            "mr-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-current hover:bg-paper-3 active:scale-[0.97]",
+            "-my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-current hover:bg-surface-strong",
             focusRing
           )}
           onClick={(event) => {
@@ -83,17 +92,7 @@ export function Chip({
       role={role}
       aria-checked={props["aria-checked"] ?? selected}
       disabled={disabled}
-      className={cn(
-        "inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border font-semibold active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-paper-4 disabled:text-ink-3",
-        "chip-spring",
-        focusRing,
-        selected
-          ? "scale-[1.03] border-accent bg-accent-container text-accent"
-          : "border-line bg-paper-2 text-ink-2 hover:bg-paper-3",
-        variant === "info" && selected && "bg-accent-soft",
-        sizeClasses[variant],
-        className
-      )}
+      className={cn(chipClasses(selected, variant), className)}
       {...props}
     >
       {icon ? <span className="flex h-4 w-4 items-center justify-center">{icon}</span> : null}
