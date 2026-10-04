@@ -1,7 +1,7 @@
 import { screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@/test-utils";
-import { Modal, Drawer, BottomSheet, ModalFooterAction } from "../Modal";
+import { Modal, Drawer, BottomSheet } from "../Modal";
 import { Button } from "../Button";
 
 describe("Modal", () => {
@@ -199,12 +199,5 @@ describe("BottomSheet", () => {
       </BottomSheet>,
     );
     expect(screen.queryByText("Sheet content")).not.toBeInTheDocument();
-  });
-});
-
-describe("ModalFooterAction", () => {
-  it("renders children as button content", () => {
-    render(<ModalFooterAction>Save Changes</ModalFooterAction>);
-    expect(screen.getByText("Save Changes")).toBeInTheDocument();
   });
 });

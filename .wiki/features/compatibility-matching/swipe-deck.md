@@ -6,7 +6,7 @@ The swipe deck is where compatibility meets action. It takes a ranked list of po
 
 ## The deck component
 
-`SwipeDeck` in `src/components/organisms/SwipeDeck.tsx` is the largest component in the app (around 918 lines). It renders a stack of up to three cards: the current top card plus two behind it for depth. Each card shows a profile photo, name, age, location, mode badge, a `ProgressRing` with the match score, and quick metadata chips (gender, profession, budget).
+`SwipeDeck` in `src/features/swipe/components/SwipeDeck.tsx` is the largest component in the app (around 918 lines). It renders a stack of up to three cards: the current top card plus two behind it for depth. Each card shows a profile photo, name, age, location, mode badge, a `ProgressRing` with the match score, and quick metadata chips (gender, profession, budget).
 
 The deck has two layouts:
 
@@ -15,7 +15,7 @@ The deck has two layouts:
 
 The top card is the `SwipeableCard`, which owns the drag gesture. The two behind it are static `SwipeCard` renders, scaled and offset to read as a stack. When the deck is expanded, the background cards hide so the focus stays on the current profile.
 
-The deck accepts a `profiles` array and either an internal or controlled `currentIndex`. `SwipePage` (`src/pages/app/SwipePage.tsx`) lets it manage its own index (uncontrolled) but mirrors the animation state from the shared `swipeStore` via the `isAnimating` prop, which disables gestures during an in-flight mutation.
+The deck accepts a `profiles` array and either an internal or controlled `currentIndex`. `SwipePage` (`src/features/swipe/pages/SwipePage.tsx`) lets it manage its own index (uncontrolled) but mirrors the animation state from the shared `swipeStore` via the `isAnimating` prop, which disables gestures during an in-flight mutation.
 
 ## Gestures and the keyboard
 
@@ -23,7 +23,7 @@ There are three input paths, all funnelling into the same `performSwipe` handler
 
 - **Touch and mouse drag** (Framer Motion `drag`). The card tracks `x`, `y`, and derived `rotate`, `likeOpacity`, `passOpacity`, and `superLikeOpacity` motion values. Dragging right reveals a green "LIKE" stamp, left reveals a red "PASS" stamp, and up reveals an amber "SUPER LIKE" stamp. The stamps are `aria-hidden` decorative overlays; the real semantics live in the action bar buttons and the keyboard.
 - **Keyboard** (the deck's `onKeyDown` on its focusable `<section>`). `ArrowLeft` passes, `ArrowRight` likes, `ArrowUp` super-likes, `Space` expands or collapses, `Escape` collapses. The section advertises these with `aria-keyshortcuts` and a descriptive `aria-label`. Super-like on the keyboard is disabled when expanded, to avoid clashing with scroll-up intent.
-- **Action bar** (`src/components/molecules/SwipeActionBar.tsx`). Three circular buttons (X for pass, star for super-like, heart for like) with Framer Motion hover and tap scales, plus a `disabled` state that greys them out while a swipe is in flight.
+- **Action bar** (`src/features/swipe/components/SwipeActionBar.tsx`). Three circular buttons (X for pass, star for super-like, heart for like) with Framer Motion hover and tap scales, plus a `disabled` state that greys them out while a swipe is in flight.
 
 The thresholds that turn a drag into a swipe live at the top of `SwipeDeck.tsx`:
 
@@ -35,7 +35,7 @@ The thresholds that turn a drag into a swipe live at the top of `SwipeDeck.tsx`:
 
 When the card is expanded, the horizontal thresholds bump up to 160px and 600px/s to avoid accidental swipes while scrolling the details. Super-like by drag is only honored in collapsed mode, again to avoid conflicting with vertical scroll.
 
-The global `useKeyboardSwipe` hook (`src/hooks/useKeyboardSwipe.ts`) is deliberately **not** wired to the swipe actions from the page level. `SwipePage` explains why in a comment: a window-level listener would double-fire alongside the deck's section handler, and the global path could not advance the uncontrolled deck. The hook is retained only to let `Escape` dismiss the match-celebration overlay from anywhere on the page.
+The global `useKeyboardSwipe` hook (`src/features/swipe/components/SwipeDeck.tsx (keyboard handling)`) is deliberately **not** wired to the swipe actions from the page level. `SwipePage` explains why in a comment: a window-level listener would double-fire alongside the deck's section handler, and the global path could not advance the uncontrolled deck. The hook is retained only to let `Escape` dismiss the match-celebration overlay from anywhere on the page.
 
 ## Action types
 
@@ -51,7 +51,7 @@ The action type is the `SwipeAction` enum from `src/lib/data/domain.ts` (`pass |
 
 ## Optimistic mutation and rollback
 
-`useSwipeAction` in `src/hooks/queries/useSwipes.ts` wraps a `POST /flatmates/swipes` mutation. On success it invalidates the `["swipes", "deck"]` query so the backend can re-filter out the just-swiped profile.
+`useSwipeAction` in `src/features/swipe/hooks/useSwipes.ts` wraps a `POST /flatmates/swipes` mutation. On success it invalidates the `["swipes", "deck"]` query so the backend can re-filter out the just-swiped profile.
 
 The animation and the network call overlap rather than block each other. Here is the sequence from `SwipePage.handleSwipeAction` and `SwipeDeck.performSwipe`:
 
@@ -66,7 +66,7 @@ If the mutation fails, the toast tells the user to retry. Because the deck advan
 
 ## Animation direction tracking
 
-`swipeStore` (`src/lib/stores/swipe-store.ts`) is a vanilla Zustand store (the `createStore()` pattern, not the hook wrapper) that holds `currentIndex`, `isAnimating`, `direction`, `cardQueue`, and `isExpanded`. It exists so non-React code and the keyboard hook can read the animation state without prop drilling.
+`swipeStore` (`src/features/swipe/store.ts`) is a vanilla Zustand store (the `createStore()` pattern, not the hook wrapper) that holds `currentIndex`, `isAnimating`, `direction`, `cardQueue`, and `isExpanded`. It exists so non-React code and the keyboard hook can read the animation state without prop drilling.
 
 The direction state (`left | right | up | null`) is set when a swipe starts and cleared when it settles. The `cardQueue` is synced from the query data so any consumer can inspect the remaining cards. `SwipePage` pushes the fetched `profiles` into `cardQueue` via an effect, and the deck reads the same profiles directly through props.
 
@@ -116,9 +116,9 @@ For the page-by-page spec of the swipe surface, including the expanded card cont
 
 | File | Purpose |
 | --- | --- |
-| `src/components/organisms/SwipeDeck.tsx` | Deck, SwipeableCard, static SwipeCard, gesture and keyboard handlers |
-| `src/pages/app/SwipePage.tsx` | Page wiring, mutation handling, MatchCelebration overlay |
-| `src/hooks/queries/useSwipes.ts` | `useSwipeDeck` query, `useSwipeAction` mutation |
-| `src/hooks/useKeyboardSwipe.ts` | Global keyboard hook (used for dismiss only) |
-| `src/lib/stores/swipe-store.ts` | Vanilla Zustand store for direction and animation state |
-| `src/components/molecules/SwipeActionBar.tsx` | Pass, super-like, like action buttons |
+| `src/features/swipe/components/SwipeDeck.tsx` | Deck, SwipeableCard, static SwipeCard, gesture and keyboard handlers |
+| `src/features/swipe/pages/SwipePage.tsx` | Page wiring, mutation handling, MatchCelebration overlay |
+| `src/features/swipe/hooks/useSwipes.ts` | `useSwipeDeck` query, `useSwipeAction` mutation |
+| `src/features/swipe/components/SwipeDeck.tsx (keyboard handling)` | Global keyboard hook (used for dismiss only) |
+| `src/features/swipe/store.ts` | Vanilla Zustand store for direction and animation state |
+| `src/features/swipe/components/SwipeActionBar.tsx` | Pass, super-like, like action buttons |

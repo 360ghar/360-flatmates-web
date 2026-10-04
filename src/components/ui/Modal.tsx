@@ -40,6 +40,7 @@ export function Modal({
   // viewport-relative even when ancestors apply transform/filter (e.g. the
   // .page-fade animation fill mode).
   return createPortal(
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop click; Escape closes from the keyboard
     <dialog
       ref={dialogRef}
       aria-modal="true"
@@ -47,7 +48,7 @@ export function Modal({
       aria-describedby={description ? descriptionId : undefined}
       onClick={(e) => handleDialogBackdropClick(e, onClose)}
       className={cn(
-        "paper-grain max-md:paper-edge-torn-top fixed inset-x-0 bottom-0 top-auto m-0 max-h-[92vh] w-full overflow-y-auto bg-surface-elevated p-0 text-ink shadow-lg animate-bottom-sheet-in backdrop:bg-[rgb(18_24_20/0.5)] md:inset-0 md:m-auto md:h-fit md:rounded-cut-lg md:animate-fade-slide-up",
+        "paper-grain max-md:paper-edge-torn-top fixed inset-x-0 bottom-0 top-auto m-0 max-h-[92vh] w-full overflow-y-auto bg-surface-elevated p-0 text-ink shadow-md animate-bottom-sheet-in backdrop:bg-[rgb(18_24_20/0.5)] md:inset-0 md:m-auto md:h-fit md:rounded-cut-lg md:animate-fade-slide-up",
         size === "default" ? "md:max-w-[480px]" : "md:max-w-[600px]",
         className
       )}
@@ -111,15 +112,16 @@ export function Drawer({
   }
 
   return createPortal(
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop click; Escape closes from the keyboard
     <dialog
       ref={dialogRef}
       aria-modal="true"
       aria-labelledby={title ? titleId : undefined}
       onClick={(e) => handleDialogBackdropClick(e, onClose)}
       className={cn(
-        "paper-grain fixed m-0 max-h-none overflow-y-auto bg-surface-elevated p-0 text-ink shadow-lg backdrop:bg-[rgb(18_24_20/0.5)]",
+        "paper-grain fixed m-0 max-h-none overflow-y-auto bg-surface-elevated p-0 text-ink shadow-md backdrop:bg-[rgb(18_24_20/0.5)]",
         side === "right"
-          ? cn("inset-y-0 right-0 left-auto h-full animate-drawer-in", width === "wide" ? "w-full md:w-[480px]" : "w-full md:w-[400px]")
+          ? cn("inset-y-0 right-0 left-auto h-full animate-drawer-in", width === "wide" ? "w-[min(92vw,480px)]" : "w-[min(88vw,400px)]")
           : cn(
             "max-md:paper-edge-torn-top inset-x-0 bottom-0 top-auto max-h-[85vh] w-full animate-bottom-sheet-in md:inset-y-0 md:left-auto md:right-0 md:top-0 md:max-h-none md:animate-drawer-in",
             width === "wide" ? "md:w-[480px]" : "md:w-[400px]"
@@ -151,19 +153,4 @@ export type BottomSheetProps = Omit<DrawerProps, "side">;
 
 export function BottomSheet(props: BottomSheetProps) {
   return <Drawer {...props} side="bottom" />;
-}
-
-export function ModalFooterAction({
-  children,
-  className,
-  ...props
-}: {
-  children: ReactNode;
-  className?: string;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <Button className={cn("w-full md:w-auto", className)} {...props}>
-      {children}
-    </Button>
-  );
 }

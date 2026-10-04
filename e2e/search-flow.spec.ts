@@ -52,8 +52,8 @@ test.describe("Search page — /search", () => {
     await page.goto("/search");
   });
 
-  test("renders the Search Listings heading", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: /search listings/i })).toBeVisible();
+  test("renders the Search rooms heading", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: /search rooms/i })).toBeVisible();
   });
 
   test("shows the public search input", async ({ page }) => {
@@ -68,11 +68,11 @@ test.describe("Search page — /search", () => {
   });
 
   test("result count is displayed (even if zero)", async ({ page }) => {
-    await expect(page.locator('[aria-live="polite"]').filter({ hasText: /results found|search unavailable/i })).toBeVisible();
+    await expect(page.locator('[aria-live="polite"]').filter({ hasText: /\d+ rooms?|search unavailable/i })).toBeVisible();
   });
 
   test("listing detail actions stay on the public detail route", async ({ page }) => {
-    const detailsButton = page.getByRole("button", { name: "View Details" }).first();
+    const detailsButton = page.getByRole("button", { name: "View details" }).first();
     await expect(detailsButton).toBeVisible();
     await detailsButton.click();
     await expect(page).toHaveURL(/\/discover\/101$/);
@@ -131,24 +131,22 @@ test.describe("Landing page — / (public)", () => {
     await expect(page).toHaveURL(/\/discover/);
   });
 
-  test("footer Search Flatmates link navigates to /search", async ({ page }) => {
-    const searchLink = page.getByRole("contentinfo").getByRole("link", { name: /search flatmates/i });
+  test("footer Search link navigates to /search", async ({ page }) => {
+    const searchLink = page.getByRole("contentinfo").getByRole("link", { name: "Search", exact: true });
     await expect(searchLink).toBeVisible();
     await searchLink.click();
     await expect(page).toHaveURL(/\/search/);
   });
 
-  test("feature cards are rendered with TrustBadges", async ({ page }) => {
-    // At least one feature card should be visible
-    await expect(page.getByText("Vibe check before you move")).toBeVisible();
-    await expect(page.getByText("No fake listings, period")).toBeVisible();
-    await expect(page.getByText("Book visits in 2 taps")).toBeVisible();
+  test("the move-in story names what the app checks", async ({ page }) => {
+    const story = page.getByRole("region", { name: "From match to move-in." });
+    await expect(story.getByRole("heading", { name: "Checked before it is live" })).toBeVisible();
+    await expect(story.getByRole("heading", { name: "Every chat knows the room" })).toBeVisible();
+    await expect(story.getByRole("heading", { name: "A visit in two taps" })).toBeVisible();
   });
 
-  test("bottom CTA section is rendered", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /your next home is a few good conversations away/i })
-    ).toBeVisible();
+  test("the night footer carries the closing line", async ({ page }) => {
+    await expect(page.getByRole("contentinfo").getByText(/your next home is a few good conversations away/i)).toBeVisible();
   });
 
   test("JSON-LD structured data is present", async ({ page }) => {

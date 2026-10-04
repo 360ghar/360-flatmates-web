@@ -135,12 +135,12 @@ The prerender step, the sitemap generator, and `robots.txt` all agree on the sam
 
 | Bucket | Source | Examples |
 | --- | --- | --- |
-| Static public routes | Hardcoded in `scripts/prerender.ts` `STATIC_ROUTES` (verified against `<PublicLayout>` in `src/App.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, `/stats`, comparison and blog slugs |
+| Static public routes | Hardcoded in `scripts/prerender.ts` `STATIC_ROUTES` (verified against `<PublicLayout>` in `src/app/routes.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, `/stats`, comparison and blog slugs |
 | City landing routes | Derived from `SUPPORTED_CITIES` in `src/lib/seo/config.ts` | `/cities/bangalore`, `/cities/gurugram` |
 | Neighborhood routes | Derived from `CITY_NEIGHBORHOODS` in `src/lib/seo/neighborhoods.ts` | `/cities/bangalore/koramangala`, `/cities/gurugram/cyber-city` |
 | Discoverable listing routes | Fetched at build time from `/properties` via `scripts/lib/listings.ts` | `/discover/:id` per active listing |
 
-Authenticated routes (`/search`, `/search/semantic`, `/app/*`, `/admin/*`, `/auth/*`) are deliberately excluded. They sit under `<AuthGuard>` or `<AdminGuard>` in `src/App.tsx`, they are disallowed in `public/robots.txt`, and they would render a login redirect at build time. Only `<PublicLayout>` routes are eligible.
+Authenticated routes (`/search`, `/search/semantic`, `/app/*`, `/admin/*`, `/auth/*`) are deliberately excluded. They sit under `<AuthGuard>` or `<AdminGuard>` in `src/app/routes.tsx`, they are disallowed in `public/robots.txt`, and they would render a login redirect at build time. Only `<PublicLayout>` routes are eligible.
 
 Adding a new city is a one-line change to `SUPPORTED_CITIES` and a neighborhood list entry, and the prerender step and sitemap pick it up automatically on the next build. Adding a new static public route means adding it to both `scripts/prerender.ts` `STATIC_ROUTES` and the static-route list in `scripts/generate-sitemap.ts`.
 

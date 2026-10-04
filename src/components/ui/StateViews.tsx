@@ -69,6 +69,15 @@ export function ErrorState({
   );
 }
 
+/** ErrorState on a card, for the API-dependent part of a page whose chrome stays. */
+export function InlineError({ className, ...props }: ErrorStateProps) {
+  return (
+    <div className={cn("paper-grain flex items-center justify-center rounded-hand bg-surface p-8 shadow-sm", className)}>
+      <ErrorState {...props} />
+    </div>
+  );
+}
+
 export interface AsyncViewProps<T> {
   data: T | null | undefined;
   isLoading?: boolean;

@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-A conversation is a chat thread between two flatmates, and a message is a single line in that thread. The canonical types live in `src/lib/api/conversation.types.ts` (re-exported from `src/lib/api/types.ts`), and the TanStack Query hooks that fetch and mutate them live in `src/hooks/queries/useConversations.ts`. A conversation crosses the messaging surface, the Supabase Broadcast surface (which delivers new message invalidations), the visits surface (which links a flatmate-meet visit to its thread), and the compatibility surface (which ranks who you might want to start a conversation with).
+A conversation is a chat thread between two flatmates, and a message is a single line in that thread. The canonical types live in `src/lib/api/conversation.types.ts` (re-exported from `src/lib/api/types.ts`), and the TanStack Query hooks that fetch and mutate them live in `src/features/chat/hooks/useConversations.ts`. A conversation crosses the messaging surface, the Supabase Broadcast surface (which delivers new message invalidations), the visits surface (which links a flatmate-meet visit to its thread), and the compatibility surface (which ranks who you might want to start a conversation with).
 
 ## Conversation
 
@@ -57,7 +57,7 @@ interface MessageOut {
 
 ## Optimistic send
 
-`useSendMessage` in `src/hooks/queries/useConversations.ts` is the most carefully engineered hook in the messaging layer. It uses TanStack Query's optimistic-update pattern with a few deliberate twists:
+`useSendMessage` in `src/features/chat/hooks/useConversations.ts` is the most carefully engineered hook in the messaging layer. It uses TanStack Query's optimistic-update pattern with a few deliberate twists:
 
 - A negative temp id is minted for the optimistic message so it never collides with a real backend id (which are positive integers).
 - On error, the optimistic bubble is intentionally kept in cache and tagged as failed, so the user's text does not vanish on a network error. The user can retry from the failed bubble.
@@ -81,4 +81,4 @@ interface MessageOut {
 | `src/lib/api/conversation.types.ts` | `ConversationSummary`, `ConversationPropertyContext`, `ConversationQnAState`, `MessageOut`, `MessageCreate`, `MessageListResponse`, `ConversationCreate` |
 | `src/lib/api/types.ts` | Re-exports all conversation and message types |
 | `src/lib/data/domain.ts` | `ConversationSource`, `ConversationStatus`, `MessageType` |
-| `src/hooks/queries/useConversations.ts` | `useConversations`, `useConversation`, `useMessages`, `useSendMessage` (with optimistic send), `useCreateConversation` |
+| `src/features/chat/hooks/useConversations.ts` | `useConversations`, `useConversation`, `useMessages`, `useSendMessage` (with optimistic send), `useCreateConversation` |

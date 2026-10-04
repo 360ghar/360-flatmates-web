@@ -56,6 +56,10 @@ function LazyMotion({ children }: { children: React.ReactNode }) {
 const domAnimation = {};
 const domMax = {};
 
+function LayoutGroup({ children }: { children: React.ReactNode; id?: string }) {
+  return <>{children}</>;
+}
+
 function AnimatePresence({ children }: { children: React.ReactNode }) {
   return children;
 }
@@ -86,6 +90,7 @@ function MotionConfig({ children }: { children: React.ReactNode }) {
 
 export {
   motion,
+  LayoutGroup,
   useScroll,
   MotionConfig,
   m,

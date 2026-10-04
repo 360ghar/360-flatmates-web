@@ -25,10 +25,10 @@ graph LR
 | --- | --- |
 | `index.html` | Document shell, font links, flash-prevention theme script, PWA manifest link |
 | `src/entry.tsx` | Validates env, mounts `<App />` into `#root`, registers the service worker |
-| `src/App.tsx` | Declares the `<Routes>` tree with lazy-loaded pages and four layouts |
-| `src/providers.tsx` | Wraps the app in QueryClientProvider, NuqsAdapter, auth/realtime/theme wiring |
+| `src/app/routes.tsx` | Declares the `<Routes>` tree with lazy-loaded pages and four layouts |
+| `src/app/providers.tsx` | Wraps the app in QueryClientProvider, NuqsAdapter, auth/realtime/theme wiring |
 
-`src/App.tsx` is the canonical map of every route in the app. It declares four layout wrappers:
+`src/app/routes.tsx` is the canonical map of every route in the app. It declares four layout wrappers:
 
 - `PublicLayout` for marketing, discover, cities, blog, comparison, legal pages.
 - `AuthLayout` for login, forgot-password, auth callback, add-phone.
@@ -67,7 +67,7 @@ The codebase enforces a hard boundary between two state stores. Mixing them is a
 | TanStack Query | Server data (anything that comes from `/api/v1`) | `src/hooks/queries/` | `useMyProfile()`, `useSwipeDeck()` |
 | Zustand vanilla stores | Client-only UI state (toggles, drafts, preferences, viewport) | `src/lib/stores/` | `uiStore.theme`, `searchStore.filters` |
 
-Zustand stores use the `createStore()` pattern (not `create()` with a hook wrapper) so they can be consumed from non-React code: realtime integration hooks, provider effects in `src/providers.tsx`, and tests. React components read them with `useStore(store, selector)`. See [State management](../systems/state-management.md).
+Zustand stores use the `createStore()` pattern (not `create()` with a hook wrapper) so they can be consumed from non-React code: realtime integration hooks, provider effects in `src/app/providers.tsx`, and tests. React components read them with `useStore(store, selector)`. See [State management](../systems/state-management.md).
 
 ## Real-time updates
 

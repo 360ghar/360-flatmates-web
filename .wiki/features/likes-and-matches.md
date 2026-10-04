@@ -8,14 +8,14 @@ Likes and matches are the two inboxes that follow the swipe deck. Likes shows th
 
 Both pages are thin wrappers around a shared `PeopleGridPage` component:
 
-- **Likes** (`src/pages/app/LikesPage.tsx`) calls `useIncomingLikes()` and passes a "Match" CTA label. The empty state reads "No likes yet, keep exploring to find connections."
-- **Matches** (`src/pages/app/MatchesPage.tsx`) calls `useMatches()` and passes a "Chat" CTA label. The empty state reads "No matches yet, keep swiping to find your match."
+- **Likes** (`src/features/matches/pages/LikesPage.tsx`) calls `useIncomingLikes()` and passes a "Match" CTA label. The empty state reads "No likes yet, keep exploring to find connections."
+- **Matches** (`src/features/matches/pages/MatchesPage.tsx`) calls `useMatches()` and passes a "Chat" CTA label. The empty state reads "No matches yet, keep swiping to find your match."
 
 Each page hands the query and a `getProfileProps` adapter to `PeopleGridPage`, which handles loading skeletons, error retry, empty states, and the responsive grid. Both inboxes map their `peer` through `profileToProfileGridCardProps` so the cards render identically regardless of source. The only differences are the page title, subtitle, CTA label, and empty-state copy.
 
 ## Fetching the lists
 
-All three queries live in `src/hooks/queries/useMatches.ts`:
+All three queries live in `src/features/matches/hooks/useMatches.ts`:
 
 | Hook | Endpoint | Query key | Returns |
 | --- | --- | --- | --- |
@@ -31,7 +31,7 @@ All three queries live in `src/hooks/queries/useMatches.ts`:
 
 ## Match context card
 
-When a match originated from a listing interest (rather than a pure profile match), the match carries context: the property that sparked it. `MatchContextCard` (`src/components/molecules/MatchContextCard.tsx`) renders this context as an expandable row. Collapsed, it shows a thumbnail, title, mode badge, rent via `PriceText`, and locality. Expanded, it reveals an optional `details` block and a "View Listing" secondary button. The whole header is a single `button` with `aria-expanded`, so the expand toggle is keyboard accessible, and the chevron rotates 90 degrees on open to signal state.
+When a match originated from a listing interest (rather than a pure profile match), the match carries context: the property that sparked it. `MatchContextCard` (`src/features/chat/components/MatchContextCard.tsx`) renders this context as an expandable row. Collapsed, it shows a thumbnail, title, mode badge, rent via `PriceText`, and locality. Expanded, it reveals an optional `details` block and a "View Listing" secondary button. The whole header is a single `button` with `aria-expanded`, so the expand toggle is keyboard accessible, and the chevron rotates 90 degrees on open to signal state.
 
 ## Real-time refresh via Supabase Broadcast
 
@@ -65,8 +65,8 @@ For the product definition of likes, super-likes, matches, and unmatch semantics
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/app/LikesPage.tsx` | Likes inbox, wraps `PeopleGridPage` with `useIncomingLikes` |
-| `src/pages/app/MatchesPage.tsx` | Matches inbox, wraps `PeopleGridPage` with `useMatches` |
-| `src/hooks/queries/useMatches.ts` | `useIncomingLikes`, `useMatches`, `useUnmatchMutation` |
-| `src/components/molecules/MatchContextCard.tsx` | Expandable listing-context row for listing-originated matches |
+| `src/features/matches/pages/LikesPage.tsx` | Likes inbox, wraps `PeopleGridPage` with `useIncomingLikes` |
+| `src/features/matches/pages/MatchesPage.tsx` | Matches inbox, wraps `PeopleGridPage` with `useMatches` |
+| `src/features/matches/hooks/useMatches.ts` | `useIncomingLikes`, `useMatches`, `useUnmatchMutation` |
+| `src/features/chat/components/MatchContextCard.tsx` | Expandable listing-context row for listing-originated matches |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription, `new_match` invalidation of the matches query |

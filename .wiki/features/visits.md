@@ -20,7 +20,7 @@ A visit also carries a `visit_context`, which is either `property_tour` or `flat
 
 ## The visits list and calendar
 
-`src/pages/app/VisitsPage.tsx` is the landing page. It fetches all visits with `useVisits()` and offers three segmented-control tabs, Upcoming, Past, and Cancelled, that filter the same list client-side:
+`src/features/visits/pages/VisitsPage.tsx` is the landing page. It fetches all visits with `useVisits()` and offers three segmented-control tabs, Upcoming, Past, and Cancelled, that filter the same list client-side:
 
 - **Upcoming** keeps `requested`, `confirmed`, and `reschedule_suggested` visits.
 - **Past** keeps `completed` visits.
@@ -30,17 +30,17 @@ A list-and-calendar toggle sits beside the tab bar. The list view renders one `V
 
 ## The visit card
 
-`VisitCard` (`src/components/molecules/VisitCard.tsx`) is the shared row used in both the list and the detail page. It shows a property thumbnail (via `NetworkImage`, which degrades gracefully if the image fails), the property title, a type badge (`property_tour` maps to teal, `flatmate_meet` to purple), a formatted date-time line with a calendar icon, and a status badge. Inline action buttons appear conditionally based on status:
+`VisitCard` (`src/features/visits/components/VisitCard.tsx`) is the shared row used in both the list and the detail page. It shows a property thumbnail (via `NetworkImage`, which degrades gracefully if the image fails), the property title, a type badge (`property_tour` maps to teal, `flatmate_meet` to purple), a formatted date-time line with a calendar icon, and a status badge. Inline action buttons appear conditionally based on status:
 
 - `pending` plus `canConfirm` shows a Confirm button.
 - `pending` or `confirmed` shows Reschedule and Cancel buttons.
 - `completed` shows a Rate button.
 
-All inline actions respect a `busy` prop that disables the buttons while a mutation is in flight, so a user cannot double-confirm. The card is produced by `visitToVisitCardProps` in `src/lib/api/adapters.ts`, which maps the `Visit` type onto the presentational `VisitCardData` (collapsing the five backend statuses into the four card statuses).
+All inline actions respect a `busy` prop that disables the buttons while a mutation is in flight, so a user cannot double-confirm. The card is produced by `visitToVisitCardProps` in `src/features/*/lib/adapters.ts`, which maps the `Visit` type onto the presentational `VisitCardData` (collapsing the five backend statuses into the four card statuses).
 
 ## The detail page
 
-`src/pages/app/VisitDetailPage.tsx` is the single-visit view. It loads one visit with `useVisit(id)` and wires three mutations: `useUpdateVisit(id)` for confirm, reschedule, and feedback, and `useCancelVisit(id)` for cancellation. The page renders the visit card, a details card showing the visit type badge, status badge, special requirements, and notes, and a row of action buttons that change with the status.
+`src/features/visits/pages/VisitDetailPage.tsx` is the single-visit view. It loads one visit with `useVisit(id)` and wires three mutations: `useUpdateVisit(id)` for confirm, reschedule, and feedback, and `useCancelVisit(id)` for cancellation. The page renders the visit card, a details card showing the visit type badge, status badge, special requirements, and notes, and a row of action buttons that change with the status.
 
 - **Confirm** is only available when `status === "requested"`. It calls `updateVisit.mutate({ status: "confirmed" })`.
 - **Reschedule** opens a modal with a date input (min set to today, validated against past dates) and calls `updateVisit.mutate({ scheduled_date: newDate })`.
@@ -55,7 +55,7 @@ The same visit record is visible to both the host (the room poster who owns the 
 
 ## Create, update, cancel flows
 
-The create flow lives in `src/pages/app/ChatDetailPage.tsx`, not on the visits page, because visits are typically proposed from within a conversation. The schedule-visit modal in `ChatThread` collects a date and optional special requirements, and the page calls `useCreateVisit()` with a payload that includes the `property_id` (from the conversation's `context_property`), the `conversation_id`, the `counterparty_user_id` (the peer), and a `visit_context` of `property_tour`. If no property is linked to the conversation, the page toasts "No property is linked to this conversation" and aborts, since a visit needs a property anchor.
+The create flow lives in `src/features/chat/pages/ChatDetailPage.tsx`, not on the visits page, because visits are typically proposed from within a conversation. The schedule-visit modal in `ChatThread` collects a date and optional special requirements, and the page calls `useCreateVisit()` with a payload that includes the `property_id` (from the conversation's `context_property`), the `conversation_id`, the `counterparty_user_id` (the peer), and a `visit_context` of `property_tour`. If no property is linked to the conversation, the page toasts "No property is linked to this conversation" and aborts, since a visit needs a property anchor.
 
 `useCreateVisit` posts to `POST /visits` and, on success, invalidates the whole `["visits"]` namespace so the new visit appears in the list and the calendar. `useUpdateVisit` and `useCancelVisit` both seed the detail cache with the server response via `setQueryData(["visits", id], updated)` before invalidating the namespace, so the detail view updates instantly without waiting for the refetch while the list and calendar reconcile in the background.
 
@@ -86,10 +86,10 @@ This page summarizes the visit implementation. For the page-by-page spec of the 
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/app/VisitsPage.tsx` | Visits list with Upcoming/Past/Cancelled tabs and list/calendar toggle |
-| `src/pages/app/VisitDetailPage.tsx` | Single visit view, confirm/reschedule/cancel/feedback flows |
-| `src/components/molecules/VisitCard.tsx` | Shared visit row with status-conditional action buttons |
-| `src/hooks/queries/useVisits.ts` | `useVisits`, `useVisit`, `useCreateVisit`, `useUpdateVisit`, `useCancelVisit` |
+| `src/features/visits/pages/VisitsPage.tsx` | Visits list with Upcoming/Past/Cancelled tabs and list/calendar toggle |
+| `src/features/visits/pages/VisitDetailPage.tsx` | Single visit view, confirm/reschedule/cancel/feedback flows |
+| `src/features/visits/components/VisitCard.tsx` | Shared visit row with status-conditional action buttons |
+| `src/features/visits/hooks/useVisits.ts` | `useVisits`, `useVisit`, `useCreateVisit`, `useUpdateVisit`, `useCancelVisit` |
 | `src/lib/api/visit.types.ts` | `Visit`, `VisitCreate`, `VisitUpdate`, `VisitCancel`, `VisitFilters` types |
 | `src/lib/schemas/visit.ts` | Zod schemas, flatmate-meet requires conversation and counterparty |
 | `src/lib/data/domain.ts` | `VISIT_STATUS_VALUES`, `VISIT_CONTEXT_VALUES`, `INTEREST_LEVEL_VALUES` enums |

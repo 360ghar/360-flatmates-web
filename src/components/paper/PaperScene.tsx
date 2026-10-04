@@ -12,10 +12,11 @@ function PaperShadowFilter({ id }: { id: string }) {
   );
 }
 
-function ArtPath({ name, fill, filter }: { name: PaperArtName; fill: string; filter?: string }) {
+function ArtPath({ name, fill, filter, className }: { name: PaperArtName; fill: string; filter?: string; className?: string }) {
   const shape = paperArt[name];
   return (
     <path
+      className={className}
       d={shape.d}
       fill={fill}
       fillRule={shape.evenOdd ? "evenodd" : "nonzero"}
@@ -26,7 +27,9 @@ function ArtPath({ name, fill, filter }: { name: PaperArtName; fill: string; fil
 
 /* Back-to-front layers of the hero scene with their parallax travel (px) as
    the scene scrolls out. Far layers travel further, so they read as distant. */
-const HERO_LAYERS: ReadonlyArray<{ name: PaperArtName; fill: string; travel: number }> = [
+type SceneLayer = { name: PaperArtName; fill: string; travel: number; only?: "day" | "night" };
+
+const HERO_LAYERS: ReadonlyArray<SceneLayer> = [
   { name: "sun", fill: "var(--color-scene-sun)", travel: 70 },
   { name: "cloudA", fill: "var(--color-scene-cloud)", travel: 56 },
   { name: "cloudB", fill: "var(--color-scene-cloud)", travel: 60 },
@@ -38,20 +41,42 @@ const HERO_LAYERS: ReadonlyArray<{ name: PaperArtName; fill: string; travel: num
   { name: "tree", fill: "var(--color-scene-tree)", travel: 4 }
 ];
 
+/* Night: the moon replaces the sun and stars come out. Colours come from the
+   dark scene tokens, so a night scene sits inside a data-theme="dark" subtree. */
+const NIGHT_LAYERS: ReadonlyArray<SceneLayer> = [
+  { name: "stars", fill: "var(--color-scene-window)", travel: 60 },
+  { name: "moon", fill: "var(--color-scene-sun)", travel: 70 },
+  ...HERO_LAYERS.filter((layer) => layer.name !== "sun" && layer.name !== "cloudA")
+];
+
+/* "auto" follows the theme: the sky of a dark page is a night sky. CSS picks the
+   layers (globals.css .scene-day-only / .scene-night-only), so no theme state. */
+const AUTO_LAYERS: ReadonlyArray<SceneLayer> = [
+  { name: "stars", fill: "var(--color-scene-window)", travel: 60, only: "night" },
+  { name: "moon", fill: "var(--color-scene-sun)", travel: 70, only: "night" },
+  ...HERO_LAYERS.map((layer): SceneLayer => (layer.name === "sun" || layer.name === "cloudA" ? { ...layer, only: "day" } : layer))
+];
+
 function HeroLayer({
   name,
   fill,
   travel,
+  only,
   progress,
-  still
+  still,
+  direction
 }: {
   name: PaperArtName;
   fill: string;
   travel: number;
+  only?: "day" | "night";
   progress: MotionValue<number>;
   still: boolean;
+  direction: "exit" | "enter";
 }) {
-  const y = useTransform(progress, [0, 1], [0, still ? 0 : travel]);
+  // "exit": layers drift apart as the scene scrolls away (hero).
+  // "enter": they settle into place as the scene scrolls in (page end).
+  const y = useTransform(progress, [0, 1], still ? [0, 0] : direction === "exit" ? [0, travel] : [travel * 0.6, 0]);
   const filterId = useId().replace(/:/g, "");
   const shape = paperArt[name];
   return (
@@ -61,13 +86,17 @@ function HeroLayer({
       preserveAspectRatio="xMidYMax slice"
       // Bottom-anchored band at the art's own aspect (0.3) on wide screens;
       // never shorter than the container allows on phones, where it crops in.
-      className="absolute inset-x-0 bottom-0 h-[min(85%,max(30vw,300px))] w-full will-change-transform"
+      className={cn(
+        "absolute inset-x-0 bottom-0 h-[min(85%,max(30vw,300px))] w-full will-change-transform",
+        only === "day" && "scene-day-only",
+        only === "night" && "scene-night-only"
+      )}
       style={{ y }}
     >
       <defs>
         <PaperShadowFilter id={filterId} />
       </defs>
-      <ArtPath name={name} fill={fill} filter={name === "townWindows" ? undefined : filterId} />
+      <ArtPath name={name} fill={fill} filter={name === "townWindows" || name === "stars" ? undefined : filterId} />
     </motion.svg>
   );
 }
@@ -81,7 +110,8 @@ export function PaperScene({
   className,
   children,
   edgeClassName = "bg-paper",
-  torn = true
+  torn = true,
+  time = "auto"
 }: {
   className?: string;
   children?: ReactNode;
@@ -89,10 +119,17 @@ export function PaperScene({
   edgeClassName?: string;
   /** Close the bottom with a torn paper strip (off when the scene ends the page). */
   torn?: boolean;
+  /** auto: day in the light theme, night in the dark one. night: always night (inside a dark-theme subtree). */
+  time?: "auto" | "day" | "night";
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion() ?? false;
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const direction = time === "night" ? "enter" : "exit";
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: direction === "exit" ? ["start start", "end start"] : ["start end", "end end"]
+  });
+  const layers = time === "night" ? NIGHT_LAYERS : time === "day" ? HERO_LAYERS : AUTO_LAYERS;
 
   return (
     <div
@@ -100,8 +137,8 @@ export function PaperScene({
       className={cn("relative isolate overflow-hidden bg-sky", className)}
       data-testid="paper-scene"
     >
-      {HERO_LAYERS.map((layer) => (
-        <HeroLayer key={layer.name} {...layer} progress={scrollYProgress} still={reduceMotion} />
+      {layers.map((layer) => (
+        <HeroLayer key={layer.name} {...layer} progress={scrollYProgress} still={reduceMotion} direction={direction} />
       ))}
       {children ? <div className="relative z-10 h-full">{children}</div> : null}
       {torn ? <div
@@ -146,7 +183,7 @@ export function PaperMiniScene({ prop, className }: { prop: PaperProp; className
       </defs>
       <g clipPath={`url(#${filterId}-clip)`}>
         <rect width="320" height="200" fill="var(--color-sky)" />
-        {showSun ? <ArtPath name="miniSun" fill="var(--color-scene-sun)" filter={filterId} /> : null}
+        {showSun ? <ArtPath className="scene-day-only" name="miniSun" fill="var(--color-scene-sun)" filter={filterId} /> : null}
         <ArtPath name="miniHillsFar" fill="var(--color-scene-hill-far)" filter={filterId} />
         <ArtPath name="miniHillsNear" fill="var(--color-scene-hill-near)" filter={filterId} />
       </g>

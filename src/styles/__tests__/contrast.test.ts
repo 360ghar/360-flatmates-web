@@ -23,7 +23,10 @@ const THEMES = {
       ["#23201C", "#D3E2D8"], // ink / pine-soft
       ["#A94A2B", "#F6E6DE"], // clay / clay-soft
       ["#B3261E", "#F6DAD7"], // danger / danger-soft
-      ["#7E5208", "#F7E8C8"] // warning-ink / warning-soft
+      ["#7E5208", "#F7E8C8"], // warning-ink / warning-soft
+      ["#FFFFFF", "#121814"], // white caption / scrim (never inverts)
+      ["#FDFCFA", "#2E5B48"], // flatmate map marker: paper-2 / pine
+      ["#FFFFFF", "#23201C"] // map marker hover: paper-3 / ink
     ]
   },
   dark: {
@@ -45,7 +48,10 @@ const THEMES = {
       ["#F1EDE6", "#22352C"],
       ["#E27E5A", "#3A2A23"],
       ["#F2A097", "#3B2220"],
-      ["#E8B458", "#352B19"]
+      ["#E8B458", "#352B19"],
+      ["#FFFFFF", "#121814"], // white caption / scrim
+      ["#222A24", "#86B9A0"], // flatmate map marker: paper-2 / pine
+      ["#2A332C", "#F1EDE6"] // map marker hover: paper-3 / ink
     ]
   }
 } as const;

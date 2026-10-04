@@ -19,7 +19,7 @@ test("failed server sign-out clears the SDK session in both tabs and after reloa
     return key;
   });
   await page.goto("/profile");
-  await expect(page.getByRole("button", { name: "Sign Out", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign out", exact: true })).toBeVisible();
   const other = await context.newPage();
   await installApiMocks(other);
   await other.goto("/home");
@@ -33,8 +33,8 @@ test("failed server sign-out clears the SDK session in both tabs and after reloa
     return authStore.getState().session?.user.id ?? null;
   })).not.toBeNull();
 
-  await page.getByRole("button", { name: "Sign Out", exact: true }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Sign Out", exact: true }).click();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/login/);
   await expect(other).toHaveURL(/\/login/);
   expect(revokeRequests).toBe(1);

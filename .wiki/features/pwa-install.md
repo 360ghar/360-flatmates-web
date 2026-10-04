@@ -57,7 +57,7 @@ A pre-paint inline script reads the persisted theme from `localStorage` and sets
 
 ## The usePWA hook
 
-`usePWA` (`src/hooks/usePWA.ts`) is the bridge between the browser's install lifecycle and React. It exposes four values:
+`usePWA` (`src/features/pwa/hooks/usePWA.ts`) is the bridge between the browser's install lifecycle and React. It exposes four values:
 
 - `isInstallable`. True after the browser has fired `beforeinstallprompt` and the event has been captured. This is the signal that a native install prompt is available (Chrome, Edge, Android).
 - `isInstalled`. True if the app is already running in a standalone display mode, detected via the `(display-mode: standalone)` media query, the legacy `navigator.standalone` flag, or an `android-app://` referrer. Initialized synchronously from these checks so the banner does not flash on first paint.
@@ -81,9 +81,9 @@ graph TD
 
 Two components consume `usePWA` to drive the install UX.
 
-`PWAInstallBanner` (`src/components/molecules/PWAInstallBanner.tsx`) is the in-app banner. It is wired into the authenticated app shell by `AppLayout` (`src/pages/app/AppLayout.tsx`), which renders `<PWAInstallBanner className="mb-5" />` above the page outlet. The banner is visible only when the app is not yet installed and either `isInstallable` (Chrome, Edge, Android) or `isIOS` is true, and only until the user dismisses it (a `sessionStorage` flag, so it comes back next session). The Install button calls `installApp()` when installable, or opens the instructions modal when on iOS.
+`PWAInstallBanner` (`src/features/pwa/components/PWAInstallBanner.tsx`) is the in-app banner. It is wired into the authenticated app shell by `AppLayout` (`src/app/layouts/AppLayout.tsx`), which renders `<PWAInstallBanner className="mb-5" />` above the page outlet. The banner is visible only when the app is not yet installed and either `isInstallable` (Chrome, Edge, Android) or `isIOS` is true, and only until the user dismisses it (a `sessionStorage` flag, so it comes back next session). The Install button calls `installApp()` when installable, or opens the instructions modal when on iOS.
 
-`PWAInstallInstructionsModal` (`src/components/organisms/PWAInstallInstructionsModal.tsx`) is the iOS Safari manual install guide. Because iOS does not fire `beforeinstallprompt`, the only path to install is the Safari share sheet. The modal walks the user through three numbered steps (tap the Share button, select Add to Home Screen, confirm) with lucide icons for each affordance. It is reused from two entry points: the install banner, and the profile page, which offers a standalone "Install app" affordance via its own `usePWA` instance.
+`PWAInstallInstructionsModal` (`src/features/pwa/components/PWAInstallInstructionsModal.tsx`) is the iOS Safari manual install guide. Because iOS does not fire `beforeinstallprompt`, the only path to install is the Safari share sheet. The modal walks the user through three numbered steps (tap the Share button, select Add to Home Screen, confirm) with lucide icons for each affordance. It is reused from two entry points: the install banner, and the profile page, which offers a standalone "Install app" affordance via its own `usePWA` instance.
 
 ## Source-of-truth docs
 
@@ -94,11 +94,11 @@ For the canonical color tokens (`sky` `#E4EBE3`, clay `#A94A2B`) referenced by t
 | File | Purpose |
 | --- | --- |
 | `vite.config.ts` | `VitePWA` config: `autoUpdate`, `injectRegister`, `includeAssets`, inline manifest |
-| `src/hooks/usePWA.ts` | `usePWA` hook: `isInstallable`, `isInstalled`, `isIOS`, `installApp` |
-| `src/components/molecules/PWAInstallBanner.tsx` | In-app install banner with dismiss and iOS routing |
-| `src/components/organisms/PWAInstallInstructionsModal.tsx` | iOS Safari manual Add to Home Screen guide |
-| `src/pages/app/AppLayout.tsx` | Wires `PWAInstallBanner` above the authenticated page outlet |
-| `src/pages/app/ProfilePage.tsx` | Second `usePWA` entry point with standalone install affordance |
+| `src/features/pwa/hooks/usePWA.ts` | `usePWA` hook: `isInstallable`, `isInstalled`, `isIOS`, `installApp` |
+| `src/features/pwa/components/PWAInstallBanner.tsx` | In-app install banner with dismiss and iOS routing |
+| `src/features/pwa/components/PWAInstallInstructionsModal.tsx` | iOS Safari manual Add to Home Screen guide |
+| `src/app/layouts/AppLayout.tsx` | Wires `PWAInstallBanner` above the authenticated page outlet |
+| `src/features/profile/pages/ProfilePage.tsx` | Second `usePWA` entry point with standalone install affordance |
 | `scripts/generate-pwa-icons.ts` | `sharp` script that emits standard and maskable WebPs from `favicon.svg` |
 | `index.html` | SPA shell with `theme-color`, apple-touch-icon, mask-icon, pre-paint theme script |
 | `public/llms.txt` | LLM-facing site summary, precached as an included asset |

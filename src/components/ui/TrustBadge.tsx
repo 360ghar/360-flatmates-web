@@ -24,10 +24,8 @@ export function TrustBadge({ variant = "verified", label, className, ...props }:
   return (
     <span
       className={cn(
-        "inline-flex min-h-6 items-center gap-1.5 rounded-full border px-2.5 py-1 text-label-md font-semibold",
-        classes.soft,
+        "inline-flex items-center gap-1 text-label-md",
         classes.text,
-        classes.border,
         className
       )}
       {...props}

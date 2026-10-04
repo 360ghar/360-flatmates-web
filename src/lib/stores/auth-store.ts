@@ -1,6 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import type { Session, User } from "@supabase/supabase-js";
-import type { AuthStage } from "@/lib/api/auth";
+import type { AuthStage } from "@/lib/api/core.types";
 
 export type ClientAuthStage = AuthStage | "unknown";
 

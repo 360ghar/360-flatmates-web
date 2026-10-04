@@ -48,7 +48,7 @@ Project-specific terms used across the codebase, design docs, and this wiki.
 | --- | --- |
 | **Listing** | A room or property posted by a room poster. Backed by the `property` domain in the API. |
 | **Discoverable listing** | A listing that is `active` and visible on the public `/discover` surface and in the sitemap. Fetched at build time by `scripts/lib/listings.ts` for prerendering. |
-| **Boost** / **Renew** | Mutations on a listing that bump its visibility or extend its lifetime. See `useBoostListing`, `useRenewListing` in `src/hooks/queries/useProperties.ts`. |
+| **Boost** / **Renew** | Mutations on a listing that bump its visibility or extend its lifetime. See `useBoostListing`, `useRenewListing` in `src/features/listings/hooks/useProperties.ts`. |
 | **Visit** | A scheduled in-person or virtual viewing of a listing, with its own lifecycle (requested, confirmed, completed, cancelled). |
 
 ## SEO and build

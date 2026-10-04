@@ -44,7 +44,7 @@ export function PhoneInput({
     <div className={cn("flex flex-col gap-2", className)}>
       {label && (
         <label
-          className="text-eyebrow font-semibold text-ink-3"
+          className="text-label-md text-ink-2"
           htmlFor={inputId}
         >
           {label}

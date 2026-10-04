@@ -4,16 +4,31 @@
 
 ```
 src/
-  components/   # Shared UI components (atomic: ui/, molecules/, organisms/, landing/, onboarding/, page-clients/)
-  hooks/        # Custom React hooks + TanStack Query hooks (queries/)
-  lib/          # Utilities, API client, stores, schemas, compatibility engine, Supabase config
-  pages/        # React Router pages organized by domain (app/, auth/, admin/, public/)
+  entry.tsx     # Mounts <RouterProvider> (index.html loads it)
+  app/          # Data router (routes.tsx, router.tsx), RootLayout, providers, guards, error fallback,
+                # prefetch, route-inventory, layouts/ (Public, Auth, App, Focus, Adaptive, Admin,
+                # SiteFooter) and layouts/app-shell/ (AppShell, Sidebar, TopBar, MobileTabBar, nav-config)
+  features/     # One folder per domain: pages/ components/ hooks/ lib/ store.ts __tests__/
+                # landing auth onboarding home listings hosting explore swipe matches chat visits
+                # notifications profile settings alerts blog places company admin system pwa
+  components/
+    ui/         # Design-system primitives (Button, Card, Page/PageHeader, Modal, ChoiceChips, ChoiceCards,
+                # SegmentedControl, FactList, StateViews, Skeleton, Toast, ...)
+    paper/      # Scene art: PaperScene, PaperMiniScene, CityArt, Stamp, NavIcons, generated art.ts
+  hooks/        # Shared hooks (useAuth, useRouteHandle, useDirtyFormGuard, ...) + shared queries/
+  lib/          # API client and types, Supabase, SEO, stores (ui, search), schemas, compatibility engine, utils
 docs/            # OpenAPI spec (flatmates-openapi.yaml)
 plans/           # PRD (prd.md) and UI/UX specification (ui_ux.md)
 e2e/             # Playwright E2E specs
-tests/           # Integration tests
-DESIGN.md        # Canonical design system — color, typography, spacing, shadows, animations, dark mode
+tests/           # Integration and contract tests
+DESIGN.md        # Canonical design system: colour, type, spacing, elevation, motion, components, page composition
 ```
+
+Layer rules (ESLint `no-restricted-imports`, tests exempt): `app → features → components/hooks/lib`.
+`components/`, `hooks/` and `lib/` never import `@/features/*` or `@/app/*`; features never import
+`@/app/*`; only `app/routes.tsx` imports feature pages. Cross-feature imports go one way (for
+example `home → listings`, `chat → visits`). Check cycles with
+`npx madge --circular --extensions ts,tsx --ts-config tsconfig.json src` (expect none).
 
 Key reference documents:
 - **DESIGN.md** — single source of truth for all UI tokens, component specs, and visual targets
@@ -40,7 +55,11 @@ npm run generate:og-image   # Re-render og-image.webp + logo.webp with Chrome (o
 - Use Tailwind semantic utilities (`bg-accent`, `text-ink`, `shadow-sm`) over raw values
 - **Fonts**: Gambarino (display: `text-display`, `text-h1`–`text-h3`, logo), self-hosted `public/fonts/Gambarino-Regular.woff2`, preloaded + `@font-face` in `index.html`. Body/UI uses `system-ui`. One weight only: never add `font-bold` to display text.
 - **Design system**: Paper Diorama (see DESIGN.md). Legacy token names are aliases in `globals.css`: `paper` = page (sky), `surface-soft` = soft fill (DESIGN `paper-1`), `surface` = card (DESIGN `paper-2`), `surface-elevated` = raised (DESIGN `paper-3`), `accent`/`primary` = clay. `paper-1` / `paper-2` / `paper-3` match DESIGN.md exactly. New code may use `bg-sky`, `bg-paper-1`, `bg-paper-2`, `bg-clay`, `text-on-clay`, `bg-pine-soft`, `rounded-cut-*`, `rounded-hand`.
-- **Paper primitives**: `src/components/paper/` — `PaperScene` (layered neighbourhood with scroll parallax), `PaperMiniScene` (empty/error states via `EmptyState scene=`/`ErrorState`), `NavIcons` (cut-paper nav icons). Utilities in `globals.css`: `paper-grain`, `paper-edge-torn-top|bottom`, `paper-edge-scallop-left|bottom`, `paper-press` (buttons), `paper-lift` (cards). Scene art is generated: `npm run generate:paper-art` (writes `src/components/paper/art.ts` AND the mobile repo's `paper_art.dart`). Never edit `art.ts` by hand.
+- **Paper primitives**: `src/components/paper/`: `PaperScene` (layered neighbourhood with scroll parallax, `time="night"` for the footer), `PaperMiniScene` (empty/error states via `EmptyState scene=`/`ErrorState`), `CityArt` (postcard skylines), `Stamp`, `NavIcons` (cut-paper nav icons). Utilities in `globals.css`: `paper-grain`, `paper-edge-torn-top|bottom|y`, `paper-edge-ticket`, `paper-edge-perforated`, `paper-edge-scallop-left|bottom`, `paper-press` (buttons), `paper-lift` (cards).
+- **Page frame**: every app page is `<Page width="narrow|default|wide">` + `<PageHeader>` (`src/components/ui/Layout.tsx`); the title and Back come from the route `handle` (`useRouteHandle`). Public pages open with `<PageBand>`. Pick-one controls are radio groups: `ChoiceChips`/`ChoiceField`, `ChoiceCards`, `SegmentedControl`. Status is tonal text (`Badge`), facts are a `FactList`; no pill chips for metadata.
+- **Class merging**: `cn()` is `clsx` + `tailwind-merge` with the custom type roles and radii registered (`component-utils.ts`). Add a new `text-*` role there too.
+- **Map tiles**: OpenStreetMap by default; set `VITE_MAP_TILE_URL` (and `VITE_MAP_TILE_ATTRIBUTION`) for production traffic.
+- **Scene art** is generated: `npm run generate:paper-art` (writes `src/components/paper/art.ts` AND the mobile repo's `paper_art.dart`). Never edit `art.ts` by hand.
 - **Motion**: content is visible by default — no entrance animation starts at opacity 0. `MotionConfig reducedMotion="user"` wraps the app.
 - **Errors in UI**: show `userMessage(err)` from `src/lib/api/errors.ts` (or `mapSupabaseAuthError` for auth), never raw `err.message`.
 - **Components**: PascalCase files co-located with tests (`Button.tsx` + `Button.test.tsx` or `__tests__/Button.test.tsx`)
@@ -51,6 +70,7 @@ npm run generate:og-image   # Re-render og-image.webp + logo.webp with Chrome (o
 
 - **Vitest** + **React Testing Library** for unit/integration tests
 - **Playwright** for E2E flows
+- `e2e/a11y.spec.ts` runs axe (WCAG 2.1 AA) on the key routes in both themes; serious or critical findings fail. `e2e/controls.spec.ts` clicks the shell, sheets, radio groups and dialogs with a real pointer and the keyboard.
 - Test files: co-located (`Component.test.tsx`) or in `__tests__/` directories
 
 ## Commit & Pull Request Guidelines
@@ -62,14 +82,14 @@ npm run generate:og-image   # Re-render og-image.webp + logo.webp with Chrome (o
 
 ## Architecture Overview
 
-Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time Flatmates updates use Supabase private Broadcast from the `/flatmates/bootstrap` realtime config. Responsive navigation: bottom nav on mobile, collapsed icon sidebar on tablet, full sidebar on desktop. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes.
+Vite + React Router v7 SPA consuming a shared FastAPI backend (`/api/v1`). Client-rendered with no SSR. Authentication via Supabase (Phone OTP + Password + Google OAuth). Progressive Web App (PWA) enabled with service worker caching, offline asset precaching, custom install banner, and manual installation guide modal for iOS Safari. State management via Zustand (local state) and TanStack React Query (server state). Real-time Flatmates updates use Supabase private Broadcast from the `/flatmates/bootstrap` realtime config. Responsive navigation: bottom tabs on phones (five per mode, Chats with an unread badge), an icon rail with tooltips from 768 px, the full sidebar from 1024 px. Three user modes (Room Poster, Co-Hunter, Open to Both) control navigation tabs and feature access. All design tokens are CSS custom properties with dark mode overrides. Routing is a React Router data router (`src/app/routes.tsx`): lazy route modules, one `errorElement` per layout, route `handle` for title / nav tab / Back, `useBlocker` for unsaved-change guards, and `ScrollRestoration`. Route guards (`AuthGuard`, `AdminGuard`, `AuthRedirectGuard`) protect authenticated and admin routes. `/discover` and `/search` use an adaptive layout (app shell when signed in, public layout otherwise). From 1024 px `/chats/:id` is a split view nested under `/chats`.
 
 ## Theme & Appearance
 
 - Default theme: **light** (not system)
 - Theme options: Light, Dark, System (follows OS)
 - Theme state lives in `uiStore` (`src/lib/stores/ui-store.ts`)
-- Theme is applied via `data-theme="dark"` on `<html>` (see `providers.tsx`)
+- Theme is applied via `data-theme="dark"` on `<html>` (see `src/app/providers.tsx`)
 - Flash-prevention script in `index.html` reads persisted preference before paint
 - Reusable `<ThemeToggle>` component (`src/components/ui/ThemeToggle.tsx`) with `size` prop (`"sm"` for top-bars, `"md"` for sections)
 - Theme toggle is available on: PublicLayout header, AppShell top bar, Profile page, Appearance page (`/settings/appearance`)
@@ -81,10 +101,12 @@ Every page that fetches data must handle all three async states: **loading**, **
 ### Loading States — Skeletons Everywhere
 
 - Every page with API calls must show a **skeleton loader** matching its layout during `isLoading`
-- Use `<Skeleton variant="...">` from `src/components/ui/Skeleton.tsx` with the appropriate variant:
-  - Page-level: `homeFeed`, `listingDetail`, `publicProfile`, `swipeCard`, `mapExplore`, `chatThread`, `profilePage`, `form`, `blogPost`, `compatibility`, `dashboardPanel`, `searchResults`
-  - Component-level: `menuItemRow`, `notificationCard`, `conversationRow`, `visitCard`, `statCard`, `chatMessage`, `profileGridCard`, `listingCard`, `blogCard`, `searchBar`, `filterChips`, `savedSearchCard`, `alertCard`, `paymentMethodRow`, `moderationRow`
-  - Fallback / legacy: `block`, `card`, `listItem`, `profile`, `feed`
+- Shared bones: `<Skeleton variant="...">` from `src/components/ui/Skeleton.tsx`: `block` (a single
+  bone sized by `className`), `listingCard`, `listingDetail`, `form`, `searchBar`, `filterChips`,
+  `moderationRow`.
+- Feature skeletons live next to the feature as `<XSkeleton />` in `features/<name>/components/`
+  (for example `HomeFeedSkeleton`, `ChatThreadSkeleton`, `VisitCardSkeleton count={4}`). Build new
+  ones from the exported `SkeletonRoot`, `shimmer` and `ListingCardSkeleton`.
 - Skeletons must match the real layout dimensions (same grid columns, card structure, spacing) — never reuse `listingCard` for blog/people/forms
 - Multi-item grids: pass layout via `className` (e.g. `count={6} className="grid gap-4 md:grid-cols-3"`)
 - Composite variants announce loading (`role="status"`); leaf `block` bones use `aria-hidden`. Shimmer respects `motion-reduce:animate-none`
@@ -93,21 +115,15 @@ Every page that fetches data must handle all three async states: **loading**, **
 ### Error States — Graceful Degradation
 
 - **Never use a full-page `<ErrorState>` early return** on pages that have non-API-dependent UI (headers, back buttons, navigation, theme toggles, sign-out actions)
-- Instead, always render the page chrome (title, back button, page layout) and show **inline `<ErrorState>`** inside a `<Card>` only for the API-dependent section
+- Instead, always render the page chrome (title, back button, page layout) and show **`<InlineError>`** (an `ErrorState` on a card) only for the API-dependent section
 - Pages whose **entire content is the API response** (maps, swipe decks, chat threads) may use a full-page error — but only when there is truly nothing else to show
 - Pattern for mixed pages:
   ```tsx
   return (
-    <div className="page-fade">
-      <h1 className="text-h1 mb-5">Page Title</h1>   {/* always visible */}
-      {data ? (
-        <APIDependentContent />
-      ) : error ? (
-        <Card className="flex items-center justify-center p-8">
-          <ErrorState title="Could not load..." onRetry={refetch} />
-        </Card>
-      ) : null}
-    </div>
+    <Page width="default">
+      <PageHeader title="Page title" />            {/* always visible */}
+      {data ? <APIDependentContent /> : error ? <InlineError title="Could not load..." onRetry={refetch} /> : null}
+    </Page>
   );
   ```
 - Use `<AsyncView>` from `src/components/ui/StateViews.tsx` for simple load/error/empty/render patterns
@@ -116,15 +132,15 @@ Every page that fetches data must handle all three async states: **loading**, **
 
 ### State Management — Zustand vs TanStack Query
 
-- **Server state** (API data): TanStack React Query via hooks in `src/hooks/queries/`
+- **Server state** (API data): TanStack React Query via hooks in `src/features/<name>/hooks/` (shared ones in `src/hooks/queries/`)
   - All API calls go through TanStack Query hooks — never `useEffect` + `useState` for fetches
   - Use `isLoading` (not `isFetching`) for initial-load skeleton decisions
   - Stale time and refetch intervals are configured per-query in the hook
-- **Client-only state** (UI toggles, form drafts, preferences): Zustand stores in `src/lib/stores/`
+- **Client-only state** (UI toggles, form drafts, preferences): Zustand stores in `src/lib/stores/` (shared) and `src/features/<name>/store.ts`
   - `uiStore` for theme, toasts, modals, sidebar
   - `searchStore` for filter state
-  - `swipeStore` for animation direction
-  - `mapStore` for viewport state
+  - `swipeStore` (`features/swipe/store.ts`) for animation direction
+  - `mapStore` (`features/explore/store.ts`) for viewport state
 - **Never** mix server state into Zustand stores — let TanStack Query own the cache
 - **Optimistic updates**: use TanStack Query's `onMutate` + `onError` rollback pattern for mutations
 - **Account deletion**: `useDeleteAccount` (`src/hooks/queries/useProfiles.ts`) calls `DELETE /users/me` and clears the entire query cache (`queryClient.clear()`) on success. The Profile page handler then best-effort `signOut()`s (the backend already hard-deletes the Supabase user) and navigates to `/login`. The confirm modal requires typing `DELETE` exactly before the destructive button enables (see ui_ux.md §7.19).

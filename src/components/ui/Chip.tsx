@@ -18,6 +18,17 @@ const sizeClasses: Record<ChipVariant, string> = {
   removable: "px-3.5 py-2 text-label-md"
 };
 
+/** Paper chip look (DESIGN.md §8): paper-2 + e1; selected = clay-soft. */
+export function chipClasses(selected: boolean, variant: ChipVariant = "filter"): string {
+  return cn(
+    "inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-cut-md font-semibold shadow-xs disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-surface-strong disabled:text-ink-3 disabled:shadow-none",
+    "chip-spring",
+    focusRing,
+    selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-surface-soft",
+    sizeClasses[variant]
+  );
+}
+
 export function Chip({
   variant = "filter",
   selected = false,
@@ -81,14 +92,7 @@ export function Chip({
       role={role}
       aria-checked={props["aria-checked"] ?? selected}
       disabled={disabled}
-      className={cn(
-        "inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-cut-md font-semibold shadow-xs disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-surface-strong disabled:text-ink-3 disabled:shadow-none",
-        "chip-spring",
-        focusRing,
-        selected ? "bg-clay-soft text-ink" : "bg-surface text-ink-2 hover:bg-surface-soft",
-        sizeClasses[variant],
-        className
-      )}
+      className={cn(chipClasses(selected, variant), className)}
       {...props}
     >
       {icon ? <span className="flex h-4 w-4 items-center justify-center">{icon}</span> : null}

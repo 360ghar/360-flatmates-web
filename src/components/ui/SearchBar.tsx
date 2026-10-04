@@ -96,7 +96,7 @@ export function SearchBar({
     <div className="relative w-full">
       <div
         className={cn(
-          "group flex h-12 items-center gap-2 rounded-full border border-line bg-surface px-4 text-ink shadow-sm focus-within:border-ink focus-within:shadow-md hover:shadow-md",
+          "group flex h-12 items-center gap-2 rounded-full border border-line bg-surface px-4 text-ink shadow-sm focus-within:border-ink focus-within:shadow-md",
           interactiveMotion,
           disabled && "bg-surface-soft text-ink-3",
           className
@@ -140,9 +140,10 @@ export function SearchBar({
         <div
           id={listboxId}
           role="listbox"
+          tabIndex={-1}
           aria-label="Recent searches"
           onKeyDown={handlePopoverKeyDown}
-          className="absolute left-0 right-0 top-[calc(100%+8px)] z-[var(--z-overlay)] rounded-lg border border-line bg-surface p-2 shadow-md"
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-[var(--z-overlay)] paper-grain rounded-cut-md bg-paper-3 p-2 shadow-md"
         >
           <div className="flex flex-col">
             {visibleRecents.map((query, index) => (

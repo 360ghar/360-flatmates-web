@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { routeInventory } from "@/lib/route-inventory";
+import { routeInventory } from "@/app/route-inventory";
 
 const expectedRoutes = [
   "/",

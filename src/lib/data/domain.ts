@@ -19,22 +19,22 @@ export type FlatmatesMode = (typeof FLATMATE_MODE_VALUES)[number];
 export const FLATMATE_MODE_OPTIONS = [
   {
     value: "room_poster",
-    label: "Room Poster",
+    label: "Room poster",
     description: "Has a room and wants to find a compatible flatmate."
   },
   {
     value: "seeker",
-    label: "Room Seeker",
+    label: "Room seeker",
     description: "Looking for a room in an existing flat."
   },
   {
     value: "co_hunter",
-    label: "Co-Hunter",
+    label: "Co-hunter",
     description: "Looking for people to search for a home with."
   },
   {
     value: "open_to_both",
-    label: "Open to Both",
+    label: "Open to both",
     description: "Flexible between posting a room and co-hunting."
   }
 ] as const satisfies readonly DomainOption<FlatmatesMode>[];
@@ -63,11 +63,11 @@ export type MoveInTimeline = (typeof MOVE_IN_TIMELINE_VALUES)[number];
 
 export const MOVE_IN_TIMELINE_OPTIONS = [
   { value: "immediately", label: "Immediately" },
-  { value: "within_1_week", label: "Within 1 Week" },
-  { value: "within_2_weeks", label: "Within 2 Weeks" },
-  { value: "within_1_month", label: "Within 1 Month" },
-  { value: "within_2_months", label: "Within 2 Months" },
-  { value: "within_3_months", label: "Within 3 Months" },
+  { value: "within_1_week", label: "Within 1 week" },
+  { value: "within_2_weeks", label: "Within 2 weeks" },
+  { value: "within_1_month", label: "Within 1 month" },
+  { value: "within_2_months", label: "Within 2 months" },
+  { value: "within_3_months", label: "Within 3 months" },
   { value: "flexible", label: "Flexible" }
 ] as const satisfies readonly DomainOption<MoveInTimeline>[];
 
@@ -124,15 +124,6 @@ export const AGE_BUCKET_VALUES = [
 
 export type AgeBucket = (typeof AGE_BUCKET_VALUES)[number];
 
-export const AGE_BUCKET_OPTIONS = [
-  { value: "18-24", label: "18-24" },
-  { value: "25-30", label: "25-30" },
-  { value: "31-35", label: "31-35" },
-  { value: "36-40", label: "36-40" },
-  { value: "41-45", label: "41-45" },
-  { value: "46+", label: "46+" }
-] as const satisfies readonly DomainOption<AgeBucket>[];
-
 /** Max length for a profile's native place (home town / city). */
 export const NATIVE_PLACE_MAX_LENGTH = 120;
 
@@ -163,12 +154,12 @@ export type LifestyleDimensionKey =
 export const LIFESTYLE_DIMENSIONS = [
   {
     key: "sleep_schedule",
-    label: "Sleep Schedule",
+    label: "Sleep schedule",
     weight: 0.2,
     options: [
-      { value: "early_bird", label: "Early Bird" },
+      { value: "early_bird", label: "Early bird" },
       { value: "flexible", label: "Flexible" },
-      { value: "night_owl", label: "Night Owl" }
+      { value: "night_owl", label: "Night owl" }
     ]
   },
   {
@@ -183,14 +174,14 @@ export const LIFESTYLE_DIMENSIONS = [
   },
   {
     key: "food_habits",
-    label: "Food Habits",
+    label: "Food habits",
     weight: 0.15,
     options: [
       { value: "vegetarian", label: "Vegetarian" },
       { value: "vegan", label: "Vegan" },
-      { value: "non_vegetarian", label: "Non-Vegetarian" },
+      { value: "non_vegetarian", label: "Non-vegetarian" },
       { value: "eggetarian", label: "Eggetarian" },
-      { value: "no_preference", label: "No Preference" }
+      { value: "no_preference", label: "No preference" }
     ]
   },
   {
@@ -215,25 +206,30 @@ export const LIFESTYLE_DIMENSIONS = [
   },
   {
     key: "guests_policy",
-    label: "Guests Policy",
+    label: "Guests policy",
     weight: 0.15,
     options: [
-      { value: "no_overnight_guests", label: "No Overnight Guests" },
-      { value: "occasional_ok", label: "Occasional Guests OK" },
-      { value: "open_house", label: "Open House" }
+      { value: "no_overnight_guests", label: "No overnight guests" },
+      { value: "occasional_ok", label: "Occasional guests OK" },
+      { value: "open_house", label: "Open house" }
     ]
   },
   {
     key: "work_style",
-    label: "Work Style",
+    label: "Work style",
     weight: 0.1,
     options: [
-      { value: "wfh", label: "WFH" },
+      { value: "wfh", label: "Work from home" },
       { value: "office", label: "Office" },
       { value: "hybrid", label: "Hybrid" }
     ]
   }
 ] as const;
+
+/** The ordered answers for one lifestyle question, as { value, label }. */
+export function lifestyleOptions(key: LifestyleDimensionKey): ReadonlyArray<{ value: string; label: string }> {
+  return LIFESTYLE_DIMENSIONS.find((d) => d.key === key)?.options ?? [];
+}
 
 export type LifestyleProfile = {
   sleep_schedule?: SleepSchedule;
@@ -266,17 +262,17 @@ export const NON_NEGOTIABLE_VALUES = [
 export type NonNegotiable = (typeof NON_NEGOTIABLE_VALUES)[number];
 
 export const NON_NEGOTIABLE_OPTIONS = [
-  { value: "food_veg_only", label: "Veg Only" },
-  { value: "food_vegan_only", label: "Vegan Only" },
-  { value: "no_smoking", label: "No Smoking" },
-  { value: "no_drinking", label: "No Drinking" },
-  { value: "no_overnight_guests", label: "No Overnight Guests" },
-  { value: "no_pets", label: "No Pets" },
-  { value: "gender_female_only", label: "Female Flatmates Only" },
-  { value: "gender_male_only", label: "Male Flatmates Only" },
-  { value: "no_parties", label: "No Parties" },
-  { value: "min_tidy", label: "Tidy Home" },
-  { value: "early_riser", label: "Early Riser" }
+  { value: "food_veg_only", label: "Veg only" },
+  { value: "food_vegan_only", label: "Vegan only" },
+  { value: "no_smoking", label: "No smoking" },
+  { value: "no_drinking", label: "No drinking" },
+  { value: "no_overnight_guests", label: "No overnight guests" },
+  { value: "no_pets", label: "No pets" },
+  { value: "gender_female_only", label: "Female flatmates only" },
+  { value: "gender_male_only", label: "Male flatmates only" },
+  { value: "no_parties", label: "No parties" },
+  { value: "min_tidy", label: "Tidy home" },
+  { value: "early_riser", label: "Early riser" }
 ] as const satisfies readonly DomainOption<NonNegotiable>[];
 
 export const PROPERTY_TYPE_VALUES = ["pg", "flatmate"] as const;
@@ -297,10 +293,10 @@ export const LISTING_SHARING_TYPE_VALUES = [
 export type ListingSharingType = (typeof LISTING_SHARING_TYPE_VALUES)[number];
 
 export const LISTING_SHARING_TYPE_OPTIONS = [
-  { value: "private_room", label: "Private Room" },
-  { value: "shared_room", label: "Shared Room" },
-  { value: "master_bedroom", label: "Master Bedroom" },
-  { value: "entire_flat", label: "Entire Flat" }
+  { value: "private_room", label: "Private room" },
+  { value: "shared_room", label: "Shared room" },
+  { value: "master_bedroom", label: "Master bedroom" },
+  { value: "entire_flat", label: "Entire flat" }
 ] as const satisfies readonly DomainOption<ListingSharingType>[];
 
 export const KITCHEN_TYPE_VALUES = [
@@ -314,7 +310,7 @@ export type KitchenType = (typeof KITCHEN_TYPE_VALUES)[number];
 
 export const KITCHEN_TYPE_OPTIONS = [
   { value: "vegetarian", label: "Vegetarian" },
-  { value: "non_vegetarian", label: "Non-Vegetarian" },
+  { value: "non_vegetarian", label: "Non-vegetarian" },
   { value: "eggetarian", label: "Eggetarian" },
   { value: "any", label: "Any" }
 ] as const satisfies readonly DomainOption<KitchenType>[];
@@ -339,7 +335,7 @@ export type FurnishingLevel = (typeof FURNISHING_LEVEL_VALUES)[number];
 
 export const FURNISHING_LEVEL_OPTIONS = [
   { value: "furnished", label: "Furnished" },
-  { value: "semi_furnished", label: "Semi-Furnished" },
+  { value: "semi_furnished", label: "Semi-furnished" },
   { value: "unfurnished", label: "Unfurnished" }
 ] as const satisfies readonly DomainOption<FurnishingLevel>[];
 

@@ -18,7 +18,7 @@ export const THEME_OPTIONS: ReadonlyArray<{ value: ThemePreference; label: strin
 export const SIDEBAR_WIDTH_DEFAULT = 200;
 export const SIDEBAR_WIDTH_MIN = 180;
 export const SIDEBAR_WIDTH_MAX = 360;
-export const SIDEBAR_WIDTH_COLLAPSED = 56;
+export const SIDEBAR_WIDTH_COLLAPSED = 72;
 export type ToastType = "success" | "error" | "info" | "warning";
 
 export interface ToastMessage {
@@ -36,13 +36,11 @@ export interface UiStoreState {
   sidebarWidth: number;
   realtimeConnected: boolean;
   realtimeState: RealtimeState;
-  reducedMotion: boolean;
   toasts: ToastMessage[];
   setTheme: (theme: ThemePreference) => void;
   setSidebar: (sidebar: SidebarState) => void;
   setSidebarWidth: (width: number) => void;
   setRealtimeState: (state: RealtimeState) => void;
-  setReducedMotion: (reduced: boolean) => void;
   pushToast: (toast: Omit<ToastMessage, "id" | "createdAt"> & { id?: string }) => string;
   dismissToast: (id: string) => void;
   clearToasts: () => void;
@@ -56,7 +54,6 @@ export type UiStoreInitialState = Partial<
     | "sidebarWidth"
     | "realtimeConnected"
     | "realtimeState"
-    | "reducedMotion"
     | "toasts"
   >
 >;
@@ -74,7 +71,6 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         sidebarWidth: SIDEBAR_WIDTH_DEFAULT,
         realtimeConnected: false,
         realtimeState: "disconnected",
-        reducedMotion: false,
         toasts: [],
         ...initialState,
         setTheme: (theme) => set((state) => state.theme === theme ? state : { theme }),
@@ -88,7 +84,6 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
               ? s
               : { realtimeState, realtimeConnected };
           }),
-        setReducedMotion: (reducedMotion) => set({ reducedMotion }),
         pushToast: (toast) => {
           const id = toast.id ?? createToastId();
           set((state) => {
@@ -120,8 +115,7 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         partialize: (state) => ({
           theme: state.theme,
           sidebar: state.sidebar,
-          sidebarWidth: state.sidebarWidth,
-          reducedMotion: state.reducedMotion
+          sidebarWidth: state.sidebarWidth
         }),
         merge: (persistedState, currentState) => {
           const persisted = (persistedState ?? {}) as Partial<UiStoreState>;

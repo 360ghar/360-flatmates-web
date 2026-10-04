@@ -1,21 +1,16 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
-import { Button } from "./Button";
-import { cn, toneClasses, type Tone } from "./component-utils";
+import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { Toaster as SonnerToaster } from "sonner";
+import { cn, focusRing, toneClasses, type Tone } from "./component-utils";
 
 export type ToastType = "success" | "error" | "info" | "warning";
-
-export interface ToastAction {
-  label: string;
-  onClick: () => void;
-}
 
 export interface ToastProps extends HTMLAttributes<HTMLDivElement> {
   type?: ToastType;
   title: string;
   description?: string;
-  action?: ToastAction;
   icon?: ReactNode;
+  onDismiss?: () => void;
 }
 
 const typeTone: Record<ToastType, Tone> = {
@@ -32,58 +27,44 @@ const typeIcon: Record<ToastType, ReactNode> = {
   warning: <AlertTriangle aria-hidden="true" className="h-5 w-5" />
 };
 
-export function Toast({
-  type = "info",
-  title,
-  description,
-  action,
-  icon,
-  className,
-  ...props
-}: ToastProps) {
-  const classes = toneClasses[typeTone[type]];
-
+/** A scallop-edged paper slip (DESIGN.md §8). The Toaster owns placement,
+ *  timing, stacking and the live region; this is only the slip. */
+export function Toast({ type = "info", title, description, icon, onDismiss, className, ...props }: ToastProps) {
   return (
     // The outer drop-shadow follows the scalloped cut of the inner slip.
-    <div
-      role={type === "error" || type === "warning" ? "alert" : "status"}
-      aria-live={type === "error" || type === "warning" ? "assertive" : "polite"}
-      className={cn(
-        "w-full max-w-[400px] animate-fade-slide-up [filter:drop-shadow(1px_3px_3px_rgb(35_32_28/0.18))]",
-        className
-      )}
-      {...props}
-    >
-      <div className="paper-edge-scallop-left paper-grain flex gap-3 rounded-r-cut-md bg-surface-elevated py-4 pl-5 pr-4 text-ink">
-        <span className={cn("mt-0.5 shrink-0", classes.text)}>{icon ?? typeIcon[type]}</span>
-        <div className="min-w-0 flex-1">
+    <div className={cn("w-full sm:w-[380px] [filter:drop-shadow(1px_3px_3px_rgb(35_32_28/0.18))]", className)} {...props}>
+      <div className="paper-edge-scallop-left paper-grain flex items-start gap-3 rounded-r-cut-md bg-surface-elevated py-3 pl-5 pr-2 text-ink">
+        <span className={cn("mt-2.5 shrink-0", toneClasses[typeTone[type]].text)}>{icon ?? typeIcon[type]}</span>
+        <div className="min-w-0 flex-1 py-2">
           <p className="text-body-md font-semibold text-ink">{title}</p>
           {description ? <p className="mt-1 text-caption text-ink-2">{description}</p> : null}
-          {action ? (
-            <Button className="-ml-4 mt-2" size="compact" variant="tertiary" onClick={action.onClick}>
-              {action.label}
-            </Button>
-          ) : null}
         </div>
+        {onDismiss ? (
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss notification"
+            className={cn("grid size-11 shrink-0 place-items-center rounded-cut-md text-ink-3 hover:bg-surface-soft hover:text-ink", focusRing)}
+          >
+            <X aria-hidden="true" className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export interface ToastViewportProps extends HTMLAttributes<HTMLDivElement> {
-  children: ReactNode;
-}
-
-export function ToastViewport({ children, className, ...props }: ToastViewportProps) {
+/** Mount once. Bottom on phones sits above the tab bar. */
+export function Toaster() {
   return (
-    <div
-      className={cn(
-        "fixed inset-x-5 bottom-5 z-[var(--z-toast)] flex flex-col-reverse items-center gap-3 pb-[calc(12px+env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-auto md:right-6 md:top-6 md:items-end md:pb-0",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </div>
+    <SonnerToaster
+      position="bottom-right"
+      gap={12}
+      visibleToasts={3}
+      offset={24}
+      mobileOffset={{ bottom: "calc(var(--bottom-nav-h) + 12px + env(safe-area-inset-bottom))", left: "16px", right: "16px" }}
+      toastOptions={{ unstyled: true }}
+      containerAriaLabel="Notifications"
+    />
   );
 }

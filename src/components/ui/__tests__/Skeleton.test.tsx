@@ -1,6 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Skeleton } from "../Skeleton";
+import { BlogCardSkeleton } from "@/features/blog/components/BlogCardSkeleton";
+import { BlogPostSkeleton } from "@/features/blog/components/BlogPostSkeleton";
+import { ChatThreadSkeleton } from "@/features/chat/components/ChatThreadSkeleton";
+import { MapExploreSkeleton } from "@/features/explore/components/MapExploreSkeleton";
+import { HomeFeedSkeleton } from "@/features/home/components/HomeFeedSkeleton";
+import { DashboardPanelSkeleton } from "@/features/hosting/components/DashboardPanelSkeleton";
+import { ProfileGridCardSkeleton } from "@/features/matches/components/ProfileGridCardSkeleton";
+import { NotificationCardSkeleton } from "@/features/notifications/components/NotificationCardSkeleton";
+import { CompatibilitySkeleton } from "@/features/profile/components/CompatibilitySkeleton";
+import { ProfilePageSkeleton } from "@/features/profile/components/ProfilePageSkeleton";
+import { SwipeCardSkeleton } from "@/features/swipe/components/SwipeCardSkeleton";
 
 describe("Skeleton", () => {
   it("renders a leaf bone with size classes and no status role", () => {
@@ -27,30 +38,30 @@ describe("Skeleton", () => {
   });
 
   it("renders profile grid cards with compact 3/4 aspect", () => {
-    const { container } = render(<Skeleton variant="profileGridCard" />);
+    const { container } = render(<ProfileGridCardSkeleton />);
     expect(container.querySelector(".aspect-\\[3\\/4\\]")).toBeTruthy();
   });
 
   it("renders blog cards instead of listing geometry", () => {
-    const { container } = render(<Skeleton variant="blogCard" count={2} className="grid gap-4" />);
+    const { container } = render(<BlogCardSkeleton count={2} className="grid gap-4" />);
     expect(container.querySelectorAll(".h-56").length).toBe(2);
     expect(container.querySelector(".aspect-\\[20\\/19\\]")).toBeNull();
   });
 
   it("renders homeFeed with fixed-width carousel slots", () => {
-    const { container } = render(<Skeleton variant="homeFeed" />);
+    const { container } = render(<HomeFeedSkeleton />);
     expect(screen.getByRole("status", { name: /loading/i })).toBeInTheDocument();
     expect(container.querySelectorAll(".w-\\[180px\\]").length).toBeGreaterThan(0);
   });
 
   it("renders mapExplore with map grid texture", () => {
-    const { container } = render(<Skeleton variant="mapExplore" className="h-96" />);
+    const { container } = render(<MapExploreSkeleton className="h-96" />);
     expect(container.querySelector(".map-grid-bg")).toBeTruthy();
   });
 
   it("respects count for list variants and caller layout className", () => {
     const { container } = render(
-      <Skeleton variant="notificationCard" count={3} className="flex flex-col gap-2" />
+      <NotificationCardSkeleton count={3} className="flex flex-col gap-2" />
     );
     const root = screen.getByRole("status", { name: /loading/i });
     expect(root).toHaveClass("flex", "flex-col", "gap-2");
@@ -58,19 +69,21 @@ describe("Skeleton", () => {
     expect(container.querySelectorAll(".rounded-full.h-12").length).toBe(3);
   });
 
-  it("renders chatThread, form, compatibility, and dashboardPanel", () => {
-    for (const variant of [
-      "chatThread",
-      "form",
-      "compatibility",
-      "dashboardPanel",
-      "profilePage",
-      "blogPost",
-      "swipeCard",
-    ] as const) {
-      const { unmount } = render(<Skeleton variant={variant} />);
+  it("announces every page-shaped skeleton as a loading status", () => {
+    for (const Page of [
+      ChatThreadSkeleton,
+      CompatibilitySkeleton,
+      DashboardPanelSkeleton,
+      ProfilePageSkeleton,
+      BlogPostSkeleton,
+      SwipeCardSkeleton
+    ]) {
+      const { unmount } = render(<Page />);
       expect(screen.getByRole("status", { name: /loading/i })).toBeInTheDocument();
       unmount();
     }
+    const { unmount } = render(<Skeleton variant="form" />);
+    expect(screen.getByRole("status", { name: /loading/i })).toBeInTheDocument();
+    unmount();
   });
 });

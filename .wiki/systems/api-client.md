@@ -4,7 +4,7 @@ Active contributors: Saksham
 
 The API client is the only path between the SPA and the FastAPI backend at `/api/v1`. It is a thin, typed layer that builds URLs, injects the bearer token, normalizes errors, and transparently refreshes expired sessions. Everything above it (TanStack Query hooks, bootstrap queries, the auth flow) calls `apiClient.request(...)`, and nothing below it knows about Supabase.
 
-The canonical implementation lives in `src/lib/api/client.ts` (`HttpApiClient`), with error types in `src/lib/api/errors.ts`, the wiring in `src/lib/api/index.ts`, and the Supabase-side refresh handler injected from `src/providers.tsx`.
+The canonical implementation lives in `src/lib/api/client.ts` (`HttpApiClient`), with error types in `src/lib/api/errors.ts`, the wiring in `src/lib/api/index.ts`, and the Supabase-side refresh handler injected from `src/app/providers.tsx`.
 
 ## The `ApiAdapter` abstraction
 
@@ -18,7 +18,7 @@ export interface ApiAdapter {
 
 An `ApiRequest` is a small, serializable description of a call: `method`, `path`, `query`, `body`, `headers`, `signal`, and an `auth` flag (default `true`). The `auth: false` opt-out is used by public endpoints such as `GET /properties` (search) and `GET /flatmates/catalogs`, which must work for signed-out visitors and crawlers.
 
-The concrete implementation is `HttpApiClient`, built through `createApiClient(options)` and exported from `src/lib/api/index.ts` as the singleton `apiClient`. Adapters that map API shapes into component props live alongside it in `src/lib/api/adapters.ts` (for example `propertyToListingCardProps`, `conversationToConversationRowProps`).
+The concrete implementation is `HttpApiClient`, built through `createApiClient(options)` and exported from `src/lib/api/index.ts` as the singleton `apiClient`. Adapters that map API shapes into component props live alongside it in `src/features/*/lib/adapters.ts` (for example `propertyToListingCardProps`, `conversationToConversationRowProps`).
 
 ## URL building
 
@@ -81,7 +81,7 @@ export const apiClient: ApiAdapter = createApiClient({
 });
 ```
 
-`src/providers.tsx` is the only place that knows about Supabase. It pushes the live values in through the setters:
+`src/app/providers.tsx` is the only place that knows about Supabase. It pushes the live values in through the setters:
 
 - `setAccessToken(session?.access_token)` runs in an effect keyed on `session?.access_token`, so the client always reads the current token without being re-created.
 - `setRefreshTokenHandler(...)` registers a function that calls `getSupabaseBrowserClient().auth.refreshSession()`, updates `_accessToken` on success, and itself uses a module-level `refreshPromise` for a second layer of single-flight dedup (the client already dedupes, but this protects against any other caller of the handler).
@@ -114,7 +114,7 @@ Callers can branch on `error instanceof ApiClientError && error.appError.type ==
 - `reportLastMethod(method)` is a best-effort `POST /auth/last-method` that never throws, so a failing bookkeeping call cannot break a successful sign-in.
 - `getAuthState(app)` calls `GET /users/me/auth-state` to read the backend-computed gate stage (`identifier_verification`, `password_setup`, `profile_completion`, `app_onboarding`, `active`). The result feeds `authStore.authStage`, which the `GateGuard` reads to route users into profile completion or onboarding (see [Routing and guards](routing-guards.md)).
 
-`src/providers.tsx` also uses the same live Supabase session token to authorize Supabase Realtime before subscribing to the bootstrap-provided private Broadcast channel. REST requests and realtime therefore share the same session lifecycle without embedding tokens in backend stream URLs (see [Real-time](../features/real-time.md)).
+`src/app/providers.tsx` also uses the same live Supabase session token to authorize Supabase Realtime before subscribing to the bootstrap-provided private Broadcast channel. REST requests and realtime therefore share the same session lifecycle without embedding tokens in backend stream URLs (see [Real-time](../features/real-time.md)).
 
 ## Key source files
 
@@ -123,7 +123,7 @@ Callers can branch on `error instanceof ApiClientError && error.appError.type ==
 | `src/lib/api/client.ts` | `HttpApiClient`, `ApiAdapter`, `ApiRequest`, `buildApiUrl`, the 401 refresh-and-retry loop |
 | `src/lib/api/errors.ts` | `ApiClientError`, `AppError`, `mapStatusToAppError`, `toAppError`, `isAppError` |
 | `src/lib/api/index.ts` | Module-level token/refresh singletons, `apiClient` singleton, `setAccessToken` / `setRefreshTokenHandler` |
-| `src/lib/api/adapters.ts` | API-to-component-prop mappers (`propertyToListingCardProps`, `visitToVisitCardProps`, etc.) |
+| `src/features/*/lib/adapters.ts` | API-to-component-prop mappers (`propertyToListingCardProps`, `visitToVisitCardProps`, etc.) |
 | `src/lib/api/auth.ts` | `checkIdentifierStatus`, `reportLastMethod`, `getAuthState`, `AuthStage` |
-| `src/lib/api/nominatim.ts` | Direct `fetch` to OpenStreetMap Nominatim (bypasses the client; used only by `useReverseGeocode`) |
-| `src/providers.tsx` | Injects `setAccessToken` and the Supabase-backed `setRefreshTokenHandler` |
+| `src/features/onboarding/lib/nominatim.ts` | Direct `fetch` to OpenStreetMap Nominatim (bypasses the client; used only by `useReverseGeocode`) |
+| `src/app/providers.tsx` | Injects `setAccessToken` and the Supabase-backed `setRefreshTokenHandler` |

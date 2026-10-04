@@ -1,9 +1,24 @@
 import type { ReactNode } from "react";
+import { clsx, type ClassValue } from "clsx";
+import { extendTailwindMerge } from "tailwind-merge";
 
-export type ClassValue = string | false | null | undefined;
+/* tailwind-merge must know the design-system roles (globals.css @utility),
+   or it reads `text-h1` as a colour and drops it next to `text-ink`. */
+const twMerge = extendTailwindMerge({
+  extend: {
+    theme: {
+      text: [
+        "hero-display", "display", "h1", "h2", "h3", "h4", "h5",
+        "body-lg", "body-md", "body-sm", "label-lg", "label-md", "caption", "eyebrow", "micro"
+      ],
+      radius: ["cut-sm", "cut-md", "cut-lg", "cut-xl", "hand"]
+    }
+  }
+});
 
-export function cn(...classes: ClassValue[]): string {
-  return classes.filter(Boolean).join(" ");
+/** Joins class names; later Tailwind classes win over conflicting earlier ones. */
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
 }
 
 export function clampPercentage(value: number): number {

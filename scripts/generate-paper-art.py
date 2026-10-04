@@ -226,6 +226,66 @@ def sun(w, h, cx, cy, r, petals=18):
     return s
 
 
+def moon(w, h, cx, cy, r):
+    """Crescent moon for the night scene: the outer disc minus an offset disc."""
+    d = r * 0.55  # offset of the cutting disc (up and to the right)
+    ox, oy = cx + d, cy - d * 0.45
+    r2 = r * 0.86
+    # Intersections of the two circles.
+    dx, dy = ox - cx, oy - cy
+    dist = math.hypot(dx, dy)
+    a = (r * r - r2 * r2 + dist * dist) / (2 * dist)
+    hh = math.sqrt(max(r * r - a * a, 0))
+    mx, my = cx + a * dx / dist, cy + a * dy / dist
+    p1 = (mx + hh * dy / dist, my - hh * dx / dist)
+    p2 = (mx - hh * dy / dist, my + hh * dx / dist)
+    path = (f"M{p1[0]:.2f} {p1[1]:.2f}A{r} {r} 0 1 0 {p2[0]:.2f} {p2[1]:.2f}"
+            f"A{r2:.2f} {r2:.2f} 0 0 1 {p1[0]:.2f} {p1[1]:.2f}Z")
+    return svg_path(path, w, h, even_odd=False)
+
+
+def stars(w, h, pts, seed=17):
+    """Four-point paper sparkles scattered over the night sky."""
+    rnd = random.Random(seed)
+    s = Shape(w, h)
+    for x, y, r in pts:
+        k = r * 0.28
+        j = rnd.uniform(-0.2, 0.2)
+        s.poly([(x, y - r), (x + k, y - k + j), (x + r, y), (x + k, y + k), (x, y + r), (x - k, y + k), (x - r, y), (x - k, y - k)])
+    return s
+
+
+def towers(w, h, seed=21, ground=None):
+    """Glass-tower city (Gurugram): tall slabs with a tight grid of window holes."""
+    rnd = random.Random(seed)
+    s = Shape(w, h, even_odd=True)
+    win = Shape(w, h)
+    ground = h if ground is None else ground
+    specs = [(44, 138), (28, 88), (52, 164), (36, 112), (58, 126), (32, 150), (46, 100), (38, 132), (54, 118)]
+    x, i = 4.0, 0
+    while x < w - 12:
+        bw, bh = specs[i % len(specs)]
+        bh *= rnd.uniform(0.92, 1.04)
+        bw = min(bw, w - x)
+        top = ground - bh
+        s.rect(x, top, bw, bh + 0.5, rnd, 0.4)
+        if i % 3 == 0 and bw > 30:
+            s.rect(x + bw * 0.3, top - 10, bw * 0.4, 10.5, rnd, 0.2)  # rooftop crown
+            s.rect(x + bw * 0.5 - 1, top - 22, 2, 12.5, rnd, 0.1)     # mast
+        cols = max(1, int((bw - 8) // 9))
+        rows = max(1, int((bh - 16) // 12))
+        for r_ in range(rows):
+            for c_ in range(cols):
+                if rnd.random() < 0.34:
+                    continue
+                wx, wy = x + 5 + c_ * 9, top + 9 + r_ * 12
+                s.rect(wx, wy, 5, 7, rnd, 0.2)
+                win.rect(wx - 0.4, wy - 0.4, 5.8, 7.8)
+        x += bw + rnd.choice((2, 4, 8, 14))
+        i += 1
+    return s, win
+
+
 def torn_edge(seed=5, n=24):
     """One 120-unit torn-paper tile, normalised to 0..1 on both axes.
 
@@ -494,6 +554,8 @@ NAV_ICONS = {
 def build():
     W, H = 1200, 360
     near_town, near_windows = skyline(W, H, 7, 0.62, (0, 0, 40, 120, 220), 20.0)
+    gurugram, gurugram_windows = towers(480, 200, 21)
+    bangalore, bangalore_windows = skyline(480, 200, 11, 0.5, (0, 6, 16, 34), 6.0)
     shapes = {
         "sun": sun(W, H, 960, 96, 46),
         "cloudA": cloud(W, H, 180, 110, 1.3),
@@ -504,6 +566,20 @@ def build():
         "townWindows": near_windows,
         "townNear": near_town,
         "tree": peepal(W, H, 1080, H, 1.35),
+        # night: the moon takes the sun's place; stars in the upper sky
+        "moon": moon(W, H, 960, 96, 40),
+        # Stars stay out of the upper-left, where the closing line sits.
+        "stars": stars(W, H, [(640, 120, 3), (700, 42, 4), (800, 40, 4), (870, 150, 3), (760, 170, 3),
+                              (1100, 70, 5), (1160, 140, 3), (560, 170, 3), (1040, 150, 3)]),
+        # 480 x 200 city postcards (landing + city pages)
+        "cardHillsFar": hills(480, 200, 124, [(14, 110, 0.5), (6, 38, 1.2)], 16, 5, 0.8),
+        "cardHillsNear": hills(480, 200, 158, [(10, 140, 2.2), (5, 31, 0.4)], 16, 6, 0.8),
+        "cardSun": sun(480, 200, 400, 46, 18, 14),
+        "gurugramTowers": gurugram,
+        "gurugramWindows": gurugram_windows,
+        "bangaloreTown": bangalore,
+        "bangaloreWindows": bangalore_windows,
+        "bangaloreTree": peepal(480, 200, 430, 200, 0.62, 13),
         # compact 320 x 200 scene for empty states
         "miniHillsFar": hills(320, 200, 128, [(12, 60, 0.4), (5, 23, 1.1)], 16, 3, 0.8),
         "miniHillsNear": hills(320, 200, 160, [(9, 70, 2.4), (4, 19, 0.3)], 16, 4, 0.8),

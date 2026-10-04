@@ -13,7 +13,7 @@ import type { Page } from "@playwright/test";
 async function getPublicHeaderLink(page: Page, name: string | RegExp, exact = false) {
   const header = page.getByRole("banner");
   const desktopLink = header.getByRole("link", { name, exact });
-  if ((page.viewportSize()?.width ?? 0) >= 768) {
+  if ((page.viewportSize()?.width ?? 0) >= 1024) {
     return desktopLink;
   }
 
@@ -42,17 +42,17 @@ test.describe("Landing page — /", () => {
     const logoLink = header.getByRole("link", { name: /360 flatmates home/i });
     await expect(logoLink).toBeVisible();
 
-    if ((page.viewportSize()?.width ?? 0) < 768) {
+    if ((page.viewportSize()?.width ?? 0) < 1024) {
       const menuButton = header.getByRole("button", { name: /open navigation menu/i });
       await menuButton.click();
       const mobileNav = page.getByRole("navigation", { name: /mobile navigation/i });
       await expect(mobileNav.getByRole("link", { name: "About", exact: true })).toBeVisible();
-      await expect(mobileNav.getByRole("link", { name: "Discover", exact: true })).toBeVisible();
+      await expect(mobileNav.getByRole("link", { name: "Browse rooms", exact: true })).toBeVisible();
       await expect(mobileNav.getByRole("link", { name: "Search", exact: true })).toBeVisible();
       await expect(mobileNav.getByRole("link", { name: /sign in/i })).toBeVisible();
     } else {
       await expect(header.getByRole("link", { name: "About", exact: true })).toBeVisible();
-      await expect(header.getByRole("link", { name: "Discover", exact: true })).toBeVisible();
+      await expect(header.getByRole("link", { name: "Browse rooms", exact: true })).toBeVisible();
       await expect(header.getByRole("link", { name: "Search", exact: true })).toBeVisible();
       await expect(header.getByRole("link", { name: /sign in/i })).toBeVisible();
     }
@@ -61,55 +61,31 @@ test.describe("Landing page — /", () => {
   test("renders the public layout footer", async ({ page }) => {
     await page.goto("/");
     const footer = page.getByRole("contentinfo");
-
-    // Footer Explore section
-    await expect(footer.getByRole("heading", { name: "Explore" })).toBeVisible();
-    await expect(footer.getByRole("link", { name: /browse listings/i })).toBeVisible();
-    await expect(footer.getByRole("link", { name: /search flatmates/i })).toBeVisible();
-    await expect(footer.getByRole("link", { name: /guides & tips/i })).toBeVisible();
-
-    // Footer Company section
-    await expect(footer.getByRole("heading", { name: "Company" })).toBeVisible();
-    await expect(footer.getByRole("link", { name: /terms & conditions/i })).toBeVisible();
-    await expect(footer.getByRole("link", { name: /privacy policy/i })).toBeVisible();
-
-    // Copyright
-    await expect(footer.getByText(/360 flatmates\. all rights reserved/i)).toBeVisible();
+    await expect(footer.getByText("Your next home is a few good conversations away.")).toBeVisible();
+    await expect(footer.getByRole("heading", { name: "Find a place" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Browse rooms" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Guides" })).toBeVisible();
+    await expect(footer.getByRole("heading", { name: "Legal" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Terms" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Privacy" })).toBeVisible();
+    await expect(footer.getByText(/360 flatmates, by 360 ghar/i)).toBeVisible();
   });
 });
 
 test.describe("About page — /about", () => {
   test("loads and renders the About heading", async ({ page }) => {
     await page.goto("/about");
-    await expect(page.getByRole("heading", { name: /finding a home starts with finding your people/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /finding a home starts with finding your people/i })).toBeVisible();
   });
 
-  test("renders the 'About' eyebrow", async ({ page }) => {
+  test("tells the story and the values", async ({ page }) => {
     await page.goto("/about");
-    await expect(page.locator("#main").getByText("About", { exact: true })).toBeVisible();
-  });
-
-  test("renders values section with cards", async ({ page }) => {
-    await page.goto("/about");
-    await expect(page.getByRole("heading", { name: /our values/i })).toBeVisible();
-
-    // Value cards with TrustBadges
-    await expect(page.getByText("Compatibility over convenience")).toBeVisible();
-    await expect(page.getByText("Verified, always")).toBeVisible();
-    await expect(page.getByText("Safety as default")).toBeVisible();
-    await expect(page.getByText("Context-rich decisions")).toBeVisible();
-  });
-
-  test("renders the team section", async ({ page }) => {
-    await page.goto("/about");
-    await expect(page.getByRole("heading", { name: /the team/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Why we built it" })).toBeVisible();
     await expect(page.getByText(/small team of engineers and designers/i)).toBeVisible();
-  });
-
-  test("Browse Listings link is present", async ({ page }) => {
-    await page.goto("/about");
-    const browseLink = page.locator("#main").getByRole("link", { name: /browse listings/i });
-    await expect(browseLink).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What we hold to" })).toBeVisible();
+    for (const value of ["Compatibility over convenience", "Verified, always", "Safety as the default", "Decisions with context"]) {
+      await expect(page.getByRole("heading", { name: value })).toBeVisible();
+    }
   });
 });
 
@@ -158,7 +134,7 @@ test.describe("Discover page — /discover", () => {
 test.describe("Search page — /search", () => {
   test("loads and renders the search heading", async ({ page }) => {
     await page.goto("/search");
-    await expect(page.getByRole("heading", { name: /search listings/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /search rooms/i })).toBeVisible();
   });
 
   test("renders public search controls", async ({ page }) => {
@@ -232,9 +208,9 @@ test.describe("Public layout — navigation links", () => {
     await expect(page).toHaveURL(/\/about/);
   });
 
-  test("header Discover link navigates to /discover", async ({ page }) => {
+  test("header Browse rooms link navigates to /discover", async ({ page }) => {
     await page.goto("/");
-    await (await getPublicHeaderLink(page, "Discover", true)).click();
+    await (await getPublicHeaderLink(page, "Browse rooms", true)).click();
     await expect(page).toHaveURL(/\/discover/);
   });
 
@@ -252,19 +228,19 @@ test.describe("Public layout — navigation links", () => {
 
   test("footer Terms & Conditions link navigates to /terms", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("contentinfo").getByRole("link", { name: /terms & conditions/i }).click();
+    await page.getByRole("contentinfo").getByRole("link", { name: "Terms" }).click();
     await expect(page).toHaveURL(/\/terms/);
   });
 
-  test("footer Privacy Policy link navigates to /privacy", async ({ page }) => {
+  test("footer Privacy link navigates to /privacy", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("contentinfo").getByRole("link", { name: /privacy policy/i }).click();
+    await page.getByRole("contentinfo").getByRole("link", { name: "Privacy" }).click();
     await expect(page).toHaveURL(/\/privacy/);
   });
 
-  test("footer Browse Listings link navigates to /discover", async ({ page }) => {
+  test("footer Browse rooms link navigates to /discover", async ({ page }) => {
     await page.goto("/");
-    const browseLink = page.getByRole("contentinfo").getByRole("link", { name: /browse listings/i });
+    const browseLink = page.getByRole("contentinfo").getByRole("link", { name: "Browse rooms" });
     await browseLink.click();
     await expect(page).toHaveURL(/\/discover/);
   });

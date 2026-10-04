@@ -99,7 +99,7 @@ Choreography is CSS-driven: press is `:active { scale(0.97) }` (150ms), inputs g
 
 ## Shared primitives
 
-Pages compose these instead of re-implementing chrome or state handling. All live in `src/components/ui/` and are re-exported from `src/components/ui/index.ts`. Every interactive primitive implements the full state matrix: rest, hover, active, focus-visible, disabled, loading, selected, error.
+Pages compose these instead of re-implementing chrome or state handling. All live in `src/components/ui/` and are re-exported from `src/components/ui/`. Every interactive primitive implements the full state matrix: rest, hover, active, focus-visible, disabled, loading, selected, error.
 
 | Primitive | File | Purpose |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Pages compose these instead of re-implementing chrome or state handling. All liv
 | `TrustBadge` | `src/components/ui/TrustBadge.tsx` | trust pill |
 | `PriceText` | `src/components/ui/PriceText.tsx` | formatted price |
 | `OrDivider` | `src/components/ui/OrDivider.tsx` | auth divider |
-| `GoogleIcon` | `src/components/ui/GoogleIcon.tsx` | Google Material Symbols glyph for the nav |
+| `GoogleIcon` | `src/features/auth/components/GoogleIcon.tsx` | Google Material Symbols glyph for the nav |
 | `Layout`, `FullPageMessage`, `PrefetchLink` | respective files in `src/components/ui/` | page scaffold, full-viewport message, prefetching link |
 | `RevealSection`, `ScrollProgressBar` | respective files in `src/components/ui/` | IntersectionObserver-driven reveal and top reading-progress bar |
 
@@ -165,7 +165,7 @@ Beyond the Tailwind-generated utilities, `src/styles/globals.css` defines these 
 | `DESIGN.md` | Canonical source of truth for all tokens, component specs, and visual targets |
 | `src/styles/globals.css` | The token definitions, type scale, keyframes, and utility classes |
 | `src/components/ui/component-utils.ts` | `cn`, `focusRing`, `interactiveMotion`, `elevation`, `controlHeight`, `toneClasses`, `Tone` |
-| `src/components/ui/index.ts` | Barrel export for every shared primitive |
+| `src/components/ui/` | Barrel export for every shared primitive |
 | `src/components/ui/Button.tsx` | Button variants and the `buttonClasses` helper for link styling |
 | `src/components/ui/Card.tsx` | Card variants and the interactive and selected states |
 | `src/components/ui/Chip.tsx` | Chip variants and the selected spring |

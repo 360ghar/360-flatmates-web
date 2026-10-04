@@ -35,25 +35,13 @@
 
   /* ── Legacy aliases → paper palette ── */
   --color-primary: var(--color-clay);
-  --color-primary-soft: var(--color-clay-soft);
-  --color-primary-container: var(--color-clay-soft);
   --color-primary-active: var(--color-clay-press);
   --color-primary-disabled: #E7C9BC;
   --color-accent: var(--color-clay);
   --color-accent-soft: var(--color-clay-soft);
   --color-accent-container: var(--color-clay-soft);
-  --color-accent-50: #FBF2EE;
-  --color-accent-100: #F6E3DA;
-  --color-accent-200: #EFCDBE;
   --color-accent-300: #E2A78F;
-  --color-accent-400: #CF7B5C;
-  --color-accent-500: #A94A2B;
   --color-accent-600: #8C3B20;
-  --color-accent-700: #72301A;
-  --color-accent-800: #582515;
-  --color-accent-900: #3F1A0F;
-  --color-accent-950: #2A110A;
-  --color-legal-link: var(--color-pine);
 
   --color-paper: var(--color-sky);   /* page canvas */
   /* DESIGN paper layers by name. Legacy soft fills: surface-soft (= paper-1), surface-strong. */
@@ -73,7 +61,6 @@
   --color-line: rgb(35 32 28 / 0.12);
   --color-line-2: rgb(35 32 28 / 0.08);
   --color-line-low: rgb(35 32 28 / 0.07);
-  --color-border-strong: rgb(35 32 28 / 0.24);
 
   --color-success: var(--color-pine);
   --color-success-soft: var(--color-pine-soft);
@@ -93,9 +80,6 @@
   --color-green-soft: var(--color-pine-soft);
   --color-green-mid: var(--color-pine);
   --color-green-ink: var(--color-ink);
-  --color-yellow-soft: var(--color-warning-soft);
-  --color-yellow-mid: var(--color-warning-ink);
-  --color-yellow-ink: var(--color-warning-ink);
   --color-orange-soft: var(--color-surface-soft);
   --color-orange-mid: var(--color-ink-2);
   --color-orange-ink: var(--color-ink-2);
@@ -110,25 +94,16 @@
   --color-action-hover: #000000;
   --color-action-ink: #FFFFFF;
   --color-lavender: #F6E6DE;
-  --color-lavender-2: #EFCDBE;
-  --color-peach: #F6E6DE;
-  --color-mint: var(--color-pine-soft);
-  --color-map-line: rgb(35 32 28 / 0.07);
 
   --color-google-bg: #FFFFFF;
   --color-google-text: #3C4043;
   --color-google-border: #DADCE0;
   --color-google-hover: #F8F9FA;
 
-  --color-content: var(--color-ink);
-  --color-content-muted: var(--color-ink-2);
-  --color-content-subtle: var(--color-ink-3);
-  --color-content-faint: var(--color-ink-4);
-  --color-stroke: var(--color-line);
-  --color-surface-base: var(--color-surface);
   --color-surface-raised: var(--color-surface-elevated);
-  --color-interactive: var(--color-primary);
-  --color-focus: var(--color-primary);
+
+  /* Photo scrim: stays dark in both themes so white captions stay legible. */
+  --color-scrim: #121814;
 
   /* ── Radius (DESIGN.md §3): generates rounded-cut-sm … rounded-cut-xl ── */
   --radius-cut-sm: 6px;
@@ -139,7 +114,6 @@
   /* ── Motion (DESIGN.md §7) ── */
   --ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);   /* paper-out */
   --ease-emphasized: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --ease-spring: cubic-bezier(0.3, 1.3, 0.5, 1);     /* paper-settle */
   --ease-paper-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-paper-settle: cubic-bezier(0.3, 1.3, 0.5, 1);
 
@@ -164,21 +138,17 @@
   --breakpoint-xl: 1440px;
   --animate-drawer-in: drawer-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-bottom-sheet-in: bottom-sheet-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  --animate-slide-up: slide-up 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  --animate-fade-slide-up: fade-slide-up 200ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade-slide-up: paper-rise 200ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 :root {
   color-scheme: light;
   /* Radius (DESIGN.md §3). Cards use the hand-cut uneven radius. */
   --radius-hand: 12px 14px 11px 13px;
-  --radius-card: 12px;
   --radius-compact: 6px;
   --radius-button: 12px;
   --radius-control: 12px;
   --radius-promo: 28px;
-  --radius-panel: 18px;
-  --frost-blur: 9px;
   --duration-fast: 120ms;
   --duration-normal: 200ms;
   --duration-slow: 320ms;
@@ -199,6 +169,12 @@
   --control-h-lg: 52px;
   --control-h-xl: 56px;
   --touch-min: 44px;
+  /* Layout (DESIGN.md §3): content max width, page gutter, fixed chrome. */
+  --page-max: 1200px;
+  --gutter: 16px;
+  --public-header-h: 72px;
+  --topbar-h: 64px;
+  --bottom-nav-h: 80px;
   /* Paper grain: fractal noise at ~5 % alpha, painted behind content. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .14 0 0 0 0 .12 0 0 0 0 .1 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --torn-depth: 10px;
@@ -207,6 +183,18 @@
   --torn-top-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10' preserveAspectRatio='none'%3E%3Cpath d='M0 3.2L0.0 3.2 L5.2 2.2 L10.4 1.7 L15.6 0.5 L20.9 2.2 L26.0 0.7 L31.3 8.2 L36.5 4.5 L41.8 0.5 L46.9 3.0 L52.2 0.8 L57.4 7.5 L62.6 4.5 L67.8 6.4 L73.1 3.9 L78.2 3.6 L83.5 8.4 L88.7 6.7 L94.0 6.1 L99.1 0.7 L104.4 2.0 L109.6 7.1 L114.8 1.7 L120.0 3.2V10H0Z'/%3E%3C/svg%3E");  /* Legacy "map-grid-bg" now paints a grained paper band (no graph-paper grid). */
   --map-grid-bg: var(--grain), var(--color-paper-1);
   --map-grid-bg-size: 180px 180px, auto;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 32px;
+  }
 }
 
 [data-theme="dark"] {
@@ -235,20 +223,10 @@
   --color-scene-sun: #E8B458;
   --color-scene-cloud: #2A332C;
 
-  --color-primary-soft: #3A2A23;
   --color-primary-disabled: #3A2A23;
   --color-accent-soft: #3A2A23;
-  --color-accent-50: #2A1B15;
-  --color-accent-100: #3A2A23;
-  --color-accent-200: #4E3226;
   --color-accent-300: #6E3F2C;
-  --color-accent-400: #A35A3E;
-  --color-accent-500: #E27E5A;
   --color-accent-600: #EA9677;
-  --color-accent-700: #F0AE95;
-  --color-accent-800: #F5C6B4;
-  --color-accent-900: #FADDD2;
-  --color-accent-950: #FDEEE8;
 
   --color-paper-4: #27312A;
   --color-surface: #222A24;
@@ -264,15 +242,11 @@
   --color-line: rgb(241 237 230 / 0.14);
   --color-line-2: rgb(241 237 230 / 0.08);
   --color-line-low: rgb(241 237 230 / 0.08);
-  --color-border-strong: rgb(241 237 230 / 0.26);
-  --color-map-line: rgb(241 237 230 / 0.08);
 
   --color-action: #F1EDE6;
   --color-action-hover: #FFFFFF;
   --color-action-ink: #1A120E;
   --color-lavender: #3A2A23;
-  --color-lavender-2: #4E3226;
-  --color-peach: #3A2A23;
 
 
   --color-google-bg: #131314;
@@ -289,36 +263,37 @@
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .93 0 0 0 0 .9 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: var(--color-paper);
-  color: var(--color-ink);
-  scroll-behavior: smooth;
-}
-
-body {
-  min-height: 100vh;
-  margin: 0;
-  /* Layer 0: the sky, with paper grain painted behind all content. */
-  background-color: var(--color-paper);
-  background-image: var(--grain);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  letter-spacing: 0;
-  position: relative;
-  font-synthesis: none;
-}
-
-.hairline {
-  border-width: 0.5px;
-  border-color: var(--color-line);
-}
-
 @layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    scroll-behavior: smooth;
+  }
+
+  /* A modal dialog locks the page behind it (no JS lock); the gutter stays
+     so the page does not shift sideways. */
+  html:has(dialog:modal) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    /* Layer 0: the sky, with paper grain painted behind all content. */
+    background-color: var(--color-paper);
+    background-image: var(--grain);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    letter-spacing: 0;
+    position: relative;
+    font-synthesis: none;
+  }
 
   button,
   input,
@@ -331,12 +306,17 @@ body {
     color: inherit;
     text-decoration: none;
   }
-}
 
-@layer base {
   img,
   svg {
     max-width: 100%;
+  }
+
+  /* Component utilities (e.g. focus-visible:outline-none on an input whose
+     wrapper draws the focus stroke) can override this. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 }
 
@@ -345,239 +325,326 @@ body {
   color: var(--color-ink);
 }
 
-/* In the base layer so component utilities (e.g. focus-visible:outline-none
-   on an input whose wrapper draws the focus stroke) can override it. */
-@layer base {
-  :focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-}
-
 /* ── Typography (DESIGN.md §2) ──
-   Display roles use Gambarino (one weight, never synthesised). Small roles
-   use the platform font. No tracked-uppercase labels. */
+   Utilities, so they compose with variants (md:text-h1) and colour and
+   weight classes win over them. Display roles use Gambarino (one weight,
+   never synthesised); small roles use the platform font and set no colour. */
 
-.text-hero-display,
-.text-display,
-.text-h1,
-.text-h2,
-.text-h3 {
+@utility text-hero-display {
   font-family: var(--font-display);
   font-weight: 400;
   letter-spacing: 0;
   text-wrap: balance;
-}
-
-.text-hero-display {
   font-size: clamp(2.5rem, 6vw, 4rem);
   line-height: 1.05;
 }
 
-.text-display {
+@utility text-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-wrap: balance;
   font-size: clamp(2rem, 4.2vw, 2.5rem);
   line-height: 1.1;
 }
 
-.text-h1 {
+@utility text-h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-wrap: balance;
   font-size: clamp(1.75rem, 3vw, 2rem);
   line-height: 1.18;
 }
 
-.text-h2 {
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-wrap: balance;
   font-size: clamp(1.375rem, 2.4vw, 1.625rem);
   line-height: 1.22;
 }
 
-.text-h3 {
+@utility text-h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-wrap: balance;
   font-size: 1.3125rem;
   line-height: 1.24;
 }
 
-.text-h4 {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.text-h5 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.text-h6 {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.text-body-lg {
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
-}
-
-.text-body-md {
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.43;
-}
-
-/* DESIGN body-sm (14 / 20). Was used but never defined. */
-.text-body-sm {
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.43;
-}
-
-.text-label-lg {
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.text-label-md {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.text-caption {
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  color: var(--color-ink-3);
-}
-
-/* Former uppercase eyebrow: now a quiet sentence-case label. */
-.text-eyebrow {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--color-ink-3);
-}
-
 /* Emphasis inside a Gambarino headline: tonal colour, same face. */
-.text-serif-italic {
+@utility text-serif-italic {
   font-family: var(--font-display);
   font-weight: 400;
   color: var(--color-clay);
 }
 
-.tabular {
+/* DESIGN `title` (17 / 22, 600). */
+@utility text-h4 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+@utility text-h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* DESIGN `body` (16 / 24). */
+@utility text-body-lg {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* DESIGN `body-sm` (14 / 20). */
+@utility text-body-md {
+  font-size: 0.875rem;
+  line-height: 1.43;
+}
+
+@utility text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.43;
+}
+
+/* DESIGN `label` (14 / 18, 600). */
+@utility text-label-lg {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+@utility text-label-md {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* DESIGN `caption` (13 / 18). Pair with a colour, usually text-ink-3. */
+@utility text-caption {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+/* Tab-bar labels and count badges only (12px). Never for running text. */
+@utility text-micro {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* A quiet sentence-case label (never tracked uppercase). */
+@utility text-eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+@utility tabular {
   font-variant-numeric: tabular-nums;
 }
 
-.map-grid-bg {
-  background: var(--map-grid-bg);
-  background-size: var(--map-grid-bg-size);
+/* ── Layout (DESIGN.md §3) ── */
+
+/* Page column: content max width plus the responsive gutter on each side. */
+@utility page-container {
+  width: 100%;
+  max-width: calc(var(--page-max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
 }
 
-
-.content-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+/* A horizontal scroller that runs to the screen edges inside the page gutter. */
+@utility bleed-x {
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+  scroll-padding-inline: var(--gutter);
 }
 
-.scrollbar-thin {
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-ink-4) transparent;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-
-.sr-only:focus,
-.skip-link:focus {
-  position: fixed;
-  z-index: 100;
-  top: 16px;
-  left: 16px;
-  width: auto;
-  height: auto;
-  padding: 10px 14px;
-  clip-path: none;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-button);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  white-space: normal;
 }
 
 /* ── Motion (DESIGN.md §7) ──
    Content is always visible: entrance motion moves layers that are already
    painted at opacity 1. Nothing here starts at opacity 0. */
 
-.page-fade {
+@utility page-fade {
   animation: paper-rise 320ms var(--ease-paper-out) both;
 }
 
-.fade-slide-up,
-.card-appear {
+@utility card-appear {
   animation: paper-rise 200ms var(--ease-paper-out) both;
 }
 
 /* Skeleton bones: slow tone pulse, no moving highlight. */
-.shimmer {
-  background: var(--color-surface-soft);
+@utility shimmer {
+  background-color: var(--color-surface-soft);
   animation: paper-pulse 1600ms ease-in-out infinite alternate;
 }
 
-.chip-spring {
-  transition: transform 120ms var(--ease-paper-out),
-    background-color 120ms ease-out,
-    border-color 120ms ease-out,
-    color 120ms ease-out,
-    box-shadow 120ms ease-out;
+/* Tactile press for buttons: sink one layer. No hover movement. Pair with a
+   transition that covers transform and box-shadow (interactiveMotion). */
+@utility paper-press {
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-xs);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:active:not(:disabled) {
+      transform: none;
+    }
+  }
 }
 
-.chip-spring:active {
-  transform: scale(0.98);
+/* Card lift on hover (pointer devices only): one layer up. Pair with a
+   transition that covers transform and box-shadow. */
+@utility paper-lift {
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: reduce) {
+    &:hover {
+      box-shadow: var(--shadow-md);
+    }
+  }
 }
 
-.ring-draw {
-  transition: stroke-dashoffset 320ms var(--ease-paper-out);
+@layer components {
+  /* Scroll reveal: the section is visible from the first paint and only
+     settles 12 px into place when it enters the viewport. */
+  .reveal {
+    transform: translateY(12px);
+    transition: transform 320ms var(--ease-paper-out);
+  }
+
+  .reveal.in-view {
+    transform: none;
+  }
+
+  .stagger-1 { transition-delay: 40ms; }
+  .stagger-2 { transition-delay: 80ms; }
+  .stagger-3 { transition-delay: 120ms; }
+  .stagger-4 { transition-delay: 160ms; }
+  .stagger-5 { transition-delay: 200ms; }
+  .stagger-6 { transition-delay: 240ms; }
+
+  .chip-spring {
+    transition: transform 120ms var(--ease-paper-out),
+      background-color 120ms ease-out,
+      border-color 120ms ease-out,
+      color 120ms ease-out,
+      box-shadow 120ms ease-out;
+  }
+
+  .chip-spring:active {
+    transform: scale(0.98);
+  }
+
+  .ring-draw {
+    transition: stroke-dashoffset 320ms var(--ease-paper-out);
+  }
+
+  .animate-scale-in,
+  .match-celebration {
+    animation: paper-settle 320ms var(--ease-paper-settle) both;
+  }
+
+  .map-grid-bg {
+    background: var(--map-grid-bg);
+    background-size: var(--map-grid-bg-size);
+  }
+
+  .bento-card {
+    border-radius: var(--radius-hand);
+    background: var(--color-surface);
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  @media (min-width: 640px) {
+    .bento-card {
+      padding: 1.5rem;
+    }
+  }
+
+  /* FAQ accordion (native <details>). */
+  .faq-item-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .faq-item[open] .faq-item-content {
+    grid-template-rows: 1fr;
+  }
+
+  .faq-item-content > div {
+    overflow: hidden;
+  }
+
+  .faq-chevron {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .faq-item[open] .faq-chevron {
+    transform: rotate(180deg);
+  }
+
+  .scroll-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: var(--color-accent);
+    z-index: 40;
+    will-change: width;
+    transition: width 50ms linear;
+  }
+
+  /* Swipe card scrollable expanded view. */
+  .swipe-card-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  .swipe-card-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .swipe-card-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .swipe-card-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-ink-4);
+    border-radius: 999px;
+  }
+
+  .swipe-card-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-3);
+  }
 }
-
-.animate-scale-in,
-.match-celebration {
-  animation: paper-settle 320ms var(--ease-paper-settle) both;
-}
-
-/* Scroll reveal: the section is visible from the first paint and only
-   settles 12 px into place when it enters the viewport. */
-.reveal {
-  transform: translateY(12px);
-  transition: transform 320ms var(--ease-paper-out);
-}
-
-.reveal.in-view {
-  transform: none;
-}
-
-.stagger-1 { transition-delay: 40ms; }
-.stagger-2 { transition-delay: 80ms; }
-.stagger-3 { transition-delay: 120ms; }
-.stagger-4 { transition-delay: 160ms; }
-.stagger-5 { transition-delay: 200ms; }
-.stagger-6 { transition-delay: 240ms; }
-
-.hero-stagger-1 { animation-delay: 0ms; }
-.hero-stagger-2 { animation-delay: 40ms; }
-.hero-stagger-3 { animation-delay: 80ms; }
-.hero-stagger-4 { animation-delay: 120ms; }
-.hero-stagger-5 { animation-delay: 160ms; }
-.hero-stagger-6 { animation-delay: 200ms; }
 
 @keyframes paper-rise {
   from { transform: translateY(12px); }
@@ -602,16 +669,6 @@ body {
 @keyframes bottom-sheet-in {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
-}
-
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-@keyframes fade-slide-up {
-  from { transform: translateY(12px); }
-  to { transform: none; }
 }
 
 /* ── Paper details (DESIGN.md §5) ── */
@@ -640,6 +697,30 @@ body {
     linear-gradient(#000 0 0) bottom / 100% calc(100% - var(--torn-depth) + 1px) no-repeat;
 }
 
+/* Torn top and bottom: a paper band between two layers. Pad both sides > torn depth. */
+@utility paper-edge-torn-y {
+  mask:
+    var(--torn-top-tile) top / 120px var(--torn-depth) repeat-x,
+    linear-gradient(#000 0 0) center / 100% calc(100% - 2 * var(--torn-depth) + 2px) no-repeat,
+    var(--torn-bottom-tile) bottom / 120px var(--torn-depth) repeat-x;
+}
+
+/* Ticket: two half-circle notches mark the tear-off stub at --stub (from the left). */
+@utility paper-edge-ticket {
+  --notch: 9px;
+  mask:
+    radial-gradient(circle at var(--stub, 72%) 0, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) top / 100% 51% no-repeat,
+    radial-gradient(circle at var(--stub, 72%) 100%, #0000 var(--notch), #000 calc(var(--notch) + 0.5px)) bottom / 100% 51% no-repeat;
+}
+
+/* Postage stamp: perforated on all four sides. */
+@utility paper-edge-perforated {
+  --hole: 3px;
+  mask:
+    linear-gradient(#000 0 0) center / calc(100% - 2 * var(--hole)) calc(100% - 2 * var(--hole)) no-repeat,
+    radial-gradient(var(--hole), #0000 97%, #000) calc(-1 * var(--hole)) calc(-1 * var(--hole)) / calc(2 * var(--hole) + 4px) calc(2 * var(--hole) + 4px) round;
+}
+
 /* Scalloped (bitten) left edge: toasts. Needs left padding > 8px. */
 @utility paper-edge-scallop-left {
   mask: radial-gradient(circle at 0 50%, #0000 5px, #000 5.5px) 0 0 / 100% 14px repeat-y;
@@ -648,29 +729,6 @@ body {
 /* Scalloped bottom edge: the offline strip. Needs bottom padding > 8px. */
 @utility paper-edge-scallop-bottom {
   mask: radial-gradient(circle at 50% 100%, #0000 5px, #000 5.5px) 0 0 / 14px 100% repeat-x;
-}
-
-/* Tactile press for buttons: sink one layer. No hover movement. */
-.paper-press {
-  transition: transform 120ms var(--ease-paper-out), box-shadow 120ms var(--ease-paper-out),
-    background-color 120ms ease-out, color 120ms ease-out;
-}
-
-.paper-press:active:not(:disabled) {
-  transform: scale(0.98);
-  box-shadow: var(--shadow-xs);
-}
-
-/* Card lift on hover (pointer devices only): one layer up. */
-@media (hover: hover) {
-  .paper-lift {
-    transition: transform 200ms var(--ease-paper-out), box-shadow 200ms var(--ease-paper-out);
-  }
-
-  .paper-lift:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -684,8 +742,6 @@ body {
   }
 
   .reveal,
-  .paper-lift:hover,
-  .paper-press:active:not(:disabled),
   .chip-spring:active {
     transform: none;
   }
@@ -702,94 +758,50 @@ body {
   }
 }
 
-.bento-card {
-  border-radius: var(--radius-hand);
-  background: var(--color-surface);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
-}
+/* Scene layers that belong to one time of day (PaperScene time="auto"). */
+.scene-night-only { display: none; }
+[data-theme="dark"] .scene-night-only { display: block; }
+[data-theme="dark"] .scene-day-only { display: none; }
 
-@media (min-width: 640px) {
-  .bento-card {
-    padding: 1.5rem;
+/* ── Map markers (Leaflet divIcons, see explore/lib/map-icons.ts) ──
+   Paper tags on the map. Hover and focus change tone only; nothing grows. */
+@layer components {
+  .map-pin,
+  .map-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 600 0.8125rem/1 system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-ink);
+    background: var(--color-paper-3);
+    box-shadow: 0 1px 0 var(--color-edge), 0 2px 4px -2px rgb(35 32 28 / 0.35);
+    cursor: pointer;
+    transition: background-color 150ms var(--ease-paper-out), color 150ms var(--ease-paper-out);
   }
-}
+  .map-pin {
+    height: 28px;
+    padding: 0 10px;
+    white-space: nowrap;
+    border-radius: var(--radius-cut-sm);
+    color: var(--color-on-clay);
+    background: var(--color-clay);
+  }
+  .map-pin--flatmate { background: var(--color-pine); color: var(--color-surface); }
+  .map-cluster {
+    border-radius: 9999px;
+    box-shadow: inset 0 0 0 3px var(--color-clay), 0 2px 4px -2px rgb(35 32 28 / 0.35);
+  }
+  .map-cluster--flatmates { box-shadow: inset 0 0 0 3px var(--color-pine), 0 2px 4px -2px rgb(35 32 28 / 0.35); }
+  .leaflet-marker-icon:hover .map-pin,
+  .map-pin:focus-visible { background: var(--color-ink); color: var(--color-paper-3); }
+  .leaflet-marker-icon:hover .map-cluster,
+  .map-cluster:focus-visible { background: var(--color-paper-1); }
+  .map-pin:focus-visible,
+  .map-cluster:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
 
-/* ── FAQ Accordion Styles ── */
-
-.faq-item-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-.faq-item[open] .faq-item-content {
-  grid-template-rows: 1fr;
-}
-
-.faq-item-content>div {
-  overflow: hidden;
-}
-
-.faq-chevron {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-.faq-item[open] .faq-chevron {
-  transform: rotate(180deg);
-}
-
-/* ── Scroll Progress Indicator ── */
-
-.scroll-progress-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 2px;
-  background: var(--color-accent);
-  z-index: 40;
-  will-change: width;
-  transition: width 50ms linear;
-}
-
-/* ── Testimonial Carousel Styles ── */
-
-.testimonial-carousel {
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.testimonial-carousel::-webkit-scrollbar {
-  display: none;
-}
-
-.testimonial-card {
-  scroll-snap-align: center;
-  flex-shrink: 0;
-}
-
-/* ── Swipe Card Scrollable Expanded View ── */
-
-.swipe-card-scroll {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-}
-
-.swipe-card-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.swipe-card-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.swipe-card-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-ink-4);
-  border-radius: 999px;
-}
-
-.swipe-card-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ink-3);
+  /* OpenStreetMap tiles, warmed toward the paper palette; night inverts them. */
+  .leaflet-tile-pane { filter: sepia(0.12) saturate(0.85); }
+  [data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.9) saturate(0.6); }
+  .leaflet-container { background: var(--color-paper-1); font-family: system-ui, sans-serif; }
 }

@@ -34,7 +34,7 @@ The service worker must be ready before `pushManager.subscribe` is called, so `g
 
 ## Notification preferences
 
-`SettingsNotificationsPage` (`src/pages/app/SettingsNotificationsPage.tsx`) is the preferences surface at `/settings/notifications`. It renders seven toggles backed by the profile's `preferences` JSON field:
+`SettingsNotificationsPage` (`src/features/settings/pages/SettingsNotificationsPage.tsx`) is the preferences surface at `/settings/notifications`. It renders seven toggles backed by the profile's `preferences` JSON field:
 
 | Key | Label | Default |
 | --- | --- | --- |
@@ -50,9 +50,9 @@ The toggles seed from the saved profile preferences (falling back to each toggle
 
 ## Search alerts
 
-`AlertsPage` (`src/pages/app/AlertsPage.tsx`) is the saved-search alerts surface. It is distinct from the notification preferences above: alerts are user-defined saved searches that fire when new listings match, whereas preferences are global category toggles. The page lists alerts (name, frequency, channels, results sent count) with a pause/resume toggle and a delete action, plus a "Create Alert" modal that creates a new alert with `frequency: "daily"` and `channels: ["push"]`.
+`AlertsPage` (`src/features/alerts/pages/AlertsPage.tsx`) is the saved-search alerts surface. It is distinct from the notification preferences above: alerts are user-defined saved searches that fire when new listings match, whereas preferences are global category toggles. The page lists alerts (name, frequency, channels, results sent count) with a pause/resume toggle and a delete action, plus a "Create Alert" modal that creates a new alert with `frequency: "daily"` and `channels: ["push"]`.
 
-All alert mutations live in `src/hooks/queries/useSearch.ts` and target the `/flatmates/web/alerts` endpoints:
+All alert mutations live in `src/features/listings/hooks/useSearch.ts` and target the `/flatmates/web/alerts` endpoints:
 
 | Hook | Endpoint | Purpose |
 | --- | --- | --- |
@@ -65,13 +65,13 @@ Each mutation invalidates the `["search", "alerts"]` query key on success, so th
 
 ## The in-app notifications page
 
-`NotificationsPage` (`src/pages/app/NotificationsPage.tsx`) is the inbox at `/notifications`. It loads notifications via `useNotifications()` (from `src/hooks/queries/useNotifications.ts`, hitting `GET /flatmates/notifications`), maps each through `notificationToNotificationCardProps`, and renders a list of `NotificationCard` components with relative timestamps. Each card is interactive: tapping it marks the notification read (via `useMarkNotificationRead`, `PUT /flatmates/notifications/{id}`) and navigates to the notification's `route` if one is set. A "Mark all read" button appears when any notification is unread, calling `useMarkAllNotificationsRead` (`PUT /flatmates/notifications` with `mark_all_read: true`). Both mutations invalidate the `["notifications"]` query key.
+`NotificationsPage` (`src/features/notifications/pages/NotificationsPage.tsx`) is the inbox at `/notifications`. It loads notifications via `useNotifications()` (from `src/features/notifications/hooks/useNotifications.ts`, hitting `GET /flatmates/notifications`), maps each through `notificationToNotificationCardProps`, and renders a list of `NotificationCard` components with relative timestamps. Each card is interactive: tapping it marks the notification read (via `useMarkNotificationRead`, `PUT /flatmates/notifications/{id}`) and navigates to the notification's `route` if one is set. A "Mark all read" button appears when any notification is unread, calling `useMarkAllNotificationsRead` (`PUT /flatmates/notifications` with `mark_all_read: true`). Both mutations invalidate the `["notifications"]` query key.
 
-The `NotificationCard` molecule (`src/components/molecules/NotificationCard.tsx`) renders the icon, title, description, timestamp, and an unread dot. Each notification type maps to a tone and a lucide icon: `new_match` (pink, Heart), `new_message` (blue, MessageCircle), `listing_approved` (success, CheckCircle2), `listing_rejected` (error, XCircle), `visit_scheduled` (teal, CalendarCheck), `visit_confirmed` (success, CalendarCheck), `general` (accent, Bell). Unread cards get a 3px accent left border to signal state beyond color alone.
+The `NotificationCard` molecule (`src/features/notifications/components/NotificationCard.tsx`) renders the icon, title, description, timestamp, and an unread dot. Each notification type maps to a tone and a lucide icon: `new_match` (pink, Heart), `new_message` (blue, MessageCircle), `listing_approved` (success, CheckCircle2), `listing_rejected` (error, XCircle), `visit_scheduled` (teal, CalendarCheck), `visit_confirmed` (success, CalendarCheck), `general` (accent, Bell). Unread cards get a 3px accent left border to signal state beyond color alone.
 
 ## How Broadcast and push complement each other
 
-`useFlatmatesRealtime` (`src/hooks/useFlatmatesRealtime.ts`, wired from `src/providers.tsx`) subscribes to the bootstrap-provided Supabase private Broadcast channel whenever the user is authenticated and active. The `new_notification` event carries notification metadata such as `type_key`, `title`, `body`, and `route`. When such an event arrives, the open app consumes it: the notifications inbox refetches, a toast fires, and related query keys (matches, conversations, etc.) invalidate so every surface stays current.
+`useFlatmatesRealtime` (`src/hooks/useFlatmatesRealtime.ts`, wired from `src/app/providers.tsx`) subscribes to the bootstrap-provided Supabase private Broadcast channel whenever the user is authenticated and active. The `new_notification` event carries notification metadata such as `type_key`, `title`, `body`, and `route`. When such an event arrives, the open app consumes it: the notifications inbox refetches, a toast fires, and related query keys (matches, conversations, etc.) invalidate so every surface stays current.
 
 Web push covers the case Broadcast cannot: the user has closed every tab. In that scenario the browser service worker receives the push, the backend has the device token on file from `registerDevice`, and the platform shows a system notification. The notification preferences (the toggles on the settings page) gate both channels at the backend: a disabled category stops the Broadcast event and the web push for that category.
 
@@ -94,10 +94,10 @@ For the notification event payload shapes, see [Real-time](real-time.md) and [do
 | --- | --- |
 | `src/lib/push/fcm.ts` | VAPID subscription, device register/unregister, `requestAndRegisterPush` |
 | `src/lib/env.ts` | Env schema including optional `VITE_VAPID_PUBLIC_KEY` |
-| `src/pages/app/SettingsNotificationsPage.tsx` | Notification preference toggles with debounced persist |
-| `src/pages/app/AlertsPage.tsx` | Saved-search alert list with create, pause, delete |
-| `src/pages/app/NotificationsPage.tsx` | In-app notifications inbox with mark-read and mark-all-read |
-| `src/components/molecules/NotificationCard.tsx` | Notification card with type-to-tone icon mapping |
-| `src/hooks/queries/useNotifications.ts` | `useNotifications`, `useMarkNotificationRead`, `useMarkAllNotificationsRead` |
-| `src/hooks/queries/useSearch.ts` | `useSearchAlerts`, `useCreateSearchAlert`, `useUpdateSearchAlert`, `useDeleteSearchAlert` |
+| `src/features/settings/pages/SettingsNotificationsPage.tsx` | Notification preference toggles with debounced persist |
+| `src/features/alerts/pages/AlertsPage.tsx` | Saved-search alert list with create, pause, delete |
+| `src/features/notifications/pages/NotificationsPage.tsx` | In-app notifications inbox with mark-read and mark-all-read |
+| `src/features/notifications/components/NotificationCard.tsx` | Notification card with type-to-tone icon mapping |
+| `src/features/notifications/hooks/useNotifications.ts` | `useNotifications`, `useMarkNotificationRead`, `useMarkAllNotificationsRead` |
+| `src/features/listings/hooks/useSearch.ts` | `useSearchAlerts`, `useCreateSearchAlert`, `useUpdateSearchAlert`, `useDeleteSearchAlert` |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast event dispatch and notification query invalidation |

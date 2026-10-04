@@ -17,7 +17,7 @@ interface FlatmatesRealtimeConfig {
 }
 ```
 
-`src/providers.tsx` reads this config with the shared `bootstrapOptions` query after the user is authenticated and the backend auth stage is `active`. Missing config means no realtime connection is opened; normal query stale-time behavior still applies.
+`src/app/providers.tsx` reads this config with the shared `bootstrapOptions` query after the user is authenticated and the backend auth stage is `active`. Missing config means no realtime connection is opened; normal query stale-time behavior still applies.
 
 ## The six event types
 
@@ -47,7 +47,7 @@ The hook ignores unknown configured events and falls back to the known set if th
 7. Mirrors lifecycle state into `uiStore.realtimeState`.
 8. Calls `supabase.removeChannel(channel)` on cleanup, token change, config change, or reconnect.
 
-`src/hooks/useRealtimeStatus.ts` is the read hook for UI surfaces. It exposes `{ state, isConnected, reconnecting, hasIssue }` from the generic realtime fields in `uiStore`.
+`src/features/chat/hooks/useRealtimeStatus.ts` is the read hook for UI surfaces. It exposes `{ state, isConnected, reconnecting, hasIssue }` from the generic realtime fields in `uiStore`.
 
 ## Connection lifecycle
 
@@ -100,8 +100,8 @@ This page summarizes the real-time transport. For the product rationale behind l
 | File | Purpose |
 | --- | --- |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase private Broadcast subscription, event normalization, reconnect, query invalidation |
-| `src/hooks/useRealtimeStatus.ts` | Read hook exposing realtime connection state to components |
-| `src/providers.tsx` | Fetches bootstrap realtime config and starts the Broadcast hook |
+| `src/features/chat/hooks/useRealtimeStatus.ts` | Read hook exposing realtime connection state to components |
+| `src/app/providers.tsx` | Fetches bootstrap realtime config and starts the Broadcast hook |
 | `src/lib/stores/ui-store.ts` | Holds generic `realtimeState` and `realtimeConnected` UI fields |
 | `src/lib/api/user.types.ts` | `FlatmatesRealtimeConfig` and `FlatmatesBootstrap.realtime` types |
 | `src/lib/schemas/profile.ts` | Zod validation for bootstrap realtime config |

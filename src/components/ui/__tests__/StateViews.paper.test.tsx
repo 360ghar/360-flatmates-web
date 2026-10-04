@@ -25,7 +25,10 @@ describe("paper state views", () => {
     render(<PaperScene />);
     const scene = screen.getByTestId("paper-scene");
     const layers = scene.querySelectorAll("svg[aria-hidden='true']");
-    expect(layers.length).toBe(9);
+    // Nine day layers plus the moon and stars, which CSS shows only in the dark theme.
+    expect(layers.length).toBe(11);
+    expect(scene.querySelectorAll(".scene-night-only")).toHaveLength(2);
+    expect(scene.querySelectorAll(".scene-day-only")).toHaveLength(2);
     // Content is never hidden behind an entrance animation.
     layers.forEach((layer) => expect((layer as SVGElement).style.opacity).not.toBe("0"));
   });

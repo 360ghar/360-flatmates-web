@@ -1,5 +1,4 @@
 import {
-  infiniteQueryOptions,
   queryOptions,
   useMutation,
   useQuery,
@@ -15,8 +14,6 @@ import type {
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 import { flatmatesProfileSchema } from "@/lib/schemas/profile";
-
-const PEERS_PAGE_SIZE = 20;
 
 export const myProfileOptions = queryOptions({
   queryKey: ["profile", "me"],
@@ -59,36 +56,6 @@ export function peerProfilesOptions(filters?: PeerFilters) {
       // `response.items || []` only handled undefined, not a truthy non-array.
       return Array.isArray(response?.items) ? response.items : [];
     }
-  });
-}
-
-/**
- * Infinite cursor-paginated peer profiles.
- *
- * Used by the swipe deck so additional cards can be pre-fetched as the user
- * approaches the end of the current deck without re-rendering from scratch.
- */
-export function peersInfiniteOptions(
-  filters?: Omit<PeerFilters, "limit" | "cursor">
-) {
-  return infiniteQueryOptions({
-    queryKey: ["profiles", "peers", "infinite", filters],
-    queryFn: async ({ pageParam, signal }) => {
-      const response = await apiClient.request<PeerCursorPage>({
-        method: "GET",
-        path: "/flatmates/profiles",
-        query: {
-          ...(filters ?? {}),
-          cursor: pageParam,
-          limit: PEERS_PAGE_SIZE
-        } as Record<string, QueryValue>,
-        signal
-      });
-      return response;
-    },
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined
   });
 }
 

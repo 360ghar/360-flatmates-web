@@ -1,7 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router";
-import { App } from "./App";
+import { RouterProvider } from "react-router/dom";
+import { HelmetProvider } from "react-helmet-async";
+import { router } from "@/app/router";
 import { validateEnv } from "./lib/env";
 import { debug } from "./lib/debug";
 import "./styles/globals.css";
@@ -70,9 +71,9 @@ try {
 const rootEl = document.getElementById("root")!;
 createRoot(rootEl).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <HelmetProvider>
+      <RouterProvider router={router} />
+    </HelmetProvider>
   </StrictMode>,
 );
 
