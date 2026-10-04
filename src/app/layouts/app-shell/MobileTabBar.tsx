@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router";
 import { HelpCircle } from "lucide-react";
 import { AppearanceIcon, MoreIcon } from "@/components/paper/NavIcons";
 import { BottomSheet } from "@/components/ui/Modal";
@@ -16,10 +17,13 @@ const EXTRA_LINKS = [
 /** Phone tab strip on paper-1 with a torn top edge; four tabs and More. */
 export function MobileTabBar({ items, mode, activeHref }: { items: NavItemConfig[]; mode: UserMode; activeHref?: string }) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const [openedAt, setOpenedAt] = useState(activeHref);
+  const { pathname } = useLocation();
+  const [openedAt, setOpenedAt] = useState(pathname);
   // Close the sheet when the route changes (state adjusted during render).
-  if (openedAt !== activeHref) {
-    setOpenedAt(activeHref);
+  // Track the raw pathname: activeHref pins detail routes to their nav tab
+  // (/chats/:id → /chats), so it misses in-tab navigation.
+  if (openedAt !== pathname) {
+    setOpenedAt(pathname);
     if (moreOpen) setMoreOpen(false);
   }
 

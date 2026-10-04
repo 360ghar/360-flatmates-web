@@ -8,7 +8,7 @@ Likes and matches are the two inboxes that follow the swipe deck. Likes shows th
 
 Both pages are thin wrappers around a shared `PeopleGridPage` component:
 
-- **Likes** (`src/features/matches/pages/LikesPage.tsx`) calls `useIncomingLikes()` and passes a "Match" CTA label. The empty state reads "No likes yet, keep exploring to find connections."
+- **Likes** (`src/features/matches/pages/LikesPage.tsx`) calls `useIncomingLikesInfinite()` and passes a "Match" CTA label. The empty state reads "No likes yet, keep exploring to find connections."
 - **Matches** (`src/features/matches/pages/MatchesPage.tsx`) calls `useMatches()` and passes a "Chat" CTA label. The empty state reads "No matches yet, keep swiping to find your match."
 
 Each page hands the query and a `getProfileProps` adapter to `PeopleGridPage`, which handles loading skeletons, error retry, empty states, and the responsive grid. Both inboxes map their `peer` through `profileToProfileGridCardProps` so the cards render identically regardless of source. The only differences are the page title, subtitle, CTA label, and empty-state copy.
@@ -19,11 +19,11 @@ All three queries live in `src/features/matches/hooks/useMatches.ts`:
 
 | Hook | Endpoint | Query key | Returns |
 | --- | --- | --- | --- |
-| `useIncomingLikes(limit, offset)` | `GET /flatmates/likes?limit=&offset=` | `["incoming-likes", limit, offset]` | `IncomingLikeSummary[]` |
+| `useIncomingLikesInfinite()` | `GET /flatmates/likes?limit=&cursor=` | `["incoming-likes", "infinite"]` | `IncomingLikeCursorPage` (cursor-paginated, page size 20) |
 | `useMatches()` | `GET /flatmates/matches` | `["matches"]` | `MatchSummary[]` |
 | `useUnmatchMutation()` | `PUT /flatmates/matches/{id}/unmatch` | invalidates `matches` + `conversations` | `{ message: string }` |
 
-`useIncomingLikes` defaults to a page of 20 with a 0 offset and supports pagination via its arguments. Both list queries use `isLoading` (not `isFetching`) for skeleton decisions, per the project's async-state rules, so a background refetch does not flash a skeleton over already-rendered cards.
+`useIncomingLikesInfinite` fetches cursor-paginated pages of 20 via `GET /flatmates/likes?limit=&cursor=`, keyed `["incoming-likes", "infinite"]` (see `incomingLikesInfiniteOptions` in `useMatches.ts`). Both list queries use `isLoading` (not `isFetching`) for skeleton decisions, per the project's async-state rules, so a background refetch does not flash a skeleton over already-rendered cards.
 
 ## The unmatch flow
 
@@ -65,8 +65,8 @@ For the product definition of likes, super-likes, matches, and unmatch semantics
 
 | File | Purpose |
 | --- | --- |
-| `src/features/matches/pages/LikesPage.tsx` | Likes inbox, wraps `PeopleGridPage` with `useIncomingLikes` |
+| `src/features/matches/pages/LikesPage.tsx` | Likes inbox, wraps `PeopleGridPage` with `useIncomingLikesInfinite` |
 | `src/features/matches/pages/MatchesPage.tsx` | Matches inbox, wraps `PeopleGridPage` with `useMatches` |
-| `src/features/matches/hooks/useMatches.ts` | `useIncomingLikes`, `useMatches`, `useUnmatchMutation` |
+| `src/features/matches/hooks/useMatches.ts` | `useIncomingLikesInfinite`, `useMatches`, `useUnmatchMutation` |
 | `src/features/chat/components/MatchContextCard.tsx` | Expandable listing-context row for listing-originated matches |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription, `new_match` invalidation of the matches query |

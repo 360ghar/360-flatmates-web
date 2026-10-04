@@ -25,7 +25,7 @@ export function radiusForZoom(zoom: number | undefined, lat = 20): number {
   if (zoom === undefined) return 10;
   const widthKm =
     (EARTH_CIRCUMFERENCE_KM * Math.cos((lat * Math.PI) / 180) * ASSUMED_VIEWPORT_TILES) / 2 ** zoom;
-  return Math.min(50, Math.max(1, Math.round(widthKm / 2)));
+  return Math.min(100, Math.max(1, Math.round(widthKm / 2)));
 }
 
 export function mapViewOptions(filters: MapViewFilters) {

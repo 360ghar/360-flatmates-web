@@ -12,7 +12,7 @@ export function cityFaq(cityName: string, areas: ReadonlyArray<Neighborhood>): F
     },
     {
       question: `Are the listings in ${cityName} verified?`,
-      answer: "Yes. Every listing is reviewed before it goes live: real photos, real rent and real availability."
+      answer: "Yes. Every listing is reviewed before it goes live: rent and availability are checked. Photos are optional at posting."
     },
     {
       question: `Is 360 Flatmates free to use in ${cityName}?`,
@@ -37,7 +37,7 @@ export function neighbourhoodFaq(cityName: string, area: Neighborhood, nearby: R
     },
     {
       question: `Are rooms in ${area.name} verified?`,
-      answer: "Yes. Every listing is reviewed before it goes live: real photos, real rent and real availability."
+      answer: "Yes. Every listing is reviewed before it goes live: rent and availability are checked. Photos are optional at posting."
     },
     {
       question: `Which areas are near ${area.name}?`,

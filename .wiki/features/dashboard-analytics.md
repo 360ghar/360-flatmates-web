@@ -2,13 +2,13 @@
 
 Active contributors: Saksham
 
-Once a room poster has listings live, they need to see how those listings are performing. 360 Flatmates gives them two surfaces: a dashboard overview with 30-day rollup metrics and a per-listing analytics page with a selectable time window and a daily breakdown table. There is also a public city-stats page that markets the platform with hardcoded growth numbers. This page covers the dashboard metrics, the analytics period selector, the stat card rendering, and the public stats page. For how listings are created and managed, see [Listing management](listing-management.md). For the room poster mode that unlocks these surfaces, see [Profile and onboarding](profile-onboarding.md). For the property data model that backs the metrics, see [Listing and property model](../primitives/listing-property.md).
+Once a room poster has listings live, they need to see how those listings are performing. 360 Flatmates gives them two surfaces: a dashboard overview with lifetime total metrics and a per-listing analytics page with a selectable time window and a daily breakdown table. There is also a public city-stats page that markets the platform with hardcoded growth numbers. This page covers the dashboard metrics, the analytics period selector, the stat card rendering, and the public stats page. For how listings are created and managed, see [Listing management](listing-management.md). For the room poster mode that unlocks these surfaces, see [Profile and onboarding](profile-onboarding.md). For the property data model that backs the metrics, see [Listing and property model](../primitives/listing-property.md).
 
 ## Two surfaces, two endpoints
 
 | Route | File | Endpoint | Purpose |
 | --- | --- | --- | --- |
-| `/dashboard` | `src/features/hosting/pages/DashboardPage.tsx` | `GET /flatmates/web/dashboard` | 30-day rollup across all the user's listings |
+| `/dashboard` | `src/features/hosting/pages/DashboardPage.tsx` | `GET /flatmates/web/dashboard` | Lifetime totals across all the user's listings |
 | `/dashboard/analytics?propertyId=&period=` | `src/features/hosting/pages/AnalyticsPage.tsx` | `GET /flatmates/web/listings/{id}/analytics?period=` | Per-listing metrics for a chosen period |
 | `/stats` | `src/pages/public/StatsPage.tsx` | `GET /flatmates/catalog/cities` (chips only) | Public marketing page with hardcoded stats |
 
@@ -26,9 +26,9 @@ The dashboard is the room poster's landing view. The analytics page is reached f
 | Metric | Source field | Trend | Helper |
 | --- | --- | --- | --- |
 | Active Listings | `active_listings` | up if > 0, else flat | `${pending_review} pending review` when pending > 0 |
-| Views (30d) | `total_views_30d` | up if > 0, else flat | |
-| Likes (30d) | `total_likes_30d` | up if > 0, else flat | |
-| Visits (30d) | `total_visits_30d` | up if > 0, else flat | |
+| Views | `total_views` | up if > 0, else flat | |
+| Likes | `total_likes` | up if > 0, else flat | |
+| Visits | `total_visits` | up if > 0, else flat | |
 
 Numbers are formatted with `Intl.NumberFormat("en-IN")` so they render with Indian digit grouping (for example 1,00,000). The trend is a directional arrow icon: `ArrowUpRight` in success green for up, `ArrowDownRight` in error red for down, nothing for flat. The dashboard only ever sets `up` or `flat` from the API data; the `down` branch exists in `DashboardPanel` for future use.
 

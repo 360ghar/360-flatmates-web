@@ -19,10 +19,29 @@ window.addEventListener("unhandledrejection", (event) => {
   debug.dumpError("GlobalError", "Unhandled promise rejection", event.reason);
 });
 
-// Older service workers cached authenticated API responses under "api".
-// That rule is gone; drop any cache it left so one user never sees another's data.
-if ("caches" in window) {
-  void caches.delete("api").catch(() => undefined);
+// A legacy service worker may still control the page and serve stale
+// authenticated API responses from the "api" cache its old /api/ rule left
+// behind. `caches.delete` alone cannot shed it: `unregister()` only releases
+// control on the next navigation, so a still-controlled first load reloads
+// once (guarded) to drop the legacy worker before API calls resume. Healthy
+// installs never leave an "api" cache, so this is a no-op for them and the
+// current worker is left alone.
+if ("serviceWorker" in navigator && "caches" in window) {
+  void (async () => {
+    try {
+      const legacy = await caches.has("api");
+      await caches.delete("api").catch(() => undefined);
+      if (!legacy) return;
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.allSettled(registrations.map((registration) => registration.unregister()));
+      if (navigator.serviceWorker.controller && !sessionStorage.getItem("sw-migrated")) {
+        sessionStorage.setItem("sw-migrated", "1");
+        window.location.reload();
+      }
+    } catch {
+      /* ignore — the app boots without the migration */
+    }
+  })();
 }
 
 function escapeHtml(value: string): string {

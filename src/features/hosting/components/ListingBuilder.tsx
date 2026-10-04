@@ -38,7 +38,7 @@ export function ListingBuilder({
   const finalStep = currentStep >= steps.length - 1;
 
   return (
-    <section className={cn("page-fade flex w-full flex-col", className)} {...props}>
+    <section className={cn("page-fade flex min-h-[60dvh] w-full flex-col", className)} {...props}>
       <div className="paper-grain rounded-hand bg-surface p-5 shadow-sm sm:p-7">
         <StepProgress
           aria-label="Listing progress"
@@ -48,7 +48,9 @@ export function ListingBuilder({
         />
         <div className="mt-6">{children}</div>
       </div>
-      <BottomActionBar className="-mx-[var(--gutter)] mt-5 px-[var(--gutter)]">
+      {/* Growing spacer: pins the sticky action bar to the bottom on short steps. */}
+      <div aria-hidden="true" className="min-h-5 flex-1" />
+      <BottomActionBar className="-mx-[var(--gutter)] px-[var(--gutter)]">
         {onSaveDraft && finalStep ? (
           <Button variant="tertiary" onClick={onSaveDraft}>
             Save as draft

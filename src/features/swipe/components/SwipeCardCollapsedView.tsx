@@ -48,7 +48,7 @@ export function SwipeCardCollapsedView({
         <div className="absolute inset-x-0 bottom-0 p-5 text-white">
           <h2 className="text-h2 font-normal">
             {profile.name}
-            {profile.age ? `, ${profile.age}` : ""}
+            {profile.ageBucket ?? profile.age ? `, ${profile.ageBucket ?? profile.age}` : ""}
           </h2>
           {profile.location ? (
             <p className="mt-1 flex items-center gap-1.5 text-body-md text-white/80">

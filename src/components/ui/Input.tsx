@@ -178,7 +178,7 @@ export function TextArea({
             controlClasses,
             "min-h-[120px] max-h-[240px] resize-y rounded-[var(--radius-control)] px-3 py-3 shadow-xs outline-none focus-visible:outline-none focus:border-accent focus:shadow-[0_0_0_1px_var(--color-accent)]",
             interactiveMotion,
-            error && "border-error shadow-[0_0_0_1px_var(--color-error)] focus:border-error",
+            error && "border-error shadow-[0_0_0_1px_var(--color-error)] focus:border-error focus:shadow-[0_0_0_1px_var(--color-error)]",
             className
           )}
           {...props}

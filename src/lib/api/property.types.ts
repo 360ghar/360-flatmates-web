@@ -188,10 +188,10 @@ export interface RoomPosterDashboard {
   active_listings: number;
   pending_review: number;
   paused: number;
-  total_views_30d: number;
-  total_likes_30d: number;
-  total_conversations_30d: number;
-  total_visits_30d: number;
+  total_views: number;
+  total_likes: number;
+  total_conversations: number;
+  total_visits: number;
   listings: Array<{
     id: number;
     title: string;

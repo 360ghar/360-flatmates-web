@@ -61,7 +61,7 @@ export function TopBar({ user, title, back, unreadCount }: TopBarProps) {
           </div>
         )}
 
-        <form onSubmit={submit} className="hidden w-full max-w-md md:block" role="search">
+        <form onSubmit={submit} className="hidden w-full max-w-md md:block" role="search" aria-label="Global search">
           <SearchBar
             placeholder="Search rooms, areas or societies"
             aria-label="Search listings"

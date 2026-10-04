@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Smartphone, ArrowRight } from "lucide-react";
 import { usePWA } from "@/features/pwa/hooks/usePWA";
+import { useBannerHeightVar } from "@/hooks/useBannerHeightVar";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/components/ui/component-utils";
 import { PWAInstallInstructionsModal } from "./PWAInstallInstructionsModal";
@@ -90,12 +91,19 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
     !dismissed &&
     eligibleByPageview;
 
+  // Publish the in-flow footprint as --pwa-banner-h so viewport-sized views
+  // below the banner (chat thread) can subtract it. Hook stays above the
+  // early return; it no-ops while hidden.
+  const bannerRef = useRef<HTMLDivElement>(null);
+  useBannerHeightVar(bannerRef, "--pwa-banner-h", visible);
+
   if (!visible) return null;
 
   if (variant === "compact") {
     return (
       <>
         <div
+          ref={bannerRef}
           className={cn(
             "flex items-center justify-between gap-3 rounded-cut-md border border-accent/25 bg-accent-soft px-4 py-3 shadow-sm",
             className
@@ -132,6 +140,7 @@ export function PWAInstallBanner({ className, pageviewLimit = 0, variant = "defa
   return (
     <>
       <div
+        ref={bannerRef}
         className={cn(
           "relative flex flex-col items-start justify-between gap-4 rounded-cut-lg border border-accent/25 bg-accent-soft p-4 shadow-sm sm:flex-row sm:items-center",
           className

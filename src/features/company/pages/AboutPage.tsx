@@ -9,7 +9,7 @@ const VALUES = [
   },
   {
     title: "Verified, always",
-    body: "Every listing is reviewed and every user is phone-verified. No fake profiles and no bait-and-switch photos."
+    body: "Listings are reviewed before they go live, and phone verification helps keep profiles genuine. Most people verify their number; Google sign-ups can skip it and add one later."
   },
   {
     title: "Safety as the default",

@@ -3,7 +3,7 @@ import { Tooltip } from "radix-ui";
 import type { UserMode } from "@/components/ui/Badge";
 import { cn } from "@/components/ui/component-utils";
 import { SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_DEFAULT } from "@/lib/stores/ui-store";
-import { useNotifications } from "@/features/notifications/hooks/useNotifications";
+import { useNotifications, useUnreadNotificationCount } from "@/features/notifications/hooks/useNotifications";
 import { MobileTabBar } from "./MobileTabBar";
 import { NAV_ITEMS, type NavItemConfig, type ShellUser } from "./nav-config";
 import { Sidebar } from "./Sidebar";
@@ -53,8 +53,13 @@ export function AppShell({
   ...props
 }: AppShellProps) {
   const { data: notifications } = useNotifications();
+  // Prefer the server unread total: the first page alone undercounts once
+  // unread spans pages. Fall back to the first-page count while it loads.
+  const { data: serverUnreadTotal } = useUnreadNotificationCount();
   const unreadNotifications =
-    notificationCount ?? (Array.isArray(notifications) ? notifications.filter((n) => !n.is_read).length : 0);
+    notificationCount ??
+    serverUnreadTotal ??
+    (Array.isArray(notifications) ? notifications.filter((n) => !n.is_read).length : 0);
 
   const items = useMemo(
     () =>

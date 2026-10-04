@@ -31,7 +31,7 @@ export function BlogPostCard({ post, href }: BlogPostCardProps) {
       <div className="relative aspect-[16/9] overflow-hidden bg-surface-soft">
         <NetworkImage
           src={post.cover_image_url ?? post.og_image_url}
-          alt=""
+          alt={post.title}
           className="h-full w-full object-cover"
           width={800}
           height={450}

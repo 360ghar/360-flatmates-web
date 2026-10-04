@@ -24,11 +24,15 @@ function HomeFeedBones() {
             <div className={cn("h-4 w-32 rounded-full", shimmer)} />
             <div className={cn("h-3 w-14 rounded-full", shimmer)} />
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-1 lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div className="flex snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {Array.from({ length: 3 }, (_, i) => (
               <div
                 key={i}
-                className="w-[180px] shrink-0 sm:w-[200px] md:w-[220px] lg:w-auto"
+                className={
+                  section.card === "listing"
+                    ? "w-[280px] shrink-0 snap-start sm:w-[320px] md:w-[340px]"
+                    : "w-[180px] shrink-0 snap-start sm:w-[200px] md:w-[220px]"
+                }
               >
                 {section.card === "listing" ? <ListingCardSkeleton /> : <ProfileGridCardBones />}
               </div>

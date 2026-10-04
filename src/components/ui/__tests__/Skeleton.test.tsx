@@ -37,14 +37,15 @@ describe("Skeleton", () => {
     expect(container.querySelector(".rounded-full")).toBeTruthy();
   });
 
-  it("renders profile grid cards with compact 3/4 aspect", () => {
+  it("renders profile grid cards with the card's 4/5 aspect", () => {
     const { container } = render(<ProfileGridCardSkeleton />);
-    expect(container.querySelector(".aspect-\\[3\\/4\\]")).toBeTruthy();
+    expect(container.querySelector(".aspect-\\[4\\/5\\]")).toBeTruthy();
   });
 
-  it("renders blog cards instead of listing geometry", () => {
+  it("renders blog cards with the card's 16/9 aspect", () => {
     const { container } = render(<BlogCardSkeleton count={2} className="grid gap-4" />);
-    expect(container.querySelectorAll(".h-56").length).toBe(2);
+    expect(container.querySelectorAll(".aspect-\\[16\\/9\\]").length).toBe(2);
+    expect(container.querySelector(".h-56")).toBeNull();
     expect(container.querySelector(".aspect-\\[20\\/19\\]")).toBeNull();
   });
 

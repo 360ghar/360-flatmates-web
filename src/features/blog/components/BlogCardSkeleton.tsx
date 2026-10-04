@@ -16,7 +16,7 @@ export function BlogCardSkeleton({ count = 1, className }: { count?: number; cla
 function BlogCardBones() {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-hand bg-surface paper-grain shadow-sm">
-      <div className={cn("h-56 w-full", shimmer)} />
+      <div className={cn("aspect-[16/9] w-full", shimmer)} />
       <div className="flex flex-1 flex-col p-6">
         <div className={cn("h-6 w-4/5 rounded-sm", shimmer)} />
         <div className={cn("mt-1 h-6 w-3/5 rounded-sm", shimmer)} />

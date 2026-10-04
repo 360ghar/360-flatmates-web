@@ -805,3 +805,27 @@
   [data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.9) saturate(0.6); }
   .leaflet-container { background: var(--color-paper-1); font-family: system-ui, sans-serif; }
 }
+
+/* ── Article body (sanitized CMS HTML, see renderArticleText) ──
+   Mirrors the markdown-subset classes so backend HTML posts and markdown
+   posts read identically. Only allowlisted tags ever reach here. */
+@layer components {
+  .article-body h2 { @apply mb-4 mt-10 text-h2 text-ink; }
+  .article-body > h2:first-child { margin-top: 0; }
+  .article-body h3 { @apply mb-3 mt-8 text-h3 text-ink; }
+  .article-body p { @apply mb-5 text-body-lg text-ink-2; }
+  .article-body strong, .article-body b { @apply font-semibold text-ink; }
+  .article-body em, .article-body i { @apply text-ink; }
+  .article-body a { @apply text-clay underline underline-offset-4 hover:text-clay; }
+  .article-body ul, .article-body ol { @apply mb-6 list-disc pl-5; }
+  .article-body ol { list-style-type: decimal; }
+  .article-body li { @apply text-body-lg text-ink-2; }
+  .article-body li + li { margin-top: 0.5rem; }
+  .article-body li::marker { color: var(--color-clay); }
+  .article-body blockquote { @apply mb-5 border-l-2 border-clay pl-4 text-body-lg text-ink-2; }
+  .article-body code { @apply rounded-cut-sm bg-paper-1 px-1.5 py-0.5 text-body-md text-ink; }
+  .article-body pre { @apply mb-5 overflow-x-auto rounded-cut-md bg-paper-1 p-4; }
+  .article-body pre code { @apply bg-transparent p-0; }
+  .article-body hr { @apply my-8 border-line-low; }
+  .article-body img { @apply mb-5 h-auto w-full rounded-cut-md; }
+}

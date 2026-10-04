@@ -39,7 +39,8 @@ export function ConversationRow({ conversation, selected = false, className, ...
       )}
       {...props}
     >
-      <Avatar name={conversation.name} src={conversation.avatarUrl} size="sm" />
+      {/* Decorative: the row already renders the name as text, so the avatar stays silent. */}
+      <Avatar name={conversation.name} src={conversation.avatarUrl} size="sm" alt="" aria-hidden="true" />
       <span className="min-w-0 flex-1">
         {/* Name and time share one line so the preview keeps the full width. */}
         <span className="flex items-baseline gap-2">

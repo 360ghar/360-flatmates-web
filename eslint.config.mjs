@@ -46,7 +46,7 @@ const eslintConfig = tseslint.config(
     ignores: ["**/__tests__/**", "**/*.test.*"],
     rules: {
       "no-restricted-imports": ["error", {
-        patterns: [{ group: ["@/features/*", "@/app/*"], message: "Shared code must not depend on a feature or the app layer." }]
+        patterns: [{ group: ["@/features/**", "@/app/**"], message: "Shared code must not depend on a feature or the app layer." }]
       }]
     }
   },
@@ -56,8 +56,8 @@ const eslintConfig = tseslint.config(
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
-          { group: ["@/app/*"], message: "Features must not depend on the app layer." },
-          { group: ["@/features/*/pages/*"], message: "Only the router imports pages; share a component instead." }
+          { group: ["@/app/**"], message: "Features must not depend on the app layer." },
+          { group: ["@/features/*/pages/**"], message: "Only the router imports pages; share a component instead." }
         ]
       }]
     }

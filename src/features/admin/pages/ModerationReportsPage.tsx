@@ -225,7 +225,7 @@ export function ModerationReportsPage() {
           loading={<Skeleton variant="moderationRow" count={5} />}
           empty={
             <EmptyState
-          scene="magnifier"
+              scene="magnifier"
               title={emptyTitle}
               description={emptyDescription}
               actionLabel={hasSearch ? "Clear search" : undefined}
@@ -242,35 +242,59 @@ export function ModerationReportsPage() {
             </Card>
           }
         >
-          {() => (
-            <>
-              <ul className="flex flex-col gap-3">
-                {filtered.map((report: ReportAdmin) => (
-                  <li key={report.id}>
-                    <ModerationReportRow
-                      report={report}
-                      statusBadgeMap={statusBadgeMap}
-                      onAction={(action) => openActionModal(report, action)}
-                      isActing={actingId === report.id}
-                      actionsDisabled={actingId !== null}
-                    />
-                  </li>
-                ))}
-              </ul>
-              {hasNextPage ? (
-                <div className="mt-4 flex justify-center">
-                  <Button
-                    variant="secondary"
-                    size="compact"
-                    onClick={() => fetchNextPage()}
-                    loading={isFetchingNextPage}
-                  >
-                    Load more
-                  </Button>
-                </div>
-              ) : null}
-            </>
-          )}
+          {() =>
+            filtered.length === 0 ? (
+              <>
+                <EmptyState
+                  scene="magnifier"
+                  title={emptyTitle}
+                  description={emptyDescription}
+                  actionLabel={hasSearch ? "Clear search" : undefined}
+                  onAction={hasSearch ? () => setSearch("") : undefined}
+                />
+                {hasNextPage ? (
+                  <div className="mt-4 flex justify-center">
+                    <Button
+                      variant="secondary"
+                      size="compact"
+                      onClick={() => fetchNextPage()}
+                      loading={isFetchingNextPage}
+                    >
+                      Load more
+                    </Button>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <ul className="flex flex-col gap-3">
+                  {filtered.map((report: ReportAdmin) => (
+                    <li key={report.id}>
+                      <ModerationReportRow
+                        report={report}
+                        statusBadgeMap={statusBadgeMap}
+                        onAction={(action) => openActionModal(report, action)}
+                        isActing={actingId === report.id}
+                        actionsDisabled={actingId !== null}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                {hasNextPage ? (
+                  <div className="mt-4 flex justify-center">
+                    <Button
+                      variant="secondary"
+                      size="compact"
+                      onClick={() => fetchNextPage()}
+                      loading={isFetchingNextPage}
+                    >
+                      Load more
+                    </Button>
+                  </div>
+                ) : null}
+              </>
+            )
+          }
         </AsyncView>
       </div>
 

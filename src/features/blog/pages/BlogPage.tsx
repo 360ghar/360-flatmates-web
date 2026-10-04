@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { SeoHelmet, SITE_URL, buildCollectionPageSchema } from "@/lib/seo";
-import { useBlogCategories, useBlogPosts, useInfiniteBlogPosts } from "@/features/blog/hooks/useBlog";
+import { useBlogCategories, useInfiniteBlogPosts } from "@/features/blog/hooks/useBlog";
 import { BlogPostCard } from "@/features/blog/components/BlogPostCard";
 import { PaperMiniScene } from "@/components/paper/PaperScene";
 import { Button } from "@/components/ui/Button";
@@ -19,8 +19,7 @@ export function BlogPage() {
     () => ({ status: "published" as const, category_id: category === "all" ? undefined : Number(category) }),
     [category]
   );
-  const { data: firstPage, isLoading, isError, refetch } = useBlogPosts({ ...filters, limit: 12 });
-  const { data: infiniteData, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteBlogPosts(filters);
+  const { data: infiniteData, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteBlogPosts(filters);
 
   const collectionLd = buildCollectionPageSchema({
     name: "Flatmate Living Guides & Tips",
@@ -30,8 +29,8 @@ export function BlogPage() {
     breadcrumb
   });
 
-  // Prefer the infinite-query flat view; fall back to the first-page response.
-  const posts = (infiniteData ? infiniteData.pages.flatMap((page) => page?.items ?? []) : Array.isArray(firstPage) ? firstPage : []).filter(Boolean);
+  // Flat view of every loaded page. A malformed page contributes nothing.
+  const posts = (infiniteData?.pages.flatMap((page) => page?.items ?? []) ?? []).filter(Boolean);
   // A malformed response must not take the page down; topics are optional.
   const topics = Array.isArray(categories) ? categories : [];
   const categoryOptions = [{ value: "all", label: "All guides" }, ...topics.map((c) => ({ value: String(c.id), label: c.name }))];

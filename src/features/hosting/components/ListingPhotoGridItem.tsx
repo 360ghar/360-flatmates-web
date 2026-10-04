@@ -78,7 +78,7 @@ export function ListingPhotoGridItem({
           type="button"
           onClick={onRemove}
           disabled={removeDisabled}
-          className="absolute top-0 right-0 flex h-11 w-11 items-center justify-center rounded-full text-white transition-opacity before:absolute before:inset-2 before:-z-10 before:rounded-full before:bg-scrim/70 before:content-[''] disabled:opacity-40 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+          className="absolute top-0 right-0 flex h-11 w-11 items-center justify-center rounded-full text-white isolate transition-opacity before:absolute before:inset-2 before:-z-10 before:rounded-full before:bg-scrim/70 before:content-[''] disabled:opacity-40 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
           aria-label={`Remove photo ${index + 1}`}
         >
           <X aria-hidden="true" className="h-4 w-4" />

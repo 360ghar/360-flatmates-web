@@ -113,6 +113,34 @@ function MapFlyTo({ target }: { target: { lat: number; lng: number; zoom: number
   return null;
 }
 
+// ── Center/zoom sync: MapContainer only reads center/zoom on mount, so an
+//   external change (locate-me, profile-city seed) needs an explicit setView.
+//   Same reduced-motion rule as the cluster fly-to above.
+function MapCenterSync({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  const mountedRef = useRef(false);
+
+  useEffect(() => {
+    // Mount is already correct: MapContainer initialised from these props.
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      map.setView(center, zoom, { animate: false });
+    } else {
+      map.flyTo(center, zoom, { duration: 0.5 });
+    }
+    // Compare by value: the parent builds a fresh tuple every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, center[0], center[1], zoom]);
+
+  return null;
+}
+
 // ── Main MapView Component ─────────────────────────────────────
 
 export function MapView({
@@ -242,6 +270,7 @@ export function MapView({
           <MapEventHandler onViewportChange={onViewportChange} />
           <MapZoomControls onLocate={onLocate} />
           <MapFlyTo target={flyToTarget} />
+          <MapCenterSync center={center} zoom={zoom} />
 
           {/* Cluster markers */}
           {clusters.map((cluster) => (

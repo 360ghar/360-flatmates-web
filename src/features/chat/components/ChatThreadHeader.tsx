@@ -23,7 +23,7 @@ export function ChatThreadHeader({
   onRequestReport?: () => void;
   onRequestBlock?: () => void;
 }) {
-  const meta = [participant.compatibilityScore ? `${participant.compatibilityScore}% match` : null].filter(Boolean);
+  const meta = [participant.compatibilityScore != null ? `${participant.compatibilityScore}% match` : null].filter(Boolean);
   return (
     <header className="flex min-h-16 items-center gap-3 bg-surface px-3 shadow-[0_1px_0_var(--color-edge)] sm:px-4">
       {onBack ? (

@@ -80,7 +80,14 @@ export function LikesPage() {
               {
                 // Open the conversation with this match, not the inbox (W22).
                 onSuccess: (conversation) => navigate(`/chats/${conversation.id}`),
-                onError: () => navigate("/chats")
+                onError: (err) => {
+                  uiStore.getState().pushToast({
+                    type: "error",
+                    title: "Could not open the chat",
+                    description: userMessage(err)
+                  });
+                  navigate("/chats");
+                }
               }
             )
           }

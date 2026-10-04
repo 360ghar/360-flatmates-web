@@ -54,7 +54,7 @@ export function PhoneInput({
         className={cn(
           "group flex min-h-[var(--control-h-md)] items-center gap-2 rounded-[var(--radius-control)] border border-line bg-surface px-3 shadow-xs focus-within:border-accent focus-within:shadow-[0_0_0_1px_var(--color-accent)]",
           interactiveMotion,
-          error && "border-error shadow-[0_0_0_1px_var(--color-error)]",
+          error && "border-error shadow-[0_0_0_1px_var(--color-error)] focus-within:border-error focus-within:shadow-[0_0_0_1px_var(--color-error)]",
           disabled && "bg-paper-4"
         )}
       >

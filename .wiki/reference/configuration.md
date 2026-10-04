@@ -47,7 +47,7 @@ Build-time listing fetches (sitemap + per-listing prerender) gate themselves on 
 | `postcss.config.mjs` | PostCSS config. The only plugin is Tailwind v4's PostCSS integration. | `@tailwindcss/postcss` with no options (Tailwind v4 reads its config from CSS `@theme`, not a JS file). |
 | `netlify.toml` | Netlify deploy config. Runs `npm run build` and publishes `dist/`. | `build.command` `npm run build`; `build.publish` `dist`; `build.environment` sets `VITE_API_BASE_URL`. Build-time listing fetches gate on the auto-set `CONTEXT` variable, so no `PRERENDER_*` env var is needed. |
 | `src/lib/env.ts` | The runtime env validator. The single source of truth for what env vars exist and which are required. | `envSchema` is a Zod object; `getEnv()` parses `import.meta.env` once, caches, and throws a readable error on failure; `validateEnv()` is the bootstrap-friendly wrapper. |
-| `src/lib/seo/config.ts` | Derived runtime config. A single exported constant for the public base URL. | `BASE_URL` resolves to `window.location.origin` in the browser, or `https://360ghar.com` as a fallback (used during prerender). |
+| `src/lib/seo/config.ts` | Derived runtime config. A single exported constant for the public base URL. | `SITE_URL` is hardcoded to `https://360ghar.com` (consumed via `DEFAULT_OG_IMAGE` and the prerender/sitemap scripts). |
 | `.env.example` | The template for local `.env`. Documents the four `VITE_` vars plus the commented-out `VITE_AUTH_REDIRECT_URL`. | Copy to `.env` (or `.env.local`) and fill in real keys. |
 
 ### Build pipeline order
@@ -84,5 +84,5 @@ See [SEO and prerendering](../features/seo-prerendering.md) for the full prerend
 | `postcss.config.mjs` | Tailwind v4 PostCSS plugin |
 | `netlify.toml` | Netlify build command and environment |
 | `src/lib/env.ts` | Zod env schema, `getEnv()`, `validateEnv()` |
-| `src/lib/seo/config.ts` | Derived `BASE_URL` constant |
+| `src/lib/seo/config.ts` | Derived `SITE_URL` constant |
 | `.env.example` | Documented env var template |

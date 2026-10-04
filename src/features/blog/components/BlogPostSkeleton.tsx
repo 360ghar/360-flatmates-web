@@ -17,7 +17,7 @@ function BlogPostBones() {
       <div className={cn("h-8 w-24 rounded-cut-md", shimmer)} />
       <div className={cn("h-10 w-3/4 rounded-sm", shimmer)} />
       <div className={cn("h-5 w-1/2 rounded-sm", shimmer)} />
-      <div className={cn("mt-2 h-72 w-full rounded-cut-lg", shimmer)} />
+      <div className={cn("mt-2 aspect-[16/9] w-full rounded-cut-lg", shimmer)} />
       <div className="mt-2 flex flex-col gap-3">
         <div className={cn("h-4 w-full rounded-sm", shimmer)} />
         <div className={cn("h-4 w-full rounded-sm", shimmer)} />

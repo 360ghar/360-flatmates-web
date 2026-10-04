@@ -6,6 +6,7 @@ import { notificationToNotificationCardProps } from "@/features/notifications/li
 import type { FlatmatesNotification } from "@/lib/api/types";
 import { formatRelativeTime } from "@/lib/utils";
 import { resolveRedirect } from "@/lib/redirect";
+import { userMessage } from "@/lib/api/errors";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { NotificationCardSkeleton } from "@/features/notifications/components/NotificationCardSkeleton";
@@ -44,7 +45,8 @@ export function NotificationsPage() {
     refetch,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
+    failureReason
   } = useInfiniteNotifications();
   const notifications = useMemo(() => data?.pages.flatMap((page) => page.items ?? []), [data]);
   const markRead = useMarkNotificationRead();
@@ -99,7 +101,7 @@ export function NotificationsPage() {
       <AsyncView
         data={items}
         isLoading={isLoading}
-        error={error}
+        error={data === undefined ? error : null}
         isEmpty={(data) => data.length === 0}
         loading={
           <NotificationCardSkeleton
@@ -151,14 +153,21 @@ export function NotificationsPage() {
         )}
       </AsyncView>
       {hasNextPage ? (
-        <Button
-          variant="secondary"
-          className="self-center"
-          loading={isFetchingNextPage}
-          onClick={() => void fetchNextPage()}
-        >
-          Load older notifications
-        </Button>
+        <div className="flex flex-col items-center gap-1.5">
+          {data !== undefined && failureReason ? (
+            <p role="alert" className="text-body-sm text-danger">
+              {userMessage(failureReason, "Could not load older notifications.")}
+            </p>
+          ) : null}
+          <Button
+            variant="secondary"
+            className="self-center"
+            loading={isFetchingNextPage}
+            onClick={() => void fetchNextPage()}
+          >
+            {failureReason ? "Try again" : "Load older notifications"}
+          </Button>
+        </div>
       ) : null}
     </Page>
   );

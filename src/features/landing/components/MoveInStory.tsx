@@ -10,7 +10,7 @@ const MESSAGES: ChatMessageData[] = [
 ];
 
 const FACTS = [
-  { title: "Checked before it is live", body: "Every room is reviewed first: real photos, real rent, real dates." },
+  { title: "Checked before it is live", body: "Every room is reviewed first: rent and dates are checked before it goes live." },
   { title: "Every chat knows the room", body: "The listing and your score come with the first message. No cold hellos." },
   { title: "A visit in two taps", body: "Pick a slot in the chat. It lands in Visits for both of you." }
 ];

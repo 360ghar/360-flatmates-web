@@ -25,7 +25,7 @@ export function HeroSection() {
           <LandingSearch />
           <p className="mt-4 text-body-md text-ink-2">
             Have a room to share?{" "}
-            <Link to="/login?intent=list-property" className="font-semibold text-clay underline-offset-4 hover:underline">
+            <Link to="/login?redirect=/post" className="font-semibold text-clay underline-offset-4 hover:underline">
               List it free
             </Link>
           </p>

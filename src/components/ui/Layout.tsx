@@ -1,8 +1,9 @@
-import { createContext, useCallback, useContext, type HTMLAttributes, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useRef, type HTMLAttributes, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, WifiOff } from "lucide-react";
 import { Button } from "./Button";
 import { cn } from "./component-utils";
+import { useBannerHeightVar } from "@/hooks/useBannerHeightVar";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 /**
@@ -77,7 +78,7 @@ export function PageHeader({ title, description, actions, media, back, className
       ) : null}
       {media ? <div className="shrink-0">{media}</div> : null}
       <div className={cn("min-w-0 flex-1", media ? "basis-40 self-center" : "basis-64")}>
-        <h1 className={cn("text-h1 text-ink", chrome.titleInTopBar && !description && "max-md:sr-only")}>{title}</h1>
+        <h1 className={cn("text-h1 text-ink", chrome.titleInTopBar && "max-md:sr-only")}>{title}</h1>
         {description ? <p className="mt-2 max-w-[62ch] text-body-lg text-ink-2">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
@@ -147,7 +148,8 @@ export interface OfflineBannerProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /** In-flow scalloped strip (DESIGN.md §8). Renders only while offline and
- *  pushes the page down instead of covering the header. */
+ *  pushes the page down instead of covering the header. Publishes its height
+ *  as `--offline-banner-h` so viewport-sized views can subtract it. */
 export function OfflineBanner({
   label = "You are offline. Showing what was already loaded.",
   className,
@@ -156,8 +158,20 @@ export function OfflineBanner({
   const online = useOnlineStatus();
   if (online) return null;
 
+  return <OfflineBannerBar label={label} className={className} {...props} />;
+}
+
+function OfflineBannerBar({
+  label = "You are offline. Showing what was already loaded.",
+  className,
+  ...props
+}: OfflineBannerProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  useBannerHeightVar(ref, "--offline-banner-h");
+
   return (
     <div
+      ref={ref}
       role="status"
       className={cn(
         "paper-edge-scallop-bottom flex min-h-11 items-center justify-center gap-2 bg-warning-soft px-4 pb-4 pt-2.5 text-center text-body-md font-semibold text-warning-ink",

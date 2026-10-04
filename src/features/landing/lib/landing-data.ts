@@ -14,12 +14,12 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Are the listings real?",
     answer:
-      "Every listing is reviewed before it goes live: real photos, real rent and real availability. Owners and current flatmates confirm the details directly."
+      "Every listing is reviewed before it goes live: rent and availability are checked, and owners or current flatmates confirm the details directly. Photos are optional at posting — owners can add them after publishing."
   },
   {
     question: "Is my data safe?",
     answer:
-      "You sign in with a phone OTP, your number is never shared without your say, and we use industry-standard encryption. Lifestyle answers are used for matching only. We never sell or share them."
+      "You sign in with a phone OTP, your number is never shared without your say, and we use industry-standard encryption. Your lifestyle answers appear on your profile and in swipe so matches can see how you live. We never sell your data."
   },
   {
     question: "Can I visit before I commit?",

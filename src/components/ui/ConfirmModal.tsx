@@ -31,10 +31,15 @@ export function ConfirmModal({
   onClose,
   children
 }: ConfirmModalProps) {
+  // While the confirm is in flight the dialog must stay put: Escape,
+  // backdrop click and the close button all route through Modal's onClose.
+  const handleClose = () => {
+    if (!loading) onClose();
+  };
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       title={title}
       description={description}
       footer={

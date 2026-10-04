@@ -30,15 +30,15 @@ function mapDashboardMetrics(stats: RoomPosterDashboard): DashboardMetric[] {
     },
     {
       label: "Views",
-      value: formatCount(stats.total_views_30d)
+      value: formatCount(stats.total_views)
     },
     {
       label: "Likes",
-      value: formatCount(stats.total_likes_30d)
+      value: formatCount(stats.total_likes)
     },
     {
       label: "Visits",
-      value: formatCount(stats.total_visits_30d)
+      value: formatCount(stats.total_visits)
     }
   ];
 }
@@ -65,7 +65,7 @@ export function DashboardPage() {
     <Page width="wide">
       <PageHeader
         title="Dashboard"
-        description="How your listings did in the last 30 days."
+        description="Lifetime totals across all your listings."
         actions={
           <Button size="compact" leadingIcon={<Plus aria-hidden="true" className="h-4 w-4" />} onClick={() => navigate("/post")}>
             New listing

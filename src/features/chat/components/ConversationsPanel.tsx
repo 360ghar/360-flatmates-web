@@ -1,4 +1,5 @@
 import type { ConversationSummary } from "@/lib/api/types";
+import { userMessage } from "@/lib/api/errors";
 import { Button } from "@/components/ui/Button";
 import { ConversationRowSkeleton } from "@/features/chat/components/ConversationRowSkeleton";
 import { AsyncView, EmptyState } from "@/components/ui/StateViews";
@@ -13,6 +14,7 @@ export function ConversationsPanel({
   selectedId,
   hasNextPage,
   isFetchingNextPage,
+  fetchNextPageError,
   onLoadMore
 }: {
   conversations: ConversationSummary[] | undefined;
@@ -22,6 +24,8 @@ export function ConversationsPanel({
   selectedId?: string;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
+  /** A failed "load more" stays inline by the button; only the first load takes the full error view. */
+  fetchNextPageError?: Error | null;
   onLoadMore?: () => void;
 }) {
   return (
@@ -32,7 +36,7 @@ export function ConversationsPanel({
       <AsyncView
         data={conversations}
         isLoading={isLoading}
-        error={error}
+        error={conversations === undefined ? error : null}
         isEmpty={(data) => data.length === 0}
         loading={<ConversationRowSkeleton count={5} className="flex flex-col gap-1" />}
         empty={<EmptyState scene="chat" title="No conversations yet" description="Say hello to one of your matches." />}
@@ -49,9 +53,16 @@ export function ConversationsPanel({
               />
             ))}
             {hasNextPage ? (
-              <Button variant="tertiary" size="compact" className="self-center" loading={isFetchingNextPage} onClick={onLoadMore}>
-                Load more conversations
-              </Button>
+              <div className="flex flex-col items-center gap-1.5 py-1">
+                {fetchNextPageError ? (
+                  <p role="alert" className="text-body-sm text-danger">
+                    {userMessage(fetchNextPageError, "Could not load more conversations.")}
+                  </p>
+                ) : null}
+                <Button variant="tertiary" size="compact" className="self-center" loading={isFetchingNextPage} onClick={onLoadMore}>
+                  {fetchNextPageError ? "Try again" : "Load more conversations"}
+                </Button>
+              </div>
             ) : null}
           </div>
         )}

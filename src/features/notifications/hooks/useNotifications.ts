@@ -42,6 +42,33 @@ export function useNotifications(filters?: NotificationFilters) {
 }
 
 /**
+ * Server-side unread total for the shell badge.
+ *
+ * Counting `!is_read` over the first page undercounts once unread spans
+ * pages, so ask the backend for the unread slice (`is_read: false`) and
+ * read its `total`. `limit: 1` keeps the payload tiny; the count is what
+ * matters. Falls back to the fetched items when `total` is absent.
+ */
+export function useUnreadNotificationCount() {
+  const refetchInterval = useRealtimeFallbackInterval();
+  return useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: async () => {
+      const response = await apiClient.request<NotificationCursorPage>({
+        method: "GET",
+        path: "/flatmates/notifications",
+        query: { is_read: false, limit: 1 } as Record<string, QueryValue>
+      });
+      if (typeof response?.total === "number") return response.total;
+      return Array.isArray(response?.items)
+        ? response.items.filter((n) => !n.is_read).length
+        : 0;
+    },
+    refetchInterval
+  });
+}
+
+/**
  * Infinite cursor-paginated notifications query.
  *
  * The backend `/flatmates/notifications` endpoint now returns a

@@ -12,8 +12,8 @@ export function ListingCostBreakdown({
 }) {
   const rows = [
     { label: "Rent a month", value: formatCurrencyINR(price), strong: true },
-    { label: "Deposit", value: securityDeposit ? formatCurrencyINR(securityDeposit) : "Ask the owner" },
-    { label: "Maintenance", value: maintenanceCharges ? formatCurrencyINR(maintenanceCharges) : "Included" }
+    { label: "Deposit", value: securityDeposit != null ? formatCurrencyINR(securityDeposit) : "Ask the owner" },
+    { label: "Maintenance", value: maintenanceCharges != null ? formatCurrencyINR(maintenanceCharges) : "Included" }
   ];
   return (
     <section aria-labelledby="costs-heading" className="paper-grain rounded-hand bg-surface p-5 shadow-sm md:p-7">

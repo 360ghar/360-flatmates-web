@@ -22,9 +22,9 @@ export type AnalyticsPeriod = "7d" | "30d" | "all";
  *   - `active_listings`    properties whose lifecycle status is live/active
  *   - `pending_review`     properties awaiting moderation
  *   - `paused`             properties paused by the owner
- *   - `total_views_30d`    sum of view_count across all listings
- *   - `total_likes_30d`    sum of like_count across all listings
- *   - `total_visits_30d`   sum of user_scheduled_visit_count across listings
+ *   - `total_views`        lifetime sum of view_count across all listings
+ *   - `total_likes`        lifetime sum of like_count across all listings
+ *   - `total_visits`       lifetime sum of user_scheduled_visit_count across listings
  *   - `listings[]`         per-listing performance rows used by the table
  */
 function deriveDashboard(properties: Property[]): RoomPosterDashboard {
@@ -73,10 +73,10 @@ function deriveDashboard(properties: Property[]): RoomPosterDashboard {
     active_listings: activeListings,
     pending_review: pendingReview,
     paused,
-    total_views_30d: totalViews,
-    total_likes_30d: totalLikes,
-    total_conversations_30d: 0,
-    total_visits_30d: totalVisits,
+    total_views: totalViews,
+    total_likes: totalLikes,
+    total_conversations: 0,
+    total_visits: totalVisits,
     listings
   };
 }

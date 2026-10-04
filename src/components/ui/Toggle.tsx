@@ -32,7 +32,7 @@ export function Toggle({
         "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent before:absolute before:-inset-2 before:content-['']",
         interactiveMotion,
         focusRing,
-        checked ? "bg-accent" : "bg-paper-4",
+        checked ? "bg-accent" : "bg-ink-3",
         disabled && "cursor-not-allowed opacity-50",
         className
       )}

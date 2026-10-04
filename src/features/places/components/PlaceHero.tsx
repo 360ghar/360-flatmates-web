@@ -61,7 +61,7 @@ export function AreaLinks({ citySlug, areas }: { citySlug: string; areas: Readon
 }
 
 const FACTS = [
-  { title: "Checked before it is live", body: "Every listing is reviewed first: real photos, real rent, real dates." },
+  { title: "Checked before it is live", body: "Every listing is reviewed first: rent and dates are checked before it goes live." },
   { title: "Matched on daily life", body: "Sleep, tidiness, food, guests and work count as much as budget." },
   { title: "Your number stays yours", body: "Chat and book visits in the app. Share your phone only when you choose." }
 ];

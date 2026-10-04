@@ -89,7 +89,7 @@ export function AdminLayout() {
             })}
           </nav>
         </header>
-        <main id="main" className="px-[var(--gutter)] py-6 md:py-8">
+        <main id="main" className="scroll-mt-[calc(128px+env(safe-area-inset-top))] px-[var(--gutter)] py-6 md:py-8">
           <PageChromeContext.Provider value={{}}>
             <Outlet />
           </PageChromeContext.Provider>

@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useRef } from "react";
-import { ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronRight, Flag } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
+import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/queries/useProfiles";
+import { useReportUserMutation } from "@/hooks/queries/useReports";
+import { ReportUserModal } from "@/features/chat/components/ReportUserModal";
+import type { ChatReportReason } from "@/features/chat/lib/types";
 import { useCompatibility } from "@/features/profile/hooks/useCompatibility";
 import { useCreateConversation } from "@/features/chat/hooks/useConversations";
 import { useRecordProfileView } from "@/features/profile/hooks/useProfileViews";
@@ -33,6 +37,11 @@ export function PublicProfilePage() {
   const { data: compatibility } = useCompatibility(profileId);
   const createConversation = useCreateConversation();
   const recordProfileView = useRecordProfileView();
+  const { user } = useAuth();
+  const reportProfile = useReportUserMutation();
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<ChatReportReason>("spam");
+  const [reportNotes, setReportNotes] = useState("");
 
   // Record one profile-view event per (profile) view, with dwell time measured
   // on unmount / navigation. A ref-guard keeps it from firing on every render.
@@ -77,6 +86,31 @@ export function PublicProfilePage() {
       }
     );
   }, [createConversation, profileId, navigate]);
+
+  const handleOpenReport = useCallback(() => {
+    if (!user) {
+      navigate(`/login?redirect=${encodeURIComponent(`/profile/${profileId}`)}`);
+      return;
+    }
+    setIsReportOpen(true);
+  }, [navigate, profileId, user]);
+
+  const handleSubmitReport = useCallback(() => {
+    reportProfile.mutate(
+      { reported_user_id: profileId, reason: reportReason, notes: reportNotes.trim() || undefined },
+      {
+        onSuccess: () => {
+          uiStore.getState().pushToast({ type: "success", title: "Report submitted" });
+        },
+        onError: () => {
+          uiStore.getState().pushToast({ type: "error", title: "Could not submit report" });
+        }
+      }
+    );
+    setIsReportOpen(false);
+    setReportReason("spam");
+    setReportNotes("");
+  }, [profileId, reportNotes, reportProfile, reportReason]);
 
   if (isLoading) {
     return (
@@ -125,9 +159,20 @@ export function PublicProfilePage() {
                 ) : undefined
               }
               actions={
-                <Button loading={createConversation.isPending} onClick={handleStartConversation}>
-                  Message
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button loading={createConversation.isPending} onClick={handleStartConversation}>
+                    Message
+                  </Button>
+                  <Button
+                    variant="tertiary"
+                    size="compact"
+                    leadingIcon={<Flag aria-hidden="true" className="h-4 w-4" />}
+                    onClick={handleOpenReport}
+                    loading={reportProfile.isPending}
+                  >
+                    Report
+                  </Button>
+                </div>
               }
             />
 
@@ -153,6 +198,17 @@ export function PublicProfilePage() {
             ) : null}
 
             <FlatmateProfileDetail profile={profile} />
+
+            <ReportUserModal
+              open={isReportOpen}
+              participantName={profile.full_name}
+              reportReason={reportReason}
+              onReportReasonChange={setReportReason}
+              reportNotes={reportNotes}
+              onReportNotesChange={setReportNotes}
+              onClose={() => setIsReportOpen(false)}
+              onSubmit={handleSubmitReport}
+            />
           </>
         )}
       </Page>

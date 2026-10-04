@@ -10,9 +10,12 @@ import { useMatches } from "@/features/matches/hooks/useMatches";
 import { ConversationsPanel } from "@/features/chat/components/ConversationsPanel";
 import { MatchesStrip } from "@/features/chat/components/MatchesStrip";
 
-/* The shell's height below the top bar, less <main>'s padding (py-6, md:py-8). */
+/* The shell's height below the top bar, less <main>'s padding (py-6, md:py-8)
+ * and the in-flow banners above the thread (OfflineBanner, PWAInstallBanner),
+ * which publish their heights as root vars so the thread never slides behind
+ * the tab bar. Each var falls back to 0 when its banner is hidden. */
 const THREAD_HEIGHT =
-  "-mx-[var(--gutter)] -my-6 h-[calc(100dvh-var(--topbar-h)-var(--bottom-nav-h)-env(safe-area-inset-bottom))] md:mx-0 md:my-0 md:h-[calc(100dvh-var(--topbar-h)-64px)] md:min-h-[520px]";
+  "-mx-[var(--gutter)] -my-6 h-[calc(100dvh-var(--topbar-h)-var(--bottom-nav-h)-env(safe-area-inset-bottom)-var(--offline-banner-h,0px)-var(--pwa-banner-h,0px))] md:mx-0 md:my-0 md:h-[calc(100dvh-var(--topbar-h)-64px-var(--offline-banner-h,0px)-var(--pwa-banner-h,0px))] md:min-h-[520px]";
 
 /**
  * The chat list, and the thread route inside it. Below lg a thread takes the
@@ -61,6 +64,7 @@ export function ChatsPage() {
         selectedId={selectedId}
         hasNextPage={conversationsQuery.hasNextPage}
         isFetchingNextPage={conversationsQuery.isFetchingNextPage}
+        fetchNextPageError={conversations !== undefined ? (conversationsQuery.failureReason ?? null) : null}
         onLoadMore={() => void conversationsQuery.fetchNextPage()}
       />
     </>
@@ -69,7 +73,7 @@ export function ChatsPage() {
   if (!isSplit) return <Page>{list}</Page>;
 
   return (
-    <div className="page-fade mx-auto grid h-[calc(100dvh-var(--topbar-h)-64px)] min-h-[560px] max-w-[var(--page-max)] grid-cols-[340px_minmax(0,1fr)] gap-6">
+    <div className="page-fade mx-auto grid h-[calc(100dvh-var(--topbar-h)-64px-var(--offline-banner-h,0px)-var(--pwa-banner-h,0px))] min-h-[560px] max-w-[var(--page-max)] grid-cols-[340px_minmax(0,1fr)] gap-6">
       <div className="scrollbar-thin -mr-2 flex min-h-0 flex-col gap-6 overflow-y-auto pr-2">{list}</div>
       <div className="min-h-0">
         {outlet ?? (

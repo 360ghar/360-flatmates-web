@@ -9,6 +9,8 @@ export interface ProfileGridCardData {
   id: string;
   name: string;
   age?: number;
+  /** Privacy-bucketed age range the user chose; preferred over exact age. */
+  ageBucket?: string;
   location?: string;
   profession?: string;
   photoUrl?: string | null;
@@ -30,6 +32,7 @@ export interface ProfileGridCardProps extends HTMLAttributes<HTMLElement> {
  * line about them and one action. The name opens the profile.
  */
 export function ProfileGridCard({ profile, ctaLabel = "Match", blurred = false, onMatch, onOpen, className, ...props }: ProfileGridCardProps) {
+  const ageLabel = profile.ageBucket ?? (profile.age != null ? String(profile.age) : undefined);
   return (
     <article
       className={cn(
@@ -63,8 +66,8 @@ export function ProfileGridCard({ profile, ctaLabel = "Match", blurred = false, 
           )}
         </h3>
         <p className="mt-0.5 flex min-w-0 items-center gap-1 text-caption text-ink-3">
-          {profile.age ? <span className="tabular-nums">{profile.age}</span> : null}
-          {profile.age && profile.location ? <span aria-hidden="true">·</span> : null}
+          {ageLabel ? <span className="tabular-nums">{ageLabel}</span> : null}
+          {ageLabel && profile.location ? <span aria-hidden="true">·</span> : null}
           {profile.location ? (
             <>
               <MapPin aria-hidden="true" className="h-3 w-3 shrink-0" />

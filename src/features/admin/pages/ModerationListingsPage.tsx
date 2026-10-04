@@ -170,7 +170,7 @@ export function ModerationListingsPage() {
           loading={<Skeleton variant="moderationRow" count={5} />}
           empty={
             <EmptyState
-          scene="magnifier"
+              scene="magnifier"
               title={emptyTitle}
               description={emptyDescription}
               actionLabel={hasSearch ? "Clear search" : undefined}
@@ -187,38 +187,62 @@ export function ModerationListingsPage() {
             </Card>
           }
         >
-          {() => (
-            <>
-              <ul className="flex flex-col gap-3">
-                {filtered.map((listing: FlatmateListingAdmin) => (
-                  <li key={listing.id}>
-                    <ModerationListingRow
-                      listing={listing}
-                      onApprove={() => setApproveTarget(listing)}
-                      onReject={() => {
-                        setRejectTarget(listing);
-                        setRejectReason("");
-                      }}
-                      isActing={actingId === listing.id}
-                      actionsDisabled={actingId !== null}
-                    />
-                  </li>
-                ))}
-              </ul>
-              {hasNextPage ? (
-                <div className="mt-4 flex justify-center">
-                  <Button
-                    variant="secondary"
-                    size="compact"
-                    onClick={() => fetchNextPage()}
-                    loading={isFetchingNextPage}
-                  >
-                    Load more
-                  </Button>
-                </div>
-              ) : null}
-            </>
-          )}
+          {() =>
+            filtered.length === 0 ? (
+              <>
+                <EmptyState
+                  scene="magnifier"
+                  title={emptyTitle}
+                  description={emptyDescription}
+                  actionLabel={hasSearch ? "Clear search" : undefined}
+                  onAction={hasSearch ? () => setSearch("") : undefined}
+                />
+                {hasNextPage ? (
+                  <div className="mt-4 flex justify-center">
+                    <Button
+                      variant="secondary"
+                      size="compact"
+                      onClick={() => fetchNextPage()}
+                      loading={isFetchingNextPage}
+                    >
+                      Load more
+                    </Button>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <ul className="flex flex-col gap-3">
+                  {filtered.map((listing: FlatmateListingAdmin) => (
+                    <li key={listing.id}>
+                      <ModerationListingRow
+                        listing={listing}
+                        onApprove={() => setApproveTarget(listing)}
+                        onReject={() => {
+                          setRejectTarget(listing);
+                          setRejectReason("");
+                        }}
+                        isActing={actingId === listing.id}
+                        actionsDisabled={actingId !== null}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                {hasNextPage ? (
+                  <div className="mt-4 flex justify-center">
+                    <Button
+                      variant="secondary"
+                      size="compact"
+                      onClick={() => fetchNextPage()}
+                      loading={isFetchingNextPage}
+                    >
+                      Load more
+                    </Button>
+                  </div>
+                ) : null}
+              </>
+            )
+          }
         </AsyncView>
       </div>
 

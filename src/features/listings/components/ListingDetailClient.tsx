@@ -1,10 +1,13 @@
 import { useCallback, useContext, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check, MapPin } from "lucide-react";
+import { ArrowLeft, Check, Flag, MapPin } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateConversation } from "@/features/chat/hooks/useConversations";
+import { useReportUserMutation } from "@/hooks/queries/useReports";
+import { ReportUserModal } from "@/features/chat/components/ReportUserModal";
+import type { ChatReportReason } from "@/features/chat/lib/types";
 import { myProfileOptions } from "@/hooks/queries/useProfiles";
 import { useProperty } from "@/features/listings/hooks/useProperties";
 import { propertyToListingCardProps } from "@/features/listings/lib/adapters";
@@ -40,7 +43,11 @@ export default function ListingDetailClient() {
     enabled: Boolean(user)
   });
   const createConversation = useCreateConversation();
+  const reportListing = useReportUserMutation();
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<ChatReportReason>("spam");
+  const [reportNotes, setReportNotes] = useState("");
   // Inside the app shell the phone tab bar sits under the sticky contact bar.
   const { shell: hasAppBottomNav, titleInTopBar } = useContext(PageChromeContext);
   const goBack = useBack(hasAppBottomNav ? "/explore" : "/discover");
@@ -110,6 +117,36 @@ export default function ListingDetailClient() {
     propertyId,
     user
   ]);
+
+  const handleOpenReport = useCallback(() => {
+    if (!user) {
+      navigate(`/login?redirect=${encodeURIComponent(`/listing/${propertyId}`)}`);
+      return;
+    }
+    setIsReportOpen(true);
+  }, [navigate, propertyId, user]);
+
+  const handleSubmitReport = useCallback(() => {
+    reportListing.mutate(
+      {
+        property_id: propertyId,
+        ...(ownerId ? { reported_user_id: ownerId } : {}),
+        reason: reportReason,
+        notes: reportNotes.trim() || undefined
+      },
+      {
+        onSuccess: () => {
+          uiStore.getState().pushToast({ type: "success", title: "Report submitted" });
+        },
+        onError: () => {
+          uiStore.getState().pushToast({ type: "error", title: "Could not submit report" });
+        }
+      }
+    );
+    setIsReportOpen(false);
+    setReportReason("spam");
+    setReportNotes("");
+  }, [ownerId, propertyId, reportListing, reportNotes, reportReason]);
 
   // Guard against invalid IDs before rendering content
   if (!params.id || isNaN(propertyId) || propertyId <= 0) {
@@ -230,6 +267,20 @@ export default function ListingDetailClient() {
                 />
 
                 {property ? <ListingSocietyVibeCard property={property} /> : null}
+
+                {isOwnListing ? null : (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="tertiary"
+                      size="compact"
+                      leadingIcon={<Flag aria-hidden="true" className="h-4 w-4" />}
+                      onClick={handleOpenReport}
+                      loading={reportListing.isPending}
+                    >
+                      Report listing
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Sticky booking / host column */}
@@ -276,6 +327,19 @@ export default function ListingDetailClient() {
               property={property}
               open={isShareOpen}
               onClose={() => setIsShareOpen(false)}
+            />
+          )}
+
+          {property && (
+            <ReportUserModal
+              open={isReportOpen}
+              participantName={property.title ?? "this listing"}
+              reportReason={reportReason}
+              onReportReasonChange={setReportReason}
+              reportNotes={reportNotes}
+              onReportNotesChange={setReportNotes}
+              onClose={() => setIsReportOpen(false)}
+              onSubmit={handleSubmitReport}
             />
           )}
         </div>
