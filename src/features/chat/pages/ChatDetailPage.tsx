@@ -208,16 +208,15 @@ export function ChatDetailPage() {
     });
   }
 
-  function handleReport(reason: ChatReportReason, notes: string) {
-    reportUser.mutate(
-      { reported_user_id: conv.peer.id, reason, notes },
-      {
-        onSuccess: () => {
-          uiStore.getState().pushToast({ type: "success", title: "Report submitted" });
-        },
-        onError: () => {
-          uiStore.getState().pushToast({ type: "error", title: "Could not submit report" });
-        }
+  function handleReport(reason: ChatReportReason, notes: string): Promise<boolean> {
+    return reportUser.mutateAsync({ reported_user_id: conv.peer.id, reason, notes }).then(
+      () => {
+        uiStore.getState().pushToast({ type: "success", title: "Report submitted" });
+        return true;
+      },
+      () => {
+        uiStore.getState().pushToast({ type: "error", title: "Could not submit report" });
+        return false;
       }
     );
   }
@@ -231,6 +230,7 @@ export function ChatDetailPage() {
       onRetryMessage={handleRetryMessage}
       onBlock={handleBlock}
       onReport={handleReport}
+      reporting={reportUser.isPending}
       onScheduleVisit={handleScheduleVisit}
       onLoadMore={hasNextPage ? () => fetchNextPage() : undefined}
       loadingMore={isFetchingNextPage}

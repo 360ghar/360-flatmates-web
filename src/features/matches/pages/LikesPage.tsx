@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import { useNavigate } from "react-router";
 import { useIncomingLikesInfinite, useMatches, useUnmatchMutation } from "@/features/matches/hooks/useMatches";
 import { useSwipeAction } from "@/features/swipe/hooks/useSwipes";
@@ -20,6 +21,7 @@ export function LikesPage() {
   const swipeAction = useSwipeAction();
   const unmatch = useUnmatchMutation();
   const createConversation = useCreateConversation();
+  const mounted = useIsMounted();
 
   return (
     <Page width="wide">
@@ -58,9 +60,10 @@ export function LikesPage() {
                     type: "success",
                     title: result.did_match ? `You matched with ${like.peer.full_name}` : "Liked back"
                   });
-                  if (result.did_match && result.conversation_id) navigate(`/chats/${result.conversation_id}`);
+                  if (mounted.current && result.did_match && result.conversation_id) navigate(`/chats/${result.conversation_id}`);
                 },
                 (err) => {
+                  if (!mounted.current) return;
                   uiStore.getState().pushToast({ type: "error", title: "Could not match", description: userMessage(err) });
                 }
               )
@@ -79,8 +82,12 @@ export function LikesPage() {
             // would lose the first conversation's navigation.
             createConversation.mutateAsync({ match_id: match.id, peer_user_id: match.peer.id }).then(
               // Open the conversation with this match, not the inbox (W22).
-              (conversation) => navigate(`/chats/${conversation.id}`),
+              (conversation) => {
+                if (mounted.current) navigate(`/chats/${conversation.id}`);
+              },
               (err) => {
+                // A late answer must not pull the user back after they left this page.
+                if (!mounted.current) return;
                 uiStore.getState().pushToast({
                   type: "error",
                   title: "Could not open the chat",
