@@ -134,7 +134,7 @@ The prerender step, the sitemap generator, and `robots.txt` all agree on the sam
 
 | Bucket | Source | Examples |
 | --- | --- | --- |
-| Static public routes | `buildStaticRoutes()` in `scripts/lib/route-content.ts` (verified against `<PublicLayout>` in `src/app/routes.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, `/stats`, comparison and blog slugs |
+| Static public routes | `buildStaticRoutes()` in `scripts/lib/route-content.ts` (verified against `<PublicLayout>` in `src/app/routes.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, comparison and blog slugs |
 | City landing routes | Derived from `SUPPORTED_CITIES` in `src/lib/seo/config.ts` | `/cities/bangalore`, `/cities/gurugram` |
 | Neighborhood routes | Derived from `CITY_NEIGHBORHOODS` in `src/lib/seo/neighborhoods.ts` | `/cities/bangalore/koramangala`, `/cities/gurugram/cyber-city` |
 | Discoverable listing routes | Fetched at build time from `/properties` via `scripts/lib/listings.ts` | `/discover/:id` per active listing |
@@ -243,7 +243,7 @@ The file ends with `Host: https://360ghar.com` and `Sitemap: https://360ghar.com
 
 This is the SPA fallback for Netlify. Any request that does not match a real file in `dist/` falls through to `dist/index.html` with a 200 status, and React Router handles the route client-side. Real files on disk take precedence over the fallback, so the prerendered `dist/<route>/index.html` files are served directly for their routes. The precedence is what makes the prerendered output win for crawlers while keeping client-side routing intact for users navigating between prerendered and non-prerendered routes.
 
-The `/stats` route demonstrates the split. `src/components/page-clients/StatsClient.tsx` renders a prerenderable page with hardcoded city market statistics and a `useCities()` query for the city chips. The static marketing copy and the stats cards are baked into `dist/stats/index.html` by the prerender step, so crawlers see real numbers and real headings. The city chip selection and the underlying catalog query are interactive and hydrate on the client.
+The split works the same for any page: the static HTML carries the meta tags, JSON-LD and the main copy, and the client takes over once the bundle loads, so interactive parts (filters, queries) run in the browser.
 
 ## Key source files
 
