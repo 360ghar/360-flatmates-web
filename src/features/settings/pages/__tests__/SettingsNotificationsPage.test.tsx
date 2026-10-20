@@ -6,9 +6,15 @@ import { SettingsNotificationsPage } from "@/features/settings/pages/SettingsNot
 const { save, register, unregister } = vi.hoisted(() => ({
   save: vi.fn(), register: vi.fn(), unregister: vi.fn()
 }));
-vi.mock("@/hooks/queries/useProfiles", () => ({
-  useMyProfile: () => ({ data: { preferences: { push_notifications: false } } }),
-  useUpdateProfile: () => ({ mutateAsync: save })
+const SAVED = {
+  push_notifications: false,
+  email_notifications: true,
+  sms_notifications: false,
+  promotional_emails: false
+};
+vi.mock("@/features/settings/hooks/useNotificationSettings", () => ({
+  useNotificationSettings: () => ({ data: SAVED, isLoading: false, error: null, refetch: vi.fn() }),
+  useUpdateNotificationSettings: () => ({ mutateAsync: save })
 }));
 vi.mock("@/lib/push/fcm", () => ({ requestAndRegisterPush: register, unregisterDevice: unregister }));
 
@@ -36,12 +42,13 @@ describe("push preference persistence", () => {
     render(<MemoryRouter><SettingsNotificationsPage /></MemoryRouter>);
     toggle("Push notifications");
     await advance();
-    expect(save).toHaveBeenLastCalledWith({ preferences: expect.objectContaining({ push_notifications: true }) });
-    toggle("New matches");
+    expect(save).toHaveBeenLastCalledWith({ push_notifications: true });
+    toggle("Promotional emails");
     await act(async () => { permission.resolve(null); });
     await advance();
     expect(screen.getByRole("switch", { name: "Push notifications" })).toHaveAttribute("aria-checked", "false");
-    expect(save).toHaveBeenLastCalledWith({ preferences: expect.objectContaining({ push_notifications: false, new_matches: false }) });
+    // The edit made while permission was pending is kept and sent with the rollback.
+    expect(save).toHaveBeenLastCalledWith({ promotional_emails: true, push_notifications: false });
   });
 
   it("saves denial even when the permission prompt completes after unmount", async () => {
@@ -52,7 +59,7 @@ describe("push preference persistence", () => {
     await advance();
     unmount();
     await act(async () => { permission.resolve(null); });
-    expect(save).toHaveBeenLastCalledWith({ preferences: expect.objectContaining({ push_notifications: false }) });
+    expect(save).toHaveBeenLastCalledWith({ push_notifications: false });
   });
 
   it("ignores an older denial after another enable succeeds", async () => {
@@ -65,7 +72,7 @@ describe("push preference persistence", () => {
     await act(async () => { first.resolve(null); });
     await advance();
     expect(screen.getByRole("switch", { name: "Push notifications" })).toHaveAttribute("aria-checked", "true");
-    expect(save).toHaveBeenLastCalledWith({ preferences: expect.objectContaining({ push_notifications: true }) });
+    expect(save).toHaveBeenLastCalledWith({ push_notifications: true });
   });
 
   it("unregisters a late enable after the user switched push off", async () => {
@@ -77,7 +84,7 @@ describe("push preference persistence", () => {
     await act(async () => { permission.resolve("late-token"); });
     await advance();
     expect(unregister).toHaveBeenCalledWith("late-token");
-    expect(save).toHaveBeenLastCalledWith({ preferences: expect.objectContaining({ push_notifications: false }) });
+    expect(save).toHaveBeenLastCalledWith({ push_notifications: false });
   });
 
   it("orders rollback after an earlier save that is still pending", async () => {
@@ -92,6 +99,6 @@ describe("push preference persistence", () => {
     await advance();
     expect(save).toHaveBeenCalledTimes(1);
     await act(async () => { firstSave.resolve({}); });
-    expect(save).toHaveBeenLastCalledWith({ preferences: expect.objectContaining({ push_notifications: false }) });
+    expect(save).toHaveBeenLastCalledWith({ push_notifications: false });
   });
 });

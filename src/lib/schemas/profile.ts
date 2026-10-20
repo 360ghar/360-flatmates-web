@@ -9,7 +9,6 @@ import {
   guestsPolicySchema,
   jsonObjectSchema,
   moveInTimelineSchema,
-  nonNegotiableSchema,
   profileStatusSchema,
   sleepScheduleSchema,
   smokingTypeSchema,
@@ -41,10 +40,10 @@ export const flatmatesProfileSchema = z.object({
   email: z.email().optional().catch(undefined),
   phone: z.string().optional().catch(undefined),
   profile_image_url: optionalUrlSchema,
-  mode: flatmatesModeSchema.catch("seeker"),
+  // An unknown or missing mode reads as null: never a made-up real value.
+  mode: flatmatesModeSchema.nullable().catch(null),
   profile_status: profileStatusSchema.optional().catch(undefined),
   onboarding_completed: z.boolean().catch(false),
-  onboarding_current_step: z.number().int().min(0).max(11).optional().catch(undefined),
   bio: z.string().max(500).optional().catch(undefined),
   age: z.number().int().min(18).max(100).optional().catch(undefined),
   profession: z.string().max(120).optional().catch(undefined),
@@ -81,47 +80,13 @@ const _flatmatesProfileUpdateSchema = flatmatesProfileSchema
   .partial()
   .refine(budgetRefine.check, budgetRefine.opts);
 
-export const flatmatesPeerSchema = flatmatesProfileSchema
-  .pick({
-    id: true,
-    full_name: true,
-    profile_image_url: true,
-    mode: true,
-    city: true,
-    locality: true,
-    age: true,
-    age_bucket: true,
-    profession: true,
-    bio: true,
-    budget_min: true,
-    budget_max: true,
-    move_in_timeline: true,
-    sleep_schedule: true,
-    cleanliness: true,
-    food_habits: true,
-    smoking: true,
-    drinking: true,
-    native_place: true,
-    linkedin_url: true,
-    guests_policy: true,
-    work_style: true,
-    gender: true,
-    gender_preference: true
-  })
-  .extend({
-    non_negotiables: z.array(nonNegotiableSchema).default([]),
-    has_pets: z.boolean().optional(),
-    party_habit: z.string().optional(),
-    match_percentage: z.number().min(0).max(100).optional(),
-    phone_number: z.string().optional()
-  });
-
 export type LifestyleInput = z.infer<typeof lifestyleSchema>;
 export type FlatmatesProfileInput = z.infer<typeof flatmatesProfileSchema>;
+/** The signed-in user's profile as the UI reads it: `GET /flatmates/profile` parsed by {@link flatmatesProfileSchema}. */
+export type OwnProfile = FlatmatesProfileInput;
 export type FlatmatesProfileUpdateInput = z.infer<
   typeof _flatmatesProfileUpdateSchema
 >;
-export type FlatmatesPeerInput = z.infer<typeof flatmatesPeerSchema>;
 
 export const flatmatesRealtimeEventSchema = z.enum([
   "new_match",

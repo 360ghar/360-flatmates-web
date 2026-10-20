@@ -1,8 +1,8 @@
 import { Chip } from "@/components/ui/Chip";
 import { ChoiceChips } from "@/components/ui/ChoiceChips";
-import type { PropertyCreate } from "@/lib/api/types";
-import { FURNISHING_LEVEL_OPTIONS, LISTING_SHARING_TYPE_OPTIONS } from "@/lib/data";
-import type { FurnishingLevel } from "@/lib/data";
+import { FURNISHING_LEVEL_OPTIONS, LISTING_SHARING_TYPE_OPTIONS, LISTING_SHARING_TYPE_VALUES } from "@/lib/data";
+import type { FurnishingLevel, ListingSharingType } from "@/lib/data";
+import { readEnum } from "@/lib/api/schema";
 import { humanizeSnakeCase } from "@/lib/utils";
 
 const SHARING_TYPE_OPTIONS = LISTING_SHARING_TYPE_OPTIONS.map((o) => ({
@@ -20,10 +20,10 @@ export function PostRoomDetailsStep({
   onFurnishingLevelChange,
   onToggleFeature
 }: {
-  sharingType?: PropertyCreate["sharing_type"];
+  sharingType?: ListingSharingType;
   furnishingLevel?: FurnishingLevel;
   featuresSet: Set<string>;
-  onSharingTypeChange: (value: PropertyCreate["sharing_type"]) => void;
+  onSharingTypeChange: (value: ListingSharingType | undefined) => void;
   onFurnishingLevelChange: (value: FurnishingLevel) => void;
   onToggleFeature: (tag: string) => void;
 }) {
@@ -33,7 +33,7 @@ export function PostRoomDetailsStep({
       <div className="flex flex-col gap-4">
         <div>
           <p id="sharing-type-label" className="text-label-md text-ink-2 mb-2">Sharing type</p>
-          <ChoiceChips label="Sharing type" options={SHARING_TYPE_OPTIONS} value={sharingType} onValueChange={(value) => onSharingTypeChange(value as PropertyCreate["sharing_type"])} />
+          <ChoiceChips label="Sharing type" options={SHARING_TYPE_OPTIONS} value={sharingType} onValueChange={(value) => onSharingTypeChange(readEnum(LISTING_SHARING_TYPE_VALUES, value) ?? undefined)} />
         </div>
         <div>
           <p id="furnishing-level-label" className="text-label-md text-ink-2 mb-2">Furnishing level</p>

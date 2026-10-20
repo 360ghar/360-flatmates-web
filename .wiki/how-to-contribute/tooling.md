@@ -70,7 +70,7 @@ Test files are excluded from the production `tsconfig.json` `include` (the `src/
 
 | Command | Script | What it generates |
 | --- | --- | --- |
-| `npm run generate:api-types` | `openapi-typescript docs/flatmates-openapi.yaml -o src/lib/api/openapi-types.ts` | TypeScript types from the OpenAPI contract. Run this whenever the API contract changes and commit the result. |
+| `npm run generate:api-types` | `openapi-typescript openapi/openapi.json -o src/lib/api/openapi-types.ts` | TypeScript types from the OpenAPI contract. Run this whenever the API contract changes and commit the result. |
 | `npm run generate:pwa-icons` | `npx tsx scripts/generate-pwa-icons.ts` | The four PWA WebP icons from `public/favicon.svg` via `sharp`. |
 
 The build pipeline runs four more generators that do not have standalone npm scripts (they only run inside `npm run build`):

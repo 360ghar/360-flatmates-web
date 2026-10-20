@@ -1,23 +1,15 @@
 import { FactList } from "@/components/ui/FactList";
-import { formatDate, humanizeSnakeCase } from "@/lib/utils/format";
+import { formatDateOnly, humanizeSnakeCase } from "@/lib/utils/format";
 import type { SwipeProfile } from "@/features/swipe/lib/swipeDeck.types";
 
 export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
-  const listingAmenities = [
-    ...(profile.flatAmenities ?? []),
-    ...(profile.societyAmenities ?? []),
-    ...(profile.amenities ?? []),
-    ...(profile.features ?? []),
-    ...(profile.furnishing ?? [])
-  ].filter(Boolean);
+  const listingAmenities = [...(profile.amenities ?? []), ...(profile.features ?? [])].filter(Boolean);
   const uniqueAmenities = Array.from(new Set(listingAmenities));
   const hasListing =
     Boolean(profile.propertyTitle) ||
     profile.monthlyRent != null ||
     (profile.imageUrls && profile.imageUrls.length > 0) ||
     Boolean(profile.roomType) ||
-    Boolean(profile.flatConfig) ||
-    Boolean(profile.societyName) ||
     Boolean(profile.availableFrom);
   const floorLabel =
     profile.floor != null
@@ -40,13 +32,12 @@ export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
           ["Rent", profile.monthlyRent != null ? `${money(profile.monthlyRent)}/mo` : null],
           ["Deposit", money(profile.securityDeposit)],
           ["Maintenance", money(profile.maintenance)],
-          ["Flat", profile.flatConfig],
           ["Room", profile.roomType ? humanizeSnakeCase(profile.roomType) : null],
           ["Floor", floorLabel?.replace("Floor ", "")],
           ["Bedrooms", profile.bedrooms],
           ["Area", profile.areaSqft != null ? `${Math.round(profile.areaSqft)} sq ft` : null],
-          ["Where", profile.societyName ?? profile.location],
-          ["Available from", profile.availableFrom ? formatDate(profile.availableFrom) : null]
+          ["Where", profile.location],
+          ["Available from", profile.availableFrom ? formatDateOnly(profile.availableFrom) : null]
         ]}
       />
       {uniqueAmenities.length > 0 ? (

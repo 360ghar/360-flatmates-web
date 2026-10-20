@@ -1,5 +1,5 @@
+import { peerName } from "@/lib/api/peer-fields";
 import type { ConversationSummary, MessageOut } from "@/lib/api/types";
-import type { FlatmatesMode } from "@/lib/data";
 import type { ConversationRowData } from "@/features/chat/components/ConversationRow";
 import type { ChatMessageData } from "@/features/chat/components/ChatMessageBubble";
 import { formatMessageTime, formatRelativeTime } from "@/lib/utils";
@@ -10,12 +10,12 @@ export function conversationToConversationRowProps(
 ): ConversationRowData {
   return {
     id: String(conversation.id),
-    name: conversation.peer.full_name,
+    name: peerName(conversation.peer),
     avatarUrl: conversation.peer.profile_image_url,
-    mode: conversation.peer.mode as FlatmatesMode | undefined,
+    mode: conversation.peer.mode ?? undefined,
     preview: conversation.last_message_preview ?? "",
     propertyPreview: conversation.context_property?.title,
-    timestamp: formatRelativeTime(conversation.last_message_at),
+    timestamp: formatRelativeTime(conversation.last_message_at ?? undefined),
     unreadCount: conversation.unread_count
   };
 }

@@ -17,7 +17,8 @@ src/
     paper/      # Scene art: PaperScene, PaperMiniScene, CityArt, Stamp, NavIcons, generated art.ts
   hooks/        # Shared hooks (useAuth, useRouteHandle, useDirtyFormGuard, ...) + shared queries/
   lib/          # API client and types, Supabase, SEO, stores (ui, search), schemas, compatibility engine, utils
-docs/            # OpenAPI spec (flatmates-openapi.yaml)
+openapi/         # Backend OpenAPI snapshot (openapi.json)
+docs/            # Audit notes and OAuth setup
 plans/           # PRD (prd.md) and UI/UX specification (ui_ux.md)
 e2e/             # Playwright E2E specs
 tests/           # Integration and contract tests
@@ -34,7 +35,7 @@ Key reference documents:
 - **DESIGN.md** — single source of truth for all UI tokens, component specs, and visual targets
 - **plans/prd.md** — product requirements and technical architecture
 - **plans/ui_ux.md** — detailed page, component, and interaction specifications
-- **docs/flatmates-openapi.yaml** — backend API contract (FastAPI at `/api/v1`). Mirror of `360ghar-backend/docs/flatmates-openapi.yaml`; kept byte-identical. The authoritative full spec is `360ghar-backend/docs/openapi.json` (regenerate via `uv run python scripts/generate_openapi.py`). Update the backend copy first, then copy it here.
+- **openapi/openapi.json** — backend API contract (FastAPI at `/api/v1`). A copy of `360ghar-backend/docs/openapi.json` (regenerate that with `uv run python scripts/generate_openapi.py`). Run `npm run api:sync` to copy it here (set `BACKEND_DIR` when the backend is not at `../../360ghar/360ghar-backend`), then `npm run api:types` to regenerate `src/lib/api/openapi-types.ts`. API types in `src/lib/api/*.types.ts` are aliases of the generated `components["schemas"]`; keep hand-written types for UI-only shapes. Never edit `openapi-types.ts` by hand.
 
 ## Build, Test, and Development Commands
 
@@ -44,6 +45,8 @@ npm run build               # TypeScript check + PWA icon generation + sitemap g
 npm run lint                # ESLint check
 npm test                    # Run Vitest unit tests
 npm run test:e2e            # Playwright end-to-end tests
+npm run api:sync            # Copy the backend OpenAPI snapshot into openapi/openapi.json
+npm run api:types           # Regenerate src/lib/api/openapi-types.ts from openapi/openapi.json
 npm run generate:pwa-icons  # Generate PWA standard & maskable PNG icons from favicon.svg
 npm run generate:og-image   # Re-render og-image.webp + logo.webp with Chrome (output committed)
 ```
@@ -65,6 +68,18 @@ npm run generate:og-image   # Re-render og-image.webp + logo.webp with Chrome (o
 - **Components**: PascalCase files co-located with tests (`Button.tsx` + `Button.test.tsx` or `__tests__/Button.test.tsx`)
 - **Hooks**: camelCase prefixed with `use` (`useCompatibility.ts`)
 - **Dark mode**: default is light; toggled via `[data-theme="dark"]` on `<html>`; never hardcode light-only colors; toggle available on public header, app top bar, profile page, and `/settings/appearance`
+
+## API Contract Rules
+
+The backend contract is `openapi/openapi.json`. Types in `src/lib/api/*.types.ts` alias the generated schemas (`Schemas["Property"]` from `src/lib/api/schema.ts`). Keep hand-written types for UI-only shapes. No `any` and no `as unknown as` on API data.
+
+- **Errors**: read only `{ "error": { "code", "message", "details" } }` (`parseErrorEnvelope` in `client.ts`). A 422 lists field errors in `details.fields[{ field, msg, type }]`: a react-hook-form form puts them on its fields with `applyFieldErrors` (`src/lib/api/form-errors.ts`), any other caller shows `userMessage(err)`. A 429 or 503 `Retry-After` sets the query retry delay (`src/lib/api/retry.ts`). A 403 `USER_INACTIVE` ends the session (`setInactiveUserHandler`).
+- **Lists**: every list is a `CursorPage` (`items`, `next_cursor`, `has_more`, `limit`, `total`). `limit` is at most 100. A read that needs every row follows `next_cursor` with `fetchAllPages` (`src/lib/api/pagination.ts`). `total` is null unless `include_total=true`.
+- **Requests**: send only declared query and body keys (an unknown key is a 422). `tests/contracts/api-calls.contract.test.ts` checks every request path, method and literal query key against `openapi/openapi.json`. A PATCH sends the changed keys only, and `null` clears a field.
+- **Enums**: use the backend wire values. Read an unknown value as `null` (`readEnum`), never as a real value.
+- **Values**: money is a number. Datetimes are UTC ISO with `Z`; convert only for display. Date-only fields are `YYYY-MM-DD` (`formatDateOnly`).
+- **Contact**: a peer payload has no phone. Read a matched peer's phone only from `GET /flatmates/matches/{id}/contact`. `owner_contact` is the agent or company number unless the viewer owns the listing. A visit counterparty is name and avatar only.
+- **Persisted data**: every persisted store carries a schema version, is purged on sign-out, and never holds a response sent with `Cache-Control: no-store`.
 
 ## Testing Guidelines
 

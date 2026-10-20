@@ -5,36 +5,35 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
+import { fetchAllPages, MAX_PAGE_LIMIT } from "@/lib/api/pagination";
 import type {
+  OwnerListingStatus,
   Property,
   PropertyCreate,
   PropertyCursorPage,
-  PropertyUpdate,
-  PropertyImageUploadPayload,
-  PropertyImageUploadResponse,
-  BoostListingPayload,
-  BoostListingResponse,
-  RenewListingPayload
+  PropertyDetail,
+  PropertyUpdate
 } from "@/lib/api/types";
 
-
+/** Every listing of the signed-in owner. `GET /properties/me` pages 100 at a time. */
 export const myPropertiesOptions = queryOptions({
   queryKey: ["properties", "mine"],
-  queryFn: async () => {
-    const response = await apiClient.request<PropertyCursorPage>({
-      method: "GET",
-      path: "/properties/me"
-    });
-    // Defense-in-depth against envelope shape drift (see RCA for the
-    // notifications `h?.filter is not a function` regression).
-    return Array.isArray(response?.items) ? response.items : [];
-  }
+  queryFn: ({ signal }) =>
+    fetchAllPages<Property>((cursor) =>
+      apiClient.request<PropertyCursorPage>({
+        method: "GET",
+        path: "/properties/me",
+        query: { cursor, limit: MAX_PAGE_LIMIT },
+        signal
+      })
+    )
 });
+
 export function propertyOptions(id: number) {
   return queryOptions({
     queryKey: ["properties", id],
     queryFn: () =>
-      apiClient.request<Property>({
+      apiClient.request<PropertyDetail>({
         method: "GET",
         path: `/properties/${id}`
       }),
@@ -50,7 +49,7 @@ export function myPropertyOptions(id: number) {
   return queryOptions({
     queryKey: ["properties", id, "mine"],
     queryFn: ({ signal }) =>
-      apiClient.request<Property>({
+      apiClient.request<PropertyDetail>({
         method: "GET",
         path: `/properties/${id}`,
         signal
@@ -67,7 +66,7 @@ export function adminPropertyOptions(id: number) {
   return queryOptions({
     queryKey: ["properties", id, "admin"],
     queryFn: ({ signal }) =>
-      apiClient.request<Property>({
+      apiClient.request<PropertyDetail>({
         method: "GET",
         path: `/properties/${id}`,
         signal
@@ -96,66 +95,51 @@ export function useCreateProperty() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
   });
 }
 
-interface UpdateContext {
-  previousSingle: Property | undefined;
-  previousList: Property[] | undefined;
+function invalidateListing(queryClient: ReturnType<typeof useQueryClient>, id: number) {
+  queryClient.invalidateQueries({ queryKey: ["properties", id] });
+  queryClient.invalidateQueries({ queryKey: ["properties", id, "mine"] });
+  queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
 }
 
+/**
+ * Edit a listing's content. Send only the keys that changed. A content edit
+ * sends a live flatmate or PG listing back to review, so the server state
+ * differs from the form values: read the response, do not merge the payload.
+ */
 export function useUpdateProperty(id: number) {
   const queryClient = useQueryClient();
 
-  return useMutation<Property, Error, PropertyUpdate, UpdateContext>({
+  return useMutation<Property, Error, PropertyUpdate>({
     mutationFn: (payload) =>
       apiClient.request<Property>({
         method: "PUT",
         path: `/properties/${id}`,
         body: payload
       }),
+    onSuccess: () => invalidateListing(queryClient, id)
+  });
+}
 
-    onMutate: async (payload) => {
-      await queryClient.cancelQueries({ queryKey: ["properties", id] });
-      await queryClient.cancelQueries({ queryKey: ["properties", "mine"] });
+/**
+ * The owner's own availability action: pause a live listing or resume a paused
+ * one. It is separate from content edits. The server answers 409
+ * `LISTING_STATUS_CONFLICT` when the listing is in review or was rejected.
+ */
+export function useSetListingStatus(id: number) {
+  const queryClient = useQueryClient();
 
-      const previousSingle = queryClient.getQueryData<Property>(["properties", id]);
-      const previousList = queryClient.getQueryData<Property[]>(["properties", "mine"]);
-
-      if (previousSingle) {
-        queryClient.setQueryData<Property>(["properties", id], {
-          ...previousSingle,
-          ...payload
-        });
-      }
-
-      if (previousList) {
-        queryClient.setQueryData<Property[]>(
-          ["properties", "mine"],
-          previousList.map((p) => (p.id === id ? { ...p, ...payload } : p))
-        );
-      }
-
-      return { previousSingle, previousList };
-    },
-
-    onError: (_err, _payload, context) => {
-      if (context?.previousSingle !== undefined) {
-        queryClient.setQueryData(["properties", id], context.previousSingle);
-      }
-      if (context?.previousList !== undefined) {
-        queryClient.setQueryData(["properties", "mine"], context.previousList);
-      }
-    },
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["properties", id] });
-      queryClient.invalidateQueries({ queryKey: ["properties", id, "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    }
+  return useMutation<Property, Error, OwnerListingStatus>({
+    mutationFn: (status) =>
+      apiClient.request<Property>({
+        method: "PUT",
+        path: `/properties/${id}`,
+        body: { listing_preferences: { moderation_status: status } }
+      }),
+    onSuccess: () => invalidateListing(queryClient, id)
   });
 }
 
@@ -166,9 +150,10 @@ interface DeleteContext {
 export function useDeleteProperty(id: number) {
   const queryClient = useQueryClient();
 
-  return useMutation<{ message: string }, Error, void, DeleteContext>({
+  return useMutation<void, Error, void, DeleteContext>({
+    // 204, no body.
     mutationFn: () =>
-      apiClient.request<{ message: string }>({
+      apiClient.request<void>({
         method: "DELETE",
         path: `/properties/${id}`
       }),
@@ -196,96 +181,8 @@ export function useDeleteProperty(id: number) {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.removeQueries({ queryKey: ["properties", id] });
       queryClient.removeQueries({ queryKey: ["properties", id, "mine"] });
-    }
-  });
-}
-
-export function useUploadPropertyImage() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      propertyId,
-      payload
-    }: {
-      propertyId: number;
-      payload: PropertyImageUploadPayload;
-    }) =>
-      apiClient.request<PropertyImageUploadResponse>({
-        method: "POST",
-        path: `/properties/${propertyId}/images`,
-        body: payload
-      }),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["properties", variables.propertyId]
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["properties", variables.propertyId, "mine"]
-      });
-      queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    }
-  });
-}
-
-export function useBoostListing() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      propertyId,
-      payload
-    }: {
-      propertyId: number;
-      payload: BoostListingPayload;
-    }) =>
-      apiClient.request<BoostListingResponse>({
-        method: "POST",
-        path: `/properties/${propertyId}/boost`,
-        body: payload
-      }),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["properties", variables.propertyId]
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["properties", variables.propertyId, "mine"]
-      });
-      queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    }
-  });
-}
-
-export function useRenewListing() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      propertyId,
-      payload
-    }: {
-      propertyId: number;
-      payload: RenewListingPayload;
-    }) =>
-      apiClient.request<Property>({
-        method: "POST",
-        path: `/properties/${propertyId}/renew`,
-        body: payload
-      }),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["properties", variables.propertyId]
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["properties", variables.propertyId, "mine"]
-      });
-      queryClient.invalidateQueries({ queryKey: ["properties", "mine"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     }
   });
 }

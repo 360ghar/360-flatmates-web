@@ -1,6 +1,6 @@
 # API
 
-The 360 Flatmates web SPA consumes a shared FastAPI backend at `/api/v1`. The canonical contract is [`docs/flatmates-openapi.yaml`](../../docs/flatmates-openapi.yaml): it defines every path, request body, response shape, status code, and enum the backend recognizes, and it is the single source of truth when the SPA and the backend disagree.
+The 360 Flatmates web SPA consumes a shared FastAPI backend at `/api/v1`. The canonical contract is [`openapi/openapi.json`](../../openapi/openapi.json): it defines every path, request body, response shape, status code, and enum the backend recognizes, and it is the single source of truth when the SPA and the backend disagree.
 
 This section of the wiki describes how the contract is exposed to the frontend.
 

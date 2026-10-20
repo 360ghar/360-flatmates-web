@@ -1,19 +1,19 @@
+import { readListingPreferences } from "@/lib/api/property-fields";
 import type { Property } from "@/lib/api/types";
 
 /** The building and the people in it: society type, shared amenities, vibe. */
 export function ListingSocietyVibeCard({ property }: { property: Property }) {
-  const amenities = property.society_amenities ?? [];
-  const vibes = property.society_vibe_tags ?? [];
-  if (!property.society_type && amenities.length === 0 && vibes.length === 0) return null;
+  const { societyType, societyAmenities: amenities, societyVibeTags: vibes } = readListingPreferences(property);
+  if (!societyType && amenities.length === 0 && vibes.length === 0) return null;
 
   return (
     <section aria-labelledby="society-heading" className="paper-grain rounded-hand bg-surface p-5 shadow-sm md:p-7">
       <h2 id="society-heading" className="text-h3 text-ink">The society</h2>
       <dl className="mt-4 grid gap-5 sm:grid-cols-2">
-        {property.society_type ? (
+        {societyType ? (
           <div>
             <dt className="text-caption text-ink-3">Type</dt>
-            <dd className="mt-0.5 text-body-lg font-semibold capitalize text-ink">{property.society_type.replace(/_/g, " ")}</dd>
+            <dd className="mt-0.5 text-body-lg font-semibold capitalize text-ink">{societyType.replace(/_/g, " ")}</dd>
           </div>
         ) : null}
         {vibes.length > 0 ? (

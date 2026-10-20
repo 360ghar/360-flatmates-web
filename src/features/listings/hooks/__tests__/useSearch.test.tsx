@@ -51,19 +51,14 @@ describe("useSearch hooks", () => {
         total: 0,
         next_cursor: null,
         has_more: false,
-        limit: 20,
-        filters_applied: undefined,
-        search_center: undefined
+        limit: 20
       };
       const expectedCache = {
         results: [],
         total: 0,
         next_cursor: null,
         has_more: false,
-        limit: 20,
-        search_type: "listings",
-        filters_applied: undefined,
-        search_center: undefined
+        limit: 20
       };
       mockRequest.mockResolvedValue(rawApiResponse);
 

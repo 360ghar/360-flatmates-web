@@ -14,7 +14,7 @@ Features are cross-cutting user-visible and developer-visible capabilities. They
 
 ## Listing and management
 
-- [Listing management](listing-management.md) - the room poster flow: post, review, manage, edit, boost, renew.
+- [Listing management](listing-management.md) - the room poster flow: post, review, manage, edit, pause, resume.
 - [Dashboard and analytics](dashboard-analytics.md) - room poster metrics, per-listing analytics, public stats.
 - [Admin moderation](admin-moderation.md) - moderation queue for listings and reports, prescreen review.
 

@@ -15,8 +15,9 @@ const breadcrumb = [{ name: "Blog", item: `${SITE_URL}/blog` }];
 export function BlogPage() {
   const [category, setCategory] = useState("all");
   const { data: categories } = useBlogCategories();
+  // A public reader gets published posts only: sending `status` is a 422.
   const filters = useMemo(
-    () => ({ status: "published" as const, category_id: category === "all" ? undefined : Number(category) }),
+    () => ({ categories: category === "all" ? undefined : [category] }),
     [category]
   );
   const { data: infiniteData, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteBlogPosts(filters);
@@ -33,7 +34,11 @@ export function BlogPage() {
   const posts = (infiniteData?.pages.flatMap((page) => page?.items ?? []) ?? []).filter(Boolean);
   // A malformed response must not take the page down; topics are optional.
   const topics = Array.isArray(categories) ? categories : [];
-  const categoryOptions = [{ value: "all", label: "All guides" }, ...topics.map((c) => ({ value: String(c.id), label: c.name }))];
+  // The filter takes a slug. A category with no slug cannot be filtered on, so it is left out.
+  const categoryOptions = [
+    { value: "all", label: "All guides" },
+    ...topics.flatMap((c) => (c.slug ? [{ value: c.slug, label: c.name }] : []))
+  ];
 
   return (
     <>

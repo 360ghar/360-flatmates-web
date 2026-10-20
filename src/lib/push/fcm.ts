@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api";
 import { getEnv } from "@/lib/env";
-import type { RegisterDevicePayload } from "@/lib/api/types";
+import type { RegisterDevicePayload, UnregisterDevicePayload } from "@/lib/api/types";
 
 /**
  * Request browser notification permission via the Notification API.
@@ -66,12 +66,14 @@ export async function getFcmToken(): Promise<string | null> {
 
 /**
  * Register the current device token with the backend.
- * Calls POST /notifications/devices/register with `{ token, platform }`.
+ * Calls POST /notifications/devices/register with `{ token, platform, app_key }`.
+ * `app_key` is required: the web app is `flatmates`. The reply is 201 with the registration.
  */
 export async function registerDevice(token: string): Promise<void> {
   const payload: RegisterDevicePayload = {
     token,
-    platform: "web"
+    platform: "web",
+    app_key: "flatmates"
   };
 
   await apiClient.request({
@@ -83,13 +85,15 @@ export async function registerDevice(token: string): Promise<void> {
 
 /**
  * Unregister a device token from the backend.
- * Calls DELETE /notifications/devices/unregister?token=...
+ * Calls DELETE /notifications/devices/unregister with the token in a JSON body
+ * (a query string token is a 422). The reply is 204 with no body.
  */
 export async function unregisterDevice(token: string): Promise<void> {
+  const payload: UnregisterDevicePayload = { token };
   await apiClient.request({
     method: "DELETE",
     path: "/notifications/devices/unregister",
-    query: { token }
+    body: payload
   });
 }
 

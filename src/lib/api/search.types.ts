@@ -6,23 +6,21 @@ import type {
   GenderPreference,
   KitchenType,
   ListingSharingType,
-  MoveInTimeline,
+  MoveInFilter,
   PropertyPurpose,
   PropertyType,
   SearchSort,
-  SearchType,
-  SocietyType,
-  SwipeAction,
-  SwipeTargetType,
   VentilationType
 } from "@/lib/data";
-import type { FlatmatesPeer } from "./user.types";
 import type { Property } from "./property.types";
-import type { JsonObject } from "./common.types";
 
+/**
+ * Search filters of the web UI. Each key is a declared query key of
+ * `GET /properties`. `sharing_type`, `gender_preference` and `move_in` take
+ * one value: the backend does not accept lists for them.
+ */
 export interface SearchFilters {
   q?: string;
-  search_type?: SearchType;
   lat?: number;
   lng?: number;
   radius?: number;
@@ -30,14 +28,13 @@ export interface SearchFilters {
   purpose?: PropertyPurpose;
   city?: string;
   locality?: string;
-  sub_locality?: string;
   price_min?: number;
   price_max?: number;
   bedrooms_min?: number;
   bedrooms_max?: number;
-  sharing_type?: ListingSharingType[];
-  gender_preference?: GenderPreference[];
-  move_in?: MoveInTimeline[];
+  sharing_type?: ListingSharingType;
+  gender_preference?: GenderPreference;
+  move_in?: MoveInFilter;
   available_from?: string;
   amenities?: string[];
   features?: string[];
@@ -46,8 +43,6 @@ export interface SearchFilters {
   ventilation_type?: VentilationType[];
   windows_min?: number;
   has_lift?: boolean;
-  society_type?: SocietyType;
-  society_vibe_tags?: string[];
   sort_by?: SearchSort;
   semantic_search?: boolean;
   exclude_swiped?: boolean;
@@ -55,18 +50,13 @@ export interface SearchFilters {
   limit?: number;
 }
 
+/** One page of a property search, as the search hooks hand it to the UI. */
 export interface WebSearchResponse {
-  results: Array<Property | FlatmatesPeer>;
+  results: Property[];
   total?: number;
   next_cursor: string | null;
   has_more: boolean;
   limit: number;
-  search_type: SearchType;
-  filters_applied?: JsonObject;
-  search_center?: {
-    latitude?: number;
-    longitude?: number;
-  };
 }
 
 export interface SavedSearchCreate {
@@ -121,6 +111,20 @@ export interface SearchAlert {
   created_at?: string;
 }
 
+/** Map pin built from a listing in `GET /properties` (UI type). */
+export interface MapPin {
+  id: number;
+  lat: number;
+  lng: number;
+  title: string;
+  locality?: string | null;
+  monthly_rent?: number | null;
+  main_image_url?: string | null;
+  mode?: FlatmatesMode;
+  sharing_type?: ListingSharingType | null;
+  is_available?: boolean;
+}
+
 export interface MapCluster {
   id: string;
   lat: number;
@@ -136,20 +140,6 @@ export interface MapCluster {
   };
 }
 
-export interface MapPin {
-  id: number;
-  lat: number;
-  lng: number;
-  title: string;
-  locality?: string;
-  monthly_rent?: number;
-  main_image_url?: string;
-  mode?: FlatmatesMode;
-  sharing_type?: ListingSharingType;
-  is_available?: boolean;
-  move_in_timeline?: MoveInTimeline;
-}
-
 export interface MapViewFilters {
   lat: number;
   lng: number;
@@ -158,11 +148,11 @@ export interface MapViewFilters {
   property_type?: PropertyType[];
   price_min?: number;
   price_max?: number;
-  move_in?: MoveInTimeline[];
+  move_in?: MoveInFilter;
   city?: string;
   locality?: string;
-  sharing_type?: ListingSharingType[];
-  gender_preference?: GenderPreference[];
+  sharing_type?: ListingSharingType;
+  gender_preference?: GenderPreference;
   amenities?: string[];
   furnishing?: FurnishingLevel[];
   kitchen_type?: KitchenType[];
@@ -189,44 +179,4 @@ export interface SwipeDeckParams {
   city?: string;
   budget_min?: number;
   budget_max?: number;
-}
-
-export interface SwipeHistoryParams {
-  action?: SwipeAction;
-  target_type?: SwipeTargetType;
-  limit?: number;
-  cursor?: string;
-}
-
-export interface SwipeHistoryItem {
-  id: number;
-  target_type: SwipeTargetType;
-  action: SwipeAction;
-  target_user_id?: number;
-  property_id?: number;
-  did_match?: boolean;
-  created_at: string;
-}
-
-/** @deprecated Backend swipe history now returns a CursorPage; update callers. */
-export interface SwipeHistoryResponse {
-  history: SwipeHistoryItem[];
-  total: number;
-}
-
-export interface SwipeRequest {
-  target_type: SwipeTargetType;
-  action: SwipeAction;
-  property_id?: number;
-  target_user_id?: number;
-  context_property_id?: number;
-}
-
-export interface SwipeResult {
-  stored?: boolean;
-  action: SwipeAction;
-  target_type: SwipeTargetType;
-  conversation_id?: number;
-  match_id?: number;
-  did_match?: boolean;
 }

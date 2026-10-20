@@ -53,8 +53,6 @@ export const routeInventory = [
   "/notifications",
   "/saved-searches",
   "/alerts",
-  "/payments",
-  "/payments/new",
   "/my-listings/koramangala-studio/edit",
   "/my-listings/koramangala-studio",
   "/choose-role",

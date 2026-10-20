@@ -3,16 +3,19 @@ import { Modal } from "@/components/ui/Modal";
 import { TextArea, Input } from "@/components/ui/Input";
 import type { ReportAdmin } from "@/lib/api/types";
 import type { ReportAction } from "@/lib/data";
+import { adminUserName } from "@/lib/api/admin-fields";
 
 const actionLabels: Record<ReportAction, string> = {
   dismiss: "Dismiss",
-  warn: "Warn User",
-  suspend: "Suspend User"
+  warn_user: "Warn User",
+  suspend_user: "Suspend User",
+  escalate: "Escalate"
 };
 
 const actionVariantMap: Record<ReportAction, "primary" | "secondary" | "tertiary"> = {
-  suspend: "primary",
-  warn: "secondary",
+  suspend_user: "primary",
+  warn_user: "secondary",
+  escalate: "secondary",
   dismiss: "tertiary",
 };
 
@@ -43,13 +46,16 @@ export function ModerationReportActionModal({
   onSuspendConfirmationChange: (value: string) => void;
   onConfirm: () => void;
 }) {
+  const reporterName = report ? adminUserName(report.reporter, report.reporter_user_id) : "";
+  const reportedName = report ? adminUserName(report.reported_user, report.reported_user_id) : "";
+
   return (
     <Modal
       open={open}
       title={action ? actionLabels[action] : "Confirm Action"}
       description={
         report
-          ? `You are about to ${action ?? "act on"} the report by ${report.reporter_name} against ${report.reported_name}.`
+          ? `You are about to ${action ? actionLabels[action].toLowerCase() : "act on"} the report by ${reporterName} against ${reportedName}.`
           : ""
       }
       onClose={() => {
@@ -83,13 +89,13 @@ export function ModerationReportActionModal({
         {isSuspend && report ? (
           <div className="rounded-cut-md border border-error/30 bg-error-soft p-3 text-caption text-error">
             <p className="font-semibold">
-              Suspending will hide {report.reported_name}'s account from
+              Suspending will hide {reportedName}'s account from
               discovery and prevent them from signing in.
             </p>
             <p className="mt-1 text-ink-2">
               To confirm, type{" "}
               <span className="font-sans font-semibold text-ink">
-                {report.reported_name}
+                {reportedName}
               </span>{" "}
               or{" "}
               <span className="font-sans font-semibold text-ink">SUSPEND</span>{" "}
@@ -100,7 +106,7 @@ export function ModerationReportActionModal({
         {isSuspend ? (
           <Input
             label="Confirm suspension"
-            placeholder={`Type "${report?.reported_name ?? "SUSPEND"}" or SUSPEND`}
+            placeholder={`Type "${report ? reportedName : "SUSPEND"}" or SUSPEND`}
             value={suspendConfirmation}
             onChange={(e) => onSuspendConfirmationChange(e.target.value)}
             autoComplete="off"

@@ -129,7 +129,7 @@ Real-time events arrive over the Supabase private Broadcast channel from `/flatm
 | `src/app/providers.tsx` | `QueryClient` construction, sign-out cache clear, retry policy |
 | `src/hooks/queries/` | Flat re-export of every query and mutation hook |
 | `src/hooks/queries/useProfiles.ts` | Profile read/update/create/delete-account (seed-then-invalidate) |
-| `src/features/listings/hooks/useProperties.ts` | Property CRUD, image upload, boost, renew |
+| `src/features/listings/hooks/useProperties.ts` | Property CRUD, owner pause and resume |
 | `src/features/listings/hooks/useSearch.ts` | Web search (query + infinite), saved searches, search alerts |
 | `src/features/swipe/hooks/useSwipes.ts` | Swipe deck + swipe action |
 | `src/features/profile/hooks/useCompatibility.ts` | Per-peer compatibility breakdown |

@@ -1,14 +1,14 @@
 import { Input } from "@/components/ui/Input";
-import type { PropertyCreate } from "@/lib/api/types";
+import type { ListingDraftForm } from "@/features/hosting/lib/listing-payload";
 
 export function PostLocationStep({
   form,
   showStepError,
   onChange
 }: {
-  form: Partial<PropertyCreate>;
+  form: ListingDraftForm;
   showStepError: boolean;
-  onChange: (patch: Partial<PropertyCreate>) => void;
+  onChange: (patch: ListingDraftForm) => void;
 }) {
   return (
     <div className="flex flex-col gap-5">

@@ -1,27 +1,35 @@
-import { userMessage } from "@/lib/api/errors";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
-import { useBatchDeleteMedia } from "@/features/hosting/hooks/useBatch";
-import { useUpdateProperty, useUploadPropertyImage } from "@/features/listings/hooks/useProperties";
-import { useImageUpload } from "@/features/hosting/hooks/useImageUpload";
+import { useUpdateProperty } from "@/features/listings/hooks/useProperties";
+import { useListingPhotoUpload } from "@/features/hosting/hooks/useListingPhotoUpload";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ListingPhotoGridItem } from "./ListingPhotoGridItem";
 
+/**
+ * Photos of a listing: add, remove one or several, or choose the main photo.
+ * The backend takes photos as hosted URLs, so a new photo is uploaded first
+ * (`POST /upload`) and the whole list goes back as `image_urls`.
+ */
 export function ListingPhotoManager({
   propertyId,
-  imageUrls
+  imageUrls,
+  goesBackToReview = false
 }: {
   propertyId: number;
   imageUrls: string[];
+  /** The listing is live: a photo change is a content edit and sends it back to review. */
+  goesBackToReview?: boolean;
 }) {
   const updateProperty = useUpdateProperty(propertyId);
-  const uploadImage = useUploadPropertyImage();
-  const batchDeleteMedia = useBatchDeleteMedia();
-  const { upload: uploadImageFile } = useImageUpload();
+  const { upload, uploadingCount } = useListingPhotoUpload();
+  // An upload can outlast a refetch: append to the newest list, not the one at pick time.
+  const imageUrlsRef = useRef(imageUrls);
+  useEffect(() => {
+    imageUrlsRef.current = imageUrls;
+  }, [imageUrls]);
 
-  const [imageUploading, setImageUploading] = useState(false);
   const [multiSelect, setMultiSelect] = useState(false);
   const [selectedPhotoIndexes, setSelectedPhotoIndexes] = useState<Set<number>>(new Set());
 
@@ -34,135 +42,52 @@ export function ListingPhotoManager({
     });
   };
 
-  const handleDeleteSelectedPhotos = () => {
-    const selected = imageUrls.filter((_, i) => selectedPhotoIndexes.has(i));
-    if (selected.length === 0) return;
-
-    const remaining = imageUrls.filter((_, i) => !selectedPhotoIndexes.has(i));
-
-    // Update the listing first so the UI is never out of sync with the
-    // property record, then best-effort delete the underlying storage files.
-    updateProperty.mutate(
-      { image_urls: remaining },
-      {
-        onSuccess: () => {
-          setSelectedPhotoIndexes(new Set());
-          setMultiSelect(false);
-          batchDeleteMedia.mutate(
-            { media_ids: selected },
-            {
-              onSuccess: (result) => {
-                uiStore.getState().pushToast({
-                  type: result.failed.length === 0 ? "success" : "warning",
-                  title: `Deleted ${result.deleted.length} photo${result.deleted.length === 1 ? "" : "s"}`,
-                  description:
-                    result.failed.length > 0
-                      ? `${result.failed.length} could not be removed`
-                      : undefined
-                });
-              },
-              onError: () => {
-                uiStore.getState().pushToast({
-                  type: "warning",
-                  title: "Photos removed from listing",
-                  description: "Some files could not be deleted from storage."
-                });
-              }
-            }
-          );
-        },
-        onError: () => {
-          uiStore.getState().pushToast({
-            type: "error",
-            title: "Could not remove photos from listing"
-          });
-        }
-      }
-    );
-  };
-
-  function removeImageAt(index: number) {
-    const url = imageUrls[index];
-    const next = imageUrls.filter((_, i) => i !== index);
-    if (!url) {
-      updateProperty.mutate({ image_urls: next });
-      return;
-    }
+  function savePhotos(next: string[], failureTitle: string, onDone?: () => void) {
     updateProperty.mutate(
       { image_urls: next },
       {
-        onSuccess: () => {
-          batchDeleteMedia.mutate(
-            { media_ids: [url] },
-            {
-              onError: () => {
-                uiStore.getState().pushToast({
-                  type: "warning",
-                  title: "Photo removed from listing",
-                  description: "The file could not be deleted from storage."
-                });
-              }
-            }
-          );
-        },
+        onSuccess: onDone,
         onError: () => {
-          uiStore.getState().pushToast({
-            type: "error",
-            title: "Could not remove photo"
-          });
+          uiStore.getState().pushToast({ type: "error", title: failureTitle });
         }
       }
+    );
+  }
+
+  const handleDeleteSelectedPhotos = () => {
+    if (selectedPhotoIndexes.size === 0) return;
+    const remaining = imageUrls.filter((_, i) => !selectedPhotoIndexes.has(i));
+    savePhotos(remaining, "Could not remove photos from listing", () => {
+      setSelectedPhotoIndexes(new Set());
+      setMultiSelect(false);
+    });
+  };
+
+  async function addPhotos(files: File[]) {
+    const { urls, failed } = await upload(files);
+    if (urls.length > 0) savePhotos([...imageUrlsRef.current, ...urls], "Could not add photos");
+    if (failed > 0) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: failed === 1 ? "A photo did not upload" : `${failed} photos did not upload`,
+        description: "Check your connection and try again."
+      });
+    }
+  }
+
+  function removeImageAt(index: number) {
+    savePhotos(
+      imageUrls.filter((_, i) => i !== index),
+      "Could not remove photo"
     );
   }
 
   function setImageAsMain(index: number) {
     if (index === 0) return;
-    const next = [imageUrls[index], ...imageUrls.filter((_, i) => i !== index)];
-    updateProperty.mutate({ image_urls: next });
-  }
-
-  async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setImageUploading(true);
-
-    try {
-      const dataUrl = await uploadImageFile(file);
-
-      uploadImage.mutate(
-        {
-          propertyId,
-          payload: { image_url: dataUrl, is_main: imageUrls.length === 0 }
-        },
-        {
-          onSuccess: () => {
-            uiStore.getState().pushToast({
-              type: "success",
-              title: "Photo added",
-              description: "Your photo has been uploaded."
-            });
-          },
-          onError: (err) => {
-            uiStore.getState().pushToast({
-              type: "error",
-              title: "Upload failed",
-              description: userMessage(err, "Could not upload photo.")
-            });
-          },
-          onSettled: () => {
-            setImageUploading(false);
-          }
-        }
-      );
-    } catch {
-      setImageUploading(false);
-      uiStore.getState().pushToast({
-        type: "error",
-        title: "Upload failed",
-        description: "Could not read the selected file."
-      });
-    }
+    savePhotos(
+      [imageUrls[index], ...imageUrls.filter((_, i) => i !== index)],
+      "Could not change the main photo"
+    );
   }
 
   return (
@@ -191,7 +116,12 @@ export function ListingPhotoManager({
           </div>
         ) : null}
       </div>
-      {imageUrls.length > 0 && (
+      {goesBackToReview ? (
+        <p className="text-body-sm text-ink-3" role="note">
+          Adding or removing a photo, or changing the main photo, sends your live listing back to review.
+        </p>
+      ) : null}
+      {imageUrls.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {imageUrls.map((url, index) => (
             <ListingPhotoGridItem
@@ -200,7 +130,7 @@ export function ListingPhotoManager({
               index={index}
               isSelected={selectedPhotoIndexes.has(index)}
               multiSelect={multiSelect}
-              removeDisabled={updateProperty.isPending || batchDeleteMedia.isPending}
+              removeDisabled={updateProperty.isPending}
               setMainDisabled={updateProperty.isPending}
               onToggleSelect={() => handleTogglePhoto(index)}
               onRemove={() => removeImageAt(index)}
@@ -208,6 +138,8 @@ export function ListingPhotoManager({
             />
           ))}
         </div>
+      ) : (
+        <p className="text-body-md text-ink-3">This listing has no photos.</p>
       )}
       {multiSelect ? (
         <div className="flex items-center justify-between gap-2 rounded-cut-md bg-surface-soft p-3">
@@ -227,28 +159,34 @@ export function ListingPhotoManager({
               variant="primary"
               size="compact"
               onClick={handleDeleteSelectedPhotos}
-              disabled={
-                selectedPhotoIndexes.size === 0 ||
-                updateProperty.isPending ||
-                batchDeleteMedia.isPending
-              }
+              disabled={selectedPhotoIndexes.size === 0 || updateProperty.isPending}
             >
-              {updateProperty.isPending || batchDeleteMedia.isPending
+              {updateProperty.isPending
                 ? "Deleting…"
                 : `Delete ${selectedPhotoIndexes.size || ""}`.trim()}
             </Button>
           </div>
         </div>
       ) : null}
-      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-cut-md border-2 border-dashed border-line bg-surface-soft px-4 py-3 text-body-md text-ink-2 transition-colors hover:border-accent/40 hover:bg-accent-soft">
+      <label
+        className={`flex items-center justify-center gap-2 rounded-cut-md border-2 border-dashed border-line bg-surface-soft px-4 py-3 text-body-md text-ink-2 transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent ${
+          uploadingCount > 0 ? "cursor-progress" : "cursor-pointer hover:border-accent/40 hover:bg-accent-soft"
+        }`}
+      >
         <input
           type="file"
           accept="image/*"
+          multiple
           className="sr-only"
-          onChange={handleImageUpload}
-          disabled={imageUploading}
+          disabled={uploadingCount > 0}
+          onChange={(e) => {
+            void addPhotos(Array.from(e.currentTarget.files ?? []));
+            e.currentTarget.value = "";
+          }}
         />
-        {imageUploading ? "Uploading..." : "Add Photo"}
+        <span role="status">
+          {uploadingCount > 0 ? `Uploading ${uploadingCount} photo${uploadingCount > 1 ? "s" : ""}…` : "Add photos"}
+        </span>
       </label>
     </Card>
   );

@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-Zod schemas under `src/lib/schemas/` are the client-side mirror of the FastAPI backend contract in `docs/flatmates-openapi.yaml`. They serve three jobs: they validate form input before it is sent, they validate persisted drafts when they are rehydrated from `localStorage`, and they provide the TypeScript types that flow through components and hooks. Everything is re-exported from `src/lib/schemas/index.ts`.
+Zod schemas under `src/lib/schemas/` are the client-side mirror of the FastAPI backend contract in `openapi/openapi.json`. They serve three jobs: they validate form input before it is sent, they validate persisted drafts when they are rehydrated from `localStorage`, and they provide the TypeScript types that flow through components and hooks. Everything is re-exported from `src/lib/schemas/index.ts`.
 
 ## How schemas mirror the backend
 

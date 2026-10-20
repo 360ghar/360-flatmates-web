@@ -1,13 +1,15 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type InfiniteData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import { uiStore } from "@/lib/stores/ui-store";
 import type {
+  FlatmateVisitUpdate,
   Visit,
   VisitCursorPage,
   VisitCreate,
   VisitUpdate,
   VisitCancel,
-  VisitFilters
+  VisitFilters,
+  VisitReschedule
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
@@ -73,29 +75,16 @@ export function useVisit(id: number) {
 }
 
 /**
- * Returns true if the API would accept a status change from `from` to `to`.
- * Mirrors the server-side state machine so the client can short-circuit
- * obviously invalid transitions. The server still enforces; this guard
- * exists only to prevent wasted requests and confusing toasts.
+ * Returns true if `PUT /visits/{id}` would accept a status change from `from`
+ * to `to`. The route takes `status: "confirmed"` and nothing else: a cancel, a
+ * reschedule and a completion each have their own route (any other status is a
+ * 422). The server still enforces this; the guard only saves a wasted request.
  */
 export function canTransitionVisitStatus(
   from: Visit["status"] | undefined,
   to: Visit["status"]
 ): boolean {
-  if (from === to) return false;
-  if (!from) return false;
-
-  switch (from) {
-    case "requested":
-      return to === "confirmed" || to === "cancelled" || to === "reschedule_suggested";
-    case "confirmed":
-      return to === "completed" || to === "cancelled";
-    case "reschedule_suggested":
-      return to === "confirmed" || to === "cancelled";
-    case "completed":
-    case "cancelled":
-      return false;
-  }
+  return to === "confirmed" && (from === "requested" || from === "reschedule_suggested");
 }
 
 /** Extract the local YYYY-MM-DD key from a `scheduled_date` string. */
@@ -119,10 +108,11 @@ export function useCreateVisit() {
       // double-booking the same day for the same property.
       const dayKey = localDayKey(payload.scheduled_date);
       if (dayKey) {
-        const existing =
-          queryClient.getQueryData<Visit[]>(["visits", undefined]) ??
-          queryClient.getQueryData<Visit[]>(["visits", {}]);
-        const conflict = existing?.find((visit) => {
+        // The visits list is the infinite query, so its cached pages hold the visits to check.
+        const existing = queryClient
+          .getQueriesData<InfiniteData<VisitCursorPage>>({ queryKey: ["visits", "infinite"] })
+          .flatMap(([, data]) => data?.pages.flatMap((page) => page.items) ?? []);
+        const conflict = existing.find((visit) => {
           if (visit.property_id !== payload.property_id) return false;
           if (visit.status === "cancelled" || visit.status === "completed") return false;
           return localDayKey(visit.scheduled_date) === dayKey;
@@ -148,29 +138,28 @@ export function useCreateVisit() {
   });
 }
 
-/** Ack shape from `PUT /flatmates/visits/{id}` (not a full Visit resource). */
-interface FlatmateVisitUpdateAck {
-  id: number;
-  status: Visit["status"];
-  updated: boolean;
-}
-
 type UpdateVisitResult =
   | { kind: "property_tour"; visit: Visit }
   | { kind: "flatmate_meet" };
 
+/**
+ * Change a visit: confirm it (`status: "confirmed"`), or save notes, feedback and
+ * follow-up. A reschedule has its own route ({@link useRescheduleVisit}) and so
+ * does a cancel ({@link useCancelVisit}): `PUT /visits/{id}` rejects both.
+ */
 export function useUpdateVisit(id: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: VisitUpdate): Promise<UpdateVisitResult> => {
+    mutationFn: async (update: VisitUpdate): Promise<UpdateVisitResult> => {
+      let payload = update;
       // Guard against bad IDs (mirrors `useVisit`).
       if (!Number.isFinite(id) || id <= 0) {
         return Promise.reject(new Error("Invalid visit id"));
       }
 
       // Prefer detail cache; on cold cache fetch once so we route by visit_context
-      // correctly (flatmate meets must not hit PUT /visits/{id}).
+      // correctly (a flatmate meet confirms through its own route).
       let current = queryClient.getQueryData<Visit>(["visits", id]);
       if (!current) {
         current = await apiClient.request<Visit>({
@@ -181,9 +170,9 @@ export function useUpdateVisit(id: number) {
       }
 
       // Client-side status transition guard. Only enforced when the payload
-      // includes a status change; non-status updates (date, notes, feedback)
+      // includes a status change; non-status updates (notes, feedback)
       // are still allowed regardless of current state.
-      if (payload.status !== undefined) {
+      if (payload.status != null) {
         if (!canTransitionVisitStatus(current.status, payload.status)) {
           return Promise.reject(
             new Error(
@@ -193,16 +182,21 @@ export function useUpdateVisit(id: number) {
         }
       }
 
-      // Flatmate meets use a scoped endpoint that returns a minimal ack, not a
-      // full Visit — never seed the detail cache with that payload.
-      const isFlatmateMeet = current.visit_context === "flatmate_meet";
-      if (isFlatmateMeet) {
-        await apiClient.request<FlatmateVisitUpdateAck>({
+      // A flatmate meet changes status through a scoped endpoint that also pushes
+      // a realtime update to both people. That route takes only `status` and
+      // `scheduled_date` and returns `{ id, status }`, not a Visit: never seed the
+      // detail cache with it. Notes and feedback still go to `PUT /visits/{id}`,
+      // which lets either person of a meet update it.
+      if (current.visit_context === "flatmate_meet" && payload.status != null) {
+        const { status, ...rest } = payload;
+        const body: FlatmateVisitUpdate = { status };
+        await apiClient.request({
           method: "PUT",
           path: `/flatmates/visits/${id}`,
-          body: payload
+          body
         });
-        return { kind: "flatmate_meet" };
+        if (Object.keys(rest).length === 0) return { kind: "flatmate_meet" };
+        payload = rest;
       }
 
       const visit = await apiClient.request<Visit>({
@@ -223,18 +217,41 @@ export function useUpdateVisit(id: number) {
   });
 }
 
+/** `POST /visits/{id}/reschedule`. `new_date` is an ISO time with a UTC offset. */
+export function useRescheduleVisit(id: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: VisitReschedule) => {
+      if (!Number.isFinite(id) || id <= 0) {
+        return Promise.reject(new Error("Invalid visit id"));
+      }
+      return apiClient.request<Visit>({
+        method: "POST",
+        path: `/visits/${id}/reschedule`,
+        body: payload
+      });
+    },
+    onSuccess: (visit) => {
+      queryClient.setQueryData(["visits", id], visit);
+      queryClient.invalidateQueries({ queryKey: ["visits"] });
+    }
+  });
+}
+
+/** `POST /visits/{id}/cancel`. The reason is required (1 to 1000 characters). */
 export function useCancelVisit(id: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload?: VisitCancel) => {
+    mutationFn: (payload: VisitCancel) => {
       if (!Number.isFinite(id) || id <= 0) {
         return Promise.reject(new Error("Invalid visit id"));
       }
       return apiClient.request<Visit>({
         method: "POST",
         path: `/visits/${id}/cancel`,
-        body: payload ?? {}
+        body: { reason: payload.reason.trim() }
       });
     },
     onSuccess: (cancelled) => {

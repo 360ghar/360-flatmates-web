@@ -7,7 +7,7 @@ Each primitive page below documents the canonical TypeScript type (in `src/lib/a
 ## Primitive pages
 
 - [Flatmate profile](flatmate-profile.md) - the core user object: modes, status states, lifestyle fields, and the peer subset used in matching.
-- [Listing and property](listing-property.md) - a room or flat posted by a room poster, with lifecycle and moderation status, boost, and renew.
+- [Listing and property](listing-property.md) - a room or flat posted by a room poster, with its moderation state, owner pause and resume, and photos.
 - [Compatibility profile](compatibility-profile.md) - the lifestyle-only subset of a flatmate profile that the compatibility engine reads, plus the result shape it produces.
 - [Lifestyle dimensions](lifestyle-dimensions.md) - the six scored axes (sleep, cleanliness, food, smoking and drinking, guests, work), their options, weights, and scorers.
 - [Visit](visit.md) - a scheduled property tour or flatmate meet, with its five-state lifecycle.

@@ -1,7 +1,11 @@
 import { PUSH_TOKEN_KEY } from "@/lib/push/token";
 import { Page, PageHeader } from "@/components/ui/Layout";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useUpdateProfile, useMyProfile } from "@/hooks/queries/useProfiles";
+import {
+  useNotificationSettings,
+  useUpdateNotificationSettings,
+  type NotificationSettingKey
+} from "@/features/settings/hooks/useNotificationSettings";
 import { uiStore } from "@/lib/stores/ui-store";
 import {
   requestAndRegisterPush,
@@ -12,108 +16,101 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { InlineError } from "@/components/ui/StateViews";
 import { Toggle } from "@/components/ui/Toggle";
 
-interface NotificationToggle {
-  key: string;
-  label: string;
-  defaultOn: boolean;
-}
-
-const NOTIFICATION_TOGGLES: NotificationToggle[] = [
-  { key: "push_notifications", label: "Push notifications", defaultOn: true },
-  { key: "new_matches", label: "New matches", defaultOn: true },
-  { key: "messages", label: "Messages", defaultOn: true },
-  { key: "visit_reminders", label: "Visit reminders", defaultOn: true },
-  { key: "listing_updates", label: "Listing updates", defaultOn: true },
-  { key: "promotional", label: "Promotional", defaultOn: false },
-  { key: "quiet_hours", label: "Quiet hours 10 PM to 8 AM", defaultOn: false }
+/** The four notification settings the backend knows: nothing else is stored or read. */
+const NOTIFICATION_TOGGLES: ReadonlyArray<{ key: NotificationSettingKey; label: string }> = [
+  { key: "push_notifications", label: "Push notifications" },
+  { key: "email_notifications", label: "Email notifications" },
+  { key: "sms_notifications", label: "Text messages" },
+  { key: "promotional_emails", label: "Promotional emails" }
 ];
 
-// TODO(typing): preferences is currently typed as Record<string, boolean> which
-// means the wire contract is unverified. Replace with a proper schema once the
-// backend finalises the notification-preferences wire (B-* items in the audit).
-
-function buildInitialToggles(savedPrefs: Record<string, boolean>): Record<string, boolean> {
-  const initial: Record<string, boolean> = {};
-  for (const t of NOTIFICATION_TOGGLES) {
-    initial[t.key] = savedPrefs[t.key] ?? t.defaultOn;
-  }
-  return initial;
-}
+type Settings = Record<NotificationSettingKey, boolean>;
 
 export function SettingsNotificationsPage() {
-  const { data: profile, isLoading, error, refetch } = useMyProfile();
-  const updateProfile = useUpdateProfile();
+  const { data: saved, isLoading, error, refetch } = useNotificationSettings();
+  const updateSettings = useUpdateNotificationSettings();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingPrefs = useRef<Record<string, boolean> | null>(null);
+  // Keys changed since the last save. A save sends only these.
+  const pendingChanges = useRef<Partial<Settings>>({});
 
-  const savedPrefs = useMemo(
-    () => (profile?.preferences as Record<string, boolean> | undefined) ?? {},
-    [profile?.preferences]
+  const [userEdits, setUserEdits] = useState<Partial<Settings>>({});
+  const baseToggles = useMemo<Settings | null>(
+    () =>
+      saved
+        ? {
+            push_notifications: saved.push_notifications,
+            email_notifications: saved.email_notifications,
+            sms_notifications: saved.sms_notifications,
+            promotional_emails: saved.promotional_emails
+          }
+        : null,
+    [saved]
+  );
+  const toggles = useMemo<Settings | null>(
+    () => (baseToggles ? { ...baseToggles, ...userEdits } : null),
+    [baseToggles, userEdits]
   );
 
-  const [userEdits, setUserEdits] = useState<Record<string, boolean> | null>(null);
-  const baseToggles = useMemo(() => buildInitialToggles(savedPrefs), [savedPrefs]);
-  const toggles = userEdits ?? baseToggles;
-
-  const latestPrefs = useRef<Record<string, boolean> | null>(null);
+  const latestToggles = useRef<Settings | null>(null);
   const mounted = useRef(false);
   const pushAttempt = useRef(0);
   const pendingWrites = useRef<Promise<void>>(Promise.resolve());
-  const updateProfileRef = useRef(updateProfile);
+  const updateSettingsRef = useRef(updateSettings);
   useEffect(() => {
-    updateProfileRef.current = updateProfile;
+    updateSettingsRef.current = updateSettings;
   });
 
-  const flushPrefs = useCallback(() => {
-    const preferences = pendingPrefs.current;
-    if (!preferences) return;
-    pendingPrefs.current = null;
+  const flushChanges = useCallback(() => {
+    const changes = pendingChanges.current;
+    if (Object.keys(changes).length === 0) return;
+    pendingChanges.current = {};
     // Preserve write order: a slow opt-in save must not overwrite its rollback.
     pendingWrites.current = pendingWrites.current
-      .then(() => updateProfileRef.current.mutateAsync({ preferences }))
+      .then(() => updateSettingsRef.current.mutateAsync(changes))
       .then(() => {
         if (mounted.current) {
-          uiStore.getState().pushToast({ type: "success", title: "Notification preferences saved" });
+          uiStore.getState().pushToast({ type: "success", title: "Notification settings saved" });
         }
       })
       .catch(() => {
         uiStore.getState().pushToast({
           type: "error",
-          title: "Could not save preferences",
+          title: "Could not save settings",
           description: "Please reopen settings to retry."
         });
       });
   }, []);
 
-  const queuePreferences = useCallback((next: Record<string, boolean>) => {
-    latestPrefs.current = next;
-    pendingPrefs.current = next;
+  const queueChanges = useCallback((changes: Partial<Settings>) => {
+    if (latestToggles.current) latestToggles.current = { ...latestToggles.current, ...changes };
+    pendingChanges.current = { ...pendingChanges.current, ...changes };
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (mounted.current) {
-      setUserEdits(next);
-      debounceRef.current = setTimeout(flushPrefs, 500);
+      setUserEdits((edits) => ({ ...edits, ...changes }));
+      debounceRef.current = setTimeout(flushChanges, 500);
     } else {
       // A permission prompt can finish after navigating away from settings.
-      flushPrefs();
+      flushChanges();
     }
-  }, [flushPrefs]);
+  }, [flushChanges]);
 
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      flushPrefs();
+      flushChanges();
     };
-  }, [flushPrefs]);
+  }, [flushChanges]);
 
   const handleToggle = useCallback(
-    (key: string) => {
-      const base = latestPrefs.current ?? baseToggles;
-      const wasOn = base[key] ?? false;
-      const next = { ...base, [key]: !base[key] };
+    (key: NotificationSettingKey) => {
+      const base = latestToggles.current ?? toggles;
+      if (!base) return;
+      latestToggles.current = base;
+      const wasOn = base[key];
 
-      queuePreferences(next);
+      queueChanges({ [key]: !wasOn });
 
       // Opt-in browser push: register/unregister when the master toggle flips.
       if (key === "push_notifications") {
@@ -124,7 +121,7 @@ export function SettingsNotificationsPage() {
             if (enabling) {
               const token = await requestAndRegisterPush();
               if (attempt !== pushAttempt.current) {
-                if (token && !latestPrefs.current?.push_notifications) {
+                if (token && !latestToggles.current?.push_notifications) {
                   await unregisterDevice(token);
                 }
                 return;
@@ -132,10 +129,7 @@ export function SettingsNotificationsPage() {
               if (!token) {
                 // Permission denied or unsupported: put the toggle back off
                 // so the saved preference matches reality.
-                queuePreferences({
-                  ...latestPrefs.current,
-                  push_notifications: false
-                });
+                queueChanges({ push_notifications: false });
                 uiStore.getState().pushToast({
                   type: "info",
                   title: "Push not enabled",
@@ -171,18 +165,18 @@ export function SettingsNotificationsPage() {
           } catch {
             if (attempt !== pushAttempt.current) return;
             if (enabling) {
-              queuePreferences({ ...latestPrefs.current, push_notifications: false });
+              queueChanges({ push_notifications: false });
             }
             uiStore.getState().pushToast({
               type: "error",
               title: "Could not update push registration",
-              description: "Preferences were saved; try again later for device sync."
+              description: "Settings were saved; try again later for device sync."
             });
           }
         })();
       }
     },
-    [baseToggles, queuePreferences]
+    [toggles, queueChanges]
   );
 
   if (isLoading) {
@@ -211,9 +205,9 @@ export function SettingsNotificationsPage() {
     <Page width="narrow">
       <PageHeader title="Notification settings" />
 
-      {error ? (
+      {error || !toggles ? (
         <InlineError
-            title="Could not load preferences"
+            title="Could not load settings"
             description="Please try again."
             onRetry={() => refetch()} />
       ) : (

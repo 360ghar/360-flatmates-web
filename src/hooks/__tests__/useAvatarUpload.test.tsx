@@ -82,7 +82,7 @@ describe("useAvatarUpload", () => {
     });
 
     mockFetch
-      .mockResolvedValueOnce(jsonResponse({ detail: "expired" }, 401))
+      .mockResolvedValueOnce(jsonResponse({ error: { code: "TOKEN_INVALID", message: "expired" } }, 401))
       .mockResolvedValueOnce(jsonResponse({ profile_image_url: "https://cdn.test/avatar.webp" }));
 
     const { result } = renderHook(() => useAvatarUpload(), {
@@ -108,7 +108,7 @@ describe("useAvatarUpload", () => {
     });
   });
 
-  it("surfaces FastAPI validation arrays as a readable message", async () => {
+  it("surfaces the first 422 field error from the error envelope", async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -116,7 +116,18 @@ describe("useAvatarUpload", () => {
     mockFetch
       .mockResolvedValueOnce(
         jsonResponse(
-          { detail: [{ msg: "File too large" }, { msg: "Unsupported format" }] },
+          {
+            error: {
+              code: "VALIDATION_ERROR",
+              message: "Request validation failed",
+              details: {
+                fields: [
+                  { field: "body.file", msg: "File too large", type: "value_error" },
+                  { field: "body.file", msg: "Unsupported format", type: "value_error" }
+                ]
+              }
+            }
+          },
           422
         )
       );
@@ -125,9 +136,7 @@ describe("useAvatarUpload", () => {
       wrapper: createWrapper(queryClient),
     });
 
-    await expect(result.current.upload(makeFile())).rejects.toThrow(
-      "File too large, Unsupported format"
-    );
+    await expect(result.current.upload(makeFile())).rejects.toThrow("File too large");
   });
 
   it("aborts a stuck upload after the timeout", async () => {

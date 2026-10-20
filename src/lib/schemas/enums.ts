@@ -1,8 +1,6 @@
 import { z } from "zod";
 import {
   AGE_BUCKET_VALUES,
-  ALERT_CHANNEL_VALUES,
-  ALERT_FREQUENCY_VALUES,
   CLEANLINESS_VALUES,
   DRINKING_VALUES,
   FLATMATE_MODE_VALUES,
@@ -17,14 +15,10 @@ import {
   PROFILE_STATUS_VALUES,
   PROPERTY_PURPOSE_VALUES,
   PROPERTY_TYPE_VALUES,
-  SEARCH_SORT_VALUES,
-  SEARCH_TYPE_VALUES,
   SLEEP_SCHEDULE_VALUES,
   SMOKING_VALUES,
   SOCIETY_TYPE_VALUES,
   VENTILATION_TYPE_VALUES,
-  VISIT_CONTEXT_VALUES,
-  VISIT_STATUS_VALUES,
   WORK_STYLE_VALUES
 } from "@/lib/data";
 
@@ -63,12 +57,6 @@ export const kitchenTypeSchema = z.enum(KITCHEN_TYPE_VALUES);
 export const ventilationTypeSchema = z.enum(VENTILATION_TYPE_VALUES);
 export const furnishingLevelSchema = z.enum(FURNISHING_LEVEL_VALUES);
 export const societyTypeSchema = z.enum(SOCIETY_TYPE_VALUES);
-export const searchTypeSchema = z.enum(SEARCH_TYPE_VALUES);
-export const searchSortSchema = z.enum(SEARCH_SORT_VALUES);
-export const alertFrequencySchema = z.enum(ALERT_FREQUENCY_VALUES);
-export const alertChannelSchema = z.enum(ALERT_CHANNEL_VALUES);
-export const visitContextSchema = z.enum(VISIT_CONTEXT_VALUES);
-export const visitStatusSchema = z.enum(VISIT_STATUS_VALUES);
 
 export const jsonObjectSchema = z.record(z.string(), z.unknown());
 

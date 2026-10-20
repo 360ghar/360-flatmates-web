@@ -1,12 +1,13 @@
 import { MapPin as MapPinIcon, X } from "lucide-react";
 import type { MapPin, Property } from "@/lib/api/types";
+import { propertyImageUrls, readListingPreferences } from "@/lib/api/property-fields";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { FactList } from "@/components/ui/FactList";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { PriceText } from "@/components/ui/PriceText";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { formatCurrencyINR, formatDate, formatSharingType } from "@/lib/utils/format";
+import { formatCurrencyINR, formatDateOnly, formatSharingType } from "@/lib/utils/format";
 
 export interface PropertyDetailPanelProps {
   selectedPin: MapPin;
@@ -21,7 +22,9 @@ const GENDER: Record<string, string> = { any: "Anyone", male: "Men only", female
 /** From md: the picked place beside the map. Photos scroll sideways. */
 export function PropertyDetailPanel({ selectedPin, fullProperty, isPropertyLoading, onClose, onNavigate }: PropertyDetailPanelProps) {
   const p = fullProperty;
-  const photos = p?.image_urls?.length ? p.image_urls : [p?.main_image_url || selectedPin.main_image_url].filter(Boolean);
+  const listingPhotos = p ? propertyImageUrls(p) : [];
+  const photos = listingPhotos.length > 0 ? listingPhotos : [selectedPin.main_image_url].filter((url): url is string => Boolean(url));
+  const preferences = p ? readListingPreferences(p) : null;
 
   return (
     <aside
@@ -73,12 +76,12 @@ export function PropertyDetailPanel({ selectedPin, fullProperty, isPropertyLoadi
             facts={[
               ["Deposit", p.security_deposit ? formatCurrencyINR(p.security_deposit) : null],
               ["Maintenance", p.maintenance_charges ? formatCurrencyINR(p.maintenance_charges) : null],
-              ["Bedrooms", p.bedrooms !== undefined ? `${p.bedrooms} BHK` : null],
+              ["Bedrooms", p.bedrooms != null ? `${p.bedrooms} BHK` : null],
               ["Bathrooms", p.bathrooms],
-              ["Area", p.area_sqft !== undefined ? `${p.area_sqft} sq ft` : null],
-              ["Sharing", p.sharing_type ? formatSharingType(p.sharing_type) : null],
-              ["Flatmates", p.gender_preference ? GENDER[p.gender_preference] : null],
-              ["Available from", p.available_from ? formatDate(p.available_from) : null]
+              ["Area", p.area_sqft != null ? `${p.area_sqft} sq ft` : null],
+              ["Sharing", preferences?.sharingType ? formatSharingType(preferences.sharingType) : null],
+              ["Flatmates", preferences?.genderPreference ? GENDER[preferences.genderPreference] : null],
+              ["Available from", p.available_from ? formatDateOnly(p.available_from) : null]
             ]}
           />
 
@@ -96,12 +99,12 @@ export function PropertyDetailPanel({ selectedPin, fullProperty, isPropertyLoadi
             </p>
           ) : null}
 
-          {p.owner ? (
+          {p.owner_name ? (
             <div className="flex items-center gap-3">
-              <Avatar name={p.owner.full_name} size="sm" src={p.owner.profile_image_url} />
+              <Avatar name={p.owner_name} size="sm" />
               <div className="min-w-0">
                 <p className="text-caption text-ink-3">Listed by</p>
-                <p className="truncate text-body-md font-semibold text-ink">{p.owner.full_name}</p>
+                <p className="truncate text-body-md font-semibold text-ink">{p.owner_name}</p>
               </div>
             </div>
           ) : null}
@@ -110,9 +113,9 @@ export function PropertyDetailPanel({ selectedPin, fullProperty, isPropertyLoadi
             <Button fullWidth onClick={() => onNavigate(`/listing/${p.id}`)}>
               View listing
             </Button>
-            {p.owner ? (
-              <Button fullWidth variant="tertiary" onClick={() => onNavigate(`/profile/${p.owner!.id}`)}>
-                See {p.owner.full_name.split(" ")[0]}&apos;s profile
+            {p.owner_name ? (
+              <Button fullWidth variant="tertiary" onClick={() => onNavigate(`/profile/${p.owner_id}`)}>
+                See {p.owner_name.split(" ")[0]}&apos;s profile
               </Button>
             ) : null}
           </div>

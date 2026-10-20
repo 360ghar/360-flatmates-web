@@ -1,15 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { SocietyTagVoteCreate } from "@/lib/api/types";
+import type { SocietyTagVoteCreate, SocietyTagVoteOut } from "@/lib/api/types";
 
-export interface SocietyTagVoteResult {
-  property_id: number;
-  tag: string;
-  current_vote: string;
-  upvotes: number;
-  downvotes: number;
-  disputed: boolean;
-}
+/** Reply of `POST /flatmates/listings/{id}/society-tags/votes`. */
+export type SocietyTagVoteResult = SocietyTagVoteOut;
 
 /**
  * Society-tags for a listing are not currently exposed as their own query,
@@ -91,7 +85,7 @@ export function useVoteSocietyTag() {
             tag: payload.tag,
             upvotes: result.upvotes,
             downvotes: result.downvotes,
-            my_vote: (result.current_vote as "up" | "down" | null | undefined) ?? payload.vote,
+            my_vote: result.current_vote,
             disputed: result.disputed ?? existing?.disputed
           }
         };

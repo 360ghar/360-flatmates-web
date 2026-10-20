@@ -2,6 +2,8 @@
 
 ## Context
 
+> **Contract note (2026-10):** the backend has no listing boost, renew or extra-image route, no `/flatmates/web/*` route, and deleted every `/payments` route. The web has no boost, renew or payment-method screen (listing photos upload through `POST /upload`), and a listing's owner state is `listing_preferences.moderation_status` (pause and resume only). Where a screen below still shows one of them (Boost status, Boost Now, the Boost sheet), it is superseded by `openapi/openapi.json` and `CLAUDE.md`.
+
 This document specifies the complete visual design, interaction patterns, and user experience for every page, component, modal, and micro-interaction in the 360 Flatmates web application. It translates the mobile Flutter app's "ink on paper" design system to web, adapting desktop-specific interactions while preserving the warm editorial aesthetic. A developer should be able to implement any screen or component from this spec with zero ambiguity.
 
 Source references:
@@ -9,7 +11,7 @@ Source references:
 - Mobile design system: `360-flatmates/DESIGN.md` (mobile-specific reference)
 - Mobile Flutter screens: `360-flatmates/lib/features/*/presentation/`
 - PRD and technical spec: `plans/prd.md`
-- OpenAPI spec: `docs/flatmates-openapi.yaml`
+- OpenAPI spec: `openapi/openapi.json`
 
 ---
 

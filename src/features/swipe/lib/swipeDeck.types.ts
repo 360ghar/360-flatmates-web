@@ -41,14 +41,9 @@ export interface SwipeProfile {
   securityDeposit?: number | null;
   maintenance?: number | null;
   roomType?: string | null;
-  flatConfig?: string | null;
   floor?: string | null;
-  societyName?: string | null;
-  flatAmenities?: string[];
-  societyAmenities?: string[];
   amenities?: string[];
   features?: string[];
-  furnishing?: string[];
   availableFrom?: string | null;
   areaSqft?: number | null;
   bedrooms?: number | null;

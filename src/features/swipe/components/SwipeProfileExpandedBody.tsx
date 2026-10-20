@@ -6,7 +6,7 @@ import {
 import {
   formatBudgetRange,
   formatLifestyleLabel,
-  formatDate,
+  formatDateOnly,
   formatMoveInTimeline,
   humanizeSnakeCase
 } from "@/lib/utils/format";
@@ -34,7 +34,7 @@ export function SwipeProfileExpandedBody({ profile }: { profile: SwipeProfile })
               : null
           ],
           ["Move-in", profile.moveInTimeline ? formatMoveInTimeline(profile.moveInTimeline) : null],
-          ["Room free from", profile.availableFrom ? formatDate(profile.availableFrom) : null]
+          ["Room free from", profile.availableFrom ? formatDateOnly(profile.availableFrom) : null]
         ]}
       />
 

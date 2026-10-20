@@ -7,8 +7,10 @@ import type {
   AdminReportFilters,
   FlatmateListingAdmin,
   ListingModerationPayload,
+  ListingModerationResult,
   ReportActionPayload,
-  ReportAdmin
+  ReportAdmin,
+  ReportModerationResult
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
@@ -83,7 +85,7 @@ export function useAdminModerate() {
       listingId: number;
       payload: ListingModerationPayload;
     }) =>
-      apiClient.request<{ listing_id: number; action: string; status: string; reason?: string }>({
+      apiClient.request<ListingModerationResult>({
         method: "PUT",
         path: `/flatmates/moderation/listings/${listingId}`,
         body: payload
@@ -137,6 +139,7 @@ export function useInfiniteAdminListings(
         query: {
           ...(filters ?? {}),
           limit: ADMIN_PAGE_LIMIT,
+          include_total: true,
           cursor: pageParam
         } as Record<string, QueryValue>,
         signal
@@ -162,6 +165,7 @@ export function useInfiniteAdminReports(
         query: {
           ...(filters ?? {}),
           limit: ADMIN_PAGE_LIMIT,
+          include_total: true,
           cursor: pageParam
         } as Record<string, QueryValue>,
         signal
@@ -186,7 +190,7 @@ export function useAdminReportAction() {
       reportId: number;
       payload: ReportActionPayload;
     }) =>
-      apiClient.request<{ report_id: number; action: string; status: string }>({
+      apiClient.request<ReportModerationResult>({
         method: "PUT",
         path: `/flatmates/moderation/reports/${reportId}`,
         body: payload

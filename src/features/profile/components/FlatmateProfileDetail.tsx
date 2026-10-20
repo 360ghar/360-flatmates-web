@@ -4,6 +4,7 @@ import { FactList, type Fact } from "@/components/ui/FactList";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { LIFESTYLE_DIMENSIONS, NON_NEGOTIABLE_OPTIONS, type LifestyleDimensionKey } from "@/lib/data";
 import type { FlatmatesPeer } from "@/lib/api/types";
+import { peerName } from "@/lib/api/peer-fields";
 import {
   formatBudgetRange,
   formatCurrencyINR,
@@ -34,27 +35,32 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
     ["Profession", profile.profession],
     [
       "Budget",
-      profile.budget_min !== undefined || profile.budget_max !== undefined
-        ? formatBudgetRange(profile.budget_min, profile.budget_max)
+      profile.budget_min != null || profile.budget_max != null
+        ? formatBudgetRange(profile.budget_min ?? undefined, profile.budget_max ?? undefined)
         : null
     ],
     ["Move-in", profile.move_in_timeline ? formatMoveInTimeline(profile.move_in_timeline) : null],
     ["Flatmate", profile.gender_preference ? GENDER_PREFERENCE[profile.gender_preference] : null],
-    ["Pets", profile.has_pets === undefined ? null : profile.has_pets ? "Has pets" : "No pets"]
+    ["Pets", profile.has_pets ? "Has pets" : "No pets"]
   ];
   const lifestyle: Fact[] = LIFESTYLE_DIMENSIONS.map((dim) => {
-    const value = profile[dim.key as LifestyleDimensionKey];
+    const value = profile[dim.key as LifestyleDimensionKey] ?? null;
     return [dim.label, value ? cap(formatLifestyleLabel(dim.key, value)) : null];
   });
   const dealBreakers = (profile.non_negotiables ?? []).map(
     (nn) => NON_NEGOTIABLE_OPTIONS.find((o) => o.value === nn)?.label ?? humanizeSnakeCase(nn)
   );
 
-  const photos = profile.image_urls ?? [];
-  const maintenance = profile.maintenance ?? profile.maintenance_charges;
-  const hasListing =
-    Boolean(profile.property_id) || profile.monthly_rent != null || photos.length > 0 || Boolean(profile.property_title);
-  const amenities = profile.flat_amenities ?? profile.amenities ?? [];
+  // Listing context is one nested object, null when the peer has no live listing.
+  const listing = profile.listing ?? null;
+  const photos = listing?.image_urls ?? [];
+  const amenities = listing?.amenities ?? [];
+  const floor =
+    listing?.floor_number != null
+      ? listing.total_floors != null
+        ? `${listing.floor_number} of ${listing.total_floors}`
+        : String(listing.floor_number)
+      : null;
 
   return (
     <>
@@ -79,12 +85,12 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
         ) : null}
       </Card>
 
-      {hasListing ? (
+      {listing ? (
         <Card className="flex flex-col gap-4 p-5 sm:p-6">
           <h2 className="text-h3 text-ink">Their place</h2>
           {photos.length > 0 ? (
             <NetworkImage
-              alt={profile.property_title ?? `${profile.full_name}'s place`}
+              alt={listing.title ?? `${peerName(profile)}'s place`}
               src={photos[0]}
               width={800}
               wrapperClassName="h-48 w-full overflow-hidden rounded-cut-md object-cover"
@@ -92,13 +98,13 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
           ) : null}
           <FactList
             facts={[
-              ["Rent", profile.monthly_rent != null ? `${formatCurrencyINR(profile.monthly_rent)}/mo` : null],
-              ["Deposit", profile.security_deposit != null ? formatCurrencyINR(profile.security_deposit) : null],
-              ["Maintenance", maintenance != null ? formatCurrencyINR(maintenance) : null],
-              ["Flat", profile.flat_config],
-              ["Room", profile.room_type ? cap(humanizeSnakeCase(profile.room_type)) : null],
-              ["Floor", profile.floor],
-              ["Area", profile.society_name ?? profile.sub_locality ?? profile.locality ?? profile.city]
+              ["Rent", listing.monthly_rent != null ? `${formatCurrencyINR(listing.monthly_rent)}/mo` : null],
+              ["Deposit", listing.security_deposit != null ? formatCurrencyINR(listing.security_deposit) : null],
+              ["Maintenance", listing.maintenance_charges != null ? formatCurrencyINR(listing.maintenance_charges) : null],
+              ["Bedrooms", listing.bedrooms],
+              ["Room", listing.room_type ? cap(humanizeSnakeCase(listing.room_type)) : null],
+              ["Floor", floor],
+              ["Area", listing.sub_locality ?? listing.locality ?? listing.city]
             ]}
           />
           {amenities.length > 0 ? (

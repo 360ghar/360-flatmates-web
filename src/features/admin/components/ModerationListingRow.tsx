@@ -8,10 +8,14 @@ import { Card } from "@/components/ui/Card";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { PriceText } from "@/components/ui/PriceText";
 import type { FlatmateListingAdmin } from "@/lib/api/types";
+import type { ListingModerationStatus } from "@/lib/data";
+import { adminUserName } from "@/lib/api/admin-fields";
+import { formatLocation } from "@/lib/utils/format";
 
-const statusMap: Record<string, "pending" | "confirmed" | "rejected"> = {
+const statusMap: Record<ListingModerationStatus, "pending" | "confirmed" | "rejected" | "cancelled"> = {
   pending_review: "pending",
-  approved: "confirmed",
+  live: "confirmed",
+  paused: "cancelled",
   rejected: "rejected"
 };
 
@@ -33,21 +37,21 @@ export function ModerationListingRow({
       <div className="flex items-start gap-3">
         <NetworkImage
           src={listing.main_image_url}
-          alt={listing.title}
+          alt={listing.title ?? "Listing photo"}
           wrapperClassName="h-16 w-16 shrink-0 rounded-cut-md"
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="truncate text-body-lg font-semibold text-ink">
-                {listing.title}
+                {listing.title ?? "Untitled listing"}
               </h3>
               <p className="text-caption text-ink-2">
-                by {listing.owner_name} &middot; {listing.locality},{" "}
-                {listing.city}
+                by {adminUserName(listing.owner, listing.owner_id ?? 0)} &middot;{" "}
+                {formatLocation(listing.locality, listing.city)}
               </p>
             </div>
-            <Badge variant="status" status={statusMap[listing.moderation_status] ?? "pending"}>
+            <Badge variant="status" status={statusMap[listing.moderation_status]}>
               {humanizeSnakeCase(listing.moderation_status).replace(/^./, (c) => c.toUpperCase())}
             </Badge>
           </div>

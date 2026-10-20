@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import { AsyncView } from "@/components/ui/StateViews";
-import { PaymentMethodRowSkeleton } from "@/features/settings/components/PaymentMethodRowSkeleton";
+import { BlockedUserRowSkeleton } from "@/features/settings/components/BlockedUserRowSkeleton";
 import { formatDate } from "@/lib/utils/format";
+import { PEER_NAME_FALLBACK } from "@/lib/api/peer-fields";
 
 export function BlockedUsersPage() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export function BlockedUsersPage() {
         isLoading={isLoading}
         error={error}
         isEmpty={(data) => data.length === 0}
-        loading={<PaymentMethodRowSkeleton count={3} />}
+        loading={<BlockedUserRowSkeleton count={3} />}
         empty={
           <Card className="flex flex-col items-center gap-3 p-6 text-center">
             <p className="text-body-md text-ink-3">
@@ -48,44 +49,37 @@ export function BlockedUsersPage() {
       >
         {(data) => (
           <div className="flex flex-col gap-3">
-            {data.map((block) => (
-              <Card key={block.id} className="flex items-center justify-between gap-4 p-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar
-                    name={block.blocked_user.full_name}
-                    src={block.blocked_user.profile_image_url}
-                    size="compact"
-                    shape="circle"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-body-md font-semibold text-ink truncate">
-                      {block.blocked_user.full_name}
-                    </p>
-                    <p className="text-caption text-ink-3 truncate">
-                      {block.blocked_user.locality
-                        ? `${block.blocked_user.locality} · `
-                        : ""}
-                      Blocked on {formatDate(block.created_at)}
-                    </p>
+            {data.map((block) => {
+              const name = block.blocked_user.display_name?.trim() || PEER_NAME_FALLBACK;
+              return (
+                <Card key={block.id} className="flex items-center justify-between gap-4 p-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar
+                      name={name}
+                      src={block.blocked_user.avatar_url}
+                      size="compact"
+                      shape="circle"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-body-md font-semibold text-ink truncate">{name}</p>
+                      {block.created_at ? (
+                        <p className="text-caption text-ink-3 truncate">
+                          Blocked on {formatDate(block.created_at)}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-                <Button
-                  variant="tertiary"
-                  size="compact"
-                  onClick={() =>
-                    setConfirmTarget({
-                      id: block.blocked_user.id,
-                      name: block.blocked_user.full_name
-                    })
-                  }
-                  loading={
-                    unblockUser.isPending && pendingId === block.blocked_user.id
-                  }
-                >
-                  Unblock
-                </Button>
-              </Card>
-            ))}
+                  <Button
+                    variant="tertiary"
+                    size="compact"
+                    onClick={() => setConfirmTarget({ id: block.blocked_user_id, name })}
+                    loading={unblockUser.isPending && pendingId === block.blocked_user_id}
+                  >
+                    Unblock
+                  </Button>
+                </Card>
+              );
+            })}
           </div>
         )}
       </AsyncView>
@@ -93,7 +87,7 @@ export function BlockedUsersPage() {
       <Modal
         open={confirmTarget !== null}
         title={`Unblock ${confirmTarget?.name ?? "user"}?`}
-        description="They will be able to see your profile and message you again."
+        description="They will be able to see your profile again. Your old chat stays closed until you both like each other again."
         onClose={() => setConfirmTarget(null)}
         footer={
           <>

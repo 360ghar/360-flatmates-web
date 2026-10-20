@@ -17,7 +17,9 @@ import { PageChromeContext, PageContainer, useBack } from "@/components/ui/Layou
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, ErrorState, EmptyState } from "@/components/ui/StateViews";
 import { cn, buttonClasses } from "@/components/ui/component-utils";
-import { formatCurrencyINR, formatDate } from "@/lib/utils";
+import { readListingPreferences, propertyImageUrls } from "@/lib/api/property-fields";
+import { formatCurrencyINR, formatDateOnly, formatLocation } from "@/lib/utils";
+import { userMessage } from "@/lib/api/errors";
 import { ShareSheet } from "./ShareSheet";
 import { ListingPhotoGallery } from "./ListingPhotoGallery";
 import { ListingCostBreakdown } from "./ListingCostBreakdown";
@@ -52,7 +54,7 @@ export default function ListingDetailClient() {
   const { shell: hasAppBottomNav, titleInTopBar } = useContext(PageChromeContext);
   const goBack = useBack(hasAppBottomNav ? "/explore" : "/discover");
 
-  const ownerId = property?.owner?.id ?? property?.owner_id;
+  const ownerId = property?.owner_id;
   const isOwnListing = Boolean(ownerId && myProfile?.id === ownerId);
 
   const handleOpenOwnerProfile = useCallback(() => {
@@ -99,11 +101,12 @@ export default function ListingDetailClient() {
         onSuccess: (conversation) => {
           navigate(`/chats/${conversation.id}`);
         },
-        onError: () => {
+        onError: (error) => {
+          // A blocked or closed pair answers 403 with a message written for people.
           uiStore.getState().pushToast({
             type: "error",
             title: "Could not contact owner",
-            description: "Something went wrong while starting the chat. Please try again."
+            description: userMessage(error, "Something went wrong while starting the chat. Please try again.")
           });
         }
       }
@@ -127,10 +130,11 @@ export default function ListingDetailClient() {
   }, [navigate, propertyId, user]);
 
   const handleSubmitReport = useCallback(() => {
+    if (!ownerId) return;
     reportListing.mutate(
       {
         property_id: propertyId,
-        ...(ownerId ? { reported_user_id: ownerId } : {}),
+        reported_user_id: ownerId,
         reason: reportReason,
         notes: reportNotes.trim() || undefined
       },
@@ -193,9 +197,10 @@ export default function ListingDetailClient() {
         }
       >
         {(data) => {
-          const extraPhotos = (property?.image_urls ?? []).filter(
+          const extraPhotos = (property ? propertyImageUrls(property) : []).filter(
             (url) => url && url !== data.imageUrl
           ).slice(0, 2);
+          const preferences = property ? readListingPreferences(property) : null;
 
           return (
           <div className="space-y-8 pb-24 lg:pb-0">
@@ -212,23 +217,28 @@ export default function ListingDetailClient() {
               <div className="space-y-5">
                 <div className="paper-grain rounded-hand bg-surface p-5 shadow-sm md:p-7">
                   <p className="text-h3 font-sans font-semibold tabular-nums text-ink">
-                    {formatCurrencyINR(data.price)}
-                    <span className="text-body-lg font-normal text-ink-3"> a month</span>
+                    {data.price === null ? (
+                      "Rent on request"
+                    ) : (
+                      <>
+                        {formatCurrencyINR(data.price)}
+                        <span className="text-body-lg font-normal text-ink-3"> a month</span>
+                      </>
+                    )}
                   </p>
                   <h1 className="mt-2 text-h1 text-ink">{data.title}</h1>
                   <p className="mt-2 flex items-center gap-1.5 text-body-lg text-ink-2">
                     <MapPin aria-hidden="true" className="h-4 w-4 shrink-0 text-ink-3" />
-                    {data.locality}
-                    {data.city ? `, ${data.city}` : ""}
+                    {formatLocation(data.locality, data.city)}
                   </p>
                   <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                     {[
                       ["Bedrooms", data.beds],
                       ["Bathrooms", data.baths],
                       ["Area", data.areaSqFt !== undefined ? `${data.areaSqFt} sq ft` : undefined],
-                      ["Sharing", property?.sharing_type ? sentence(property.sharing_type) : undefined],
-                      ["For", property?.gender_preference ? (property.gender_preference === "any" ? "Anyone" : sentence(property.gender_preference)) : undefined],
-                      ["Available from", property?.available_from ? formatDate(property.available_from) : undefined]
+                      ["Sharing", preferences?.sharingType ? sentence(preferences.sharingType) : undefined],
+                      ["For", preferences?.genderPreference ? (preferences.genderPreference === "any" ? "Anyone" : sentence(preferences.genderPreference)) : undefined],
+                      ["Available from", property?.available_from ? formatDateOnly(property.available_from) : undefined]
                     ]
                       .filter(([, value]) => value !== undefined && value !== null && value !== "")
                       .map(([label, value]) => (
@@ -268,7 +278,8 @@ export default function ListingDetailClient() {
 
                 {property ? <ListingSocietyVibeCard property={property} /> : null}
 
-                {isOwnListing ? null : (
+                {/* A report names the owner (`reported_user_id` is required): no owner, no report. */}
+                {isOwnListing || !ownerId ? null : (
                   <div className="flex justify-end">
                     <Button
                       variant="tertiary"
@@ -308,8 +319,14 @@ export default function ListingDetailClient() {
             >
               <div className="mx-auto flex max-w-[var(--page-max)] items-center gap-3">
                 <p className="min-w-0 flex-1 text-h4 tabular-nums text-ink">
-                  {formatCurrencyINR(data.price)}
-                  <span className="text-body-md font-normal text-ink-3"> a month</span>
+                  {data.price === null ? (
+                    "Rent on request"
+                  ) : (
+                    <>
+                      {formatCurrencyINR(data.price)}
+                      <span className="text-body-md font-normal text-ink-3"> a month</span>
+                    </>
+                  )}
                 </p>
                 <Button
                   className="shrink-0"

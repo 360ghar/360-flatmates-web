@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { ArticleLayout, renderArticleText } from "@/features/blog/components/ArticleLayout";
 import { BlogPostSkeleton } from "@/features/blog/components/BlogPostSkeleton";
 import { formatMonthYear } from "@/lib/utils/format";
+import { readBlogSources } from "@/features/blog/lib/sources";
 
 interface BlogPostPageProps {
   /**
@@ -27,8 +28,9 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
     ? params.token
     : (params.id ?? params.slug);
 
-  const postQuery = useBlogPost(identifier ?? 0);
-  const previewQuery = useBlogPreview(identifier ?? "");
+  // Each mode reads one route: a post by id or slug, or a preview by token.
+  const postQuery = useBlogPost(previewMode ? 0 : (identifier ?? 0));
+  const previewQuery = useBlogPreview(previewMode ? (identifier ?? "") : "");
 
   const isLoading = previewMode ? previewQuery.isLoading : postQuery.isLoading;
   const isError = previewMode ? previewQuery.isError : postQuery.isError;
@@ -78,12 +80,13 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
     );
   }
 
+  const sources = readBlogSources(post.sources);
   const articleLd = buildArticleSchema({
     headline: post.title,
     description: post.excerpt ?? post.meta_description ?? "",
     image: post.cover_image_url ?? post.og_image_url ?? DEFAULT_OG_IMAGE,
     url: `${SITE_URL}/blog/${post.slug}`,
-    datePublished: post.published_at ?? post.created_at ?? new Date().toISOString()
+    datePublished: post.published_at ?? post.created_at
   });
 
   return (
@@ -92,7 +95,7 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
         title={post.meta_title ?? post.title}
         description={post.meta_description ?? post.excerpt ?? ""}
         canonicalUrl={post.canonical_url ?? `${SITE_URL}/blog/${post.slug}`}
-        ogImage={post.og_image_url ?? post.cover_image_url}
+        ogImage={post.og_image_url ?? post.cover_image_url ?? undefined}
         jsonLd={articleLd}
         noindex={previewMode}
       />
@@ -111,11 +114,11 @@ export function BlogPostPage({ previewMode = false }: BlogPostPageProps) {
       >
         {renderArticleText(post.content)}
 
-        {post.sources && post.sources.length > 0 ? (
+        {sources.length > 0 ? (
           <section className="mt-10">
             <h2 className="text-h3 text-ink">Sources</h2>
             <ul className="mt-3 flex flex-col gap-1.5">
-              {post.sources.map((source) => (
+              {sources.map((source) => (
                 <li key={source.url}>
                   <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-body-lg text-clay underline-offset-4 hover:underline">
                     {source.label}

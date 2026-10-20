@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
 import { useMyProperties } from "@/features/listings/hooks/useProperties";
 import { propertyToListingCardProps } from "@/features/listings/lib/adapters";
+import { ownerListingStatus } from "@/lib/api/property-fields";
+import type { ListingModerationStatus } from "@/lib/data";
 import { Button } from "@/components/ui/Button";
 import { ChoiceChips } from "@/components/ui/ChoiceChips";
 import { SelectField } from "@/components/ui/Input";
@@ -13,17 +15,15 @@ import { ListingCard } from "@/features/listings/components/ListingCard";
 
 /* Client-side status buckets. The OpenAPI /properties/me endpoint does not
    support status filters or sort, so we derive these from the response. */
-type StatusFilter = "all" | "approved" | "pending_review" | "rejected" | "draft" | "paused" | "expired";
+type StatusFilter = "all" | ListingModerationStatus;
 type SortKey = "newest" | "oldest" | "rent_low" | "rent_high";
 
 const STATUS_FILTERS: ReadonlyArray<{ value: StatusFilter; label: string }> = [
   { value: "all", label: "All" },
-  { value: "approved", label: "Published" },
+  { value: "live", label: "Published" },
   { value: "pending_review", label: "Under review" },
-  { value: "rejected", label: "Rejected" },
-  { value: "draft", label: "Draft" },
   { value: "paused", label: "Paused" },
-  { value: "expired", label: "Expired" }
+  { value: "rejected", label: "Rejected" }
 ];
 
 const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
@@ -44,20 +44,20 @@ export function ManagePage() {
     const filtered =
       statusFilter === "all"
         ? properties
-        : properties.filter((p) => (p.property_status ?? "draft") === statusFilter);
+        : properties.filter((p) => ownerListingStatus(p) === statusFilter);
 
     const sorted = [...filtered];
     sorted.sort((a, b) => {
       switch (sortKey) {
         case "oldest":
-          return (a.created_at ?? "").localeCompare(b.created_at ?? "");
+          return a.created_at.localeCompare(b.created_at);
         case "rent_low":
           return (a.monthly_rent ?? 0) - (b.monthly_rent ?? 0);
         case "rent_high":
           return (b.monthly_rent ?? 0) - (a.monthly_rent ?? 0);
         case "newest":
         default:
-          return (b.created_at ?? "").localeCompare(a.created_at ?? "");
+          return b.created_at.localeCompare(a.created_at);
       }
     });
     return sorted;

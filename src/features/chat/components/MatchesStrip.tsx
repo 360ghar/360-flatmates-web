@@ -1,3 +1,4 @@
+import { peerName } from "@/lib/api/peer-fields";
 import type { MatchSummary } from "@/lib/api/types";
 import { Avatar } from "@/components/ui/Avatar";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -27,21 +28,31 @@ export function MatchesStrip({
                 <Skeleton className="h-3 w-10" />
               </div>
             ))
-          : matches!.map(({ id, peer }) => (
-              <button
-                key={id}
-                type="button"
-                aria-label={`Start chat with ${peer.full_name}, ${peer.match_percentage ?? 0}% compatible`}
-                onClick={() => onStartChat(peer.id)}
-                className={cn("flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-cut-md p-1.5 hover:bg-surface-soft", focusRing)}
-              >
-                <Avatar name={peer.full_name} src={peer.profile_image_url} size="md" />
-                <span className="max-w-full truncate text-caption font-semibold text-ink-2">{peer.full_name.split(" ")[0]}</span>
-                <span aria-hidden="true" className="tabular text-caption text-pine">
-                  {peer.match_percentage ?? 0}%
-                </span>
-              </button>
-            ))}
+          : matches!.map(({ id, peer }) => {
+              const name = peerName(peer);
+              const score = peer.match_percentage;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-label={
+                    score == null
+                      ? `Start chat with ${name}`
+                      : `Start chat with ${name}, ${score}% compatible`
+                  }
+                  onClick={() => onStartChat(peer.id)}
+                  className={cn("flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-cut-md p-1.5 hover:bg-surface-soft", focusRing)}
+                >
+                  <Avatar name={name} src={peer.profile_image_url} size="md" />
+                  <span className="max-w-full truncate text-caption font-semibold text-ink-2">{name.split(" ")[0]}</span>
+                  {score == null ? null : (
+                    <span aria-hidden="true" className="tabular text-caption text-pine">
+                      {score}%
+                    </span>
+                  )}
+                </button>
+              );
+            })}
       </div>
     </section>
   );

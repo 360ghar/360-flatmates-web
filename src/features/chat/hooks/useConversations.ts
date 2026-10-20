@@ -16,7 +16,7 @@ import type {
   ConversationCreate,
   MessageOut,
   MessageCreate,
-  MessageListResponse
+  MessageCursorPage
 } from "@/lib/api/types";
 
 export const conversationsOptions = queryOptions({
@@ -84,34 +84,24 @@ const MESSAGES_PAGE_SIZE = 50;
 /**
  * Infinite messages query.
  *
- * Keyset pagination against `GET /flatmates/conversations/{id}/messages`.
- * Backend expects `before_id` (int message id) and returns
- * `{ messages, total, has_more }` — not a CursorPage envelope.
- * Pass the oldest currently loaded message id as `before_id` for the next page.
+ * `GET /flatmates/conversations/{id}/messages` is a `CursorPage`: page 1 is the
+ * newest `limit` messages, and `next_cursor` leads to older ones. Inside a page
+ * the messages run oldest to newest. The first page (no cursor) also marks the
+ * peer's messages read. Pass the cursor back unchanged.
  */
 export function messagesInfiniteOptions(conversationId: number) {
   return infiniteQueryOptions({
     queryKey: ["conversations", conversationId, "messages"],
-    queryFn: ({ pageParam, signal }) => {
-      const query: { limit: number; before_id?: number } = {
-        limit: MESSAGES_PAGE_SIZE
-      };
-      if (typeof pageParam === "number") {
-        query.before_id = pageParam;
-      }
-      return apiClient.request<MessageListResponse>({
+    queryFn: ({ pageParam, signal }) =>
+      apiClient.request<MessageCursorPage>({
         method: "GET",
         path: `/flatmates/conversations/${conversationId}/messages`,
-        query,
+        query: { cursor: pageParam, limit: MESSAGES_PAGE_SIZE },
         signal
-      });
-    },
-    initialPageParam: undefined as number | undefined,
-    getNextPageParam: (lastPage) => {
-      if (!lastPage.has_more || lastPage.messages.length === 0) return undefined;
-      // Messages are chronological; index 0 is the oldest on the page.
-      return lastPage.messages[0]?.id;
-    },
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined,
     enabled: conversationId > 0
   });
 }
@@ -134,7 +124,7 @@ interface SendMessageContext {
   tempId: number;
   conversationId: number;
   previous: Array<
-    [readonly unknown[], InfiniteData<MessageListResponse> | undefined]
+    [readonly unknown[], InfiniteData<MessageCursorPage> | undefined]
   >;
 }
 
@@ -170,7 +160,7 @@ export function useSendMessage() {
       await queryClient.cancelQueries(filter);
 
       const previous = queryClient.getQueriesData<
-        InfiniteData<MessageListResponse>
+        InfiniteData<MessageCursorPage>
       >(filter);
       const id = tempId ?? nextTempId();
       chatStore.getState().removeFailedSend(conversationId, id);
@@ -186,20 +176,17 @@ export function useSendMessage() {
         created_at: new Date().toISOString()
       };
 
-      // Append the optimistic message to every cached page; drop any prior
-      // failed copy carrying the same temp id (retry path).
+      // Append the optimistic message to the newest page (the first one); drop
+      // any prior failed copy carrying the same temp id (retry path).
       for (const [key, data] of previous) {
         if (!data) continue;
-        queryClient.setQueryData<InfiniteData<MessageListResponse>>(key, {
+        queryClient.setQueryData<InfiniteData<MessageCursorPage>>(key, {
           ...data,
-          pages: data.pages.map((page) => {
-            const withoutTemp = page.messages.filter((m) => m.id !== id);
-            return {
-              ...page,
-              messages: [...withoutTemp, optimistic],
-              total: page.total + (withoutTemp.length === page.messages.length ? 1 : 0)
-            };
-          })
+          pages: data.pages.map((page, index) =>
+            index === 0
+              ? { ...page, items: [...page.items.filter((m) => m.id !== id), optimistic] }
+              : page
+          )
         });
       }
 
@@ -211,14 +198,14 @@ export function useSendMessage() {
       // (realtime event, fallback polling) would otherwise erase the text.
       if (!context) return;
       for (const [key, data] of queryClient.getQueriesData<
-        InfiniteData<MessageListResponse>
+        InfiniteData<MessageCursorPage>
       >(messagePageKey(conversationId))) {
         if (!data) continue;
-        queryClient.setQueryData<InfiniteData<MessageListResponse>>(key, {
+        queryClient.setQueryData<InfiniteData<MessageCursorPage>>(key, {
           ...data,
           pages: data.pages.map((page) => ({
             ...page,
-            messages: page.messages.filter((m) => m.id !== context.tempId)
+            items: page.items.filter((m) => m.id !== context.tempId)
           }))
         });
       }
@@ -241,26 +228,25 @@ export function useSendMessage() {
       // differs from the optimistic timestamp.
       const filter = messagePageKey(conversationId);
       const pages = queryClient.getQueriesData<
-        InfiniteData<MessageListResponse>
+        InfiniteData<MessageCursorPage>
       >(filter);
       for (const [key, data] of pages) {
         if (!data) continue;
-        queryClient.setQueryData<InfiniteData<MessageListResponse>>(key, {
+        queryClient.setQueryData<InfiniteData<MessageCursorPage>>(key, {
           ...data,
-          pages: data.pages.map((page) => {
-            const filtered = page.messages.filter(
+          pages: data.pages.map((page, index) => {
+            const filtered = page.items.filter(
               (m) => m.id !== context?.tempId && m.id !== serverMessage.id
             );
+            // The sent message belongs to the newest page.
+            if (index !== 0) return { ...page, items: filtered };
             const merged = [...filtered, serverMessage];
             merged.sort((a, b) => {
-              const at = a.created_at ?? "";
-              const bt = b.created_at ?? "";
-              if (at && bt) return at.localeCompare(bt);
-              if (at) return -1;
-              if (bt) return 1;
-              return a.id - b.id;
+              const at = a.created_at;
+              const bt = b.created_at;
+              return at === bt ? a.id - b.id : at.localeCompare(bt);
             });
-            return { ...page, messages: merged, total: merged.length };
+            return { ...page, items: merged };
           })
         });
       }
@@ -303,9 +289,10 @@ export function useCreateConversation() {
 export function useMarkConversationRead() {
   const queryClient = useQueryClient();
 
-  return useMutation<{ message: string }, Error, number, void>({
+  return useMutation<void, Error, number, void>({
+    // 204, no body.
     mutationFn: (conversationId) =>
-      apiClient.request<{ message: string }>({
+      apiClient.request<void>({
         method: "POST",
         path: `/flatmates/conversations/${conversationId}/mark-read`
       }),

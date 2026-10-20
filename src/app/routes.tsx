@@ -87,9 +87,7 @@ const appRoutes: RouteObject[] = [
   { path: "my-listings/:id/edit", ...h({ title: "Edit listing", navTab: "/manage", back: "/manage" }), lazy: () => import("@/features/hosting/pages/MyListingEditPage").then((m) => ({ Component: m.MyListingEditPage })) },
   { path: "help", ...h({ title: "Help", navTab: "/profile", back: "/profile" }), lazy: () => import("@/features/settings/pages/HelpPage").then((m) => ({ Component: m.HelpPage })) },
   { path: "alerts", ...h({ title: "Search alerts" }), lazy: () => import("@/features/alerts/pages/AlertsPage").then((m) => ({ Component: m.AlertsPage })) },
-  { path: "saved-searches", ...h({ title: "Saved searches" }), lazy: () => import("@/features/alerts/pages/SavedSearchesPage").then((m) => ({ Component: m.SavedSearchesPage })) },
-  { path: "payments", ...h({ title: "Payment methods", navTab: "/profile", back: "/profile" }), lazy: () => import("@/features/settings/pages/PaymentsPage").then((m) => ({ Component: m.PaymentsPage })) },
-  { path: "payments/new", ...h({ title: "Add payment method", navTab: "/profile", back: "/payments" }), lazy: () => import("@/features/settings/pages/AddPaymentMethodPage").then((m) => ({ Component: m.AddPaymentMethodPage })) }
+  { path: "saved-searches", ...h({ title: "Saved searches" }), lazy: () => import("@/features/alerts/pages/SavedSearchesPage").then((m) => ({ Component: m.SavedSearchesPage })) }
 ];
 
 const focusRoutes: RouteObject[] = [

@@ -28,9 +28,7 @@ export function CityPage() {
   const { data: searchResults, isLoading, isError, refetch } = useWebSearch(filters);
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.results) return [];
-    return searchResults.results
-      .filter((r): r is Extract<typeof r, { property_type: unknown }> => "property_type" in (r as unknown as Record<string, unknown>))
-      .map((r) => propertyToListingCardProps(r as Parameters<typeof propertyToListingCardProps>[0]));
+    return searchResults.results.map(propertyToListingCardProps);
   }, [searchResults]);
 
   if (!city) {

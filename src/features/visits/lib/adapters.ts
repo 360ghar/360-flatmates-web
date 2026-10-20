@@ -23,7 +23,7 @@ function mapVisitStatus(status: ApiVisitStatus): ComponentVisitStatus {
 export function visitToVisitCardProps(visit: ApiVisit): VisitCardData {
   return {
     id: String(visit.id),
-    propertyTitle: visit.property_title ?? `Property #${visit.property_id}`,
+    propertyTitle: visit.property?.title ?? `Property #${visit.property_id}`,
     type: mapVisitContext(visit.visit_context),
     dateTime: visit.scheduled_date,
     status: mapVisitStatus(visit.status)

@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { CatalogEntry, CatalogCity } from "@/lib/api/types";
+import type { CatalogCursorPage, CatalogEntry, CatalogCity } from "@/lib/api/types";
 import { KITCHEN_TYPE_OPTIONS, VENTILATION_TYPE_OPTIONS } from "@/lib/data";
 import { humanizeSnakeCase } from "@/lib/utils";
 import type { DomainOption } from "@/lib/data";
@@ -47,14 +47,17 @@ function catalogOptions(
   return mapped.length > 0 ? mapped : [...fallback];
 }
 
+/**
+ * Every catalog entry. `GET /flatmates/catalogs` declares no query key and
+ * answers the whole list as one `CursorPage`, so the request sends none.
+ */
 export const catalogsOptions = queryOptions({
   queryKey: ["catalogs"],
   queryFn: () =>
-    apiClient.request<CatalogEntry[]>({
-      method: "GET",
-      path: "/flatmates/catalogs",
-      auth: false
-    }).catch(() => [] as CatalogEntry[]),
+    apiClient
+      .request<CatalogCursorPage>({ method: "GET", path: "/flatmates/catalogs", auth: false })
+      .then((page) => page.items)
+      .catch(() => [] as CatalogEntry[]),
   staleTime: 30 * 60 * 1000
 });
 

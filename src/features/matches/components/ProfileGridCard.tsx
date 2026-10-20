@@ -8,12 +8,12 @@ import { cn, focusRing } from "@/components/ui/component-utils";
 export interface ProfileGridCardData {
   id: string;
   name: string;
-  age?: number;
-  /** Privacy-bucketed age range the user chose; preferred over exact age. */
+  /** Privacy-bucketed age range the user chose. */
   ageBucket?: string;
   location?: string;
   profession?: string;
   photoUrl?: string | null;
+  /** 0 when the backend sent no score; the card then shows none. */
   matchScore: number;
 }
 
@@ -32,7 +32,7 @@ export interface ProfileGridCardProps extends HTMLAttributes<HTMLElement> {
  * line about them and one action. The name opens the profile.
  */
 export function ProfileGridCard({ profile, ctaLabel = "Match", blurred = false, onMatch, onOpen, className, ...props }: ProfileGridCardProps) {
-  const ageLabel = profile.ageBucket ?? (profile.age != null ? String(profile.age) : undefined);
+  const ageLabel = profile.ageBucket;
   return (
     <article
       className={cn(
@@ -51,7 +51,9 @@ export function ProfileGridCard({ profile, ctaLabel = "Match", blurred = false, 
       </div>
 
       <div className="flex flex-1 flex-col p-3">
-        <p className="tabular text-label-md text-pine">{Math.round(profile.matchScore)}% match</p>
+        {profile.matchScore > 0 ? (
+          <p className="tabular text-label-md text-pine">{Math.round(profile.matchScore)}% match</p>
+        ) : null}
         <h3 className="mt-0.5 truncate text-body-lg font-semibold text-ink">
           {onOpen ? (
             <button

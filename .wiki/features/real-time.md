@@ -105,5 +105,5 @@ This page summarizes the real-time transport. For the product rationale behind l
 | `src/lib/stores/ui-store.ts` | Holds generic `realtimeState` and `realtimeConnected` UI fields |
 | `src/lib/api/user.types.ts` | `FlatmatesRealtimeConfig` and `FlatmatesBootstrap.realtime` types |
 | `src/lib/schemas/profile.ts` | Zod validation for bootstrap realtime config |
-| `docs/flatmates-openapi.yaml` | OpenAPI source of truth for bootstrap realtime contract |
+| `openapi/openapi.json` | OpenAPI source of truth for bootstrap realtime contract |
 | `tests/contracts/no-sse.contract.test.ts` | Regression guard that keeps deprecated backend SSE runtime out of `src` and `e2e` |

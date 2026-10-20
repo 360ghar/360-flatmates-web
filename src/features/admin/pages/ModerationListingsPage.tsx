@@ -6,7 +6,8 @@ import { Page, PageHeader } from "@/components/ui/Layout";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { uiStore } from "@/lib/stores/ui-store";
-import type { FlatmateListingAdmin, PropertyModerationStatus } from "@/lib/api/types";
+import { adminUserName } from "@/lib/api/admin-fields";
+import type { FlatmateListingAdmin } from "@/lib/api/types";
 import { ModerationListingRow } from "@/features/admin/components/ModerationListingRow";
 import { ModerationListingsFilterBar, type ListingStatusFilter } from "@/features/admin/components/ModerationListingsFilterBar";
 import { ModerationListingActionModals } from "@/features/admin/components/ModerationListingActionModals";
@@ -16,13 +17,7 @@ type StatusFilter = ListingStatusFilter;
 export function ModerationListingsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending_review");
-  const filters = useMemo(
-    () =>
-      statusFilter === "all"
-        ? undefined
-        : { status: statusFilter as PropertyModerationStatus },
-    [statusFilter]
-  );
+  const filters = useMemo(() => ({ status: statusFilter }), [statusFilter]);
   const {
     data,
     isLoading,
@@ -65,9 +60,9 @@ export function ModerationListingsPage() {
       const needle = search.toLowerCase();
       return allListings.filter(
         (l) =>
-          l.title.toLowerCase().includes(needle) ||
-          l.owner_name.toLowerCase().includes(needle) ||
-          l.locality.toLowerCase().includes(needle)
+          (l.title ?? "").toLowerCase().includes(needle) ||
+          adminUserName(l.owner, l.owner_id ?? 0).toLowerCase().includes(needle) ||
+          (l.locality ?? "").toLowerCase().includes(needle)
       );
     },
     [search, allListings]

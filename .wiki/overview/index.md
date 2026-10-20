@@ -38,4 +38,4 @@ These live outside the wiki and are the source of truth for their domains. The w
 - [AGENTS.md](../../AGENTS.md) and [CLAUDE.md](../../CLAUDE.md) - coding conventions, structure, async-state rules.
 - [plans/prd.md](../../plans/prd.md) - product requirements and technical architecture.
 - [plans/ui_ux.md](../../plans/ui_ux.md) - page-by-page UI and interaction specs.
-- [docs/flatmates-openapi.yaml](../../docs/flatmates-openapi.yaml) - the backend API contract.
+- [openapi/openapi.json](../../openapi/openapi.json) - the backend API contract.

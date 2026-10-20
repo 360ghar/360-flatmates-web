@@ -1,44 +1,37 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import { Link } from "react-router";
 import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import type { ProfileFormData } from "@/features/profile/lib/profile-form";
+import { FactList } from "@/components/ui/FactList";
 
 interface ProfileContactInfoSectionProps {
-  register: UseFormRegister<ProfileFormData>;
-  errors: FieldErrors<ProfileFormData>;
-  hasEmail: boolean;
-  hasPhone: boolean;
+  email?: string | null;
+  phone?: string | null;
 }
 
-export function ProfileContactInfoSection({
-  register,
-  errors,
-  hasEmail,
-  hasPhone
-}: ProfileContactInfoSectionProps) {
+/**
+ * Sign-in email and phone, read only. The profile route does not accept
+ * either: a phone is added through the add-phone step, and the email belongs
+ * to the sign-in method.
+ */
+export function ProfileContactInfoSection({ email, phone }: ProfileContactInfoSectionProps) {
+  const hasPhone = typeof phone === "string" && phone.trim().length > 0;
   return (
     <Card className="flex flex-col gap-4 p-5">
       <h2 className="text-h3 text-ink">Contact information</h2>
-      <Input
-        label="Email"
-        type="email"
-        readOnly={hasEmail}
-        disabled={hasEmail}
-        error={errors.email?.message}
-        helperText={hasEmail ? "Email is verified and cannot be changed here." : undefined}
-        placeholder={hasEmail ? undefined : "you@example.com"}
-        {...register("email")}
+      <FactList
+        className="sm:grid-cols-2"
+        facts={[
+          ["Email", email?.trim() || "Not set"],
+          ["Phone", hasPhone ? phone : "Not set"]
+        ]}
       />
-      <Input
-        label="Phone number"
-        type="tel"
-        readOnly={hasPhone}
-        disabled={hasPhone}
-        error={errors.phone?.message}
-        helperText={hasPhone ? "Phone is verified and cannot be changed here." : "Enter a 10-digit mobile number."}
-        placeholder={hasPhone ? undefined : "9876543210"}
-        {...register("phone")}
-      />
+      {hasPhone ? (
+        <p className="text-caption text-ink-3">Email and phone are verified at sign-in and cannot be changed here.</p>
+      ) : (
+        <p className="text-caption text-ink-3">
+          This account has no phone number.{" "}
+          <Link to="/add-phone" className="font-semibold text-clay">Add a phone number</Link>.
+        </p>
+      )}
     </Card>
   );
 }

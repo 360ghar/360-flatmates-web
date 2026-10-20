@@ -5,22 +5,29 @@ import { Card } from "@/components/ui/Card";
 import { NetworkImage } from "@/components/ui/NetworkImage";
 import { PriceText } from "@/components/ui/PriceText";
 import { humanizeSnakeCase, formatSharingType } from "@/lib/utils";
-import type { StatusTone } from "@/components/ui/Badge";
-import type { Property } from "@/lib/api/types";
+import type { ListingModerationStatus } from "@/lib/data";
+import type { PropertyDetail } from "@/lib/api/types";
+import { ownerListingStatus, propertyImageUrls, readListingPreferences } from "@/lib/api/property-fields";
+import { formatLocation } from "@/lib/utils";
 import { PrescreenDetailItem } from "./PrescreenDetailItem";
 
-const PROPERTY_MOD_STATUS_BADGE: Record<string, StatusTone> = {
-  approved: "confirmed",
-  rejected: "rejected",
+const MODERATION_STATUS: Record<ListingModerationStatus, { label: string; tone: "success" | "warning" | "neutral" | "error" }> = {
+  live: { label: "Live", tone: "success" },
+  pending_review: { label: "Pending review", tone: "warning" },
+  paused: { label: "Paused", tone: "neutral" },
+  rejected: { label: "Rejected", tone: "error" }
 };
 
-export function PrescreenPropertyDetails({ property }: { property: Property }) {
+export function PrescreenPropertyDetails({ property }: { property: PropertyDetail }) {
+  const imageUrls = propertyImageUrls(property);
+  const preferences = readListingPreferences(property);
+  const moderation = MODERATION_STATUS[ownerListingStatus(property)];
   return (
     <div className="flex flex-col gap-6">
       {/* Images */}
-      {property.image_urls && property.image_urls.length > 0 && (
+      {imageUrls.length > 0 && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {property.image_urls.map((url, index) => (
+          {imageUrls.map((url, index) => (
             <NetworkImage
               key={url}
               src={url}
@@ -30,20 +37,12 @@ export function PrescreenPropertyDetails({ property }: { property: Property }) {
           ))}
         </div>
       )}
-      {property.main_image_url && (!property.image_urls || property.image_urls.length === 0) && (
-        <NetworkImage
-          src={property.main_image_url}
-          alt={property.title}
-          wrapperClassName="aspect-[16/10] max-h-80 rounded-cut-lg"
-        />
-      )}
 
       {/* Title & Price */}
       <Card as="section" variant="compact">
         <h2 className="text-h2 text-ink">{property.title}</h2>
         <p className="mt-1 text-body-md text-ink-2">
-          {property.locality}, {property.city}
-          {property.state ? `, ${property.state}` : ""}
+          {[formatLocation(property.locality, property.city), property.state].filter(Boolean).join(", ")}
         </p>
         <div className="mt-3 flex items-center gap-4">
           <PriceText value={property.monthly_rent} variant="hero" />
@@ -53,9 +52,9 @@ export function PrescreenPropertyDetails({ property }: { property: Property }) {
             </span>
           )}
         </div>
-        {property.sharing_type && (
+        {preferences.sharingType && (
           <Badge className="mt-3" tone="teal">
-            {formatSharingType(property.sharing_type)}
+            {formatSharingType(preferences.sharingType)}
           </Badge>
         )}
       </Card>
@@ -95,10 +94,10 @@ export function PrescreenPropertyDetails({ property }: { property: Property }) {
               value={new Date(property.available_from).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             />
           )}
-          {property.gender_preference && (
+          {preferences.genderPreference && (
             <PrescreenDetailItem
               label="Gender preference"
-              value={humanizeSnakeCase(property.gender_preference)}
+              value={humanizeSnakeCase(preferences.genderPreference)}
             />
           )}
         </div>
@@ -113,22 +112,18 @@ export function PrescreenPropertyDetails({ property }: { property: Property }) {
       )}
 
       {/* Owner Info */}
-      {property.owner && (
+      {property.owner_name && (
         <Card as="section" variant="compact">
           <h3 className="text-h3 text-ink">Owner</h3>
           <div className="mt-3 flex items-center gap-3">
-            <Avatar
-              name={property.owner.full_name}
-              src={property.owner.profile_image_url}
-              size="sm"
-              shape="circle"
-            />
+            <Avatar name={property.owner_name} size="sm" shape="circle" />
             <div>
               <p className="text-body-lg font-semibold text-ink">
-                {property.owner.full_name}
+                {property.owner_name}
               </p>
-              {property.owner.phone && (
-                <p className="text-caption text-ink-3">{property.owner.phone}</p>
+              {/* An admin sees the owner's own number; everyone else gets the agent or company number. */}
+              {property.owner_contact && (
+                <p className="text-caption text-ink-3">{property.owner_contact}</p>
               )}
             </div>
           </div>
@@ -136,17 +131,12 @@ export function PrescreenPropertyDetails({ property }: { property: Property }) {
       )}
 
       {/* Moderation Status */}
-      {property.property_status && (
-        <Card as="section" variant="compact">
-          <h3 className="text-h3 text-ink">Moderation Status</h3>
-          <div className="mt-3">
-            <Badge
-              variant="status"
-              status={PROPERTY_MOD_STATUS_BADGE[property.property_status ?? ""] ?? "pending"}
-            />
-          </div>
-        </Card>
-      )}
+      <Card as="section" variant="compact">
+        <h3 className="text-h3 text-ink">Moderation Status</h3>
+        <div className="mt-3">
+          <Badge tone={moderation.tone}>{moderation.label}</Badge>
+        </div>
+      </Card>
 
       {/* AI Pre-Screen Flags */}
       {property.tags && property.tags.length > 0 && (

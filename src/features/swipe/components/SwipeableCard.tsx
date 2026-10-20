@@ -102,8 +102,7 @@ export function SwipeableCard({
     Boolean(profile.propertyTitle) ||
     profile.monthlyRent != null ||
     (profile.imageUrls && profile.imageUrls.length > 0) ||
-    Boolean(profile.roomType) ||
-    Boolean(profile.flatConfig);
+    Boolean(profile.roomType);
   const hasExpandedContent = !!(
     profile.bio ||
     profile.profession ||

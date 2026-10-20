@@ -1,7 +1,7 @@
 import { queryOptions, infiniteQueryOptions, keepPreviousData, useMutation, useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
-  PropertySearchCursorPage,
+  PropertyCursorPage,
   SearchFilters,
   WebSearchResponse,
   SavedSearch,
@@ -24,56 +24,64 @@ import {
   type LocalSearchAlert
 } from "@/lib/storage/saved-searches";
 
+/**
+ * The declared query keys of `GET /properties`. `sharing_type`,
+ * `gender_preference` and `move_in` are single values. Keys the backend does
+ * not declare would give a 422, so none is added here.
+ */
+function searchQuery(filters: Omit<SearchFilters, "cursor">): Record<string, QueryValue> {
+  return {
+    q: filters.q,
+    lat: filters.lat,
+    lng: filters.lng,
+    radius: filters.radius,
+    city: filters.city,
+    locality: filters.locality,
+    price_min: filters.price_min,
+    price_max: filters.price_max,
+    property_type: filters.property_type,
+    purpose: filters.purpose,
+    bedrooms_min: filters.bedrooms_min,
+    bedrooms_max: filters.bedrooms_max,
+    sharing_type: filters.sharing_type,
+    gender_preference: filters.gender_preference,
+    move_in: filters.move_in,
+    available_from: filters.available_from,
+    amenities: filters.amenities,
+    features: filters.features,
+    furnishing: filters.furnishing,
+    kitchen_type: filters.kitchen_type,
+    ventilation_type: filters.ventilation_type,
+    windows_min: filters.windows_min,
+    has_lift: filters.has_lift,
+    sort_by: filters.sort_by,
+    semantic_search: filters.semantic_search,
+    exclude_swiped: filters.exclude_swiped
+  };
+}
+
+function toSearchPage(response: PropertyCursorPage): WebSearchResponse {
+  return {
+    results: response.items,
+    total: response.total ?? undefined,
+    next_cursor: response.next_cursor,
+    has_more: response.has_more,
+    limit: response.limit
+  };
+}
+
 export function webSearchOptions(filters: SearchFilters) {
   return queryOptions({
     queryKey: ["search", "web", filters],
-    queryFn: async ({ signal }) => {
-      const response = await apiClient.request<PropertySearchCursorPage>({
-        method: "GET",
-        path: "/properties",
-        signal,
-        query: {
-          q: filters.q,
-          lat: filters.lat,
-          lng: filters.lng,
-          radius: filters.radius,
-          city: filters.city,
-          locality: filters.locality,
-          price_min: filters.price_min,
-          price_max: filters.price_max,
-          property_type: filters.property_type,
-          purpose: filters.purpose,
-          bedrooms_min: filters.bedrooms_min,
-          bedrooms_max: filters.bedrooms_max,
-          sharing_type: filters.sharing_type?.[0],
-          gender_preference: filters.gender_preference?.[0],
-          move_in: filters.move_in?.[0],
-          available_from: filters.available_from,
-          amenities: filters.amenities,
-          features: filters.features,
-          furnishing: filters.furnishing,
-          kitchen_type: filters.kitchen_type,
-          ventilation_type: filters.ventilation_type,
-          windows_min: filters.windows_min,
-          has_lift: filters.has_lift,
-          sort_by: filters.sort_by,
-          semantic_search: filters.semantic_search,
-          exclude_swiped: filters.exclude_swiped,
-          limit: filters.limit,
-        } as Record<string, QueryValue>,
-      });
-
-      return {
-        results: response.items,
-        total: response.total ?? undefined,
-        next_cursor: response.next_cursor,
-        has_more: response.has_more,
-        limit: response.limit,
-        search_type: "listings" as const,
-        filters_applied: response.filters_applied,
-        search_center: response.search_center,
-      } satisfies WebSearchResponse;
-    },
+    queryFn: async ({ signal }) =>
+      toSearchPage(
+        await apiClient.request<PropertyCursorPage>({
+          method: "GET",
+          path: "/properties",
+          signal,
+          query: { ...searchQuery(filters), limit: filters.limit }
+        })
+      ),
     // Keep showing prior results while the next query loads so filter
     // changes do not blank the grid (see CLAUDE.md async-state rules).
     placeholderData: keepPreviousData,
@@ -94,54 +102,15 @@ export function infiniteWebSearchOptions(
 ) {
   return infiniteQueryOptions({
     queryKey: ["search", "web", "infinite", filters],
-    queryFn: async ({ pageParam, signal }) => {
-      const response = await apiClient.request<PropertySearchCursorPage>({
-        method: "GET",
-        path: "/properties",
-        signal,
-        query: {
-          q: filters.q,
-          lat: filters.lat,
-          lng: filters.lng,
-          radius: filters.radius,
-          city: filters.city,
-          locality: filters.locality,
-          price_min: filters.price_min,
-          price_max: filters.price_max,
-          property_type: filters.property_type,
-          purpose: filters.purpose,
-          bedrooms_min: filters.bedrooms_min,
-          bedrooms_max: filters.bedrooms_max,
-          sharing_type: filters.sharing_type?.[0],
-          gender_preference: filters.gender_preference?.[0],
-          move_in: filters.move_in?.[0],
-          available_from: filters.available_from,
-          amenities: filters.amenities,
-          features: filters.features,
-          furnishing: filters.furnishing,
-          kitchen_type: filters.kitchen_type,
-          ventilation_type: filters.ventilation_type,
-          windows_min: filters.windows_min,
-          has_lift: filters.has_lift,
-          sort_by: filters.sort_by,
-          semantic_search: filters.semantic_search,
-          exclude_swiped: filters.exclude_swiped,
-          cursor: pageParam,
-          limit: filters.limit ?? 20,
-        } as Record<string, QueryValue>,
-      });
-
-      return {
-        results: response.items,
-        total: response.total ?? undefined,
-        next_cursor: response.next_cursor,
-        has_more: response.has_more,
-        limit: response.limit,
-        search_type: "listings" as const,
-        filters_applied: response.filters_applied,
-        search_center: response.search_center,
-      } satisfies WebSearchResponse;
-    },
+    queryFn: async ({ pageParam, signal }) =>
+      toSearchPage(
+        await apiClient.request<PropertyCursorPage>({
+          method: "GET",
+          path: "/properties",
+          signal,
+          query: { ...searchQuery(filters), cursor: pageParam, limit: filters.limit ?? 20 }
+        })
+      ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
       return lastPage.has_more ? lastPage.next_cursor ?? undefined : undefined;
@@ -205,7 +174,7 @@ export function useCreateSavedSearch() {
     mutationFn: async (payload: SavedSearchCreate): Promise<SavedSearch> => {
       const created = createSavedSearchLocal({
         name: payload.name,
-        filters: payload.filters as unknown as Record<string, unknown>,
+        filters: { ...payload.filters },
         alert_enabled: payload.alert_enabled,
         alert_frequency: payload.alert_frequency,
         alert_channels: payload.alert_channels
@@ -239,7 +208,7 @@ export function useUpdateSavedSearch() {
     mutationFn: async ({ id, payload }: { id: number; payload: { name?: string; filters?: SearchFilters; alert_enabled?: boolean } }): Promise<SavedSearch> => {
       const updated = updateSavedSearchLocal(id, {
         name: payload.name,
-        filters: payload.filters as unknown as Record<string, unknown>,
+        filters: payload.filters && { ...payload.filters },
         alert_enabled: payload.alert_enabled
       });
       if (!updated) {
@@ -288,7 +257,7 @@ export function useCreateSearchAlert() {
     mutationFn: async (payload: SearchAlertCreate): Promise<SearchAlert> => {
       const created = createSearchAlertLocal({
         name: payload.name,
-        filters: payload.filters as unknown as Record<string, unknown>,
+        filters: { ...payload.filters },
         frequency: payload.frequency,
         channels: payload.channels
       });
@@ -307,7 +276,7 @@ export function useUpdateSearchAlert() {
     mutationFn: async ({ id, payload }: { id: number; payload: SearchAlertUpdate }): Promise<SearchAlert> => {
       const updated = updateSearchAlertLocal(id, {
         name: payload.name,
-        filters: payload.filters as unknown as Record<string, unknown> | undefined,
+        filters: payload.filters && { ...payload.filters },
         frequency: payload.frequency,
         channels: payload.channels,
         enabled: payload.enabled

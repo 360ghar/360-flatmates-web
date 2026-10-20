@@ -299,7 +299,7 @@ export function buildResidenceSchema(params: {
   description: string;
   url: string;
   image?: string;
-  monthlyRent: number | string;
+  monthlyRent?: number | string | null;
   locality?: string;
   city?: string;
   bedrooms?: number;
@@ -315,7 +315,11 @@ export function buildResidenceSchema(params: {
     name: params.name,
     description: params.description,
     url: params.url,
-    offers: {
+  };
+
+  // A listing with no stated rent publishes no offer.
+  if (params.monthlyRent !== null && params.monthlyRent !== undefined) {
+    residence.offers = {
       "@type": "Offer",
       priceSpecification: {
         "@type": "UnitPriceSpecification",
@@ -324,8 +328,8 @@ export function buildResidenceSchema(params: {
         unitText: "month",
       },
       availability: "https://schema.org/InStock",
-    },
-  };
+    };
+  }
 
   if (params.image) residence.image = params.image;
 

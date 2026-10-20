@@ -8,7 +8,7 @@ vi.mock("@/lib/api", () => ({
   apiClient: { request: (...args: unknown[]) => mockRequest(...args) }
 }));
 
-import { useBlogPosts, useBlogPost, useBlogPreview, useBlogCategories, useBlogTags, useCreateBlogPreviewToken } from "@/features/blog/hooks/useBlog";
+import { useInfiniteBlogPosts, useBlogPost, useBlogPreview, useBlogCategories, useBlogTags, useCreateBlogPreviewToken } from "@/features/blog/hooks/useBlog";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -26,54 +26,44 @@ describe("Blog hooks", () => {
     vi.clearAllMocks();
   });
 
-  describe("useBlogPosts(filters)", () => {
-    it("uses query key ['blog', 'posts', filters] and unwraps items", async () => {
-      const mockPosts = [
-        {
-          id: 1,
-          title: "How to find flatmates",
-          slug: "how-to-find-flatmates",
-          content: "Lorem ipsum",
-          status: "published"
-        }
-      ];
-      mockRequest.mockResolvedValue({
-        items: mockPosts,
-        next_cursor: null,
-        has_more: false,
-        limit: 12
-      });
+  describe("useInfiniteBlogPosts(filters)", () => {
+    it("requests one page of GET /blog/posts with the filters", async () => {
+      mockRequest.mockResolvedValue({ items: [{ id: 1 }], next_cursor: null, has_more: false, limit: 12 });
 
-      const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } }
-      });
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      );
+      const { result } = renderHook(() => useInfiniteBlogPosts({ status: "published" }), { wrapper: createWrapper() });
 
-      renderHook(() => useBlogPosts({ status: "published" }), { wrapper });
-      await waitFor(() => expect(mockRequest).toHaveBeenCalled());
-
-      const cache = queryClient.getQueryData(["blog", "posts", {
-        status: "published"
-      }]);
-      expect(cache).toEqual(mockPosts);
-    });
-
-    it("requests GET /blog/posts", async () => {
-      mockRequest.mockResolvedValue({
-        items: [],
-        next_cursor: null,
-        has_more: false,
-        limit: 12
-      });
-
-      renderHook(() => useBlogPosts(), { wrapper: createWrapper() });
-
-      await waitFor(() => expect(mockRequest).toHaveBeenCalled());
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockRequest).toHaveBeenCalledTimes(1);
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("GET");
       expect(call.path).toBe("/blog/posts");
+      expect(call.query).toMatchObject({ status: "published", limit: 12 });
+      expect(result.current.hasNextPage).toBe(false);
+    });
+
+    it("reads the next page only when asked", async () => {
+      mockRequest
+        .mockResolvedValueOnce({ items: [{ id: 1 }], next_cursor: "c1", has_more: true, limit: 12, total: null })
+        .mockResolvedValueOnce({ items: [{ id: 2 }], next_cursor: null, has_more: false, limit: 12, total: null });
+
+      const { result } = renderHook(() => useInfiniteBlogPosts({ categories: ["guides"] }), { wrapper: createWrapper() });
+
+      await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+      expect(mockRequest).toHaveBeenCalledTimes(1);
+      await result.current.fetchNextPage();
+      await waitFor(() => expect(result.current.data?.pages).toHaveLength(2));
+      expect(mockRequest.mock.calls[1][0].query).toMatchObject({ cursor: "c1", categories: ["guides"] });
+    });
+
+    it("sends no status and no category_id for a public reader", async () => {
+      mockRequest.mockResolvedValue({ items: [], next_cursor: null, has_more: false, limit: 12, total: null });
+
+      renderHook(() => useInfiniteBlogPosts({ categories: ["guides"] }), { wrapper: createWrapper() });
+
+      await waitFor(() => expect(mockRequest).toHaveBeenCalled());
+      const query = mockRequest.mock.calls[0][0].query;
+      expect(query).not.toHaveProperty("category_id");
+      expect(query.status).toBeUndefined();
     });
   });
 
@@ -129,9 +119,13 @@ describe("Blog hooks", () => {
 
   describe("useBlogCategories / useBlogTags", () => {
     it("returns category list", async () => {
-      mockRequest.mockResolvedValue([
-        { id: 1, name: "Guide", slug: "guide" }
-      ]);
+      mockRequest.mockResolvedValue({
+        items: [{ id: 1, name: "Guide", slug: "guide" }],
+        next_cursor: null,
+        has_more: false,
+        limit: 100,
+        total: null
+      });
       const { result } = renderHook(() => useBlogCategories(), {
         wrapper: createWrapper()
       });
@@ -144,9 +138,13 @@ describe("Blog hooks", () => {
     });
 
     it("returns tag list", async () => {
-      mockRequest.mockResolvedValue([
-        { id: 1, name: "Mumbai", slug: "mumbai" }
-      ]);
+      mockRequest.mockResolvedValue({
+        items: [{ id: 1, name: "Mumbai", slug: "mumbai" }],
+        next_cursor: null,
+        has_more: false,
+        limit: 100,
+        total: null
+      });
       const { result } = renderHook(() => useBlogTags(), {
         wrapper: createWrapper()
       });
@@ -162,22 +160,22 @@ describe("Blog hooks", () => {
   describe("useCreateBlogPreviewToken", () => {
     it("sends POST /blog/posts/{id}/preview-token", async () => {
       mockRequest.mockResolvedValue({
-        token: "tok_new",
-        url: "https://example.com/blog/preview/tok_new",
-        expires_at: "2026-12-31T00:00:00Z"
+        preview_token: "tok_new",
+        preview_url: "https://example.com/blog/preview/tok_new"
       });
 
       const { result } = renderHook(() => useCreateBlogPreviewToken(), {
         wrapper: createWrapper()
       });
 
-      result.current.mutate({ id: 5, payload: { ttl_hours: 24 } });
+      result.current.mutate({ id: 5 });
 
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("POST");
       expect(call.path).toBe("/blog/posts/5/preview-token");
-      expect(call.body).toEqual({ ttl_hours: 24 });
+      // The route takes no body.
+      expect(call.body).toBeUndefined();
     });
   });
 });

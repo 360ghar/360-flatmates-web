@@ -2,12 +2,15 @@ import { useCallback, useMemo, useState } from "react";
 import { useStore } from "zustand";
 import { searchStore } from "@/lib/stores/search-store";
 import type { SearchFilters } from "@/lib/api/types";
+import { readEnum } from "@/lib/api/schema";
 import {
   FURNISHING_LEVEL_OPTIONS,
   GENDER_PREFERENCE_VALUES,
   KITCHEN_TYPE_OPTIONS,
   LISTING_SHARING_TYPE_OPTIONS,
-  MOVE_IN_TIMELINE_OPTIONS,
+  LISTING_SHARING_TYPE_VALUES,
+  MOVE_IN_FILTER_OPTIONS,
+  MOVE_IN_FILTER_VALUES,
   PROPERTY_TYPE_VALUES,
   VENTILATION_TYPE_OPTIONS
 } from "@/lib/data";
@@ -72,21 +75,25 @@ export function useExploreFilters() {
         })),
       },
       {
+        // The backend takes one value for sharing_type, gender_preference and
+        // move_in, so these three sections are pick-one.
         id: "sharing_type",
         title: "Sharing Type",
+        variant: "choice",
         options: LISTING_SHARING_TYPE_OPTIONS.map((st) => ({
           value: st.value,
           label: st.label,
-          selected: filters.sharing_type?.includes(st.value as SearchFilters["sharing_type"] extends (infer U)[] | undefined ? U : never) ?? false,
+          selected: filters.sharing_type === st.value,
         })),
       },
       {
         id: "gender_preference",
         title: "Gender Preference",
+        variant: "choice",
         options: GENDER_PREFERENCE_VALUES.map((gp) => ({
           value: gp,
           label: gp.charAt(0).toUpperCase() + gp.slice(1),
-          selected: filters.gender_preference?.includes(gp as SearchFilters["gender_preference"] extends (infer U)[] | undefined ? U : never) ?? false,
+          selected: filters.gender_preference === gp,
         })),
       },
       {
@@ -141,10 +148,11 @@ export function useExploreFilters() {
       {
         id: "move_in",
         title: "Move-in Timeline",
-        options: MOVE_IN_TIMELINE_OPTIONS.map((mo) => ({
+        variant: "choice",
+        options: MOVE_IN_FILTER_OPTIONS.map((mo) => ({
           value: mo.value,
           label: mo.label,
-          selected: filters.move_in?.includes(mo.value as SearchFilters["move_in"] extends (infer U)[] | undefined ? U : never) ?? false,
+          selected: filters.move_in === mo.value,
         })),
       },
       {
@@ -199,6 +207,23 @@ export function useExploreFilters() {
         } else {
           setFilter("windows_min", Number(value));
         }
+        return;
+      }
+
+      // Pick-one sections: choosing the selected value clears it.
+      if (sectionId === "sharing_type") {
+        const next = readEnum(LISTING_SHARING_TYPE_VALUES, value);
+        setFilter("sharing_type", filters.sharing_type === next ? undefined : next ?? undefined);
+        return;
+      }
+      if (sectionId === "gender_preference") {
+        const next = readEnum(GENDER_PREFERENCE_VALUES, value);
+        setFilter("gender_preference", filters.gender_preference === next ? undefined : next ?? undefined);
+        return;
+      }
+      if (sectionId === "move_in") {
+        const next = readEnum(MOVE_IN_FILTER_VALUES, value);
+        setFilter("move_in", filters.move_in === next ? undefined : next ?? undefined);
         return;
       }
 

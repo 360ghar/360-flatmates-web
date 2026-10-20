@@ -2,98 +2,48 @@
 
 Active contributors: Saksham
 
-Once a room poster has listings live, they need to see how those listings are performing. 360 Flatmates gives them two surfaces: a dashboard overview with lifetime total metrics and a per-listing analytics page with a selectable time window and a daily breakdown table. There is also a public city-stats page that markets the platform with hardcoded growth numbers. This page covers the dashboard metrics, the analytics period selector, the stat card rendering, and the public stats page. For how listings are created and managed, see [Listing management](listing-management.md). For the room poster mode that unlocks these surfaces, see [Profile and onboarding](profile-onboarding.md). For the property data model that backs the metrics, see [Listing and property model](../primitives/listing-property.md).
+Once a room poster has listings, they need to see how those listings do. 360 Flatmates gives them two surfaces: a dashboard with lifetime totals, and a per-listing page. The backend has no dashboard or analytics route for a room poster, so both surfaces read the counters that each listing already carries (`view_count`, `like_count`, `interest_count`) from `GET /properties/me`.
 
-## Two surfaces, two endpoints
+## Two surfaces, one source
 
-| Route | File | Endpoint | Purpose |
+| Route | File | Source | Purpose |
 | --- | --- | --- | --- |
-| `/dashboard` | `src/features/hosting/pages/DashboardPage.tsx` | `GET /flatmates/web/dashboard` | Lifetime totals across all the user's listings |
-| `/dashboard/analytics?propertyId=&period=` | `src/features/hosting/pages/AnalyticsPage.tsx` | `GET /flatmates/web/listings/{id}/analytics?period=` | Per-listing metrics for a chosen period |
-| `/stats` | `src/pages/public/StatsPage.tsx` | `GET /flatmates/catalog/cities` (chips only) | Public marketing page with hardcoded stats |
+| `/dashboard` | `src/features/hosting/pages/DashboardPage.tsx` | `GET /properties/me`, every page | Lifetime totals across all the user's listings |
+| `/dashboard/analytics?propertyId=&period=` | `src/features/hosting/pages/AnalyticsPage.tsx` | the same listing list | Counters for one listing |
+| `/stats` | `src/pages/public/StatsPage.tsx` | `GET /flatmates/catalogs` (chips only) | Public marketing page with hardcoded stats |
 
-The dashboard is the room poster's landing view. The analytics page is reached from the dashboard's per-row "Stats" action, which navigates to `/dashboard/analytics?propertyId={id}`.
+The dashboard is the room poster's landing view. The analytics page opens from the "Stats" action on a dashboard row, which goes to `/dashboard/analytics?propertyId={id}`.
 
 ## The dashboard
 
-`DashboardPage` fetches `RoomPosterDashboard` via `useDashboardStats()` and maps it into two shapes before handing them to the `DashboardPanel` organism:
+`useDashboardStats()` (`src/features/hosting/hooks/useDashboard.ts`) reads the owner's listings and derives a `RoomPosterDashboard` from them. The owner state of each listing is `listing_preferences.moderation_status` (`live`, `pending_review`, `paused`, `rejected`). `DashboardPage` maps the result into three metric cards and one row per listing for `DashboardPanel`.
 
-- `mapDashboardMetrics` produces four `DashboardMetric` cards.
-- `mapListingRows` produces one `ListingPerformanceRow` per listing.
+| Metric | Source | Helper |
+| --- | --- | --- |
+| Active Listings | listings that are `live` | `${pending_review} pending review` when more than zero |
+| Views | sum of `view_count` | |
+| Likes | sum of `like_count` | |
 
-### The four metric cards
-
-| Metric | Source field | Trend | Helper |
-| --- | --- | --- | --- |
-| Active Listings | `active_listings` | up if > 0, else flat | `${pending_review} pending review` when pending > 0 |
-| Views | `total_views` | up if > 0, else flat | |
-| Likes | `total_likes` | up if > 0, else flat | |
-| Visits | `total_visits` | up if > 0, else flat | |
-
-Numbers are formatted with `Intl.NumberFormat("en-IN")` so they render with Indian digit grouping (for example 1,00,000). The trend is a directional arrow icon: `ArrowUpRight` in success green for up, `ArrowDownRight` in error red for down, nothing for flat. The dashboard only ever sets `up` or `flat` from the API data; the `down` branch exists in `DashboardPanel` for future use.
+Numbers use `Intl.NumberFormat("en-IN")`, so they render with Indian digit grouping (for example 1,00,000). The cards show no trend arrow, because the API gives no previous-period value.
 
 ### The per-listing table
 
-`DashboardPanel` (`src/features/hosting/components/DashboardPanel.tsx`) renders the per-listing performance as a table on desktop (`lg:block`) and as stacked cards on mobile (`lg:hidden`). Each row shows the listing title, views, likes, chats (conversations), an optional visits column (only if any row carries a `visits` number), a boost status badge, and three actions: Stats, Boost, Edit.
-
-The boost status badge has three tones, mapped from the row's `boostStatus`:
-
-| `boostStatus` | Badge tone | Label |
-| --- | --- | --- |
-| `active` | success (green) | Active |
-| `inactive` | neutral | Inactive |
-| `expired` | warning (amber) | Expired |
-
-The three row actions wire back to the parent page's callbacks:
+`DashboardPanel` (`src/features/hosting/components/DashboardPanel.tsx`) renders a table on desktop and stacked cards on mobile. Each row shows the title, views, likes, chats (`interest_count`) and the listing state as a tonal `Badge` (published, in review, paused, rejected). Two row actions go to other pages:
 
 | Action | Navigation |
 | --- | --- |
 | Stats | `/dashboard/analytics?propertyId={id}` |
-| Boost | `/my-listings/{id}` (the detail page's boost flow) |
 | Edit | `/my-listings/{id}/edit` |
 
 ### Async states
 
-The dashboard follows the project's async-state rules. Loading renders four `statCard` skeletons in a 4-column grid plus a table skeleton with header and three rows. Error renders an inline `ErrorState` with retry inside a card (never a full-page error, because the page title is always visible). Empty (listings exist but `rows.length === 0`) renders an `EmptyState` with a "Post a listing" CTA that navigates to `/post`.
+Loading renders `statCard` skeletons plus a table skeleton. Error renders an inline `ErrorState` with retry inside a card, never a full-page error. Empty renders a "No listings yet" card with a "Post a listing" action.
 
 ## The analytics page
 
-`AnalyticsPage` (`src/features/hosting/pages/AnalyticsPage.tsx`) reads `propertyId` and `period` from the URL search params, fetches `ListingAnalytics` via `useListingAnalytics(propertyId, period)`, and renders a period selector plus a six-card stat grid plus a daily breakdown table.
+`AnalyticsPage` reads `propertyId` and `period` from the URL, calls `useListingAnalytics(propertyId, period)` and renders a period selector and three stat cards: Views, Likes and Chats started. The counters are lifetime values, so the period does not change them and the page has no daily series. `AnalyticsPeriod` (`"7d" | "30d" | "all"`) is exported from `useDashboard.ts`.
 
-### The period selector
-
-The period is a `SegmentedControl` with three options, validated by `isAnalyticsPeriod`:
-
-| Value | Label | Meaning |
-| --- | --- | --- |
-| `7d` | 7 days | Last 7 days |
-| `30d` | 30 days | Last 30 days (default) |
-| `all` | All time | Since the listing was created |
-
-`AnalyticsPeriod` is exported from `src/features/hosting/hooks/useDashboard.ts` as `"7d" | "30d" | "all"`. Changing the selector updates the `period` search param with `replace: true`, which re-runs the query with the new key `["dashboard", "analytics", propertyId, period]`. If the URL has no `period` or an invalid one, it defaults to `30d`.
-
-### The six stat cards
-
-The analytics page uses the shared `StatCard` molecule (`src/features/hosting/components/StatCard.tsx`), not the dashboard's inline metric cards. Six cards render in a 3-column grid:
-
-| Card | Source field | Description |
-| --- | --- | --- |
-| Total Views | `total_views` | `${unique_views} unique` |
-| Likes | `likes` | |
-| Shares | `shares` | |
-| Conversations Started | `conversations_started` | |
-| Visits Scheduled | `visits_scheduled` | |
-| Boost | `boost_active ? "Active" : "Inactive"` | `Expires {date}` when active and `boost_expires_at` is set |
-
-`StatCard` has two layouts: with an `icon` prop it renders a horizontal card with an accent-soft icon container, without an icon it renders a compact vertical card. The analytics page uses the no-icon variant.
-
-### The daily breakdown table
-
-When `daily_stats` is non-empty, a `DailyStatsTable` renders a four-column table (Date, Views, Likes, Shares) inside a card. Dates are formatted with `formatDate` from `src/lib/utils/format`. Numeric cells use `tabular-nums` for alignment. When `daily_stats` is empty, an `EmptyState` explains that day-by-day data will appear once the listing gets engagement.
-
-### No listing selected
-
-If `propertyId` is missing, zero, or `NaN`, the page short-circuits to an `EmptyState` titled "No listing selected" with a prompt to pick a listing from the dashboard. This is the entry condition when a user navigates to `/dashboard/analytics` without a `propertyId` param.
+If `propertyId` is missing, zero or `NaN`, the page shows an `EmptyState` titled "Pick a listing first".
 
 ## The public stats page
 
@@ -113,41 +63,41 @@ The hardcoded stats and growth data are marketing figures, not live API data. Th
 
 ```mermaid
 graph LR
-    D["DashboardPage"] -->|GET /flatmates/web/dashboard| B1["FastAPI"]
+    D["DashboardPage"] -->|GET /properties/me| B1["FastAPI"]
     D --> DP["DashboardPanel"]
     DP -->|Stats click| A["AnalyticsPage"]
-    A -->|GET /flatmates/web/listings/id/analytics| B1
-    A --> SC["StatCard grid + daily table"]
-    S["StatsPage (public)"] -->|GET /flatmates/catalog/cities| B1
+    A -->|same listing list| B1
+    S["StatsPage (public)"] -->|GET /flatmates/catalogs| B1
     S --> HC["Hardcoded stat cards + growth chart"]
 ```
 
 ## Hooks and query keys
 
-Both authenticated hooks live in `src/features/hosting/hooks/useDashboard.ts`:
+Both authenticated hooks live in `src/features/hosting/hooks/useDashboard.ts` and read `myPropertiesOptions` (`["properties", "mine"]`):
 
-| Hook | Query key | Endpoint | Enabled |
+| Hook | Query key | Source | Enabled |
 | --- | --- | --- | --- |
-| `useDashboardStats()` | `["dashboard", "stats"]` | `GET /flatmates/web/dashboard` | always |
-| `useListingAnalytics(propertyId, period)` | `["dashboard", "analytics", propertyId, period]` | `GET /flatmates/web/listings/{id}/analytics?period=` | `propertyId > 0` |
+| `useDashboardStats()` | `["properties", "mine"]` | `GET /properties/me` | always |
+| `useListingAnalytics(propertyId, period)` | `["properties", "mine"]` with `select` | `GET /properties/me` | `propertyId > 0` |
 
-The `useBoostListing` mutation in `src/features/listings/hooks/useProperties.ts` invalidates the `dashboard` key prefix on success, which is why a boost from the listing detail page refreshes the dashboard's boost badges on the next visit. See [Listing management](listing-management.md) for the boost and renew flows.
+Every listing mutation invalidates `["properties", "mine"]`, so the dashboard refreshes after a create, edit, pause, resume or delete. See [Listing management](listing-management.md).
 
 ## Cross-references
 
-- [Listing management](listing-management.md) for the post, edit, boost, and renew flows that feed these metrics.
+- [Listing management](listing-management.md) for the post, edit, pause, resume and delete flows that feed these numbers.
 - [Profile and onboarding](profile-onboarding.md) for room poster mode selection.
 - [Listing and property model](../primitives/listing-property.md) for the `RoomPosterDashboard` and `ListingAnalytics` types.
+
 
 ## Key source files
 
 | File | Purpose |
 | --- | --- |
 | `src/features/hosting/pages/DashboardPage.tsx` | Dashboard overview, maps API data to metrics and rows |
-| `src/features/hosting/pages/AnalyticsPage.tsx` | Per-listing analytics with period selector and daily table |
+| `src/features/hosting/pages/AnalyticsPage.tsx` | Per-listing counters with a period selector |
 | `src/features/hosting/components/DashboardPanel.tsx` | Metric cards, desktop table, mobile cards, row actions |
 | `src/features/hosting/hooks/useDashboard.ts` | `useDashboardStats`, `useListingAnalytics`, `AnalyticsPeriod` |
 | `src/features/hosting/components/StatCard.tsx` | Reusable stat card (icon and no-icon variants) |
 | `src/components/page-clients/StatsClient.tsx` | Public stats page client with city chips and hardcoded stats |
 | `src/pages/public/StatsPage.tsx` | Public stats route with SEO helmet |
-| `src/lib/api/property.types.ts` | `RoomPosterDashboard`, `ListingAnalytics`, `CityStats` types |
+| `src/lib/api/property.types.ts` | `RoomPosterDashboard` and `ListingAnalytics` types |

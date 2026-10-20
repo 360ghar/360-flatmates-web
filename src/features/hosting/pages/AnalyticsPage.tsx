@@ -136,19 +136,6 @@ export function AnalyticsPage() {
               label="Chats started"
               value={formatCount(analytics.conversations_started)}
             />
-            <StatCard
-              label="Visits booked"
-              value={formatCount(analytics.visits_scheduled)}
-            />
-            <StatCard
-              label="Boost"
-              value={analytics.boost_active ? "Active" : "Inactive"}
-              description={
-                analytics.boost_active && analytics.boost_expires_at
-                  ? `Expires ${formatDate(analytics.boost_expires_at)}`
-                  : undefined
-              }
-            />
           </div>
 
           <div>

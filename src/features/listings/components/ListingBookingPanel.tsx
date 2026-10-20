@@ -17,7 +17,7 @@ export function ListingBookingPanel({
   onContactOwner,
   onShareClick
 }: {
-  price: number;
+  price: number | null;
   ownerName?: string;
   ownerAvatarUrl?: string | null;
   interestCount?: number;
@@ -33,8 +33,14 @@ export function ListingBookingPanel({
         <Stamp className="absolute -right-5 -top-7 size-20 rotate-12" />
         <p className="text-caption text-ink-3">Rent</p>
         <p className="mt-0.5 text-h3 font-sans font-semibold tabular-nums text-ink">
-          {formatCurrencyINR(price)}
-          <span className="text-body-md font-normal text-ink-3"> a month</span>
+          {price === null ? (
+            "Rent on request"
+          ) : (
+            <>
+              {formatCurrencyINR(price)}
+              <span className="text-body-md font-normal text-ink-3"> a month</span>
+            </>
+          )}
         </p>
 
         <button

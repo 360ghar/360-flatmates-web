@@ -2,18 +2,18 @@ import { cn } from "@/components/ui/component-utils";
 import { SkeletonRoot, shimmer } from "@/components/ui/Skeleton";
 
 /** Loading stand-in for the real layout; `count` repeats it, `className` lays the copies out. */
-export function PaymentMethodRowSkeleton({ count = 1, className }: { count?: number; className?: string }) {
+export function BlockedUserRowSkeleton({ count = 1, className }: { count?: number; className?: string }) {
   return (
     <SkeletonRoot className={count > 1 && !className ? "flex flex-col gap-3" : className}>
       {Array.from({ length: count }, (_, i) => (
-        <PaymentMethodRowBones key={i} />
+        <BlockedUserRowBones key={i} />
       ))}
     </SkeletonRoot>
   );
 }
 
-/** Payment method / blocked user list row */
-function PaymentMethodRowBones() {
+/** Blocked user list row */
+function BlockedUserRowBones() {
   return (
     <div className="flex items-center gap-3 rounded-hand bg-surface p-4 shadow-sm">
       <div className={cn("h-9 w-9 shrink-0 rounded-full", shimmer)} />

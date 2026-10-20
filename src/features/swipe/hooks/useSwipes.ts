@@ -12,7 +12,7 @@ import type { QueryValue } from "@/lib/api/client";
 export function swipeDeckOptions(filters?: SwipeDeckParams) {
   return queryOptions({
     queryKey: ["swipes", "deck", filters],
-    // `/flatmates/profiles` now returns a cursor page (see docs/flatmates-openapi.yaml).
+    // `GET /flatmates/profiles` returns a cursor page; the deck reads the first page and refills near its end.
     queryFn: async ({ signal }) => {
       const response = await apiClient.request<PeerCursorPage>({
         method: "GET",

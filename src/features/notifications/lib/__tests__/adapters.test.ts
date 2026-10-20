@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { notificationToNotificationCardProps } from "../adapters";
+import { notificationToNotificationCardProps, notificationWebRoute } from "../adapters";
 import type { FlatmatesNotification } from "@/lib/api/types";
 
 describe("notificationToNotificationCardProps", () => {
@@ -37,5 +37,19 @@ describe("notificationToNotificationCardProps", () => {
 
     const unread = { id: "2", type: "new_match", title: "Unread", body: "", is_read: false } as FlatmatesNotification;
     expect(notificationToNotificationCardProps(unread).unread).toBe(true);
+  });
+});
+
+describe("notificationWebRoute", () => {
+  it("maps the flatmates app deep links to web routes", () => {
+    expect(notificationWebRoute("/flatmates/chat/12")).toBe("/chats/12");
+    expect(notificationWebRoute("/flatmates/listing/7/")).toBe("/listing/7");
+  });
+
+  it("keeps app routes and drops flatmates links with no web page", () => {
+    expect(notificationWebRoute("/post")).toBe("/post");
+    expect(notificationWebRoute("/chats")).toBe("/chats");
+    expect(notificationWebRoute("/flatmates/matches")).toBeNull();
+    expect(notificationWebRoute(null)).toBeNull();
   });
 });

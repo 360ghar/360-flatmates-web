@@ -20,7 +20,8 @@ const profile = {
   sleep_schedule: "early_bird",
   cleanliness: "tidy",
   food_habits: "vegetarian",
-  smoking_drinking: "neither",
+  smoking: "never",
+  drinking: "never",
   guests_policy: "occasional_ok",
   work_style: "hybrid",
   gender_preference: "any",
@@ -34,7 +35,7 @@ const peer = {
   mode: "seeker",
   city: "Bangalore",
   locality: "Indiranagar",
-  age: 28,
+  age_bucket: "25-30",
   profession: "Product Manager",
   budget_min: 18000,
   budget_max: 35000,
@@ -42,22 +43,29 @@ const peer = {
   sleep_schedule: "early_bird",
   cleanliness: "tidy",
   food_habits: "vegetarian",
-  smoking_drinking: "neither",
+  smoking: "never",
+  drinking: "never",
   guests_policy: "occasional_ok",
   work_style: "hybrid",
   gender_preference: "any",
   match_percentage: 86,
-  property_id: 101,
-  property_title: "Sunny room in Koramangala",
-  monthly_rent: 22000,
-  main_image_url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
+  // Listing context is one nested object. A peer carries no phone number.
+  listing: {
+    property_id: 101,
+    title: "Sunny room in Koramangala",
+    main_image_url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
+    image_urls: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"],
+    monthly_rent: 22000,
+    features: [],
+    amenities: [],
+  },
 };
 
 const property = {
   id: 101,
   owner_id: 2,
-  property_type: "apartment",
-  purpose: "flatmate",
+  property_type: "flatmate",
+  purpose: "rent",
   title: "Sunny room in Koramangala",
   description: "A bright private room in a calm, vegetarian flatshare.",
   city: "Bangalore",
@@ -75,24 +83,33 @@ const property = {
   features: ["Private room", "Balcony", "WiFi"],
   tags: ["vegetarian", "quiet"],
   main_image_url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
-  image_urls: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"],
+  images: [
+    {
+      id: 1,
+      property_id: 101,
+      image_url: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
+      display_order: 0,
+      is_main_image: true,
+    },
+  ],
   available_from: "2026-07-15",
-  gender_preference: "any",
-  sharing_type: "private_room",
-  society_type: "gated",
-  society_amenities: ["gym", "security"],
-  society_vibe_tags: ["quiet", "professional"],
+  // Flatmate facts live in listing_preferences, not at the top level.
+  listing_preferences: {
+    moderation_status: "live",
+    gender_preference: "any",
+    sharing_type: "private_room",
+    society_type: "gated",
+    society_amenities: ["gym", "security"],
+    society_vibe_tags: ["quiet", "professional"],
+  },
   interest_count: 4,
   view_count: 120,
   like_count: 12,
   is_available: true,
-  status: "active",
-  property_status: "approved",
-  owner: {
-    id: 2,
-    full_name: "Aarav Mehta",
-    phone: "+919888888888",
-  },
+  status: "available",
+  owner_name: "Aarav Mehta",
+  // For a non-owner this is the agent or company number, never the owner's.
+  owner_contact: "+911800000000",
 };
 
 const catalogs = [
@@ -140,7 +157,7 @@ const realtime = {
 
 const conversation = {
   id: 201,
-  source: "match",
+  source: "profile_match",
   status: "active",
   peer,
   context_property: {
@@ -162,8 +179,10 @@ const visit = {
   id: 301,
   user_id: 1,
   property_id: property.id,
-  property_title: property.title,
+  property: property,
   counterparty_user_id: peer.id,
+  // A visit counterparty is a PublicUserRef: name and avatar only.
+  counterparty_user: { id: peer.id, display_name: peer.full_name, avatar_url: null },
   conversation_id: conversation.id,
   visit_context: "property_tour",
   // Relative to today so the visit stays "upcoming" whenever the suite runs.
@@ -203,11 +222,12 @@ export async function installApiMocks(page: Page) {
 
     if (method !== "GET") {
       const posted = request.postDataJSON() as Record<string, unknown> | null;
-      if (path === "/flatmates/swipes") return json(route, { did_match: true, match_id: 501, conversation_id: conversation.id });
-      if (path.includes("/messages")) return json(route, { ...(posted ?? {}), id: 999, conversation_id: conversation.id, sender_id: 1, message_type: "text", created_at: now });
-      if (path.includes("/visits")) return json(route, visit);
-      if (path.includes("/properties")) return json(route, property);
-      return json(route, { message: "ok" });
+      if (path === "/flatmates/swipes") return json(route, { did_match: true, match_id: 501, conversation_id: conversation.id }, 201);
+      if (path.includes("/messages")) return json(route, { ...(posted ?? {}), id: 999, conversation_id: conversation.id, sender_id: 1, message_type: "text", created_at: now }, 201);
+      if (path.endsWith("/mark-read") || (method === "DELETE" && !path.includes("/visits"))) return route.fulfill({ status: 204 });
+      if (path.includes("/visits")) return json(route, visit, path.endsWith("/visits") ? 201 : 200);
+      if (path.includes("/properties")) return json(route, property, method === "POST" ? 201 : 200);
+      return json(route, {});
     }
 
     if (path === "/users/me/auth-state") {
@@ -224,49 +244,35 @@ export async function installApiMocks(page: Page) {
         realtime,
       });
     }
-    if (path === "/flatmates/catalogs") return json(route, catalogs);
+    if (path === "/flatmates/catalogs") return json(route, cursor(catalogs, 100));
     if (path === "/flatmates/notifications") return json(route, cursor([]));
+    if (path === "/flatmates/notifications/unread-count") return json(route, { unread_count: 0 });
+    if (path === "/users/notification-settings") {
+      return json(route, { push_notifications: true, email_notifications: true, sms_notifications: false, promotional_emails: false });
+    }
     if (path === "/flatmates/conversations") return json(route, cursor([conversation]));
     if (/^\/flatmates\/conversations\/[^/]+\/messages$/.test(path)) {
-      return json(route, {
-        messages: [
-          {
-            id: 401,
-            conversation_id: conversation.id,
-            sender_id: peer.id,
-            body: "Can I visit this weekend?",
-            message_type: "text",
-            created_at: now,
-          },
-        ],
-        total: 1,
-        has_more: false,
-        next_cursor: null,
-      });
+      return json(route, cursor([
+        {
+          id: 401,
+          conversation_id: conversation.id,
+          sender_id: peer.id,
+          body: "Can I visit this weekend?",
+          message_type: "text",
+          created_at: now,
+        },
+      ]));
     }
     if (/^\/flatmates\/conversations\/[^/]+$/.test(path)) return json(route, conversation);
     if (path === "/flatmates/matches") {
-      return json(route, cursor([{ id: 501, status: "matched", peer, context_property: conversation.context_property, created_at: now }]));
+      return json(route, cursor([{ id: 501, status: "active", peer, context_property: conversation.context_property, created_at: now }]));
     }
     if (path === "/flatmates/likes") {
       return json(route, cursor([{ id: 601, peer, context_property: conversation.context_property, created_at: now }]));
     }
     if (path === "/flatmates/profiles") return json(route, cursor([peer]));
     if (/^\/flatmates\/profiles\/[^/]+$/.test(path)) return json(route, peer);
-    if (path === "/flatmates/blocks") return json(route, []);
-    if (path === "/flatmates/web/dashboard") {
-      return json(route, {
-        total_listings: 1,
-        active_listings: 1,
-        pending_review: 0,
-        paused: 0,
-        total_views_30d: 120,
-        total_likes_30d: 12,
-        total_conversations_30d: 4,
-        total_visits_30d: 1,
-        listings: [{ id: property.id, title: property.title, status: "active", views: 120, likes: 12, conversations: 4, days_until_expiry: 24, boost_active: false }],
-      });
-    }
+    if (path === "/flatmates/blocks") return json(route, cursor([]));
     if (/^\/flatmates\/profiles\/[^/]+\/compatibility$/.test(path)) {
       return json(route, {
         user_id: 1,
@@ -280,43 +286,47 @@ export async function installApiMocks(page: Page) {
         summary: ["Strong lifestyle overlap", "Similar work schedule"],
       });
     }
-    if (/^\/flatmates\/web\/listings\/[^/]+\/analytics$/.test(path)) {
-      return json(route, {
-        listing_id: property.id,
-        period: "30d",
-        total_views: 120,
-        unique_views: 90,
-        likes: 12,
-        shares: 3,
-        conversations_started: 4,
-        visits_scheduled: 1,
-        daily_stats: [],
-        boost_active: false,
-      });
-    }
-    if (path === "/flatmates/web/saved-searches") return json(route, []);
-    if (path === "/flatmates/web/alerts") return json(route, []);
     if (path === "/properties" || path === "/properties/me") return json(route, cursor([property], 20));
     if (/^\/properties\/[^/]+$/.test(path)) return json(route, property);
     if (path === "/visits") return json(route, cursor([visit]));
     if (/^\/visits\/[^/]+$/.test(path)) return json(route, visit);
-    if (path === "/flatmates/moderation/stats") {
-      return json(route, {
-        total_users: 12,
-        total_listings: 4,
-        pending_moderation: 1,
-        total_matches: 8,
-        total_visits: 3,
-        active_conversations: 5,
-      });
-    }
     if (path === "/flatmates/moderation/listings") {
-      return json(route, cursor([{ ...property, owner_name: peer.full_name, owner_phone: "+919888888888", moderation_status: "pending_review", ai_prescreen_flags: [] }]));
+      return json(route, cursor([{
+        id: property.id,
+        title: property.title,
+        description: property.description,
+        property_type: property.property_type,
+        purpose: "rent",
+        moderation_status: "pending_review",
+        status: "pending_review",
+        monthly_rent: property.monthly_rent,
+        features: property.features,
+        images: [{ id: 1, image_url: property.main_image_url }],
+        image_urls: [property.main_image_url],
+        city: property.city,
+        locality: property.locality,
+        owner_id: peer.id,
+        owner: { id: peer.id, full_name: peer.full_name, phone: "+919888888888" },
+        tags: [],
+        ai_prescreen_flags: [],
+        listing_preferences: {},
+        created_at: now,
+      }]));
     }
     if (path === "/flatmates/moderation/reports") {
-      return json(route, cursor([{ id: 701, reporter_user_id: 1, reporter_name: profile.full_name, reported_user_id: peer.id, reported_name: peer.full_name, reason: "spam", status: "open", notes: "Test report", created_at: now }]));
+      return json(route, cursor([{
+        id: 701,
+        reporter_user_id: 1,
+        reported_user_id: peer.id,
+        reason: "spam",
+        status: "open",
+        notes: "Test report",
+        created_at: now,
+        reporter: { id: 1, full_name: profile.full_name },
+        reported_user: { id: peer.id, full_name: peer.full_name },
+      }]));
     }
 
-    return json(route, { message: "ok" });
+    return json(route, {});
   });
 }

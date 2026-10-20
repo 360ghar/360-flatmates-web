@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/components/ui/component-utils";
 import { formatCount } from "@/lib/utils/format";
+import type { ListingModerationStatus } from "@/lib/data";
 
 export interface DashboardMetric {
   label: string;
@@ -21,7 +22,7 @@ export interface ListingPerformanceRow {
   conversations: number;
   /** Per-listing visit count, when the API provides it. */
   visits?: number;
-  boostStatus: "active" | "inactive" | "expired";
+  status: ListingModerationStatus;
 }
 
 export interface DashboardPanelProps extends HTMLAttributes<HTMLElement> {
@@ -33,20 +34,21 @@ export interface DashboardPanelProps extends HTMLAttributes<HTMLElement> {
   // pass and needs a design call.
   chart?: ReactNode;
   onViewAnalytics?: (listingId: string) => void;
-  onBoost?: (listingId: string) => void;
   onEdit?: (listingId: string) => void;
 }
 
-const boostTone: Record<ListingPerformanceRow["boostStatus"], "success" | "neutral" | "warning"> = {
-  active: "success",
-  inactive: "neutral",
-  expired: "warning"
+const statusTone: Record<ListingModerationStatus, "success" | "neutral" | "warning" | "error"> = {
+  live: "success",
+  pending_review: "warning",
+  paused: "neutral",
+  rejected: "error"
 };
 
-const boostLabel: Record<ListingPerformanceRow["boostStatus"], string> = {
-  active: "Active",
-  inactive: "Inactive",
-  expired: "Expired"
+const statusLabel: Record<ListingModerationStatus, string> = {
+  live: "Published",
+  pending_review: "In review",
+  paused: "Paused",
+  rejected: "Rejected"
 };
 
 export function DashboardPanel({
@@ -54,7 +56,6 @@ export function DashboardPanel({
   rows,
   chart,
   onViewAnalytics,
-  onBoost,
   onEdit,
   className,
   ...props
@@ -94,7 +95,7 @@ export function DashboardPanel({
               <th className="py-3 pr-4" scope="col">Likes</th>
               <th className="py-3 pr-4" scope="col">Chats</th>
               {showVisits ? <th className="py-3 pr-4" scope="col">Visits</th> : null}
-              <th className="py-3 pr-4" scope="col">Boost</th>
+              <th className="py-3 pr-4" scope="col">Status</th>
               <th className="py-3" scope="col">Actions</th>
             </tr>
           </thead>
@@ -111,15 +112,12 @@ export function DashboardPanel({
                   </td>
                 ) : null}
                 <td className="py-3 pr-4">
-                  <Badge tone={boostTone[row.boostStatus]}>{boostLabel[row.boostStatus]}</Badge>
+                  <Badge tone={statusTone[row.status]}>{statusLabel[row.status]}</Badge>
                 </td>
                 <td className="py-3">
                   <div className="flex gap-2">
                     <Button size="compact" variant="tertiary" onClick={() => onViewAnalytics?.(row.id)}>
                       Stats
-                    </Button>
-                    <Button size="compact" variant="tertiary" onClick={() => onBoost?.(row.id)}>
-                      Boost
                     </Button>
                     <Button size="compact" variant="tertiary" onClick={() => onEdit?.(row.id)}>
                       Edit
@@ -138,7 +136,7 @@ export function DashboardPanel({
           <Card className="p-4" key={row.id} variant="compact">
             <div className="flex items-start justify-between gap-2">
               <h3 className="min-w-0 text-body-md font-semibold text-ink">{row.title}</h3>
-              <Badge tone={boostTone[row.boostStatus]}>{boostLabel[row.boostStatus]}</Badge>
+              <Badge tone={statusTone[row.status]}>{statusLabel[row.status]}</Badge>
             </div>
             <div className={cn("mt-3 grid gap-2 text-center", showVisits ? "grid-cols-4" : "grid-cols-3")}>
               <div className="min-w-0">
@@ -165,9 +163,6 @@ export function DashboardPanel({
             <div className="mt-3 flex flex-wrap gap-2">
               <Button size="compact" variant="tertiary" onClick={() => onViewAnalytics?.(row.id)}>
                 Stats
-              </Button>
-              <Button size="compact" variant="tertiary" onClick={() => onBoost?.(row.id)}>
-                Boost
               </Button>
               <Button size="compact" variant="tertiary" onClick={() => onEdit?.(row.id)}>
                 Edit

@@ -35,10 +35,6 @@ function mapDashboardMetrics(stats: RoomPosterDashboard): DashboardMetric[] {
     {
       label: "Likes",
       value: formatCount(stats.total_likes)
-    },
-    {
-      label: "Visits",
-      value: formatCount(stats.total_visits)
     }
   ];
 }
@@ -50,7 +46,7 @@ function mapListingRows(stats: RoomPosterDashboard): ListingPerformanceRow[] {
     views: listing.views,
     likes: listing.likes,
     conversations: listing.conversations,
-    boostStatus: listing.boost_active ? "active" : "inactive"
+    status: listing.status
   }));
 }
 
@@ -96,9 +92,6 @@ export function DashboardPage() {
           rows={rows}
           onEdit={(listingId) => {
             navigate(`/my-listings/${listingId}/edit`);
-          }}
-          onBoost={(listingId) => {
-            navigate(`/my-listings/${listingId}`);
           }}
           onViewAnalytics={(listingId) => {
             navigate(`/dashboard/analytics?propertyId=${listingId}`);

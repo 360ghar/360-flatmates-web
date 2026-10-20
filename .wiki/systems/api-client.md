@@ -37,7 +37,7 @@ This is what every hook in `src/hooks/queries/` ultimately calls, so the query e
 - `getAccessToken(): Promise<string | null> | string | null`, called on every request whose `auth` flag is truthy.
 - `onAuthFailure(): Promise<string | null>`, called only on a 401 (see below).
 
-`buildHeaders` layers them: default headers, `Accept: application/json`, `Content-Type: application/json` when a body is present, any per-request overrides, and finally `Authorization: Bearer <token>` when a token was resolved. The `auth: false` requests skip the `Authorization` header entirely.
+`buildHeaders` layers them: default headers, `Accept: application/json`, `Content-Type: application/json` when a JSON body is present (a `FormData` body is sent as is, and `fetch` sets the multipart `Content-Type`), any per-request overrides, and finally `Authorization: Bearer <token>` when a token was resolved. The `auth: false` requests skip the `Authorization` header entirely.
 
 ## The 401 refresh-and-retry flow
 
@@ -98,7 +98,7 @@ Every non-2xx response is converted to an `ApiClientError` carrying a tagged `Ap
 | 404 | `not_found` | |
 | 409 | `conflict` | |
 | 400, 422 | `validation` | `fields: Record<string, string[]>` parsed from the body |
-| 429 | `rate_limit` | `retryAfter` parsed from the `Retry-After` header |
+| 429 | `rate_limit` | `retryAfter` parsed from the `Retry-After` header (a blank header gives no `retryAfter`) |
 | 500+ | `server` | includes the status |
 | other | `unknown` | |
 

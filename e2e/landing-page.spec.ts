@@ -41,7 +41,7 @@ test("postcards link to real neighbourhoods and the FAQ works from the keyboard"
   await question.press("Space");
   await expect(page.locator("details").filter({ has: question })).not.toHaveAttribute("open");
 
-  await expect(page.getByRole("region", { name: "Find your flatmate, not a nightmare." }).getByRole("link", { name: "List it free" })).toHaveAttribute("href", "/login?intent=list-property");
+  await expect(page.getByRole("region", { name: "Find your flatmate, not a nightmare." }).getByRole("link", { name: "List it free" })).toHaveAttribute("href", "/login?redirect=/post");
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Start matching" })).toHaveAttribute("href", "/discover");
 });
 

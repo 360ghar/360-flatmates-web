@@ -1,20 +1,25 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { saveDraft } from "@/features/hosting/pages/PostPage";
-import { LISTING_DRAFT_STORAGE_KEY } from "@/lib/schemas/listing-builder";
+import { loadDraft, saveDraft } from "@/features/hosting/pages/PostPage";
+import { LISTING_DRAFT_STORAGE_KEY, LISTING_DRAFT_VERSION } from "@/lib/schemas/listing-builder";
 
-// W2 regression: base64 previews must never reach localStorage.
 describe("listing draft", () => {
   beforeEach(() => window.localStorage.clear());
 
-  it("drops data: photo previews and keeps hosted URLs", () => {
-    expect(
-      saveDraft({
-        currentStep: 5,
-        form: { title: "Room", image_urls: ["data:image/webp;base64,AAAA", "https://cdn.test/a.webp"] }
-      })
-    ).toBe(true);
+  it("saves a versioned draft and reads it back", () => {
+    expect(saveDraft({ currentStep: 5, form: { title: "Room", monthly_rent: 12000 } })).toBe(true);
     const saved = JSON.parse(window.localStorage.getItem(LISTING_DRAFT_STORAGE_KEY) ?? "{}");
-    expect(saved.form.image_urls).toEqual(["https://cdn.test/a.webp"]);
+    expect(saved.version).toBe(LISTING_DRAFT_VERSION);
     expect(saved.currentStep).toBe(5);
+    expect(loadDraft().form).toMatchObject({ title: "Room", monthly_rent: 12000 });
+    expect(loadDraft().currentStep).toBe(5);
+  });
+
+  it("drops a draft saved under another version", () => {
+    window.localStorage.setItem(
+      LISTING_DRAFT_STORAGE_KEY,
+      JSON.stringify({ version: LISTING_DRAFT_VERSION - 1, form: { title: "Old" }, currentStep: 3 })
+    );
+    expect(loadDraft().form.title).toBeUndefined();
+    expect(loadDraft().currentStep).toBe(0);
   });
 });

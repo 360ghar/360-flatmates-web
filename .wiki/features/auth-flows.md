@@ -156,7 +156,7 @@ The API client does not long-lived-poll the Supabase session. Instead it relies 
 
 ## Source-of-truth docs
 
-For the product spec of the login, OTP, OAuth, and add-phone flows, see [plans/ui_ux.md](../../plans/ui_ux.md). For the backend auth-state contract and the identifier-status response shape, see [docs/flatmates-openapi.yaml](../../docs/flatmates-openapi.yaml). For the async-state and error-handling rules that the auth pages follow, see [DESIGN.md](../../DESIGN.md) section 12.
+For the product spec of the login, OTP, OAuth, and add-phone flows, see [plans/ui_ux.md](../../plans/ui_ux.md). For the backend auth-state contract and the identifier-status response shape, see [openapi/openapi.json](../../openapi/openapi.json). For the async-state and error-handling rules that the auth pages follow, see [DESIGN.md](../../DESIGN.md) section 12.
 
 ## Key source files
 

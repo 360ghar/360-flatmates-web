@@ -85,8 +85,9 @@ describe("useConversations hooks", () => {
   describe("useMessages(conversationId, page)", () => {
     it("uses query key ['conversations', conversationId, 'messages']", async () => {
       const mockMessages = {
-        messages: [{ id: 1, body: "Hi", sender_id: 101, conversation_id: 5, message_type: "text" }],
-        total: 1,
+        items: [{ id: 1, body: "Hi", sender_id: 101, conversation_id: 5, message_type: "text" }],
+        total: null,
+        limit: 50,
         has_more: false,
         next_cursor: null
       };
@@ -122,8 +123,9 @@ describe("useConversations hooks", () => {
 
     it("requests GET /flatmates/conversations/{id}/messages", async () => {
       mockRequest.mockResolvedValue({
-        messages: [],
-        total: 0,
+        items: [],
+        total: null,
+        limit: 50,
         has_more: false,
         next_cursor: null
       });
@@ -137,8 +139,8 @@ describe("useConversations hooks", () => {
       expect(call.query).toEqual({ limit: 50 });
     });
 
-    it("omits before_id on the first page", async () => {
-      mockRequest.mockResolvedValue({ messages: [], total: 0, has_more: false });
+    it("omits cursor on the first page", async () => {
+      mockRequest.mockResolvedValue({ items: [], total: null, limit: 50, has_more: false, next_cursor: null });
 
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } }
@@ -150,41 +152,34 @@ describe("useConversations hooks", () => {
       );
 
       // The infinite query starts without a pageParam (initialPageParam: undefined),
-      // so the first request should not include `before_id`.
+      // so the first request should not include `cursor`.
       renderHook(() => useMessages(5), { wrapper });
 
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
       expect(call.query).toEqual({ limit: 50 });
-      expect(call.query.before_id).toBeUndefined();
+      expect(call.query.cursor).toBeUndefined();
+      expect(call.query).not.toHaveProperty("before_id");
     });
 
-    it("sends before_id when loading older messages", async () => {
+    it("sends the cursor unchanged when loading older messages", async () => {
       mockRequest
         .mockResolvedValueOnce({
-          messages: [
-            {
-              id: 10,
-              body: "older",
-              sender_id: 1,
-              conversation_id: 5,
-              message_type: "text"
-            },
-            {
-              id: 20,
-              body: "newer",
-              sender_id: 1,
-              conversation_id: 5,
-              message_type: "text"
-            }
+          items: [
+            { id: 10, body: "older", sender_id: 1, conversation_id: 5, message_type: "text" },
+            { id: 20, body: "newer", sender_id: 1, conversation_id: 5, message_type: "text" }
           ],
-          total: 2,
-          has_more: true
+          total: null,
+          limit: 50,
+          has_more: true,
+          next_cursor: "opaque-cursor"
         })
         .mockResolvedValueOnce({
-          messages: [],
-          total: 0,
-          has_more: false
+          items: [],
+          total: null,
+          limit: 50,
+          has_more: false,
+          next_cursor: null
         });
 
       const { result } = renderHook(() => useMessages(5), {
@@ -196,7 +191,7 @@ describe("useConversations hooks", () => {
       await waitFor(() => expect(mockRequest).toHaveBeenCalledTimes(2));
 
       const second = mockRequest.mock.calls[1][0];
-      expect(second.query).toEqual({ limit: 50, before_id: 10 });
+      expect(second.query).toEqual({ limit: 50, cursor: "opaque-cursor" });
     });
   });
 
