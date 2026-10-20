@@ -31,7 +31,10 @@ export interface ChatThreadProps extends HTMLAttributes<HTMLElement> {
   onRetryMessage?: (messageId: string) => void;
   onScheduleVisit?: (data: { scheduledDate: string; specialRequirements: string }) => void;
   onBlock?: () => void;
-  onReport?: (reason: ChatReportReason, notes: string) => void;
+  /** Resolves false when the report failed: the modal then stays open with the typed details. */
+  onReport?: (reason: ChatReportReason, notes: string) => Promise<boolean | void> | void;
+  /** A report request is in flight. */
+  reporting?: boolean;
   /** Called when the user scrolls to the top and more history is available. */
   onLoadMore?: () => void;
   /** Back to the list; shown in the header where the shell has no Back of its own. */
@@ -53,6 +56,7 @@ export function ChatThread({
   onBack,
   onBlock,
   onReport,
+  reporting = false,
   onLoadMore,
   className,
   ...props
@@ -127,8 +131,10 @@ export function ChatThread({
     setShowBlockModal(false);
   }
 
-  function confirmReport() {
-    onReport?.(reportReason, reportNotes.trim());
+  async function confirmReport() {
+    if (reporting) return;
+    const ok = await onReport?.(reportReason, reportNotes.trim());
+    if (ok === false) return;
     setShowReportModal(false);
     setReportReason("spam");
     setReportNotes("");
@@ -247,7 +253,8 @@ export function ChatThread({
         reportNotes={reportNotes}
         onReportNotesChange={setReportNotes}
         onClose={() => setShowReportModal(false)}
-        onSubmit={confirmReport}
+        onSubmit={() => void confirmReport()}
+        submitting={reporting}
       />
     </section>
   );

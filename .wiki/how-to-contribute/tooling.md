@@ -73,14 +73,14 @@ Test files are excluded from the production `tsconfig.json` `include` (the `src/
 | `npm run generate:api-types` | `openapi-typescript openapi/openapi.json -o src/lib/api/openapi-types.ts` | TypeScript types from the OpenAPI contract. Run this whenever the API contract changes and commit the result. |
 | `npm run generate:pwa-icons` | `npx tsx scripts/generate-pwa-icons.ts` | The four PWA WebP icons from `public/favicon.svg` via `sharp`. |
 
-The build pipeline runs these generators (they have no standalone npm scripts, except the OG image generator, which is manual only and not part of the build):
+The build pipeline runs most of these generators. `generate-sitemap.ts` and `generate-favicon-ico.ts` have no standalone npm scripts. `generate-og-image.ts` is manual (`npm run generate:og-image`) and not part of the build. `generate-static-html.ts` also has a script (`npm run generate:static-html`):
 
 | Generator | Script | Output |
 | --- | --- | --- |
 | OG image | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630 social preview) and `public/logo.webp` (512x512 brand mark). Rendered with Chrome (Playwright) so Gambarino matches the live site. Run manually with `npm run generate:og-image`; the output is committed. |
 | Favicon ICO | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (16, 32, 48 multi-resolution). Hand-assembles the ICO header and appends PNG bytes from `sharp`. |
 | Sitemap | `scripts/generate-sitemap.ts` | `public/sitemap.xml`. Static public routes only (verified against `src/app/routes.tsx`'s `PublicLayout`), plus cities, neighborhoods, blog posts, comparison pages, and dynamic listing pages fetched at build time via `scripts/lib/listings.ts`. Authenticated routes (`/search`, `/search/semantic`) are deliberately excluded. Set `SITEMAP_STRICT=1` on deploy builds to fail loudly on a listing-fetch outage. |
-| Prerender | `scripts/prerender.ts` | The `dist/<route>/index.html` files. See [SEO and prerendering](../features/seo-prerendering.md). |
+| Static HTML | `scripts/generate-static-html.ts` | The `dist/<route>/index.html` files, with no browser. `scripts/prerender.ts` is a manual headless-Chromium alternative. See [SEO and prerendering](../features/seo-prerendering.md). |
 
 All generators are pure TypeScript run through `npx tsx`, so they share the project's `tsconfig.json` and the `@/` alias. The brand tokens used by the OG image generator are hardcoded from [DESIGN.md](../../DESIGN.md) at the top of `scripts/generate-og-image.ts`.
 

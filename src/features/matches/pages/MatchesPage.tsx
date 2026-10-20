@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import { useMatches } from "@/features/matches/hooks/useMatches";
 import { profileToProfileGridCardProps } from "@/features/matches/lib/adapters";
 import { PeopleGrid } from "@/features/matches/components/PeopleGrid";
@@ -11,6 +12,7 @@ export function MatchesPage() {
   const matchesQuery = useMatches();
   const navigate = useNavigate();
   const createConversation = useCreateConversation();
+  const mounted = useIsMounted();
 
   return (
     <Page width="wide">
@@ -25,13 +27,18 @@ export function MatchesPage() {
         onCta={(match) =>
           // mutateAsync: per-call callbacks only run for the latest call.
           createConversation.mutateAsync({ match_id: match.id, peer_user_id: match.peer.id }).then(
-            (conversation) => navigate(`/chats/${conversation.id}`),
-            (err) =>
-              uiStore.getState().pushToast({
-                type: "error",
-                title: "Could not open the chat",
-                description: userMessage(err)
-              })
+            (conversation) => {
+              if (mounted.current) navigate(`/chats/${conversation.id}`);
+            },
+            (err) => {
+              if (mounted.current) {
+                uiStore.getState().pushToast({
+                  type: "error",
+                  title: "Could not open the chat",
+                  description: userMessage(err)
+                });
+              }
+            }
           )
         }
       />
