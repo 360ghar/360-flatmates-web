@@ -29,7 +29,10 @@ it("polls paginated chats while disconnected, stops on reconnect, and resumes af
   await act(() => vi.advanceTimersByTimeAsync(15_000));
   expect(request).toHaveBeenCalledTimes(4);
   expect(result.current.data?.pages).toHaveLength(2);
-  act(() => uiStore.getState().setRealtimeState("connected"));
+  act(() => {
+    uiStore.getState().setRealtimeEvents(["new_message"]);
+    uiStore.getState().setRealtimeState("connected");
+  });
   await act(() => vi.advanceTimersByTimeAsync(30_000));
   expect(request).toHaveBeenCalledTimes(4);
   act(() => uiStore.getState().setRealtimeState("reconnecting"));
@@ -37,4 +40,23 @@ it("polls paginated chats while disconnected, stops on reconnect, and resumes af
   expect(request).toHaveBeenCalledTimes(6);
   unmount();
   client.clear();
+});
+
+it("keeps polling when the connected channel omits new_message", async () => {
+  vi.useFakeTimers();
+  request.mockClear();
+  request.mockResolvedValue({ items: [{ id: 1 }], has_more: false, next_cursor: null });
+  uiStore.getState().setRealtimeEvents(["new_notification"]);
+  uiStore.getState().setRealtimeState("connected");
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  const { unmount } = renderHook(() => useInfiniteConversations(), { wrapper });
+  await act(() => vi.advanceTimersByTimeAsync(1));
+  const first = request.mock.calls.length;
+  await act(() => vi.advanceTimersByTimeAsync(15_000));
+  expect(request.mock.calls.length).toBeGreaterThan(first);
+  unmount();
+  client.clear();
+  uiStore.getState().setRealtimeEvents([]);
+  uiStore.getState().setRealtimeState("disconnected");
 });

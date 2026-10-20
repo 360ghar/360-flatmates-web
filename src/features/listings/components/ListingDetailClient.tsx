@@ -141,15 +141,16 @@ export default function ListingDetailClient() {
       {
         onSuccess: () => {
           uiStore.getState().pushToast({ type: "success", title: "Report submitted" });
+          setIsReportOpen(false);
+          setReportReason("spam");
+          setReportNotes("");
         },
+        // Keep the modal open on failure so the typed details survive a retry.
         onError: () => {
           uiStore.getState().pushToast({ type: "error", title: "Could not submit report" });
         }
       }
     );
-    setIsReportOpen(false);
-    setReportReason("spam");
-    setReportNotes("");
   }, [ownerId, propertyId, reportListing, reportNotes, reportReason]);
 
   // Guard against invalid IDs before rendering content
@@ -279,7 +280,7 @@ export default function ListingDetailClient() {
                 {property ? <ListingSocietyVibeCard property={property} /> : null}
 
                 {/* A report names the owner (`reported_user_id` is required): no owner, no report. */}
-                {isOwnListing || !ownerId ? null : (
+                {isOwnListing || !ownerId || isProfileLoading ? null : (
                   <div className="flex justify-end">
                     <Button
                       variant="tertiary"
@@ -357,6 +358,7 @@ export default function ListingDetailClient() {
               onReportNotesChange={setReportNotes}
               onClose={() => setIsReportOpen(false)}
               onSubmit={handleSubmitReport}
+              submitting={reportListing.isPending}
             />
           )}
         </div>

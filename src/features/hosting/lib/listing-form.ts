@@ -32,7 +32,7 @@ export const listingSchema = z.object({
   locality: z.string().min(1, "Locality is required"),
   sub_locality: z.string().optional(),
   address: z.string().optional(),
-  monthly_rent: z.number().min(500, "Rent is required").max(MONEY_MAX),
+  monthly_rent: z.number({ error: "Rent is required" }).min(500, "Rent must be at least 500").max(MONEY_MAX),
   security_deposit: optionalNumber(z.number().min(0).max(MONEY_MAX)),
   maintenance_charges: optionalNumber(z.number().min(0).max(MONEY_MAX)),
   setup_cost: optionalNumber(z.number().min(0).max(MONEY_MAX)),

@@ -23,17 +23,15 @@ export function MatchesPage() {
         getPeerId={(match) => String(match.peer.id)}
         getProfileProps={(match) => profileToProfileGridCardProps(match.peer)}
         onCta={(match) =>
-          createConversation.mutate(
-            { match_id: match.id, peer_user_id: match.peer.id },
-            {
-              onSuccess: (conversation) => navigate(`/chats/${conversation.id}`),
-              onError: (err) =>
-                uiStore.getState().pushToast({
-                  type: "error",
-                  title: "Could not open the chat",
-                  description: userMessage(err)
-                })
-            }
+          // mutateAsync: per-call callbacks only run for the latest call.
+          createConversation.mutateAsync({ match_id: match.id, peer_user_id: match.peer.id }).then(
+            (conversation) => navigate(`/chats/${conversation.id}`),
+            (err) =>
+              uiStore.getState().pushToast({
+                type: "error",
+                title: "Could not open the chat",
+                description: userMessage(err)
+              })
           )
         }
       />

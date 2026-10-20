@@ -58,8 +58,11 @@ const ARTICLE_ALLOWED_TAGS = [
 ];
 const ARTICLE_ALLOWED_ATTR = ["href", "title", "alt", "src", "width", "height", "loading"];
 
-/** Matches an HTML tag open (`<p>`, `<h2 class=…>`). Plain-text `<` uses never match. */
-const HTML_TAG_RE = /<[a-zA-Z][^>]*>/;
+/**
+ * Matches a block-level tag open (`<p>`, `<h2 class=…>`). CMS HTML always has one.
+ * Markdown autolinks (`<https://…>`) and prose that mentions `<img>` or `<code>` do not match.
+ */
+const HTML_TAG_RE = /<(?:p|h[23]|ul|ol|blockquote|pre|hr)[\s/>]/i;
 
 function sanitizeArticleHtml(dirty: string): string {
   return DOMPurify.sanitize(dirty, {

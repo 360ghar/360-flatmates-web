@@ -126,6 +126,8 @@ function MapCenterSync({ center, zoom }: { center: [number, number]; zoom: numbe
       mountedRef.current = true;
       return;
     }
+    // The map's own pan/zoom flows back here through the store: skip a view it already shows.
+    if (map.getZoom() === zoom && map.getCenter().distanceTo(center) < 50) return;
     const prefersReducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;

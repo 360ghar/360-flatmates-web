@@ -24,7 +24,7 @@ function HomeFeedBones() {
             <div className={cn("h-4 w-32 rounded-full", shimmer)} />
             <div className={cn("h-3 w-14 rounded-full", shimmer)} />
           </div>
-          <div className="flex snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bleed-x">
             {Array.from({ length: 3 }, (_, i) => (
               <div
                 key={i}

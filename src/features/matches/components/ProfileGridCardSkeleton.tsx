@@ -12,7 +12,7 @@ export function ProfileGridCardSkeleton({ count = 1, className }: { count?: numb
   );
 }
 
-/** Matches ProfileGridCard compact default — 3:4 photo + match ring + CTA */
+/** Matches ProfileGridCard compact default — 4:5 photo + match ring + CTA */
 export function ProfileGridCardBones() {
   return (
     <div className="overflow-hidden rounded-hand bg-surface shadow-sm">

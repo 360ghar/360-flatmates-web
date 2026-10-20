@@ -36,11 +36,14 @@ export interface UiStoreState {
   sidebarWidth: number;
   realtimeConnected: boolean;
   realtimeState: RealtimeState;
+  /** Broadcast events the live channel subscribes to (not persisted). */
+  realtimeEvents: readonly string[];
   toasts: ToastMessage[];
   setTheme: (theme: ThemePreference) => void;
   setSidebar: (sidebar: SidebarState) => void;
   setSidebarWidth: (width: number) => void;
   setRealtimeState: (state: RealtimeState) => void;
+  setRealtimeEvents: (events: readonly string[]) => void;
   pushToast: (toast: Omit<ToastMessage, "id" | "createdAt"> & { id?: string }) => string;
   dismissToast: (id: string) => void;
   clearToasts: () => void;
@@ -54,6 +57,7 @@ export type UiStoreInitialState = Partial<
     | "sidebarWidth"
     | "realtimeConnected"
     | "realtimeState"
+    | "realtimeEvents"
     | "toasts"
   >
 >;
@@ -71,11 +75,13 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         sidebarWidth: SIDEBAR_WIDTH_DEFAULT,
         realtimeConnected: false,
         realtimeState: "disconnected",
+        realtimeEvents: [],
         toasts: [],
         ...initialState,
         setTheme: (theme) => set((state) => state.theme === theme ? state : { theme }),
         setSidebar: (sidebar) => set({ sidebar }),
         setSidebarWidth: (sidebarWidth) => set({ sidebarWidth }),
+        setRealtimeEvents: (realtimeEvents) => set({ realtimeEvents }),
         setRealtimeState: (realtimeState) =>
           set((s) => {
             const realtimeConnected = realtimeState === "connected";

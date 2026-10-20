@@ -22,7 +22,9 @@ export function ErrorFallback({ error, componentStack, reset }: ErrorFallbackPro
 
   const isDev = import.meta.env.DEV;
 
+  // Root error boundary: RootLayout (and its landmarks) is gone, so supply the main landmark here.
   return (
+    <main id="main">
     <FullPageMessage
       title="Something went wrong"
       description="This page could not load. Try again, or go back to the page you came from."
@@ -63,5 +65,6 @@ export function ErrorFallback({ error, componentStack, reset }: ErrorFallbackPro
         </>
       }
     />
+    </main>
   );
 }

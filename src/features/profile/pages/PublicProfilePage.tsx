@@ -3,7 +3,8 @@ import { ChevronRight, Flag } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router";
 import { SeoHelmet, SITE_URL } from "@/lib/seo";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/queries/useProfiles";
+import { useQuery } from "@tanstack/react-query";
+import { myProfileOptions, useProfile } from "@/hooks/queries/useProfiles";
 import { useReportUserMutation } from "@/hooks/queries/useReports";
 import { ReportUserModal } from "@/features/chat/components/ReportUserModal";
 import type { ChatReportReason } from "@/features/chat/lib/types";
@@ -41,6 +42,9 @@ export function PublicProfilePage() {
   const recordProfileView = useRecordProfileView();
   const { user } = useAuth();
   const reportProfile = useReportUserMutation();
+  // Only resolve "me" when signed in; hide Report on your own profile.
+  const { data: myProfile, isLoading: isMyProfileLoading } = useQuery({ ...myProfileOptions, enabled: Boolean(user) });
+  const canReport = !isMyProfileLoading && myProfile?.id !== profileId;
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState<ChatReportReason>("spam");
   const [reportNotes, setReportNotes] = useState("");
@@ -103,15 +107,16 @@ export function PublicProfilePage() {
       {
         onSuccess: () => {
           uiStore.getState().pushToast({ type: "success", title: "Report submitted" });
+          setIsReportOpen(false);
+          setReportReason("spam");
+          setReportNotes("");
         },
+        // Keep the modal open on failure so the typed details survive a retry.
         onError: () => {
           uiStore.getState().pushToast({ type: "error", title: "Could not submit report" });
         }
       }
     );
-    setIsReportOpen(false);
-    setReportReason("spam");
-    setReportNotes("");
   }, [profileId, reportNotes, reportProfile, reportReason]);
 
   if (isLoading) {
@@ -166,15 +171,17 @@ export function PublicProfilePage() {
                   <Button loading={createConversation.isPending} onClick={handleStartConversation}>
                     Message
                   </Button>
-                  <Button
-                    variant="tertiary"
-                    size="compact"
-                    leadingIcon={<Flag aria-hidden="true" className="h-4 w-4" />}
-                    onClick={handleOpenReport}
-                    loading={reportProfile.isPending}
-                  >
-                    Report
-                  </Button>
+                  {canReport ? (
+                    <Button
+                      variant="tertiary"
+                      size="compact"
+                      leadingIcon={<Flag aria-hidden="true" className="h-4 w-4" />}
+                      onClick={handleOpenReport}
+                      loading={reportProfile.isPending}
+                    >
+                      Report
+                    </Button>
+                  ) : null}
                 </div>
               }
             />
@@ -211,6 +218,7 @@ export function PublicProfilePage() {
               onReportNotesChange={setReportNotes}
               onClose={() => setIsReportOpen(false)}
               onSubmit={handleSubmitReport}
+              submitting={reportProfile.isPending}
             />
           </>
         )}

@@ -46,7 +46,8 @@ export function NotificationsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    failureReason
+    isFetchNextPageError,
+    error: pageError
   } = useInfiniteNotifications();
   const notifications = useMemo(() => data?.pages.flatMap((page) => page.items ?? []), [data]);
   const markRead = useMarkNotificationRead();
@@ -156,9 +157,9 @@ export function NotificationsPage() {
       </AsyncView>
       {hasNextPage ? (
         <div className="flex flex-col items-center gap-1.5">
-          {data !== undefined && failureReason ? (
+          {isFetchNextPageError ? (
             <p role="alert" className="text-body-sm text-danger">
-              {userMessage(failureReason, "Could not load older notifications.")}
+              {userMessage(pageError, "Could not load older notifications.")}
             </p>
           ) : null}
           <Button
@@ -167,7 +168,7 @@ export function NotificationsPage() {
             loading={isFetchingNextPage}
             onClick={() => void fetchNextPage()}
           >
-            {failureReason ? "Try again" : "Load older notifications"}
+            {isFetchNextPageError ? "Try again" : "Load older notifications"}
           </Button>
         </div>
       ) : null}

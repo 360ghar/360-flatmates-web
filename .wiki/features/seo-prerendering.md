@@ -26,7 +26,7 @@ It also buys three concrete wins:
 
 ## The build pipeline
 
-`npm run build` is a seven-step pipeline. Each step feeds the next, and the prerender step depends on every prior step having succeeded. See the [Architecture build pipeline](../overview/architecture.md#build-pipeline) for the canonical description.
+`npm run build` is a six-step pipeline. Each step feeds the next, and the static-HTML step depends on every prior step having succeeded. See the [Architecture build pipeline](../overview/architecture.md#build-pipeline) for the canonical description.
 
 ```bash
 npm run build
@@ -37,33 +37,32 @@ The `package.json` `build` script expands to:
 ```bash
 tsc --noEmit &&
 npx tsx scripts/generate-pwa-icons.ts &&
-npx tsx scripts/generate-og-image.ts &&
 npx tsx scripts/generate-favicon-ico.ts &&
 npx tsx scripts/generate-sitemap.ts &&
 vite build &&
-npx tsx scripts/prerender.ts
+npx tsx scripts/generate-static-html.ts
 ```
 
 | Step | Script | Output |
 | --- | --- | --- |
 | 1 | `tsc --noEmit` | Type-check failure halts the build before any artifacts are produced |
 | 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.webp`, `public/favicon-512.webp`, plus maskable variants |
-| 3 | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630) and `public/logo.webp` (512x512) |
-| 4 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution) |
-| 5 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries) |
-| 6 | `vite build` | `dist/` with the production bundle, service worker, and a clean `dist/index.html` shell |
-| 7 | `scripts/prerender.ts` | `dist/<route>/index.html` files, one per public route |
+| 3 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution) |
+| 4 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries) |
+| 5 | `vite build` | `dist/` with the production bundle, service worker, and a clean `dist/index.html` shell |
+| 6 | `scripts/generate-static-html.ts` | `dist/<route>/index.html` files, one per public route |
 
-The first five scripts write into `public/` so Vite copies them into `dist/` during step 6. The prerender step runs last because it serves `dist/` with `vite preview`, so the bundle must already exist.
+`scripts/generate-og-image.ts` is not part of the build. Run it manually with `npm run generate:og-image`; the output is committed. `scripts/prerender.ts` is the headless-Chromium alternative to step 6 and also runs manually.
+
+The first four scripts write into `public/` so Vite copies them into `dist/` during step 5. The static-HTML step runs last because it reads the built `dist/` shell.
 
 ```mermaid
 flowchart TD
     A["tsc --noEmit"] --> B["generate-pwa-icons.ts"]
-    B --> C["generate-og-image.ts"]
-    C --> D["generate-favicon-ico.ts"]
+    B --> D["generate-favicon-ico.ts"]
     D --> E["generate-sitemap.ts"]
     E --> F["vite build\nproduces dist/"]
-    F --> G["prerender.ts"]
+    F --> G["generate-static-html.ts"]
     G --> G1["start vite preview on dist/"]
     G1 --> G2["launch headless Chromium"]
     G2 --> G3["capture every public route\ninto memory"]

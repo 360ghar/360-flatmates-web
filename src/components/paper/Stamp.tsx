@@ -11,10 +11,10 @@ export function Stamp({ text = "360 FLATMATES · VERIFIED LISTING ·", className
     <svg aria-hidden="true" viewBox="0 0 120 120" className={cn("block size-28 text-clay", className)}>
       <defs>
         <path id={`${id}-rim`} d="M60 60m-43 0a43 43 0 1 1 86 0a43 43 0 1 1-86 0" />
-        {/* Uneven ink: a fine noise mask so the stamp reads as pressed, not printed. */}
+        {/* Uneven ink: the noise's red channel drives alpha (feTurbulence alpha is noise too, not opaque): a fine mask so the stamp reads as pressed, not printed. */}
         <filter id={`${id}-ink`}>
           <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="4" result="n" />
-          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 1.25" result="a" />
+          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -3 0 0 0 2.9" result="a" />
           <feComposite in="SourceGraphic" in2="a" operator="in" />
         </filter>
       </defs>

@@ -64,7 +64,7 @@ export function ChatsPage() {
         selectedId={selectedId}
         hasNextPage={conversationsQuery.hasNextPage}
         isFetchingNextPage={conversationsQuery.isFetchingNextPage}
-        fetchNextPageError={conversations !== undefined ? (conversationsQuery.failureReason ?? null) : null}
+        fetchNextPageError={conversationsQuery.isFetchNextPageError ? conversationsQuery.error : null}
         onLoadMore={() => void conversationsQuery.fetchNextPage()}
       />
     </>
