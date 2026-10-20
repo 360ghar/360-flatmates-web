@@ -18,7 +18,8 @@ export function ReportUserModal({
   reportNotes,
   onReportNotesChange,
   onClose,
-  onSubmit
+  onSubmit,
+  submitting = false
 }: {
   open: boolean;
   participantName: string;
@@ -28,6 +29,8 @@ export function ReportUserModal({
   onReportNotesChange: (value: string) => void;
   onClose: () => void;
   onSubmit: () => void;
+  /** Request in flight: the submit button shows a spinner and the modal stays open. */
+  submitting?: boolean;
 }) {
   return (
     <Modal
@@ -40,7 +43,7 @@ export function ReportUserModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="destructive"  onClick={onSubmit}>
+          <Button variant="destructive" loading={submitting} onClick={onSubmit}>
             Submit report
           </Button>
         </>

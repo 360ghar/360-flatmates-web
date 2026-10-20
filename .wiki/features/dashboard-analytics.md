@@ -4,11 +4,11 @@ Active contributors: Saksham
 
 Once a room poster has listings live, they need to see how those listings are performing. 360 Flatmates gives them two surfaces: a dashboard overview with lifetime total metrics and a per-listing analytics page with a selectable time window and a daily breakdown table. There is also a public city-stats page that markets the platform with hardcoded growth numbers. This page covers the dashboard metrics, the analytics period selector, the stat card rendering, and the public stats page. For how listings are created and managed, see [Listing management](listing-management.md). For the room poster mode that unlocks these surfaces, see [Profile and onboarding](profile-onboarding.md). For the property data model that backs the metrics, see [Listing and property model](../primitives/listing-property.md).
 
-## Two surfaces, two endpoints
+## Two surfaces, derived client-side
 
 | Route | File | Endpoint | Purpose |
 | --- | --- | --- | --- |
-| `/dashboard` | `src/features/hosting/pages/DashboardPage.tsx` | `GET /flatmates/web/dashboard` | Lifetime totals across all the user's listings |
+| `/dashboard` | `src/features/hosting/pages/DashboardPage.tsx` | `GET /properties/me` (derived in `useDashboard.ts`; the `/flatmates/web/dashboard` endpoint does not exist on the deployed server) | Lifetime totals across all the user's listings |
 | `/dashboard/analytics?propertyId=&period=` | `src/features/hosting/pages/AnalyticsPage.tsx` | `GET /flatmates/web/listings/{id}/analytics?period=` | Per-listing metrics for a chosen period |
 | `/stats` | `src/pages/public/StatsPage.tsx` | `GET /flatmates/catalog/cities` (chips only) | Public marketing page with hardcoded stats |
 

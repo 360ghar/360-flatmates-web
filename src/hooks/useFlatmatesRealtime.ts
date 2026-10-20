@@ -239,6 +239,7 @@ export function useFlatmatesRealtime({
 
         if (status === "SUBSCRIBED") {
           reconnectDelayMs = 1_000;
+          uiStore.getState().setRealtimeEvents(events);
           uiStore.getState().setRealtimeState("connected");
           if (reconnectingAfterOutage) {
             reconnectingAfterOutage = false;
@@ -266,6 +267,7 @@ export function useFlatmatesRealtime({
       cancelled = true;
       clearReconnectTimer();
       void removeCurrentChannel();
+      uiStore.getState().setRealtimeEvents([]);
       uiStore.getState().setRealtimeState("disconnected");
     };
   }, [

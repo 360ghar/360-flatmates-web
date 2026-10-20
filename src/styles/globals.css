@@ -816,7 +816,7 @@
   .article-body p { @apply mb-5 text-body-lg text-ink-2; }
   .article-body strong, .article-body b { @apply font-semibold text-ink; }
   .article-body em, .article-body i { @apply text-ink; }
-  .article-body a { @apply text-clay underline underline-offset-4 hover:text-clay; }
+  .article-body a { @apply text-clay underline underline-offset-4 hover:text-ink; }
   .article-body ul, .article-body ol { @apply mb-6 list-disc pl-5; }
   .article-body ol { list-style-type: decimal; }
   .article-body li { @apply text-body-lg text-ink-2; }

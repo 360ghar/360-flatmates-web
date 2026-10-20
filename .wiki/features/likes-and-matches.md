@@ -6,12 +6,12 @@ Likes and matches are the two inboxes that follow the swipe deck. Likes shows th
 
 ## Two inboxes, one shared grid
 
-Both pages are thin wrappers around a shared `PeopleGridPage` component:
+Both pages are thin wrappers around a shared `PeopleGrid` component:
 
-- **Likes** (`src/features/matches/pages/LikesPage.tsx`) calls `useIncomingLikesInfinite()` and passes a "Match" CTA label. The empty state reads "No likes yet, keep exploring to find connections."
-- **Matches** (`src/features/matches/pages/MatchesPage.tsx`) calls `useMatches()` and passes a "Chat" CTA label. The empty state reads "No matches yet, keep swiping to find your match."
+- **Likes** (`src/features/matches/pages/LikesPage.tsx`) calls `useIncomingLikesInfinite()` and passes a "Match" CTA label. The empty state reads "No likes yet" with "Likes show up here as soon as someone likes your profile."
+- **Matches** (`src/features/matches/pages/MatchesPage.tsx`) calls `useMatches()` and passes a "Chat" CTA label. The empty state reads "No matches yet" with "Like someone who liked you, and you match."
 
-Each page hands the query and a `getProfileProps` adapter to `PeopleGridPage`, which handles loading skeletons, error retry, empty states, and the responsive grid. Both inboxes map their `peer` through `profileToProfileGridCardProps` so the cards render identically regardless of source. The only differences are the page title, subtitle, CTA label, and empty-state copy.
+Each page hands the query and a `getProfileProps` adapter to `PeopleGrid` (`src/features/matches/components/PeopleGrid.tsx`), which handles loading skeletons, error retry, empty states, and the responsive grid. Both inboxes map their `peer` through `profileToProfileGridCardProps` so the cards render identically regardless of source. The only differences are the page title, subtitle, CTA label, and empty-state copy.
 
 ## Fetching the lists
 
@@ -19,7 +19,7 @@ All three queries live in `src/features/matches/hooks/useMatches.ts`:
 
 | Hook | Endpoint | Query key | Returns |
 | --- | --- | --- | --- |
-| `useIncomingLikesInfinite()` | `GET /flatmates/likes?limit=&cursor=` | `["incoming-likes", "infinite"]` | `IncomingLikeCursorPage` (cursor-paginated, page size 20) |
+| `useIncomingLikesInfinite()` | `GET /flatmates/likes?limit=&cursor=` | `["incoming-likes", "infinite"]` | `InfiniteData<IncomingLikeCursorPage>` (`pages` holds the cursor pages, page size 20) |
 | `useMatches()` | `GET /flatmates/matches` | `["matches"]` | `MatchSummary[]` |
 | `useUnmatchMutation()` | `PUT /flatmates/matches/{id}/unmatch` | invalidates `matches` + `conversations` | `{ message: string }` |
 
@@ -65,8 +65,8 @@ For the product definition of likes, super-likes, matches, and unmatch semantics
 
 | File | Purpose |
 | --- | --- |
-| `src/features/matches/pages/LikesPage.tsx` | Likes inbox, wraps `PeopleGridPage` with `useIncomingLikesInfinite` |
-| `src/features/matches/pages/MatchesPage.tsx` | Matches inbox, wraps `PeopleGridPage` with `useMatches` |
+| `src/features/matches/pages/LikesPage.tsx` | Likes inbox, wraps `PeopleGrid` with `useIncomingLikesInfinite` |
+| `src/features/matches/pages/MatchesPage.tsx` | Matches inbox, wraps `PeopleGrid` with `useMatches` |
 | `src/features/matches/hooks/useMatches.ts` | `useIncomingLikesInfinite`, `useMatches`, `useUnmatchMutation` |
 | `src/features/chat/components/MatchContextCard.tsx` | Expandable listing-context row for listing-originated matches |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription, `new_match` invalidation of the matches query |

@@ -420,7 +420,7 @@ export function buildStaticRoutes(): RouteContent[] {
       <h2>Our Values</h2>
       <ul>
         <li><strong>Compatibility over convenience</strong> — a cheap room with the wrong flatmate costs more than rent.</li>
-        <li><strong>Verified, always</strong> — every listing is reviewed, every user is phone-verified.</li>
+        <li><strong>Verified, always</strong> — listings are reviewed before they go live, and phone verification helps keep profiles genuine.</li>
         <li><strong>Safety as default</strong> — in-app chat, scheduled visits, and reporting tools. Your phone number stays private.</li>
         <li><strong>Context-rich decisions</strong> — compatibility scores, society vibe tags, and visit scheduling built into the flow.</li>
       </ul>

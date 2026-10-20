@@ -6,7 +6,7 @@ export interface Crumb {
   to?: string;
 }
 
-/** Where this page sits. The last crumb is the current page and is not a link. */
+/** Where this page sits. The last crumb is always the current page: plain text with `aria-current`, even if it has `to`. */
 export function Breadcrumbs({ items, className }: { items: ReadonlyArray<Crumb>; className?: string }) {
   return (
     <nav aria-label="Breadcrumb" className={className}>
@@ -14,7 +14,7 @@ export function Breadcrumbs({ items, className }: { items: ReadonlyArray<Crumb>;
         {items.map((item, index) => (
           <li key={item.label} className="flex items-center gap-1.5">
             {index > 0 ? <span aria-hidden="true">/</span> : null}
-            {item.to ? (
+            {item.to && index < items.length - 1 ? (
               <Link to={item.to} className={cn("inline-flex min-h-11 items-center rounded-cut-sm text-ink-2 hover:text-clay", focusRing)}>
                 {item.label}
               </Link>

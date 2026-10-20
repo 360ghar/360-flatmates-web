@@ -9,7 +9,6 @@ export function profileToProfileGridCardProps(profile: FlatmatesPeer): ProfileGr
   return {
     id: String(profile.id),
     name: profile.full_name,
-    age: profile.age,
     ageBucket: profile.age_bucket,
     location: location || undefined,
     profession: profile.profession,

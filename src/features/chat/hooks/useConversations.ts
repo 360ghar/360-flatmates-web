@@ -33,7 +33,7 @@ export const conversationsOptions = queryOptions({
 });
 
 export function useConversations() {
-  const refetchInterval = useRealtimeFallbackInterval();
+  const refetchInterval = useRealtimeFallbackInterval("new_message");
   return useQuery({ ...conversationsOptions, refetchInterval });
 }
 
@@ -48,7 +48,7 @@ const CONVERSATIONS_PAGE_SIZE = 30;
  * use this hook to grow the visible set without forcing a refetch.
  */
 export function useInfiniteConversations() {
-  const refetchInterval = useRealtimeFallbackInterval();
+  const refetchInterval = useRealtimeFallbackInterval("new_message");
   return useInfiniteQuery({
     refetchInterval,
     queryKey: ["conversations", "infinite"],
@@ -117,7 +117,7 @@ export function messagesInfiniteOptions(conversationId: number) {
 }
 
 export function useMessages(conversationId: number) {
-  const refetchInterval = useRealtimeFallbackInterval();
+  const refetchInterval = useRealtimeFallbackInterval("new_message");
   return useInfiniteQuery({ ...messagesInfiniteOptions(conversationId), refetchInterval });
 }
 

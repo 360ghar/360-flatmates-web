@@ -61,8 +61,8 @@ export function ModerationListingsPage() {
 
   const filtered = useMemo(
     () => {
-      if (!search) return allListings;
-      const needle = search.toLowerCase();
+      const needle = search.trim().toLowerCase();
+      if (!needle) return allListings;
       return allListings.filter(
         (l) =>
           l.title.toLowerCase().includes(needle) ||
@@ -137,11 +137,28 @@ export function ModerationListingsPage() {
       : "No listings";
   const emptyDescription = hasSearch
     ? hasNextPage
-      ? `No loaded listings match "${search}". Load more to search further.`
-      : `No listings match "${search}".`
+      ? `No loaded listings match "${search.trim()}". Load more to search further.`
+      : `No listings match "${search.trim()}".`
     : statusFilter === "pending_review"
       ? "All listings have been reviewed. Check back later."
       : "Try a different status filter.";
+
+  const emptyState = (
+    <EmptyState
+      scene="magnifier"
+      title={emptyTitle}
+      description={emptyDescription}
+      actionLabel={hasSearch ? "Clear search" : undefined}
+      onAction={hasSearch ? () => setSearch("") : undefined}
+    />
+  );
+  const loadMore = hasNextPage ? (
+    <div className="mt-4 flex justify-center">
+      <Button variant="secondary" size="compact" onClick={() => fetchNextPage()} loading={isFetchingNextPage}>
+        Load more
+      </Button>
+    </div>
+  ) : null;
 
   return (
     <Page width="wide">
@@ -168,15 +185,7 @@ export function ModerationListingsPage() {
           onRetry={() => refetch()}
           isEmpty={(d) => d.length === 0}
           loading={<Skeleton variant="moderationRow" count={5} />}
-          empty={
-            <EmptyState
-              scene="magnifier"
-              title={emptyTitle}
-              description={emptyDescription}
-              actionLabel={hasSearch ? "Clear search" : undefined}
-              onAction={hasSearch ? () => setSearch("") : undefined}
-            />
-          }
+          empty={emptyState}
           errorView={
             <Card className="flex items-center justify-center p-6">
               <ErrorState
@@ -190,25 +199,8 @@ export function ModerationListingsPage() {
           {() =>
             filtered.length === 0 ? (
               <>
-                <EmptyState
-                  scene="magnifier"
-                  title={emptyTitle}
-                  description={emptyDescription}
-                  actionLabel={hasSearch ? "Clear search" : undefined}
-                  onAction={hasSearch ? () => setSearch("") : undefined}
-                />
-                {hasNextPage ? (
-                  <div className="mt-4 flex justify-center">
-                    <Button
-                      variant="secondary"
-                      size="compact"
-                      onClick={() => fetchNextPage()}
-                      loading={isFetchingNextPage}
-                    >
-                      Load more
-                    </Button>
-                  </div>
-                ) : null}
+                {emptyState}
+                {loadMore}
               </>
             ) : (
               <>
@@ -228,18 +220,7 @@ export function ModerationListingsPage() {
                     </li>
                   ))}
                 </ul>
-                {hasNextPage ? (
-                  <div className="mt-4 flex justify-center">
-                    <Button
-                      variant="secondary"
-                      size="compact"
-                      onClick={() => fetchNextPage()}
-                      loading={isFetchingNextPage}
-                    >
-                      Load more
-                    </Button>
-                  </div>
-                ) : null}
+                {loadMore}
               </>
             )
           }

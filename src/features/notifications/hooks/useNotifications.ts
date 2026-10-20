@@ -37,7 +37,7 @@ export function notificationsOptions(filters?: NotificationFilters) {
 }
 
 export function useNotifications(filters?: NotificationFilters) {
-  const refetchInterval = useRealtimeFallbackInterval();
+  const refetchInterval = useRealtimeFallbackInterval("new_notification");
   return useQuery({ ...notificationsOptions(filters), refetchInterval });
 }
 
@@ -50,7 +50,7 @@ export function useNotifications(filters?: NotificationFilters) {
  * matters. Falls back to the fetched items when `total` is absent.
  */
 export function useUnreadNotificationCount() {
-  const refetchInterval = useRealtimeFallbackInterval();
+  const refetchInterval = useRealtimeFallbackInterval("new_notification");
   return useQuery({
     queryKey: ["notifications", "unread-count"],
     queryFn: async () => {
@@ -77,7 +77,7 @@ export function useUnreadNotificationCount() {
 export function useInfiniteNotifications(
   filters?: Omit<NotificationFilters, "limit" | "cursor">
 ) {
-  const refetchInterval = useRealtimeFallbackInterval();
+  const refetchInterval = useRealtimeFallbackInterval("new_notification");
   return useInfiniteQuery({
     refetchInterval,
     queryKey: ["notifications", "infinite", filters],

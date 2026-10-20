@@ -75,19 +75,18 @@ export function LikesPage() {
           getPeerId={(match) => String(match.peer.id)}
           getProfileProps={(match) => profileToProfileGridCardProps(match.peer)}
           onCta={(match) =>
-            createConversation.mutate(
-              { match_id: match.id, peer_user_id: match.peer.id },
-              {
-                // Open the conversation with this match, not the inbox (W22).
-                onSuccess: (conversation) => navigate(`/chats/${conversation.id}`),
-                onError: (err) => {
-                  uiStore.getState().pushToast({
-                    type: "error",
-                    title: "Could not open the chat",
-                    description: userMessage(err)
-                  });
-                  navigate("/chats");
-                }
+            // mutateAsync: per-call callbacks only run for the latest call, so two quick clicks
+            // would lose the first conversation's navigation.
+            createConversation.mutateAsync({ match_id: match.id, peer_user_id: match.peer.id }).then(
+              // Open the conversation with this match, not the inbox (W22).
+              (conversation) => navigate(`/chats/${conversation.id}`),
+              (err) => {
+                uiStore.getState().pushToast({
+                  type: "error",
+                  title: "Could not open the chat",
+                  description: userMessage(err)
+                });
+                navigate("/chats");
               }
             )
           }

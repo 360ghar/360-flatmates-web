@@ -31,7 +31,9 @@ if ("serviceWorker" in navigator && "caches" in window) {
     try {
       const legacy = await caches.has("api");
       await caches.delete("api").catch(() => undefined);
-      if (!legacy) return;
+      // Offline, unregistering would leave a browser error page on reload. The legacy
+      // worker recreates the "api" cache on its next fetch, so this runs again online.
+      if (!legacy || !navigator.onLine) return;
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.allSettled(registrations.map((registration) => registration.unregister()));
       if (navigator.serviceWorker.controller && !sessionStorage.getItem("sw-migrated")) {

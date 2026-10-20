@@ -23,7 +23,7 @@ export interface ChoiceChipsProps<T extends string> {
 export function ChoiceChips<T extends string>({ options, value, onValueChange, label, className }: ChoiceChipsProps<T>) {
   return (
     <RadioGroup.Root
-      value={value ?? ""}
+      value={value ?? null}
       onValueChange={(next) => onValueChange(next as T)}
       aria-label={label}
       orientation="horizontal"
