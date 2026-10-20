@@ -79,6 +79,20 @@ describe("useSearch hooks", () => {
       expect(cache).toEqual(expectedCache);
     });
 
+    it("asks for include_total only when the caller shows the count", async () => {
+      mockRequest.mockResolvedValue({ items: [], total: null, next_cursor: null, has_more: false, limit: 20 });
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      renderHook(() => useWebSearch({ q: "HSR" }), { wrapper });
+      await waitFor(() => expect(mockRequest).toHaveBeenCalledTimes(1));
+      expect(mockRequest.mock.calls[0][0].query).not.toHaveProperty("include_total", true);
+      renderHook(() => useWebSearch({ q: "HSR" }, { includeTotal: true }), { wrapper });
+      await waitFor(() => expect(mockRequest).toHaveBeenCalledTimes(2));
+      expect(mockRequest.mock.calls[1][0].query).toHaveProperty("include_total", true);
+    });
+
     it("is disabled when all filters are empty", () => {
       mockRequest.mockReturnValue(new Promise(() => {}));
       const { result } = renderHook(

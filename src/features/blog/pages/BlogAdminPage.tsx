@@ -9,6 +9,7 @@ import { EmptyState, InlineError } from "@/components/ui/StateViews";
 import { cn } from "@/components/ui/component-utils";
 import { formatDate } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { userMessage } from "@/lib/api/errors";
 import { readEnum } from "@/lib/api/schema";
 import type { BlogPost, BlogPostStatus } from "@/lib/api/types";
 
@@ -150,7 +151,7 @@ export function BlogAdminPage() {
             <div className="flex flex-col items-center gap-1.5 pt-2">
               {isFetchNextPageError ? (
                 <p role="alert" className="text-body-sm text-danger">
-                  Could not load more posts.
+                  {userMessage(error, "Could not load more posts.")}
                 </p>
               ) : null}
               <Button variant="secondary" onClick={() => fetchNextPage()} loading={isFetchingNextPage}>

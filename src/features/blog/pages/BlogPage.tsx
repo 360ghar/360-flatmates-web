@@ -11,13 +11,16 @@ import { EmptyState, InlineError } from "@/components/ui/StateViews";
 
 const breadcrumb = [{ name: "Blog", item: `${SITE_URL}/blog` }];
 
+/** Option values carry a prefix so a category named "all" cannot collide with the All guides option. */
+const CATEGORY_PREFIX = "category:";
+
 /** Public guides. Readers only ever see published posts; drafts live in admin. */
 export function BlogPage() {
   const [category, setCategory] = useState("all");
   const { data: categories } = useBlogCategories();
   // A public reader gets published posts only: sending `status` is a 422.
   const filters = useMemo(
-    () => ({ categories: category === "all" ? undefined : [category] }),
+    () => ({ categories: category === "all" ? undefined : [category.slice(CATEGORY_PREFIX.length)] }),
     [category]
   );
   const { data: infiniteData, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteBlogPosts(filters);
@@ -37,7 +40,7 @@ export function BlogPage() {
   // The filter takes a slug or a name: a category with no slug is filtered by name.
   const categoryOptions = [
     { value: "all", label: "All guides" },
-    ...topics.map((c) => ({ value: c.slug || c.name, label: c.name }))
+    ...topics.map((c) => ({ value: `${CATEGORY_PREFIX}${c.slug || c.name}`, label: c.name }))
   ];
 
   return (

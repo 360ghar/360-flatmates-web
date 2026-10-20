@@ -157,7 +157,7 @@ export function DiscoverPage() {
     isLoading: searchLoading,
     error: searchError,
     refetch,
-  } = useWebSearch(filters);
+  } = useWebSearch(filters, { includeTotal: true });
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.results) return [];

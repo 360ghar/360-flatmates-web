@@ -62,12 +62,15 @@ export function SettingsNotificationsPage() {
     (): Settings | null => (baseRef.current ? { ...baseRef.current, ...userEditsRef.current } : null),
     []
   );
+  // Each edit of a key bumps its revision. A save settles a key only when no newer edit exists,
+  // even one that already sits in a later queued save.
+  const editRevisions = useRef<Partial<Record<NotificationSettingKey, number>>>({});
   /** A save ended: forget its keys (a success is now the server value, a failure rolls back to it),
-   *  except keys edited again since. */
-  const settleEdits = useCallback((sent: Partial<Settings>) => {
+   *  except keys edited again since it was queued. */
+  const settleEdits = useCallback((sent: Partial<Settings>, sentRevisions: Partial<Record<NotificationSettingKey, number>>) => {
     const next = { ...userEditsRef.current };
     for (const key of Object.keys(sent) as NotificationSettingKey[]) {
-      if (!(key in pendingChanges.current) && next[key] === sent[key]) delete next[key];
+      if (editRevisions.current[key] === sentRevisions[key]) delete next[key];
     }
     userEditsRef.current = next;
     setUserEdits(next);
@@ -84,18 +87,19 @@ export function SettingsNotificationsPage() {
     const changes = pendingChanges.current;
     if (Object.keys(changes).length === 0) return;
     pendingChanges.current = {};
+    const sentRevisions = { ...editRevisions.current };
     // Preserve write order: a slow opt-in save must not overwrite its rollback.
     pendingWrites.current = pendingWrites.current
       .then(() => updateSettingsRef.current.mutateAsync(changes))
       .then(() => {
-        settleEdits(changes);
+        settleEdits(changes, sentRevisions);
         if (mounted.current) {
           uiStore.getState().pushToast({ type: "success", title: "Notification settings saved" });
         }
       })
       .catch(() => {
         // The toggles go back to the server value, so the screen does not claim a save that failed.
-        settleEdits(changes);
+        settleEdits(changes, sentRevisions);
         uiStore.getState().pushToast({
           type: "error",
           title: "Could not save settings",
@@ -105,6 +109,9 @@ export function SettingsNotificationsPage() {
   }, [settleEdits]);
 
   const queueChanges = useCallback((changes: Partial<Settings>) => {
+    for (const key of Object.keys(changes) as NotificationSettingKey[]) {
+      editRevisions.current[key] = (editRevisions.current[key] ?? 0) + 1;
+    }
     userEditsRef.current = { ...userEditsRef.current, ...changes };
     pendingChanges.current = { ...pendingChanges.current, ...changes };
     if (debounceRef.current) clearTimeout(debounceRef.current);

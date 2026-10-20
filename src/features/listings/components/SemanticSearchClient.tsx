@@ -42,7 +42,7 @@ export default function SemanticSearchClient() {
     isError,
     error,
     refetch,
-  } = useWebSearch(filters);
+  } = useWebSearch(filters, { includeTotal: true });
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.results) return [];

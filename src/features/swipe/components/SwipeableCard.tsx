@@ -99,6 +99,7 @@ export function SwipeableCard({
 
   /* ----- Check if profile has any expanded content ----- */
   const hasListing =
+    Boolean(profile.hasListing) ||
     Boolean(profile.propertyTitle) ||
     profile.monthlyRent != null ||
     (profile.imageUrls && profile.imageUrls.length > 0) ||

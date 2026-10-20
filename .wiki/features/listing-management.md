@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-A room poster's journey on 360 Flatmates is post, review, manage, edit. The poster walks a seven-step wizard to publish a room. The listing waits for a moderator. After approval the poster manages it from a grid of cards. This page covers the post flow, the review gate, the manage list, the detail view with pause, resume and delete, the edit form, and the listing states. For how the room poster mode is selected during onboarding, see [Profile and onboarding](profile-onboarding.md). For the numbers that follow a published listing, see [Dashboard and analytics](dashboard-analytics.md). For the visits booked against a listing, see [Visits](visits.md). For the property data model, see [Listing and property model](../primitives/listing-property.md).
+A room poster's journey on 360 Flatmates is post, review, manage, edit. The poster walks an eight-step wizard to publish a room. The listing waits for a moderator. After approval the poster manages it from a grid of cards. This page covers the post flow, the review gate, the manage list, the detail view with pause, resume and delete, the edit form, and the listing states. For how the room poster mode is selected during onboarding, see [Profile and onboarding](profile-onboarding.md). For the numbers that follow a published listing, see [Dashboard and analytics](dashboard-analytics.md). For the visits booked against a listing, see [Visits](visits.md). For the property data model, see [Listing and property model](../primitives/listing-property.md).
 
 ## The room poster surface
 
@@ -105,7 +105,7 @@ The owner dashboard is derived from `properties/mine`, so it needs no key of its
 | `src/features/hosting/pages/MyListingDetailPage.tsx` | Listing detail, pause, resume, delete |
 | `src/features/hosting/pages/MyListingEditPage.tsx` | Edit form |
 | `src/features/hosting/lib/listing-payload.ts` | `toPropertyCreate` and `toPropertyUpdate` |
-| `src/features/hosting/components/ListingPhotoManager.tsx` | Photo removal and main photo |
+| `src/features/hosting/components/ListingPhotoManager.tsx` | Photo upload, removal and main photo |
 | `src/features/listings/hooks/useProperties.ts` | Listing query and mutation hooks |
 | `src/lib/api/property-fields.ts` | `readListingPreferences`, `ownerListingStatus`, `propertyImageUrls` |
 | `src/lib/api/property.types.ts` | `Property`, `PropertyCreate`, `PropertyUpdate` aliases |

@@ -70,17 +70,19 @@ function toSearchPage(response: PropertyCursorPage): WebSearchResponse {
   };
 }
 
-export function webSearchOptions(filters: SearchFilters) {
+/** `includeTotal` asks for the result count (an extra COUNT query): set it where the count is shown. */
+export function webSearchOptions(filters: SearchFilters, extra?: { includeTotal?: boolean }) {
+  const includeTotal = extra?.includeTotal === true;
   return queryOptions({
-    queryKey: ["search", "web", filters],
+    // A different key when the count is asked for: the same filters may be cached without it.
+    queryKey: includeTotal ? ["search", "web", filters, "total"] : ["search", "web", filters],
     queryFn: async ({ signal }) =>
       toSearchPage(
         await apiClient.request<PropertyCursorPage>({
           method: "GET",
           path: "/properties",
           signal,
-          // The result count is shown, so ask for it.
-          query: { ...searchQuery(filters), limit: filters.limit, include_total: true }
+          query: { ...searchQuery(filters), limit: filters.limit, include_total: includeTotal ? true : undefined }
         })
       ),
     // Keep showing prior results while the next query loads so filter
@@ -93,8 +95,8 @@ export function webSearchOptions(filters: SearchFilters) {
   });
 }
 
-export function useWebSearch(filters: SearchFilters) {
-  return useQuery(webSearchOptions(filters));
+export function useWebSearch(filters: SearchFilters, extra?: { includeTotal?: boolean }) {
+  return useQuery(webSearchOptions(filters, extra));
 }
 
 export function infiniteWebSearchOptions(
