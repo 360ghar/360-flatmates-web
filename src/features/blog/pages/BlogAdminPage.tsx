@@ -49,7 +49,7 @@ function copyText(text: string): Promise<boolean> {
 export function BlogAdminPage() {
   const [status, setStatus] = useState<BlogPostStatus | "all">("all");
   // Page by page: an admin can have hundreds of posts.
-  const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteBlogPosts({
+  const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError } = useInfiniteBlogPosts({
     status: status === "all" ? undefined : status
   });
   const posts = data?.pages.flatMap((page) => page.items);
@@ -88,7 +88,7 @@ export function BlogAdminPage() {
 
       {isLoading ? (
         <Skeleton variant="moderationRow" count={4} />
-      ) : error ? (
+      ) : error && !posts ? (
         <InlineError title="Could not load posts" onRetry={() => refetch()} />
       ) : !posts || posts.length === 0 ? (
         <EmptyState
@@ -147,9 +147,14 @@ export function BlogAdminPage() {
             );
           })}
           {hasNextPage ? (
-            <div className="flex justify-center pt-2">
+            <div className="flex flex-col items-center gap-1.5 pt-2">
+              {isFetchNextPageError ? (
+                <p role="alert" className="text-body-sm text-danger">
+                  Could not load more posts.
+                </p>
+              ) : null}
               <Button variant="secondary" onClick={() => fetchNextPage()} loading={isFetchingNextPage}>
-                More posts
+                {isFetchNextPageError ? "Try again" : "More posts"}
               </Button>
             </div>
           ) : null}

@@ -3,8 +3,6 @@ import { myPropertiesOptions, useMyProperties } from "@/features/listings/hooks/
 import { ownerListingStatus } from "@/lib/api/property-fields";
 import type { ListingAnalytics, Property, RoomPosterDashboard } from "@/lib/api/types";
 
-export type AnalyticsPeriod = "7d" | "30d" | "all";
-
 /**
  * Derive a {@link RoomPosterDashboard} from the room poster's own listings.
  *
@@ -26,7 +24,8 @@ function deriveDashboard(properties: Property[]): RoomPosterDashboard {
   let totalLikes = 0;
 
   const listings = properties.map((property) => {
-    const status = ownerListingStatus(property);
+    // A listing with no moderation state (not a flatmate or PG type) is live while it is available.
+    const status = ownerListingStatus(property) ?? (property.is_available ? "live" : "paused");
     if (status === "live") activeListings += 1;
     else if (status === "pending_review") pendingReview += 1;
     else if (status === "paused") paused += 1;
@@ -83,20 +82,16 @@ export function useDashboardStats() {
  * Per-listing analytics summary, read from the listing's own counters. There
  * is no analytics route, so there is no per-day series.
  */
-export function useListingAnalytics(propertyId: number, period: AnalyticsPeriod = "30d") {
+export function useListingAnalytics(propertyId: number) {
   return useQuery({
     ...myPropertiesOptions,
     select: (properties): ListingAnalytics => {
       const listing = properties.find((p) => p.id === propertyId);
       return {
         listing_id: propertyId,
-        period,
         total_views: listing?.view_count ?? 0,
-        unique_views: listing?.view_count ?? 0,
         likes: listing?.like_count ?? 0,
-        shares: 0,
-        conversations_started: listing?.interest_count ?? 0,
-        daily_stats: []
+        conversations_started: listing?.interest_count ?? 0
       };
     },
     enabled: propertyId > 0

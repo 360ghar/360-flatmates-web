@@ -29,7 +29,7 @@ export function ProfileContactInfoSection({ email, phone }: ProfileContactInfoSe
       ) : (
         <p className="text-caption text-ink-3">
           This account has no phone number.{" "}
-          <Link to="/add-phone" className="font-semibold text-clay">Add a phone number</Link>.
+          <Link to={`/add-phone?next=${encodeURIComponent("/profile/edit")}`} className="font-semibold text-clay">Add a phone number</Link>.
         </p>
       )}
     </Card>

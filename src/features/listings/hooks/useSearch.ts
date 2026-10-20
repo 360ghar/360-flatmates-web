@@ -79,7 +79,8 @@ export function webSearchOptions(filters: SearchFilters) {
           method: "GET",
           path: "/properties",
           signal,
-          query: { ...searchQuery(filters), limit: filters.limit }
+          // The result count is shown, so ask for it.
+          query: { ...searchQuery(filters), limit: filters.limit, include_total: true }
         })
       ),
     // Keep showing prior results while the next query loads so filter
@@ -108,7 +109,13 @@ export function infiniteWebSearchOptions(
           method: "GET",
           path: "/properties",
           signal,
-          query: { ...searchQuery(filters), cursor: pageParam, limit: filters.limit ?? 20 }
+          // The result count is read from the first page only.
+          query: {
+            ...searchQuery(filters),
+            cursor: pageParam,
+            limit: filters.limit ?? 20,
+            include_total: pageParam === undefined ? true : undefined
+          }
         })
       ),
     initialPageParam: undefined as string | undefined,

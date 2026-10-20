@@ -159,7 +159,8 @@ function useAuthStateQuery(isAuthenticated: boolean) {
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    retry: 1
+    // One retry, but not behind a long `Retry-After`: the gate spinner would wait it out.
+    retry: (failureCount, error) => failureCount < 1 && withinAutoRetryWait(error)
   });
 
   useEffect(() => {

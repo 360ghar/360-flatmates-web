@@ -8,8 +8,8 @@ A room poster's journey on 360 Flatmates is post, review, manage, edit. The post
 
 | Route | File | Purpose |
 | --- | --- | --- |
-| `/post` | `src/features/hosting/pages/PostPage.tsx` | Seven-step post wizard |
-| `/post/review` | `src/features/hosting/pages/PostReviewPage.tsx` | "Under review" confirmation screen |
+| `/post` | `src/features/hosting/pages/PostPage.tsx` | Eight-step post wizard |
+| `/post/review/:listingId` | `src/features/hosting/pages/PostReviewPage.tsx` | "Under review" confirmation screen |
 | `/manage` | `src/features/hosting/pages/ManagePage.tsx` | Grid of the user's own listings |
 | `/my-listings/:id` | `src/features/hosting/pages/MyListingDetailPage.tsx` | Single listing detail with pause, resume, edit, delete |
 | `/my-listings/:id/edit` | `src/features/hosting/pages/MyListingEditPage.tsx` | Edit form (react-hook-form and Zod) |
@@ -39,7 +39,7 @@ The wizard saves the form to `localStorage` under `360-flatmates-listing-draft` 
 
 ## The review gate
 
-After publish, `PostPage` goes to `/post/review`. The page shows a three-step tracker and a note that every listing is checked within 24 hours. The listing is in `pending_review` and is hidden from seekers until a moderator approves it. See [Admin moderation](admin-moderation.md).
+After publish, `PostPage` goes to `/post/review/:listingId`. The page shows a three-step tracker and a note that every listing is checked within 24 hours. The listing is in `pending_review` and is hidden from seekers until a moderator approves it. See [Admin moderation](admin-moderation.md).
 
 ## The manage list
 
@@ -72,7 +72,7 @@ The owner state of a listing is `listing_preferences.moderation_status`: `pendin
 
 A content edit sends a live listing back to `pending_review`. The page tells the owner before the save, and it reads the server state from the response instead of merging the form values.
 
-`ListingPhotoManager` removes photos and chooses the main photo. It sends the new list as `image_urls`, and the server reads the order as the display order. It does not add photos.
+`ListingPhotoManager` adds photos, removes one or several, and chooses the main photo. A new photo uploads first through `POST /upload` (three at a time); the new list then goes back as `image_urls`, and the server reads the order as the display order. Remove, reorder and delete are locked while an upload is in flight. Removing a photo does not delete its media-library file: the listing carries URLs, and `POST /upload/media/batch-delete` takes media IDs.
 
 ## Mutations and cache invalidation
 
@@ -99,7 +99,7 @@ The owner dashboard is derived from `properties/mine`, so it needs no key of its
 
 | File | Purpose |
 | --- | --- |
-| `src/features/hosting/pages/PostPage.tsx` | Seven-step post wizard, draft persistence, publish |
+| `src/features/hosting/pages/PostPage.tsx` | Eight-step post wizard, draft persistence, publish |
 | `src/features/hosting/pages/PostReviewPage.tsx` | "Under review" confirmation screen |
 | `src/features/hosting/pages/ManagePage.tsx` | Grid of the user's own listings |
 | `src/features/hosting/pages/MyListingDetailPage.tsx` | Listing detail, pause, resume, delete |

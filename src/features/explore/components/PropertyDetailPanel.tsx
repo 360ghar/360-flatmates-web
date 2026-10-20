@@ -113,9 +113,9 @@ export function PropertyDetailPanel({ selectedPin, fullProperty, isPropertyLoadi
             <Button fullWidth onClick={() => onNavigate(`/listing/${p.id}`)}>
               View listing
             </Button>
-            {p.owner_name ? (
+            {p.owner_id ? (
               <Button fullWidth variant="tertiary" onClick={() => onNavigate(`/profile/${p.owner_id}`)}>
-                See {p.owner_name.split(" ")[0]}&apos;s profile
+                {p.owner_name ? `See ${p.owner_name.split(" ")[0]}'s profile` : "See the owner's profile"}
               </Button>
             ) : null}
           </div>

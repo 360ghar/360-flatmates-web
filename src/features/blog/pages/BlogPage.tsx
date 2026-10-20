@@ -34,10 +34,10 @@ export function BlogPage() {
   const posts = (infiniteData?.pages.flatMap((page) => page?.items ?? []) ?? []).filter(Boolean);
   // A malformed response must not take the page down; topics are optional.
   const topics = Array.isArray(categories) ? categories : [];
-  // The filter takes a slug. A category with no slug cannot be filtered on, so it is left out.
+  // The filter takes a slug or a name: a category with no slug is filtered by name.
   const categoryOptions = [
     { value: "all", label: "All guides" },
-    ...topics.flatMap((c) => (c.slug ? [{ value: c.slug, label: c.name }] : []))
+    ...topics.map((c) => ({ value: c.slug || c.name, label: c.name }))
   ];
 
   return (

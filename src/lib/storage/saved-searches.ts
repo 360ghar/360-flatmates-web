@@ -45,7 +45,7 @@ function readJson<T>(key: string): T[] {
   }
 }
 
-/** Read `key`; when it is empty, upgrade the entries stored under `legacyKey` and remove them. */
+/** Read `key`; when `legacyKey` still exists, upgrade its entries, merge them after the current ones and remove it. */
 function readUpgrading<T extends { filters: Record<string, unknown> }>(key: string, legacyKey: string): T[] {
   const current = readJson<T>(key);
   if (!isBrowser()) return current;

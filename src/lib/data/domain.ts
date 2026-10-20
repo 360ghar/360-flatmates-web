@@ -475,6 +475,14 @@ export const LISTING_MODERATION_STATUS_VALUES = [
 
 export type ListingModerationStatus = (typeof LISTING_MODERATION_STATUS_VALUES)[number];
 
+/** How an owner reads a listing state (owner dashboard, listing page). */
+export const LISTING_STATUS_LABEL: Record<ListingModerationStatus, string> = {
+  live: "Published",
+  pending_review: "In review",
+  paused: "Paused",
+  rejected: "Rejected"
+};
+
 export type CompatibilityColor = "green" | "amber" | "red";
 
 export type InterestLevel = "high" | "medium" | "low";

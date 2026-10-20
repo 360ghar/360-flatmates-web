@@ -23,8 +23,12 @@ export function toPropertyCreate(form: ListingDraftForm): PropertyCreate | null 
   if (!trimmedTitle || monthlyRent === undefined || !Number.isFinite(monthlyRent)) return null;
 
   const fullAddress = address?.trim();
+  // A cleared form field is "" or NaN: leave the key out rather than send a blank (a cleared date is a 422).
+  const filled = Object.fromEntries(
+    Object.entries(rest).filter(([, v]) => v !== "" && !(typeof v === "number" && Number.isNaN(v)))
+  ) as typeof rest;
   return {
-    ...rest,
+    ...filled,
     property_type: rest.property_type ?? "flatmate",
     purpose: "rent",
     title: trimmedTitle,
@@ -54,7 +58,9 @@ export function toPropertyUpdate(
 
   for (const key of Object.keys(dirty) as Array<keyof ListingFormData>) {
     if (!dirty[key]) continue;
-    const value = values[key];
+    const raw = values[key];
+    // Trim like the create payload: a whitespace-only value is a cleared one.
+    const value = typeof raw === "string" ? raw.trim() : raw;
     const cleared = value === undefined || value === "" || (typeof value === "number" && Number.isNaN(value));
     if (cleared) {
       if (!NOT_NULLABLE.has(key)) body[key === "address" ? "full_address" : key] = null;

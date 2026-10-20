@@ -3,13 +3,15 @@ import type { OwnProfile } from "@/lib/schemas/profile";
 /**
  * How complete a profile is, as the share of its onboarding answers that are
  * filled in (0 to 100). The server sends no onboarding step, so progress comes
- * from the profile itself. A completed onboarding is 100.
+ * from the profile itself. A completed onboarding is 100; until then the
+ * answers alone stop at 99, so a card never says "done" and "complete your profile".
  */
 export function profileCompletion(profile: OwnProfile): number {
   if (profile.onboarding_completed) return 100;
   const answers: unknown[] = [
     profile.mode,
     profile.city,
+    profile.locality,
     profile.full_name,
     profile.age,
     profile.profession,
@@ -27,5 +29,5 @@ export function profileCompletion(profile: OwnProfile): number {
     profile.gender_preference
   ];
   const filled = answers.filter((v) => v !== undefined && v !== null && v !== "").length;
-  return Math.round((filled / answers.length) * 100);
+  return Math.min(99, Math.round((filled / answers.length) * 100));
 }

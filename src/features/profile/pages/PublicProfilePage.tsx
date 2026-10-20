@@ -137,7 +137,7 @@ export function PublicProfilePage() {
     <>
       <SeoHelmet
         title={profile ? `${name}: Flatmate Profile` : "Flatmate Profile"}
-        description={profile ? `View ${name}'s flatmate profile on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores and lifestyle preferences.` : "View flatmate profiles on 360 Flatmates."}
+        description={profile ? `${profile.full_name?.trim() ? `View ${name}'s flatmate profile` : "View a flatmate profile"} on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores and lifestyle preferences.` : "View flatmate profiles on 360 Flatmates."}
         canonicalUrl={url}
         ogType="profile"
         breadcrumb={[...breadcrumb, { name: profile ? name : "Profile" }]}

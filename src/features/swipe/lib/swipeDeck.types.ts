@@ -35,7 +35,11 @@ export interface SwipeProfile {
   /** Full 7-dimension breakdown (client-computed or from API). */
   compatibilityDimensions?: CompatibilityDimensionResult[];
   /* Listing context when the peer has an active flatmate/PG listing */
+  /** The peer has a live listing: show the section even when every detail is empty. */
+  hasListing?: boolean;
   propertyTitle?: string;
+  /** Where the listing is (not where the person lives). */
+  listingLocation?: string;
   imageUrls?: string[];
   monthlyRent?: number | null;
   securityDeposit?: number | null;

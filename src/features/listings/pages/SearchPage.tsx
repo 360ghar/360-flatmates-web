@@ -172,7 +172,9 @@ export function SearchPage() {
     const furnishing = readEnumList(FURNISHING_LEVEL_VALUES, params.furnishing);
     const kitchenTypes = readEnumList(KITCHEN_TYPE_VALUES, params.kitchen);
     // The same goes for numbers: the backend takes bedrooms 0..50 and a price 0..MONEY_MAX.
-    const bedrooms = params.bedrooms === "4+" ? 4 : inRangeOrUndefined(Number(params.bedrooms || NaN), 0, 50);
+    const bedroomCount = Number(params.bedrooms || NaN);
+    // The backend declares bedrooms as an integer: 2.5 would be a 422.
+    const bedrooms = params.bedrooms === "4+" ? 4 : Number.isInteger(bedroomCount) ? inRangeOrUndefined(bedroomCount, 0, 50) : undefined;
     return {
       q: params.q || undefined,
       city: cities?.find((c) => c.id === params.city)?.name,

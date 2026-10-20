@@ -105,9 +105,10 @@ export function countActiveSearchFilters(filters: SearchFilters): number {
 /**
  * Bring a stored filter object from before store version 3 to the current
  * shape (in place). The backend takes one value for `sharing_type`,
- * `gender_preference` and `move_in`, and does not know `search_type`,
- * `society_*` or `sub_locality`. A stored list keeps its first value, and a
- * value the backend does not know is dropped.
+ * `gender_preference` and `move_in`, and does not know `search_type`. The web
+ * filters no longer carry `society_*` or `sub_locality` (the backend still
+ * accepts them), so a stored value for them is dropped. A stored list keeps
+ * its first value, and a value the backend does not know is dropped.
  */
 export function upgradeLegacyFilters(filters: Record<string, unknown>): Record<string, unknown> {
   for (const key of ["sharing_type", "gender_preference", "move_in"]) {

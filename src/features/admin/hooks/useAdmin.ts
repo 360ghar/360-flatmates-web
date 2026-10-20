@@ -139,7 +139,8 @@ export function useInfiniteAdminListings(
         query: {
           ...(filters ?? {}),
           limit: ADMIN_PAGE_LIMIT,
-          include_total: true,
+          // The screens read the total from the first page only: skip the COUNT on later pages.
+          include_total: pageParam === undefined ? true : undefined,
           cursor: pageParam
         } as Record<string, QueryValue>,
         signal
@@ -165,7 +166,8 @@ export function useInfiniteAdminReports(
         query: {
           ...(filters ?? {}),
           limit: ADMIN_PAGE_LIMIT,
-          include_total: true,
+          // The screens read the total from the first page only: skip the COUNT on later pages.
+          include_total: pageParam === undefined ? true : undefined,
           cursor: pageParam
         } as Record<string, QueryValue>,
         signal

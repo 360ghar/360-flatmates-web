@@ -12,10 +12,11 @@ import type { ListingModerationStatus } from "@/lib/data";
 import { adminUserName } from "@/lib/api/admin-fields";
 import { formatLocation } from "@/lib/utils/format";
 
-const statusMap: Record<ListingModerationStatus, "pending" | "confirmed" | "rejected" | "cancelled"> = {
+// Paused has no status tone: the Badge falls back to neutral, not the red used for cancelled.
+const statusMap: Record<ListingModerationStatus, "pending" | "confirmed" | "rejected" | undefined> = {
   pending_review: "pending",
   live: "confirmed",
-  paused: "cancelled",
+  paused: undefined,
   rejected: "rejected"
 };
 
@@ -47,7 +48,7 @@ export function ModerationListingRow({
                 {listing.title ?? "Untitled listing"}
               </h3>
               <p className="text-caption text-ink-2">
-                by {adminUserName(listing.owner, listing.owner_id ?? 0)} &middot;{" "}
+                by {adminUserName(listing.owner, listing.owner_id)} &middot;{" "}
                 {formatLocation(listing.locality, listing.city)}
               </p>
             </div>

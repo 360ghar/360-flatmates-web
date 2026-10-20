@@ -6,6 +6,7 @@ export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
   const listingAmenities = [...(profile.amenities ?? []), ...(profile.features ?? [])].filter(Boolean);
   const uniqueAmenities = Array.from(new Set(listingAmenities));
   const hasListing =
+    Boolean(profile.hasListing) ||
     Boolean(profile.propertyTitle) ||
     profile.monthlyRent != null ||
     (profile.imageUrls && profile.imageUrls.length > 0) ||
@@ -36,7 +37,7 @@ export function ProfileListingSection({ profile }: { profile: SwipeProfile }) {
           ["Floor", floorLabel?.replace("Floor ", "")],
           ["Bedrooms", profile.bedrooms],
           ["Area", profile.areaSqft != null ? `${Math.round(profile.areaSqft)} sq ft` : null],
-          ["Where", profile.location],
+          ["Where", profile.listingLocation],
           ["Available from", profile.availableFrom ? formatDateOnly(profile.availableFrom) : null]
         ]}
       />

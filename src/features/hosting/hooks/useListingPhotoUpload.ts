@@ -3,6 +3,9 @@ import { apiClient } from "@/lib/api";
 import type { Schemas } from "@/lib/api/schema";
 import { convertUploadImageToDataUrl } from "@/lib/image-utils";
 
+/** Photos in flight at once: a big pick must not open dozens of conversions and requests. */
+const UPLOAD_CONCURRENCY = 3;
+
 /**
  * Upload one listing photo to the media library (`POST /upload`) and return
  * its hosted URL. A listing takes photos as hosted URLs in `image_urls`.
@@ -37,16 +40,23 @@ export function useListingPhotoUpload() {
     const images = files.filter((f) => f.type.startsWith("image/"));
     if (images.length === 0) return { urls: [], failed: 0 };
     setUploadingCount((n) => n + images.length);
-    const results = await Promise.allSettled(
-      images.map(async (file) => {
+    // A small worker pool; results keep pick order.
+    const results: Array<string | null> = new Array(images.length).fill(null);
+    let next = 0;
+    const worker = async () => {
+      while (next < images.length) {
+        const index = next++;
         try {
-          return await uploadListingPhoto(file);
+          results[index] = await uploadListingPhoto(images[index]);
+        } catch {
+          results[index] = null;
         } finally {
           setUploadingCount((n) => n - 1);
         }
-      })
-    );
-    const urls = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(UPLOAD_CONCURRENCY, images.length) }, worker));
+    const urls = results.filter((url): url is string => url !== null);
     return { urls, failed: images.length - urls.length };
   }
 

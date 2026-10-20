@@ -47,16 +47,7 @@ export interface RoomPosterDashboard {
 /** UI summary of one listing (derived from the listing's own counters). */
 export interface ListingAnalytics {
   listing_id: number;
-  period: "7d" | "30d" | "all";
   total_views: number;
-  unique_views: number;
   likes: number;
-  shares: number;
   conversations_started: number;
-  daily_stats: Array<{
-    date: string;
-    views: number;
-    likes: number;
-    shares: number;
-  }>;
 }

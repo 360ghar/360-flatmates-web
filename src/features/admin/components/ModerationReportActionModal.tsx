@@ -55,7 +55,7 @@ export function ModerationReportActionModal({
       title={action ? actionLabels[action] : "Confirm Action"}
       description={
         report
-          ? `You are about to ${action ? actionLabels[action].toLowerCase() : "act on"} the report by ${reporterName} against ${reportedName}.`
+          ? `${action ? `Action: ${actionLabels[action]}. ` : ""}Report by ${reporterName} against ${reportedName}.`
           : ""
       }
       onClose={() => {

@@ -21,7 +21,8 @@ const MODERATION_STATUS: Record<ListingModerationStatus, { label: string; tone: 
 export function PrescreenPropertyDetails({ property }: { property: PropertyDetail }) {
   const imageUrls = propertyImageUrls(property);
   const preferences = readListingPreferences(property);
-  const moderation = MODERATION_STATUS[ownerListingStatus(property)];
+  const stored = ownerListingStatus(property);
+  const moderation = stored ? MODERATION_STATUS[stored] : null;
   return (
     <div className="flex flex-col gap-6">
       {/* Images */}
@@ -130,13 +131,15 @@ export function PrescreenPropertyDetails({ property }: { property: PropertyDetai
         </Card>
       )}
 
-      {/* Moderation Status */}
-      <Card as="section" variant="compact">
-        <h3 className="text-h3 text-ink">Moderation Status</h3>
-        <div className="mt-3">
-          <Badge tone={moderation.tone}>{moderation.label}</Badge>
-        </div>
-      </Card>
+      {/* Moderation Status: only a listing type that has one */}
+      {moderation ? (
+        <Card as="section" variant="compact">
+          <h3 className="text-h3 text-ink">Moderation Status</h3>
+          <div className="mt-3">
+            <Badge tone={moderation.tone}>{moderation.label}</Badge>
+          </div>
+        </Card>
+      ) : null}
 
       {/* AI Pre-Screen Flags */}
       {property.tags && property.tags.length > 0 && (

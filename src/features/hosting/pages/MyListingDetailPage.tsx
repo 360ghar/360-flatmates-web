@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router";
 import { Pause, Pencil, Play, Trash2 } from "lucide-react";
 import { useMyProperty, useDeleteProperty, useSetListingStatus } from "@/features/listings/hooks/useProperties";
 import { ownerListingStatus } from "@/lib/api/property-fields";
-import type { ListingModerationStatus } from "@/lib/data";
+import { LISTING_STATUS_LABEL } from "@/lib/data";
 import { propertyToListingCardProps } from "@/features/listings/lib/adapters";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
@@ -14,13 +14,6 @@ import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState, InlineError } from "@/components/ui/StateViews";
 import { ListingCard } from "@/features/listings/components/ListingCard";
-
-const LISTING_STATUS_LABEL: Record<ListingModerationStatus, string> = {
-  live: "Published",
-  pending_review: "In review",
-  paused: "Paused",
-  rejected: "Rejected"
-};
 
 export function MyListingDetailPage() {
   const navigate = useNavigate();
@@ -105,7 +98,7 @@ export function MyListingDetailPage() {
     );
   }
 
-  const status = property ? ownerListingStatus(property) : "pending_review";
+  const status = property ? ownerListingStatus(property) : null;
 
   return (
     <Page width="default">
@@ -142,7 +135,7 @@ export function MyListingDetailPage() {
             <div className="flex flex-col gap-2 text-body-md text-ink-2">
               <p>
                 <span className="font-semibold text-ink">Status:</span>{" "}
-                {LISTING_STATUS_LABEL[status]}
+                {status ? LISTING_STATUS_LABEL[status] : property?.is_available ? "Published" : "Paused"}
               </p>
               <p>
                 <span className="font-semibold text-ink">Views:</span> {property.view_count ?? 0}

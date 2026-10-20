@@ -24,5 +24,7 @@ describe("visitDateToUtcIso", () => {
     expect(visitDateToUtcIso("2026-10-20", at("2026-10-21T09:00:00"))).toBeNull();
     expect(visitDateToUtcIso("2026-10-22T10:00", at("2026-10-21T09:00:00"))).toBeNull();
     expect(visitDateToUtcIso("2026-13-40", at("2026-10-21T09:00:00"))).toBeNull();
+    // A day that does not exist must not roll over to the next month.
+    expect(visitDateToUtcIso("2027-02-31", at("2026-10-21T09:00:00"))).toBeNull();
   });
 });

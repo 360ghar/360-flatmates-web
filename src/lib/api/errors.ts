@@ -134,7 +134,9 @@ export function userMessage(error: unknown, fallback?: string): string {
     // first field message says what to fix.
     const [field, messages] = Object.entries(appError.fields)[0] ?? [];
     const first = messages?.[0];
-    if (field && first) return `${field.replace(/^(body|query|path)\./, "")}: ${first}`.slice(0, 160);
+    // Same rule as the server text below: show it whole, or fall through to the friendly line.
+    const text = field && first ? `${field.replace(/^(body|query|path)\./, "")}: ${first}` : "";
+    if (text && text.length <= 160) return text;
   }
   const serverText = appError.message.trim();
   if (

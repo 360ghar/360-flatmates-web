@@ -61,7 +61,7 @@ export function ModerationListingsPage() {
       return allListings.filter(
         (l) =>
           (l.title ?? "").toLowerCase().includes(needle) ||
-          adminUserName(l.owner, l.owner_id ?? 0).toLowerCase().includes(needle) ||
+          adminUserName(l.owner, l.owner_id).toLowerCase().includes(needle) ||
           (l.locality ?? "").toLowerCase().includes(needle)
       );
     },
@@ -80,7 +80,7 @@ export function ModerationListingsPage() {
           uiStore.getState().pushToast({
             type: "success",
             title: "Listing approved",
-            description: `"${target.title}" is now live.`
+            description: `"${target.title ?? "This listing"}" is now live.`
           });
         },
         onError: () => {
@@ -108,7 +108,7 @@ export function ModerationListingsPage() {
           uiStore.getState().pushToast({
             type: "success",
             title: "Listing rejected",
-            description: `"${target.title}" was rejected.`
+            description: `"${target.title ?? "This listing"}" was rejected.`
           });
         },
         onError: () => {

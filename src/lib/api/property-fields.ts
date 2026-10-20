@@ -55,11 +55,14 @@ export function readListingPreferences(
  * Where a listing stands for its owner. The backend stores the state in
  * `listing_preferences.moderation_status`. A flatmate or PG listing with no
  * stored value counts as `pending_review`, the same as the moderation queue.
+ * Any other listing type has no moderation state: `null`.
  */
 export function ownerListingStatus(
-  property: Pick<Property, "listing_preferences">
-): ListingModerationStatus {
-  return readListingPreferences(property).moderationStatus ?? "pending_review";
+  property: Pick<Property, "listing_preferences" | "property_type">
+): ListingModerationStatus | null {
+  const stored = readListingPreferences(property).moderationStatus;
+  if (stored) return stored;
+  return property.property_type === "flatmate" || property.property_type === "pg" ? "pending_review" : null;
 }
 
 /** Photo URLs of a listing in display order: `images[].image_url`. */

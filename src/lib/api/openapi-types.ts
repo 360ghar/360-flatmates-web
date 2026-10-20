@@ -1659,11 +1659,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get bug report
-         * @description Get a specific bug report
-         */
-        get: operations["get_bug_report_api_v1_bugs__bug_id__get"];
+        get?: never;
         /**
          * Update bug report
          * @description Update a bug report (admin only for status updates)
@@ -1700,34 +1696,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/pages/{unique_name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get page
-         * @description Get a specific page by unique name, including inactive pages (admin only)
-         */
-        get: operations["get_page_api_v1_pages__unique_name__get"];
-        /**
-         * Update page
-         * @description Update a page (admin only)
-         */
-        put: operations["update_page_api_v1_pages__unique_name__put"];
-        post?: never;
-        /**
-         * Delete page
-         * @description Soft delete a page (admin only). Returns 204.
-         */
-        delete: operations["delete_page_api_v1_pages__unique_name__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/pages/{unique_name}/public": {
         parameters: {
             query?: never;
@@ -1743,6 +1711,30 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pages/{unique_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update page
+         * @description Update a page (admin only)
+         */
+        put: operations["update_page_api_v1_pages__unique_name__put"];
+        post?: never;
+        /**
+         * Delete page
+         * @description Soft delete a page (admin only). Returns 204.
+         */
+        delete: operations["delete_page_api_v1_pages__unique_name__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4480,6 +4472,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tours/{tour_id}/floor-plans/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate floor plan from tour
+         * @description Build a schematic floor plan from the tour's analyzed scenes.
+         *
+         *     Room names and doorway links come from the spatial analysis already stored
+         *     on the tour, so the drawing is an estimate, not a measured plan. Generating
+         *     again replaces the previous AI-estimated plan instead of adding another one.
+         */
+        post: operations["generate_floor_plan_api_v1_tours__tour_id__floor_plans_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tours/{tour_id}/floor-plans/{floor_plan_id}": {
         parameters: {
             query?: never;
@@ -4800,6 +4816,30 @@ export interface paths {
          *     Returns a job ID for tracking progress.
          */
         post: operations["analyze_tour_scenes_api_v1_ai_tours__tour_id__analyze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/tours/{tour_id}/connect-spatial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Connect tour rooms with AI
+         * @description Re-run doorway linking on an existing tour with AI.
+         *
+         *     Replaces previously AI-generated navigation hotspots with a fresh, fully
+         *     reachable set built from the scenes' panoramas; manually placed hotspots are
+         *     kept. Returns a job ID for tracking progress.
+         */
+        post: operations["connect_tour_spatial_api_v1_ai_tours__tour_id__connect_spatial_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13259,6 +13299,7 @@ export interface components {
             scene_suggestions?: unknown[];
             /** Created Hotspots */
             created_hotspots?: unknown[];
+            spatial_summary?: components["schemas"]["SpatialGraphSummary"] | null;
         };
         /** OutgoingLikeSummary */
         OutgoingLikeSummary: {
@@ -15730,6 +15771,42 @@ export interface components {
              * @default 0
              */
             hotspots_created: number;
+            spatial_summary?: components["schemas"]["SpatialGraphSummary"] | null;
+        };
+        /**
+         * SpatialGraphSummary
+         * @description Linking-quality report of a spatial job (see `tour_ai.spatial.graph_summary`).
+         *
+         *     Every field is declared: an undeclared key would be dropped on the way into
+         *     `ai_jobs.result`, and the review UI would silently show nothing.
+         */
+        SpatialGraphSummary: {
+            /**
+             * Scene Count
+             * @default 0
+             */
+            scene_count: number;
+            /**
+             * Link Count
+             * @default 0
+             */
+            link_count: number;
+            /** Rooms Without Links */
+            rooms_without_links?: string[];
+            /** One Way Links */
+            one_way_links?: string[];
+            /** Unreachable Scenes */
+            unreachable_scenes?: string[];
+            /** Unmatched Openings */
+            unmatched_openings?: {
+                [key: string]: unknown;
+            }[];
+            /** Unlinked Openings */
+            unlinked_openings?: {
+                [key: string]: unknown;
+            }[];
+            /** Warnings */
+            warnings?: string[];
         };
         /**
          * StaircaseInfo
@@ -16193,6 +16270,7 @@ export interface components {
             }[];
             /** Created Hotspots */
             created_hotspots?: string[];
+            spatial_summary?: components["schemas"]["SpatialGraphSummary"] | null;
         };
         /**
          * TourGenerationSceneSummary
@@ -19929,7 +20007,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SwipeOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -21353,46 +21433,6 @@ export interface operations {
             };
         };
     };
-    get_bug_report_api_v1_bugs__bug_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                bug_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BugReportResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationErrorEnvelope"];
-                };
-            };
-            /** @description Error. Every non-2xx response has this body. */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
     update_bug_report_api_v1_bugs__bug_id__put: {
         parameters: {
             query?: never;
@@ -21528,7 +21568,7 @@ export interface operations {
             };
         };
     };
-    get_page_api_v1_pages__unique_name__get: {
+    get_page_public_api_v1_pages__unique_name__public_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -21545,7 +21585,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PageResponse"];
+                    "application/json": components["schemas"]["PagePublicResponse"];
                 };
             };
             /** @description Validation Error */
@@ -21629,46 +21669,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationErrorEnvelope"];
-                };
-            };
-            /** @description Error. Every non-2xx response has this body. */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
-    get_page_public_api_v1_pages__unique_name__public_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                unique_name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PagePublicResponse"];
-                };
             };
             /** @description Validation Error */
             422: {
@@ -28700,6 +28700,46 @@ export interface operations {
             };
         };
     };
+    generate_floor_plan_api_v1_tours__tour_id__floor_plans_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tour_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FloorPlanResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorEnvelope"];
+                };
+            };
+            /** @description Error. Every non-2xx response has this body. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     get_floor_plan_api_v1_tours__tour_id__floor_plans__floor_plan_id__get: {
         parameters: {
             query?: never;
@@ -29455,6 +29495,46 @@ export interface operations {
         };
     };
     analyze_tour_scenes_api_v1_ai_tours__tour_id__analyze_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tour_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorEnvelope"];
+                };
+            };
+            /** @description Error. Every non-2xx response has this body. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    connect_tour_spatial_api_v1_ai_tours__tour_id__connect_spatial_post: {
         parameters: {
             query?: never;
             header?: never;

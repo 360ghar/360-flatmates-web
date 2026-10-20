@@ -198,9 +198,10 @@ export default function ListingDetailClient() {
         }
       >
         {(data) => {
-          const extraPhotos = (property ? propertyImageUrls(property) : []).filter(
-            (url) => url && url !== data.imageUrl
-          ).slice(0, 2);
+          // The lead photo falls back to the first listed photo when there is no primary image.
+          const photoUrls = property ? propertyImageUrls(property) : [];
+          const leadUrl = data.imageUrl || photoUrls[0];
+          const extraPhotos = photoUrls.filter((url) => url && url !== leadUrl).slice(0, 2);
           const preferences = property ? readListingPreferences(property) : null;
 
           return (
@@ -208,7 +209,7 @@ export default function ListingDetailClient() {
             {/* Photo gallery — no empty placeholders */}
             <ListingPhotoGallery
               title={data.title}
-              imageUrl={data.imageUrl}
+              imageUrl={leadUrl}
               compatibilityScore={data.compatibilityScore}
               extraPhotos={extraPhotos}
               onShareClick={() => setIsShareOpen(true)}

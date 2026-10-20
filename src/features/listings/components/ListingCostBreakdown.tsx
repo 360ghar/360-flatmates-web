@@ -11,7 +11,7 @@ export function ListingCostBreakdown({
   maintenanceCharges?: number | null;
 }) {
   const rows = [
-    { label: "Rent a month", value: price !== null ? formatCurrencyINR(price) : "Ask the owner", strong: true },
+    { label: "Rent a month", value: price !== null ? formatCurrencyINR(price) : "Rent on request", strong: true },
     { label: "Deposit", value: securityDeposit != null ? formatCurrencyINR(securityDeposit) : "Ask the owner" },
     { label: "Maintenance", value: maintenanceCharges != null ? formatCurrencyINR(maintenanceCharges) : "Included" }
   ];

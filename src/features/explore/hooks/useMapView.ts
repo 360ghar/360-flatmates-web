@@ -70,6 +70,8 @@ export function mapViewOptions(filters: MapViewFilters) {
         windows_min: filters.windows_min,
         has_lift: filters.has_lift,
         limit: MAX_PAGE_LIMIT,
+        // The viewport count shown on the map is the real total, not the page size.
+        include_total: true,
       };
       // One page per viewport: each pan or zoom is a new query, so following
       // `next_cursor` would chain requests before any pin shows.

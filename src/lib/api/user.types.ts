@@ -1,4 +1,3 @@
-import type { MoveInTimeline } from "@/lib/data";
 import type { Schemas, WriteBody } from "./schema";
 
 /** `GET /flatmates/profile` and write responses. Nullable fields stay null. */
@@ -39,7 +38,7 @@ export interface PeerFilters {
   city?: string;
   budget_min?: number;
   budget_max?: number;
-  move_in?: MoveInTimeline;
+  move_in?: string;
   age_min?: number;
   age_max?: number;
   limit?: number;

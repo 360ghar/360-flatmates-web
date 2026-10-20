@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/components/ui/component-utils";
 import { formatCount } from "@/lib/utils/format";
-import type { ListingModerationStatus } from "@/lib/data";
+import { LISTING_STATUS_LABEL, type ListingModerationStatus } from "@/lib/data";
 
 export interface DashboardMetric {
   label: string;
@@ -42,13 +42,6 @@ const statusTone: Record<ListingModerationStatus, "success" | "neutral" | "warni
   pending_review: "warning",
   paused: "neutral",
   rejected: "error"
-};
-
-const statusLabel: Record<ListingModerationStatus, string> = {
-  live: "Published",
-  pending_review: "In review",
-  paused: "Paused",
-  rejected: "Rejected"
 };
 
 export function DashboardPanel({
@@ -112,7 +105,7 @@ export function DashboardPanel({
                   </td>
                 ) : null}
                 <td className="py-3 pr-4">
-                  <Badge tone={statusTone[row.status]}>{statusLabel[row.status]}</Badge>
+                  <Badge tone={statusTone[row.status]}>{LISTING_STATUS_LABEL[row.status]}</Badge>
                 </td>
                 <td className="py-3">
                   <div className="flex gap-2">
@@ -136,7 +129,7 @@ export function DashboardPanel({
           <Card className="p-4" key={row.id} variant="compact">
             <div className="flex items-start justify-between gap-2">
               <h3 className="min-w-0 text-body-md font-semibold text-ink">{row.title}</h3>
-              <Badge tone={statusTone[row.status]}>{statusLabel[row.status]}</Badge>
+              <Badge tone={statusTone[row.status]}>{LISTING_STATUS_LABEL[row.status]}</Badge>
             </div>
             <div className={cn("mt-3 grid gap-2 text-center", showVisits ? "grid-cols-4" : "grid-cols-3")}>
               <div className="min-w-0">

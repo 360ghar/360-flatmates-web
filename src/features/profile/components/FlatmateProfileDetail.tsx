@@ -53,7 +53,8 @@ export function FlatmateProfileDetail({ profile }: { profile: FlatmatesPeer }) {
 
   // Listing context is one nested object, null when the peer has no live listing.
   const listing = profile.listing ?? null;
-  const photos = listing?.image_urls ?? [];
+  // A listing with only a primary image still shows it.
+  const photos = listing?.image_urls?.length ? listing.image_urls : listing?.main_image_url ? [listing.main_image_url] : [];
   const amenities = listing?.amenities ?? [];
   const floor =
     listing?.floor_number != null

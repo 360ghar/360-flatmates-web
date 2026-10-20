@@ -30,6 +30,9 @@ export function ListingPhotoManager({
     imageUrlsRef.current = imageUrls;
   }, [imageUrls]);
 
+  // An upload commits its list when it ends: until then a remove, reorder or delete would be lost or undone.
+  const photoEditsLocked = updateProperty.isPending || uploadingCount > 0;
+
   const [multiSelect, setMultiSelect] = useState(false);
   const [selectedPhotoIndexes, setSelectedPhotoIndexes] = useState<Set<number>>(new Set());
 
@@ -130,8 +133,8 @@ export function ListingPhotoManager({
               index={index}
               isSelected={selectedPhotoIndexes.has(index)}
               multiSelect={multiSelect}
-              removeDisabled={updateProperty.isPending}
-              setMainDisabled={updateProperty.isPending}
+              removeDisabled={photoEditsLocked}
+              setMainDisabled={photoEditsLocked}
               onToggleSelect={() => handleTogglePhoto(index)}
               onRemove={() => removeImageAt(index)}
               onSetMain={() => setImageAsMain(index)}
@@ -159,7 +162,7 @@ export function ListingPhotoManager({
               variant="primary"
               size="compact"
               onClick={handleDeleteSelectedPhotos}
-              disabled={selectedPhotoIndexes.size === 0 || updateProperty.isPending}
+              disabled={selectedPhotoIndexes.size === 0 || photoEditsLocked}
             >
               {updateProperty.isPending
                 ? "Deleting…"

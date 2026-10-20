@@ -136,7 +136,7 @@ describe("useAvatarUpload", () => {
       wrapper: createWrapper(queryClient),
     });
 
-    await expect(result.current.upload(makeFile())).rejects.toThrow("File too large");
+    await expect(result.current.upload(makeFile())).rejects.toThrow(new Error("File too large"));
   });
 
   it("aborts a stuck upload after the timeout", async () => {

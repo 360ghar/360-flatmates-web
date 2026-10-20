@@ -6,14 +6,16 @@ import { SettingsNotificationsPage } from "@/features/settings/pages/SettingsNot
 const { save, register, unregister } = vi.hoisted(() => ({
   save: vi.fn(), register: vi.fn(), unregister: vi.fn()
 }));
-const SAVED = {
+const INITIAL = {
   push_notifications: false,
   email_notifications: true,
   sms_notifications: false,
   promotional_emails: false
 };
+// The server state: a successful save replaces it, as the real mutation does in the query cache.
+let server = { ...INITIAL };
 vi.mock("@/features/settings/hooks/useNotificationSettings", () => ({
-  useNotificationSettings: () => ({ data: SAVED, isLoading: false, error: null, refetch: vi.fn() }),
+  useNotificationSettings: () => ({ data: server, isLoading: false, error: null, refetch: vi.fn() }),
   useUpdateNotificationSettings: () => ({ mutateAsync: save })
 }));
 vi.mock("@/lib/push/fcm", () => ({ requestAndRegisterPush: register, unregisterDevice: unregister }));
@@ -29,7 +31,11 @@ async function advance() { await act(() => vi.advanceTimersByTimeAsync(600)); }
 beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
-  save.mockResolvedValue({});
+  server = { ...INITIAL };
+  save.mockImplementation(async (changes: Partial<typeof INITIAL>) => {
+    server = { ...server, ...changes };
+    return server;
+  });
   unregister.mockResolvedValue(undefined);
   localStorage.clear();
 });
@@ -100,5 +106,16 @@ describe("push preference persistence", () => {
     expect(save).toHaveBeenCalledTimes(1);
     await act(async () => { firstSave.resolve({}); });
     expect(save).toHaveBeenLastCalledWith({ push_notifications: false });
+  });
+});
+
+describe("failed save", () => {
+  it("rolls the toggle back to the server value", async () => {
+    save.mockRejectedValue(new Error("boom"));
+    render(<MemoryRouter><SettingsNotificationsPage /></MemoryRouter>);
+    toggle("Promotional emails");
+    expect(screen.getByRole("switch", { name: "Promotional emails" })).toHaveAttribute("aria-checked", "true");
+    await advance();
+    expect(screen.getByRole("switch", { name: "Promotional emails" })).toHaveAttribute("aria-checked", "false");
   });
 });

@@ -9,8 +9,7 @@ Once a room poster has listings, they need to see how those listings do. 360 Fla
 | Route | File | Source | Purpose |
 | --- | --- | --- | --- |
 | `/dashboard` | `src/features/hosting/pages/DashboardPage.tsx` | `GET /properties/me`, every page | Lifetime totals across all the user's listings |
-| `/dashboard/analytics?propertyId=&period=` | `src/features/hosting/pages/AnalyticsPage.tsx` | the same listing list | Counters for one listing |
-| `/stats` | `src/pages/public/StatsPage.tsx` | `GET /flatmates/catalogs` (chips only) | Public marketing page with hardcoded stats |
+| `/dashboard/analytics?propertyId=` | `src/features/hosting/pages/AnalyticsPage.tsx` | the same listing list | Counters for one listing |
 
 The dashboard is the room poster's landing view. The analytics page opens from the "Stats" action on a dashboard row, which goes to `/dashboard/analytics?propertyId={id}`.
 
@@ -41,25 +40,9 @@ Loading renders `statCard` skeletons plus a table skeleton. Error renders an inl
 
 ## The analytics page
 
-`AnalyticsPage` reads `propertyId` and `period` from the URL, calls `useListingAnalytics(propertyId, period)` and renders a period selector and three stat cards: Views, Likes and Chats started. The counters are lifetime values, so the period does not change them and the page has no daily series. `AnalyticsPeriod` (`"7d" | "30d" | "all"`) is exported from `useDashboard.ts`.
+`AnalyticsPage` reads `propertyId` from the URL, calls `useListingAnalytics(propertyId)` and renders three stat cards: Views, Likes and Chats started. The counters are lifetime values. The page has no period selector, no unique-view count and no daily series, because the backend has no analytics route.
 
 If `propertyId` is missing, zero or `NaN`, the page shows an `EmptyState` titled "Pick a listing first".
-
-## The public stats page
-
-![Public stats page with city selector](../images/web-stats.png)
-
-`StatsPage` (`src/pages/public/StatsPage.tsx`) is a public marketing route at `/stats`. It wraps `StatsClient` (`src/components/page-clients/StatsClient.tsx`) with a `SeoHelmet` that sets the title, description, canonical URL, and breadcrumb for the city-stats page.
-
-`StatsClient` renders:
-
-- A `PageHeader` with eyebrow "City statistics" and a title that reflects the selected city (defaults to "Gurugram").
-- A row of city `Chip` selectors fetched from `useCities()` (`src/hooks/queries/useCatalogs.ts`). The first city is selected by default.
-- A grid of six hardcoded stat cards (Active seekers, Verified listings, Visits scheduled, Matches made, Avg. rent 1BHK, Avg. rent 2BHK) rendered in `text-display` accent color.
-- A "Seeker growth" bar chart with six hardcoded monthly values (`[32, 48, 55, 61, 72, 86]`) rendered as accent-colored bars.
-- A "Browse Listings" tertiary button linking to `/discover`.
-
-The hardcoded stats and growth data are marketing figures, not live API data. The only live data on the page is the city list for the chip selectors.
 
 ```mermaid
 graph LR
@@ -67,8 +50,6 @@ graph LR
     D --> DP["DashboardPanel"]
     DP -->|Stats click| A["AnalyticsPage"]
     A -->|same listing list| B1
-    S["StatsPage (public)"] -->|GET /flatmates/catalogs| B1
-    S --> HC["Hardcoded stat cards + growth chart"]
 ```
 
 ## Hooks and query keys
@@ -78,7 +59,7 @@ Both authenticated hooks live in `src/features/hosting/hooks/useDashboard.ts` an
 | Hook | Query key | Source | Enabled |
 | --- | --- | --- | --- |
 | `useDashboardStats()` | `["properties", "mine"]` | `GET /properties/me` | always |
-| `useListingAnalytics(propertyId, period)` | `["properties", "mine"]` with `select` | `GET /properties/me` | `propertyId > 0` |
+| `useListingAnalytics(propertyId)` | `["properties", "mine"]` with `select` | `GET /properties/me` | `propertyId > 0` |
 
 Every listing mutation invalidates `["properties", "mine"]`, so the dashboard refreshes after a create, edit, pause, resume or delete. See [Listing management](listing-management.md).
 
@@ -94,10 +75,8 @@ Every listing mutation invalidates `["properties", "mine"]`, so the dashboard re
 | File | Purpose |
 | --- | --- |
 | `src/features/hosting/pages/DashboardPage.tsx` | Dashboard overview, maps API data to metrics and rows |
-| `src/features/hosting/pages/AnalyticsPage.tsx` | Per-listing counters with a period selector |
+| `src/features/hosting/pages/AnalyticsPage.tsx` | Per-listing lifetime counters |
 | `src/features/hosting/components/DashboardPanel.tsx` | Metric cards, desktop table, mobile cards, row actions |
-| `src/features/hosting/hooks/useDashboard.ts` | `useDashboardStats`, `useListingAnalytics`, `AnalyticsPeriod` |
+| `src/features/hosting/hooks/useDashboard.ts` | `useDashboardStats`, `useListingAnalytics` |
 | `src/features/hosting/components/StatCard.tsx` | Reusable stat card (icon and no-icon variants) |
-| `src/components/page-clients/StatsClient.tsx` | Public stats page client with city chips and hardcoded stats |
-| `src/pages/public/StatsPage.tsx` | Public stats route with SEO helmet |
 | `src/lib/api/property.types.ts` | `RoomPosterDashboard` and `ListingAnalytics` types |

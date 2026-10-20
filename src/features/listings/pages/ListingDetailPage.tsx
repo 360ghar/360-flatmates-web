@@ -34,7 +34,10 @@ export function ListingDetailPage() {
   const listingLd = property
     ? buildResidenceSchema({
         name: property.title,
-        description: property.description ?? `Verified listing in ${formatLocation(property.locality, property.city)}`,
+        description: property.description ??
+          (formatLocation(property.locality, property.city)
+            ? `Verified listing in ${formatLocation(property.locality, property.city)}`
+            : "Verified listing"),
         url,
         image: property.main_image_url ?? undefined,
         monthlyRent: property.monthly_rent,

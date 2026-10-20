@@ -25,7 +25,7 @@ export const profileSchema = z.object({
   full_name: z.string().min(1, "Name is required").max(100),
   bio: z.string().max(500, "Bio must be 500 characters or fewer").optional(),
   profession: z.string().max(80).optional(),
-  age: z.number().min(18, "Must be at least 18").max(100, "Must be 100 or younger").optional(),
+  age: z.number().int("Enter a whole number").min(18, "Must be at least 18").max(100, "Must be 100 or younger").optional(),
   native_place: z
     .string()
     .max(NATIVE_PLACE_MAX_LENGTH, `Must be ${NATIVE_PLACE_MAX_LENGTH} characters or fewer`)

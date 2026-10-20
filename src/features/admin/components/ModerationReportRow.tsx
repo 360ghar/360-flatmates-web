@@ -1,6 +1,7 @@
 import { humanizeSnakeCase } from "@/lib/utils/format";
 import {
   AlertTriangle,
+  ArrowUpRight,
   Ban,
   CheckCircle2
 } from "lucide-react";
@@ -73,6 +74,15 @@ export function ModerationReportRow({
             onClick={() => onAction("warn_user")}
           >
             Warn
+          </Button>
+          <Button
+            size="compact"
+            variant="secondary"
+            disabled={actionsDisabled}
+            leadingIcon={<ArrowUpRight aria-hidden="true" className="h-4 w-4" />}
+            onClick={() => onAction("escalate")}
+          >
+            Escalate
           </Button>
           <Button
             size="compact"

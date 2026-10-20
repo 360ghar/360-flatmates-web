@@ -51,7 +51,27 @@ export function SettingsNotificationsPage() {
     [baseToggles, userEdits]
   );
 
-  const latestToggles = useRef<Settings | null>(null);
+  // The server value plus every edit not yet confirmed. Refs, so a quick second click reads
+  // the first one before React re-renders, and a refetch moves the base.
+  const baseRef = useRef<Settings | null>(null);
+  const userEditsRef = useRef<Partial<Settings>>({});
+  useEffect(() => {
+    baseRef.current = baseToggles;
+  }, [baseToggles]);
+  const currentToggles = useCallback(
+    (): Settings | null => (baseRef.current ? { ...baseRef.current, ...userEditsRef.current } : null),
+    []
+  );
+  /** A save ended: forget its keys (a success is now the server value, a failure rolls back to it),
+   *  except keys edited again since. */
+  const settleEdits = useCallback((sent: Partial<Settings>) => {
+    const next = { ...userEditsRef.current };
+    for (const key of Object.keys(sent) as NotificationSettingKey[]) {
+      if (!(key in pendingChanges.current) && next[key] === sent[key]) delete next[key];
+    }
+    userEditsRef.current = next;
+    setUserEdits(next);
+  }, []);
   const mounted = useRef(false);
   const pushAttempt = useRef(0);
   const pendingWrites = useRef<Promise<void>>(Promise.resolve());
@@ -68,25 +88,28 @@ export function SettingsNotificationsPage() {
     pendingWrites.current = pendingWrites.current
       .then(() => updateSettingsRef.current.mutateAsync(changes))
       .then(() => {
+        settleEdits(changes);
         if (mounted.current) {
           uiStore.getState().pushToast({ type: "success", title: "Notification settings saved" });
         }
       })
       .catch(() => {
+        // The toggles go back to the server value, so the screen does not claim a save that failed.
+        settleEdits(changes);
         uiStore.getState().pushToast({
           type: "error",
           title: "Could not save settings",
-          description: "Please reopen settings to retry."
+          description: "The change was not saved. Try again."
         });
       });
-  }, []);
+  }, [settleEdits]);
 
   const queueChanges = useCallback((changes: Partial<Settings>) => {
-    if (latestToggles.current) latestToggles.current = { ...latestToggles.current, ...changes };
+    userEditsRef.current = { ...userEditsRef.current, ...changes };
     pendingChanges.current = { ...pendingChanges.current, ...changes };
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (mounted.current) {
-      setUserEdits((edits) => ({ ...edits, ...changes }));
+      setUserEdits(userEditsRef.current);
       debounceRef.current = setTimeout(flushChanges, 500);
     } else {
       // A permission prompt can finish after navigating away from settings.
@@ -105,9 +128,8 @@ export function SettingsNotificationsPage() {
 
   const handleToggle = useCallback(
     (key: NotificationSettingKey) => {
-      const base = latestToggles.current ?? toggles;
+      const base = currentToggles();
       if (!base) return;
-      latestToggles.current = base;
       const wasOn = base[key];
 
       queueChanges({ [key]: !wasOn });
@@ -121,7 +143,7 @@ export function SettingsNotificationsPage() {
             if (enabling) {
               const token = await requestAndRegisterPush();
               if (attempt !== pushAttempt.current) {
-                if (token && !latestToggles.current?.push_notifications) {
+                if (token && !currentToggles()?.push_notifications) {
                   await unregisterDevice(token);
                 }
                 return;
@@ -176,7 +198,7 @@ export function SettingsNotificationsPage() {
         })();
       }
     },
-    [toggles, queueChanges]
+    [currentToggles, queueChanges]
   );
 
   if (isLoading) {

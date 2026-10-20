@@ -45,6 +45,8 @@ const API_BASE =
   process.env.SITEMAP_API_BASE_URL ?? "https://api.360ghar.com/api/v1";
 const REQUEST_TIMEOUT_MS = 10_000;
 const LISTING_PAGE_SIZE = 100;
+/** Stops a backend that keeps answering `has_more: true`; 100 rows a page. */
+const LISTING_MAX_PAGES = 200;
 
 /**
  * Decide whether the build is allowed to call the listing API at all.
@@ -150,7 +152,16 @@ export async function fetchDiscoverableListings(): Promise<FetchListingsResult> 
         });
       }
 
-      cursor = data.has_more ? data.next_cursor : null;
+      const nextCursor = data.has_more ? data.next_cursor : null;
+      if (nextCursor && (nextCursor === cursor || page >= LISTING_MAX_PAGES)) {
+        // Truncated: report it as a failed fetch so SITEMAP_STRICT builds do not ship a partial set.
+        console.warn(
+          `[listings] Stopped after ${page} page(s): the API kept reporting more rows ` +
+            "(repeated cursor or page cap). Returning a partial listing set.",
+        );
+        return { listings, ok: false };
+      }
+      cursor = nextCursor;
 
       // Brief delay between paginated requests to respect rate limits.
       if (cursor) {

@@ -9,8 +9,10 @@
  */
 export function visitDateToUtcIso(date: string, now: Date = new Date()): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-  const noon = new Date(`${date}T12:00:00`);
-  if (Number.isNaN(noon.getTime())) return null;
+  const [year, month, day] = date.split("-").map(Number);
+  const noon = new Date(year, month - 1, day, 12);
+  // `2025-02-31` rolls over to March: reject a date that does not round-trip.
+  if (noon.getFullYear() !== year || noon.getMonth() !== month - 1 || noon.getDate() !== day) return null;
   if (noon.getTime() > now.getTime()) return noon.toISOString();
   const nextHour = new Date(now);
   nextHour.setMinutes(0, 0, 0);

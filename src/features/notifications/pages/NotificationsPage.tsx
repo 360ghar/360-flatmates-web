@@ -131,7 +131,7 @@ export function NotificationsPage() {
                     ...cardProps,
                     timestamp: formatRelativeTime(notification.created_at)
                   }}
-                  actionLabel={getNotificationActionLabel(cardProps.type, notification.route)}
+                  actionLabel={getNotificationActionLabel(cardProps.type, notificationWebRoute(notification.route))}
                   onAction={() => handleNotificationAction(notification)}
                   interactive
                   onClick={() => {

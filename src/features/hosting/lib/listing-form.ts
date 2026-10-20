@@ -41,7 +41,8 @@ export const listingSchema = z.object({
   area_sqft: optionalNumber(z.number().min(0).max(AREA_MAX)),
   bedrooms: optionalNumber(z.number().int().min(0).max(20)),
   bathrooms: optionalNumber(z.number().int().min(0).max(20)),
-  floor_number: optionalNumber(z.number().int().min(0).max(FLOOR_MAX)),
+  // The backend takes -5 (a basement) to 200.
+  floor_number: optionalNumber(z.number().int().min(-5).max(FLOOR_MAX)),
   total_floors: optionalNumber(z.number().int().min(1).max(FLOOR_MAX)),
   kitchen_type: kitchenTypeSchema.optional(),
   ventilation_type: ventilationTypeSchema.optional(),

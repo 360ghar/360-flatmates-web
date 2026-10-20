@@ -44,7 +44,7 @@ export function MatchesStrip({
                   className={cn("flex w-[72px] shrink-0 flex-col items-center gap-1 rounded-cut-md p-1.5 hover:bg-surface-soft", focusRing)}
                 >
                   <Avatar name={name} src={peer.profile_image_url} size="md" />
-                  <span className="max-w-full truncate text-caption font-semibold text-ink-2">{name.split(" ")[0]}</span>
+                  <span className="max-w-full truncate text-caption font-semibold text-ink-2">{peer.full_name?.trim() ? name.split(" ")[0] : name}</span>
                   {score == null ? null : (
                     <span aria-hidden="true" className="tabular text-caption text-pine">
                       {score}%

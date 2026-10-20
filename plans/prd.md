@@ -1054,7 +1054,7 @@ All events follow `object_action` naming with a consistent property schema:
     icons/                         # PWA icons, favicons
     illustrations/                 # Empty state illustrations
     og/                            # OG image templates
-  docs/
+  openapi/
     openapi.json                   # Backend OpenAPI snapshot (source of truth)
   vite.config.ts
   tsconfig.json

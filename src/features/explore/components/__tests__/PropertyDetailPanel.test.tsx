@@ -142,7 +142,7 @@ it("navigates to the owner's public profile", async () => {
   expect(onNavigate).toHaveBeenCalledWith("/profile/99");
 });
 
-it("hides the profile link when the property has no owner", () => {
+it("keeps the profile link with a generic label when the owner has no name", () => {
   render(
     <PropertyDetailPanel
       selectedPin={pin}
@@ -152,5 +152,5 @@ it("hides the profile link when the property has no owner", () => {
       onNavigate={vi.fn()}
     />
   );
-  expect(screen.queryByRole("button", { name: /profile/i })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "See the owner's profile" })).toBeInTheDocument();
 });
