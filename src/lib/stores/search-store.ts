@@ -1,7 +1,8 @@
 import { createStore } from "zustand/vanilla";
 import { persist } from "zustand/middleware";
 import type { SearchFilters } from "@/lib/api/types";
-import type { SearchType } from "@/lib/data";
+import { MOVE_IN_FILTER_VALUES, SEARCH_SORT_VALUES } from "@/lib/data";
+import { readEnum } from "@/lib/api/schema";
 import { createSafeJsonStorage } from "./storage";
 
 export const SEARCH_STORE_KEY = "360-flatmates-search";
@@ -9,7 +10,6 @@ export const SEARCH_STORE_KEY = "360-flatmates-search";
 export type SearchViewMode = "grid" | "list" | "map";
 
 export const DEFAULT_SEARCH_FILTERS = {
-  search_type: "listings",
   radius: 5,
   property_type: ["flatmate"],
   purpose: "rent",
@@ -28,7 +28,6 @@ export interface SearchStoreState {
     value: SearchFilters[TKey]
   ) => void;
   setFilters: (filters: Partial<SearchFilters>) => void;
-  setSearchType: (searchType: SearchType) => void;
   resetFilters: () => void;
   addRecentSearch: (query: string) => void;
   clearRecentSearches: () => void;
@@ -103,6 +102,29 @@ export function countActiveSearchFilters(filters: SearchFilters): number {
   }).length;
 }
 
+/**
+ * Bring a stored filter object from before store version 3 to the current
+ * shape (in place). The backend takes one value for `sharing_type`,
+ * `gender_preference` and `move_in`, and does not know `search_type`. The web
+ * filters no longer carry `society_*` or `sub_locality` (the backend still
+ * accepts them), so a stored value for them is dropped. A stored list keeps
+ * its first value, and a value the backend does not know is dropped.
+ */
+export function upgradeLegacyFilters(filters: Record<string, unknown>): Record<string, unknown> {
+  for (const key of ["sharing_type", "gender_preference", "move_in"]) {
+    const value = filters[key];
+    if (Array.isArray(value)) filters[key] = value[0];
+  }
+  // `immediately` was the old spelling of the backend's `immediate`.
+  if (filters.move_in === "immediately") filters.move_in = "immediate";
+  if (readEnum(MOVE_IN_FILTER_VALUES, filters.move_in) === null) delete filters.move_in;
+  if (readEnum(SEARCH_SORT_VALUES, filters.sort_by) === null) delete filters.sort_by;
+  for (const key of ["search_type", "society_type", "society_vibe_tags", "sub_locality"]) {
+    delete filters[key];
+  }
+  return filters;
+}
+
 export function createSearchStore(initialState: SearchStoreInitialState = {}) {
   return createStore<SearchStoreState>()(
     persist(
@@ -129,10 +151,6 @@ export function createSearchStore(initialState: SearchStoreInitialState = {}) {
             if (filtersEqual(state.filters, merged)) return state;
             return { filters: { ...merged } };
           }),
-        setSearchType: (search_type) =>
-          set((state) => ({
-            filters: { ...state.filters, search_type }
-          })),
         resetFilters: () => set({ filters: { ...DEFAULT_SEARCH_FILTERS } }),
         addRecentSearch: (query) => {
           const normalized = query.trim();
@@ -154,7 +172,7 @@ export function createSearchStore(initialState: SearchStoreInitialState = {}) {
       }),
       {
         name: SEARCH_STORE_KEY,
-        version: 2,
+        version: 3,
         storage: createSafeJsonStorage(),
         partialize: (state) => ({
           filters: state.filters,
@@ -162,16 +180,20 @@ export function createSearchStore(initialState: SearchStoreInitialState = {}) {
           viewMode: state.viewMode
         }),
         migrate: (persistedState, version) => {
-          const state = persistedState as { filters?: SearchFilters } | null;
+          const state = persistedState as { filters?: Record<string, unknown> } | null;
+          if (!state?.filters) return state ?? {};
+          const filters = state.filters;
           // v1 -> v2: ensure the flatmates default property_type is present
           // so existing users with a persisted filter set still see flatmate
           // listings (not buy apartments / all property types).
-          if (version < 2 && state?.filters) {
-            if (!state.filters.property_type || state.filters.property_type.length === 0) {
-              state.filters.property_type = [...DEFAULT_SEARCH_FILTERS.property_type];
+          if (version < 2) {
+            const types = filters.property_type;
+            if (!Array.isArray(types) || types.length === 0) {
+              filters.property_type = [...DEFAULT_SEARCH_FILTERS.property_type];
             }
           }
-          return state ?? {};
+          if (version < 3) upgradeLegacyFilters(filters);
+          return state;
         }
       }
     )

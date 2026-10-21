@@ -1,0 +1,101 @@
+import { humanizeSnakeCase } from "@/lib/utils/format";
+import { Link } from "react-router";
+import { CheckCircle2, Eye, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { buttonClasses } from "@/components/ui/component-utils";
+import { Card } from "@/components/ui/Card";
+import { NetworkImage } from "@/components/ui/NetworkImage";
+import { PriceText } from "@/components/ui/PriceText";
+import type { FlatmateListingAdmin } from "@/lib/api/types";
+import type { ListingModerationStatus } from "@/lib/data";
+import { adminUserName } from "@/lib/api/admin-fields";
+import { formatLocation } from "@/lib/utils/format";
+
+// Paused has no status tone: the Badge falls back to neutral, not the red used for cancelled.
+const statusMap: Record<ListingModerationStatus, "pending" | "confirmed" | "rejected" | undefined> = {
+  pending_review: "pending",
+  live: "confirmed",
+  paused: undefined,
+  rejected: "rejected"
+};
+
+export function ModerationListingRow({
+  listing,
+  onApprove,
+  onReject,
+  isActing,
+  actionsDisabled
+}: {
+  listing: FlatmateListingAdmin;
+  onApprove: () => void;
+  onReject: () => void;
+  isActing: boolean;
+  actionsDisabled: boolean;
+}) {
+  return (
+    <Card as="div" variant="compact">
+      <div className="flex items-start gap-3">
+        <NetworkImage
+          src={listing.main_image_url}
+          alt={listing.title ?? "Listing photo"}
+          wrapperClassName="h-16 w-16 shrink-0 rounded-cut-md"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h3 className="truncate text-body-lg font-semibold text-ink">
+                {listing.title ?? "Untitled listing"}
+              </h3>
+              <p className="text-caption text-ink-2">
+                by {adminUserName(listing.owner, listing.owner_id)} &middot;{" "}
+                {formatLocation(listing.locality, listing.city)}
+              </p>
+            </div>
+            <Badge variant="status" status={statusMap[listing.moderation_status]}>
+              {humanizeSnakeCase(listing.moderation_status).replace(/^./, (c) => c.toUpperCase())}
+            </Badge>
+          </div>
+          <div className="mt-2 flex items-center gap-3">
+            <PriceText value={listing.monthly_rent} variant="inline" />
+            {listing.created_at && (
+              <span suppressHydrationWarning className="text-caption text-ink-3">
+                {new Date(listing.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+              </span>
+            )}
+          </div>
+          <div className="relative z-10 mt-3 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <Button
+              size="compact"
+              variant="primary"
+              className="w-full sm:w-auto"
+              loading={isActing}
+              disabled={actionsDisabled && !isActing}
+              leadingIcon={<CheckCircle2 aria-hidden="true" className="h-4 w-4" />}
+              onClick={onApprove}
+            >
+              Approve
+            </Button>
+            <Button
+              size="compact"
+              variant="secondary"
+              className="w-full sm:w-auto"
+              disabled={actionsDisabled}
+              leadingIcon={<XCircle aria-hidden="true" className="h-4 w-4" />}
+              onClick={onReject}
+            >
+              Reject
+            </Button>
+            <Link
+              to={`/admin/moderation/prescreen/${listing.id}`}
+              className={buttonClasses("tertiary", "compact", false) + " w-full sm:w-auto"}
+            >
+              <Eye aria-hidden="true" className="h-4 w-4" />
+              <span className="truncate">Review</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}

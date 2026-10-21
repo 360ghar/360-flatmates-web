@@ -46,11 +46,11 @@ Ranked by number of commits that touched each file across the 23-commit history:
 
 | File | Commits touching | Notes |
 | --- | --- | --- |
-| `src/components/organisms/SwipeDeck.tsx` | high | The swipe deck, the product's hero surface, churned the most |
-| `src/pages/app/PostPage.tsx` | high | The listing builder entry point |
-| `src/pages/auth/LoginPage.tsx` | high | Auth flows were overhauled in early June |
-| `src/providers.tsx` | high | Theme, realtime, and query client wiring |
-| `src/App.tsx` | high | Router and route guards |
+| `src/features/swipe/components/SwipeDeck.tsx` | high | The swipe deck, the product's hero surface, churned the most |
+| `src/features/hosting/pages/PostPage.tsx` | high | The listing builder entry point |
+| `src/features/auth/pages/LoginPage.tsx` | high | Auth flows were overhauled in early June |
+| `src/app/providers.tsx` | high | Theme, realtime, and query client wiring |
+| `src/app/routes.tsx` | high | Router and route guards |
 
 These five files are the natural focal points of the codebase: the main interaction surface (SwipeDeck), the two create-or-enter flows (PostPage, LoginPage), and the two top-level wiring files (providers, App). A change to any of them likely ripples widely.
 
@@ -66,14 +66,14 @@ The largest files by line count concentrate complexity in three areas: interacti
 
 | File | Lines |
 | --- | --- |
-| `src/components/organisms/SwipeDeck.tsx` | 918 |
-| `src/pages/app/PostPage.tsx` | 666 |
-| `src/pages/auth/LoginPage.tsx` | 639 |
+| `src/features/swipe/components/SwipeDeck.tsx` | 918 |
+| `src/features/hosting/pages/PostPage.tsx` | 666 |
+| `src/features/auth/pages/LoginPage.tsx` | 639 |
 | `src/components/ui/Skeleton.tsx` | 585 |
-| `src/components/onboarding/OnboardingStepContent.tsx` | 519 |
-| `src/pages/app/ProfileEditPage.tsx` | 507 |
-| `src/components/organisms/MapView.tsx` | 498 |
-| `src/components/organisms/ChatThread.tsx` | 498 |
+| `src/features/onboarding/components/OnboardingStepContent.tsx` | 519 |
+| `src/features/profile/pages/ProfileEditPage.tsx` | 507 |
+| `src/features/explore/components/MapView.tsx` | 498 |
+| `src/features/chat/components/ChatThread.tsx` | 498 |
 
 The average `.tsx` file is roughly **213 lines**, so the files above are 2 to 4 times the mean. `SwipeDeck.tsx` at 918 lines is the clear outlier and a likely refactor candidate. `Skeleton.tsx` is large because it carries one variant per content layout (see the async-state guidelines in [AGENTS.md](../AGENTS.md)), not because of deep logic.
 

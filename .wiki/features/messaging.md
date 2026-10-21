@@ -8,17 +8,17 @@ Messaging is the conversation layer that follows a mutual match. Once two flatma
 
 The messaging feature is split across two pages that share the same query keys and the same adapter layer.
 
-`src/pages/app/ChatsPage.tsx` is the inbox. On mobile it stacks a horizontal matches bar above the conversation list. On tablet and desktop it renders a side-by-side split: a "Your Matches" panel on the left and a "Conversations" panel on the right, both inside one rounded `surface` container. The matches panel comes from `useMatches()` (see [Likes and matches](likes-and-matches.md)) and clicking a match calls `useCreateConversation()` to open (or reopen) a conversation with that peer, then navigates to the new thread. The conversations panel comes from `useConversations()` and renders one `ConversationRow` per conversation.
+`src/features/chat/pages/ChatsPage.tsx` is the inbox. On mobile it stacks a horizontal matches bar above the conversation list. On tablet and desktop it renders a side-by-side split: a "Your Matches" panel on the left and a "Conversations" panel on the right, both inside one rounded `surface` container. The matches panel comes from `useMatches()` (see [Likes and matches](likes-and-matches.md)) and clicking a match calls `useCreateConversation()` to open (or reopen) a conversation with that peer, then navigates to the new thread. The conversations panel comes from `useConversations()` and renders one `ConversationRow` per conversation.
 
-`src/pages/app/ChatDetailPage.tsx` is the thread. It loads one conversation with `useConversation(id)`, its messages with `useMessages(id)`, and the current user with `useMyProfile()`. It owns the send, retry, schedule-visit, block, and report mutations, and hands everything to the presentational `ChatThread` component.
+`src/features/chat/pages/ChatDetailPage.tsx` is the thread. It loads one conversation with `useConversation(id)`, its messages with `useMessages(id)`, and the current user with `useMyProfile()`. It owns the send, retry, schedule-visit, block, and report mutations, and hands everything to the presentational `ChatThread` component.
 
 ## The conversation list
 
-Each row in the inbox is a `ConversationRow` (`src/components/molecules/ConversationRow.tsx`). It is a single `button` for keyboard and screen-reader access, and it shows the peer's avatar, name, mode badge, last message preview, an optional property preview line, a relative timestamp in mono eyebrow type, and an unread count badge. The row is produced by `conversationToConversationRowProps` in `src/lib/api/adapters.ts`, which maps the `ConversationSummary` shape (defined in `src/lib/api/conversation.types.ts`) into the presentational `ConversationRowData`. The list itself is rendered through `AsyncView`, so loading shows a `conversationRow` skeleton variant, errors show a retry, and the empty state reads "No conversations yet, Start chatting with your matches!".
+Each row in the inbox is a `ConversationRow` (`src/features/chat/components/ConversationRow.tsx`). It is a single `button` for keyboard and screen-reader access, and it shows the peer's avatar, name, mode badge, last message preview, an optional property preview line, a relative timestamp in mono eyebrow type, and an unread count badge. The row is produced by `conversationToConversationRowProps` in `src/features/*/lib/adapters.ts`, which maps the `ConversationSummary` shape (defined in `src/lib/api/conversation.types.ts`) into the presentational `ConversationRowData`. The list itself is rendered through `AsyncView`, so loading shows a `conversationRow` skeleton variant, errors show a retry, and the empty state reads "No conversations yet, Start chatting with your matches!".
 
 ## The thread view
 
-`ChatThread` (`src/components/organisms/ChatThread.tsx`) is the presentational core of the thread. It is intentionally state-light: the page owns the data and the mutations, the component owns only the draft text, the scroll position, and the modal state for scheduling, blocking, and reporting. Its layout has four regions.
+`ChatThread` (`src/features/chat/components/ChatThread.tsx`) is the presentational core of the thread. It is intentionally state-light: the page owns the data and the mutations, the component owns only the draft text, the scroll position, and the modal state for scheduling, blocking, and reporting. Its layout has four regions.
 
 1. **Header.** Peer avatar, name, optional verified dot, mode badge, compatibility score pill, a `CloudOff` icon when `disconnected` is true, and a "Conversation options" menu with Report and Block items.
 2. **Context strip.** An optional `MatchContextCard` (the listing that sparked the match) and optional `QnACard` rows, both passed in as props.
@@ -27,11 +27,11 @@ Each row in the inbox is a `ConversationRow` (`src/components/molecules/Conversa
 
 Scroll management is deliberate. The component tracks whether the user is pinned to the bottom within a 96px threshold, and it distinguishes a prepend (older history loaded by scrolling to the top) from an append (a new message). On prepend it anchors the scroll position so the user does not jump. On append it only auto-scrolls to the new bottom if the user was already there, so an incoming peer message never yanks someone away from what they are reading.
 
-`ChatMessageBubble` (`src/components/molecules/ChatMessageBubble.tsx`) renders three sender kinds: `me` (right-aligned, accent fill, white text), `them` (left-aligned, `paper-3` fill, ink text), and `system` (centered, ink-3 caption). Own messages carry a `status` of `sending`, `sent`, `read`, or `failed`. A `read` status shows a double-check icon, and a `failed` status renders an inline "Retry" button that calls back into the page's retry handler.
+`ChatMessageBubble` (`src/features/chat/components/ChatMessageBubble.tsx`) renders three sender kinds: `me` (right-aligned, accent fill, white text), `them` (left-aligned, `paper-3` fill, ink text), and `system` (centered, ink-3 caption). Own messages carry a `status` of `sending`, `sent`, `read`, or `failed`. A `read` status shows a double-check icon, and a `failed` status renders an inline "Retry" button that calls back into the page's retry handler.
 
 ## Sending a message, optimistically
 
-`useSendMessage` in `src/hooks/queries/useConversations.ts` is the send mutation, and it uses TanStack Query's optimistic update contract to make the user's own message appear instantly.
+`useSendMessage` in `src/features/chat/hooks/useConversations.ts` is the send mutation, and it uses TanStack Query's optimistic update contract to make the user's own message appear instantly.
 
 1. **`onMutate`.** The page mints a negative temp id (via `nextTempMessageId`, which decrements from `-1` so it can never collide with a positive backend id). The mutation cancels any in-flight `messages` queries for this conversation, snapshots the current cache, and appends an optimistic `MessageOut` tagged with `metadata: { __optimistic: true }` to every cached page. The bubble adapter then renders that message with `status: "sending"`.
 2. **`onError`.** The optimistic message is intentionally left in cache. The page adds the temp id to a `failedIds` set, so the bubble re-renders as `status: "failed"` with a retry control. Removing it here would make the user's text vanish on a transient network error, which is worse than showing a retry.
@@ -73,7 +73,7 @@ sequenceDiagram
 
 ## Local draft and UI state
 
-`chatStore` (`src/lib/stores/chat-store.ts`) is the Zustand vanilla store that holds the per-conversation draft text, typing indicators, the active conversation id, and the info-panel toggle. It follows the project's vanilla `createStore()` pattern (no `create()` hook wrapper), so it can be read from React via `useStore(chatStore, selector)` and from non-React code alike. The store is intentionally small and client-only: server state (the messages themselves, the conversation metadata) always lives in TanStack Query, never in this store, per the project's state-management rules. Drafts are keyed by conversation id so switching threads preserves what you were typing, and `setDraftMessage` short-circuits when the value has not changed to avoid redundant renders.
+`chatStore` (`src/features/chat/store.ts`) is the Zustand vanilla store that holds the per-conversation draft text, typing indicators, the active conversation id, and the info-panel toggle. It follows the project's vanilla `createStore()` pattern (no `create()` hook wrapper), so it can be read from React via `useStore(chatStore, selector)` and from non-React code alike. The store is intentionally small and client-only: server state (the messages themselves, the conversation metadata) always lives in TanStack Query, never in this store, per the project's state-management rules. Drafts are keyed by conversation id so switching threads preserves what you were typing, and `setDraftMessage` short-circuits when the value has not changed to avoid redundant renders.
 
 ## Creating a conversation
 
@@ -87,12 +87,12 @@ This page summarizes the chat implementation. For the page-by-page spec of the c
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/app/ChatsPage.tsx` | Chats inbox, matches bar/list, conversations panel |
-| `src/pages/app/ChatDetailPage.tsx` | Thread page, owns send/retry/schedule/block/report mutations |
-| `src/components/organisms/ChatThread.tsx` | Presentational thread: header, log, composer, modals, scroll anchoring |
-| `src/components/molecules/ChatMessageBubble.tsx` | Message bubble with sending/sent/read/failed status |
-| `src/components/molecules/ConversationRow.tsx` | Inbox row with avatar, preview, timestamp, unread badge |
-| `src/hooks/queries/useConversations.ts` | `useConversations`, `useConversation`, `useMessages`, `useSendMessage`, `useCreateConversation` |
-| `src/lib/stores/chat-store.ts` | Vanilla Zustand store for drafts, typing, active conversation |
+| `src/features/chat/pages/ChatsPage.tsx` | Chats inbox, matches bar/list, conversations panel |
+| `src/features/chat/pages/ChatDetailPage.tsx` | Thread page, owns send/retry/schedule/block/report mutations |
+| `src/features/chat/components/ChatThread.tsx` | Presentational thread: header, log, composer, modals, scroll anchoring |
+| `src/features/chat/components/ChatMessageBubble.tsx` | Message bubble with sending/sent/read/failed status |
+| `src/features/chat/components/ConversationRow.tsx` | Inbox row with avatar, preview, timestamp, unread badge |
+| `src/features/chat/hooks/useConversations.ts` | `useConversations`, `useConversation`, `useMessages`, `useSendMessage`, `useCreateConversation` |
+| `src/features/chat/store.ts` | Vanilla Zustand store for drafts, typing, active conversation |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast hook, `new_message` / `conversation_updated` invalidation |
 | `src/lib/api/conversation.types.ts` | `ConversationSummary`, `MessageOut`, `MessageCreate`, `ConversationCreate` types |

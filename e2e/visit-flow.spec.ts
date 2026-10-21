@@ -35,11 +35,11 @@ test.describe("Visits page — authenticated access", () => {
     await seedDevAuth(page);
   });
 
-  test("renders the My Visits heading", async ({ page }) => {
+  test("renders the Visits heading", async ({ page }) => {
     await page.goto("/visits");
     const url = page.url();
     if (!url.includes("/login")) {
-      await expect(page.getByRole("heading", { name: /my visits/i })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: "Visits", exact: true })).toBeVisible();
     }
   });
 
@@ -52,7 +52,7 @@ test.describe("Visits page — authenticated access", () => {
 
   test("shows empty state for tabs without matching visits", async ({ page }) => {
     await page.goto("/visits");
-    await page.getByRole("tab", { name: "Past" }).click();
+    await page.getByRole("radio", { name: "Past" }).click();
     await expect(page.getByText(/no past visits/i)).toBeVisible();
   });
 

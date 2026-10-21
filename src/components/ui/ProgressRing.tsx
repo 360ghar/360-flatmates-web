@@ -11,7 +11,7 @@ export interface ProgressRingProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const sizeMap: Record<ProgressRingSize, { box: number; stroke: number; text: string }> = {
-  sm: { box: 32, stroke: 3, text: "text-[10px]" },
+  sm: { box: 32, stroke: 3, text: "text-caption leading-none" },
   md: { box: 44, stroke: 4, text: "text-caption" },
   lg: { box: 56, stroke: 5, text: "text-label-md" },
   xl: { box: 80, stroke: 6, text: "text-body-md" }
@@ -129,10 +129,10 @@ export function ProgressRing({
         percentage={percentage}
         trackColor="var(--color-line)"
         fillColor="currentColor"
-        className={cn(toneForValue(percentage), "absolute inset-0 -rotate-90")}
+        className={cn(toneForValue(percentage), "absolute inset-0")}
       />
       {showValue ? (
-        <span className={cn("font-bold tabular-nums text-ink", config.text)}>{percentage}%</span>
+        <span className={cn("font-semibold tabular-nums text-ink", config.text)}>{percentage}%</span>
       ) : null}
     </div>
   );

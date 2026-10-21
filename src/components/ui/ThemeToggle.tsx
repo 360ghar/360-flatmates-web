@@ -1,80 +1,42 @@
 import { useStore } from "zustand";
-import { Sun, Moon, Monitor } from "lucide-react";
-import {
-  uiStore,
-  type ThemePreference,
-  THEME_OPTIONS,
-} from "@/lib/stores/ui-store";
-import { cn, focusRing } from "@/components/ui/component-utils";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { uiStore, type ThemePreference, THEME_OPTIONS } from "@/lib/stores/ui-store";
+import { cn, focusRing, interactiveMotion } from "@/components/ui/component-utils";
 
-const THEME_ICONS: Record<ThemePreference, typeof Sun> = {
-  light: Sun,
-  dark: Moon,
-  system: Monitor,
-};
+const THEME_ICONS: Record<ThemePreference, typeof Sun> = { light: Sun, dark: Moon, system: Monitor };
 
 export interface ThemeToggleProps {
-  /** "sm" for compact top-bar use (32px), "md" for standalone sections (40px) */
+  /** Kept for call-site compatibility; the control is always one 44 px button. */
   size?: "sm" | "md";
   className?: string;
 }
 
-export function ThemeToggle({ size = "md", className }: ThemeToggleProps) {
+/**
+ * One icon button that cycles Light → Dark → System. The labelled choice
+ * lives on /settings/appearance.
+ */
+export function ThemeToggle({ className }: ThemeToggleProps) {
   const theme = useStore(uiStore, (s) => s.theme);
   const setTheme = useStore(uiStore, (s) => s.setTheme);
-
-  const btnSize = size === "sm" ? "h-8 w-8" : "h-10 w-10";
-  const iconSize = size === "sm" ? "h-4 w-4" : "h-5 w-5";
-  const btnPx = size === "sm" ? 32 : 40;
-  const gapPx = 4;
-  const padPx = 4;
-  const activeIndex = THEME_OPTIONS.findIndex((o) => o.value === theme);
-  const indicatorLeft = padPx + activeIndex * (btnPx + gapPx);
+  const index = THEME_OPTIONS.findIndex((o) => o.value === theme);
+  const current = THEME_OPTIONS[index] ?? THEME_OPTIONS[0];
+  const next = THEME_OPTIONS[(index + 1) % THEME_OPTIONS.length];
+  const Icon = THEME_ICONS[current.value];
 
   return (
-    <div
+    <button
+      type="button"
+      onClick={() => setTheme(next.value)}
+      aria-label={`Theme: ${current.label}. Switch to ${next.label}`}
+      title={`Theme: ${current.label}`}
       className={cn(
-        "relative flex items-center gap-1 rounded-[8px] bg-paper-2 p-1",
+        "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-cut-md text-ink-2 hover:bg-surface-soft hover:text-ink",
+        interactiveMotion,
+        focusRing,
         className
       )}
-      role="radiogroup"
-      aria-label="Theme preference"
     >
-      {/* Active indicator bubble — CSS transition replaces the framer-motion layoutId animation */}
-      <span
-        aria-hidden="true"
-        className="absolute rounded-[7px] bg-accent-soft transition-all duration-300 ease-emphasized"
-        style={{
-          left: `${indicatorLeft}px`,
-          top: `${padPx}px`,
-          width: `${btnPx}px`,
-          height: `calc(100% - ${padPx * 2}px)`,
-        }}
-      />
-      {THEME_OPTIONS.map((option) => {
-        const Icon = THEME_ICONS[option.value];
-        const isActive = theme === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={isActive}
-            aria-label={option.label}
-            onClick={() => setTheme(option.value)}
-            className={cn(
-              "relative z-10 inline-flex items-center justify-center rounded-[7px] transition-colors duration-200",
-              btnSize,
-              focusRing,
-              isActive
-                ? "text-accent font-semibold"
-                : "text-ink-3 hover:bg-paper-3/40 hover:text-ink"
-            )}
-          >
-            <Icon aria-hidden="true" className={cn(iconSize)} />
-          </button>
-        );
-      })}
-    </div>
+      <Icon aria-hidden="true" className="h-5 w-5" />
+    </button>
   );
 }

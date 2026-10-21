@@ -1,11 +1,26 @@
 export * from "./client";
 export * from "./errors";
 export * from "./types";
+export * from "./pagination";
+export * from "./property-fields";
+export * from "./peer-fields";
+export * from "./admin-fields";
 
 import { createApiClient } from "./client";
 import type { ApiAdapter } from "./client";
+import { authStore } from "@/lib/stores/auth-store";
 
+/* The session in authStore is the source of truth for the bearer token, so
+   requests never run with a token that lags the session (W8). `_accessToken`
+   only holds a token from an explicit refresh until the store catches up. */
 let _accessToken: string | null = null;
+authStore.subscribe((state, prev) => {
+  if (state.session !== prev.session) _accessToken = null;
+});
+
+function currentAccessToken(): string | null {
+  return _accessToken ?? authStore.getState().session?.access_token ?? null;
+}
 
 let _refreshHandler: (() => Promise<string | null>) | null = null;
 
@@ -35,7 +50,15 @@ async function handleRefresh(): Promise<string | null> {
   return newToken;
 }
 
+let _inactiveUserHandler: (() => void) | null = null;
+
+/** Wire what ends the session when the backend answers 403 `USER_INACTIVE`. */
+export function setInactiveUserHandler(handler: (() => void) | null): void {
+  _inactiveUserHandler = handler;
+}
+
 export const apiClient: ApiAdapter = createApiClient({
-  getAccessToken: () => _accessToken,
+  getAccessToken: currentAccessToken,
   onAuthFailure: handleRefresh,
+  onInactiveUser: () => _inactiveUserHandler?.(),
 });

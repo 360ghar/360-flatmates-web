@@ -6,7 +6,7 @@ Active contributors: Saksham
 
 ## The admin role gate
 
-Admin access is gated by `AdminGuard` in `src/pages/guards.tsx`. The guard reads the signed-in user from `useAuth()` and checks `user.app_metadata?.role === "admin"`. The role is set in Supabase `app_metadata`, not in the profile table, so it travels with the JWT and is available synchronously after sign-in.
+Admin access is gated by `AdminGuard` in `src/app/guards.tsx`. The guard reads the signed-in user from `useAuth()` and checks `user.app_metadata?.role === "admin"`. The role is set in Supabase `app_metadata`, not in the profile table, so it travels with the JWT and is available synchronously after sign-in.
 
 The guard has three outcomes:
 
@@ -21,7 +21,7 @@ A non-admin signed-in user is silently bounced to `/home`, not to an error page.
 
 ## The admin layout
 
-`AdminLayout` (`src/pages/admin/AdminLayout.tsx`) is a fixed-sidebar layout that wraps all admin routes via `<Outlet />`. On `xl` and wider, a 240px left sidebar holds the logo, an "Admin" label, and two nav items. Below `xl`, the sidebar collapses and the two nav items move into a sticky top header as icon-only links (labels appear on `md` and up).
+`AdminLayout` (`src/app/layouts/AdminLayout.tsx`) is a fixed-sidebar layout that wraps all admin routes via `<Outlet />`. On `xl` and wider, a 240px left sidebar holds the logo, an "Admin" label, and two nav items. Below `xl`, the sidebar collapses and the two nav items move into a sticky top header as icon-only links (labels appear on `md` and up).
 
 The two nav items:
 
@@ -34,7 +34,7 @@ The `isNavActive` helper special-cases the listing queue so that the prescreen d
 
 ## Listing moderation queue
 
-`ModerationListingsPage` (`src/pages/admin/ModerationListingsPage.tsx`) fetches pending listings via `useAdminListings({ status: "pending_review" })` and renders them as a searchable list of compact cards. Each row shows the listing thumbnail, title, owner, locality, rent, creation date, a moderation status badge, and three actions: Approve, Reject, Review.
+`ModerationListingsPage` (`src/features/admin/pages/ModerationListingsPage.tsx`) fetches pending listings via `useAdminListings({ status: "pending_review" })` and renders them as a searchable list of compact cards. Each row shows the listing thumbnail, title, owner, locality, rent, creation date, a moderation status badge, and three actions: Approve, Reject, Review.
 
 | Action | Effect |
 | --- | --- |
@@ -48,7 +48,7 @@ The search bar filters client-side by title, owner name, or locality. The async 
 
 ## Reports queue
 
-`ModerationReportsPage` (`src/pages/admin/ModerationReportsPage.tsx`) fetches open reports via `useAdminReports({ status: "open" })` and renders them as a searchable list. Each row shows the report reason, the reporter and reported user names, the creation date, an optional property or conversation reference, a status badge, and three actions.
+`ModerationReportsPage` (`src/features/admin/pages/ModerationReportsPage.tsx`) fetches open reports via `useAdminReports({ status: "open" })` and renders them as a searchable list. Each row shows the report reason, the reporter and reported user names, the creation date, an optional property or conversation reference, a status badge, and three actions.
 
 | Action | Payload action | Effect |
 | --- | --- | --- |
@@ -69,7 +69,7 @@ The report status values, defined in `src/lib/data/domain.ts`:
 
 ## Prescreen review
 
-`PrescreenPage` (`src/pages/admin/PrescreenPage.tsx`, 531 lines) is the detailed review view for a single listing, reached from the listing queue's "Review" action. It fetches the full property via `useProperty(id)` and renders a rich, section-by-section breakdown:
+`PrescreenPage` (`src/features/admin/pages/PrescreenPage.tsx`, 531 lines) is the detailed review view for a single listing, reached from the listing queue's "Review" action. It fetches the full property via `useProperty(id)` and renders a rich, section-by-section breakdown:
 
 | Section | Content |
 | --- | --- |
@@ -118,7 +118,7 @@ stateDiagram-v2
 
 Both moderation mutations use optimistic updates so the actioned item disappears from the queue instantly, before the refetch lands. This avoids the just-actioned row flashing back into view.
 
-`useAdminModerate` (in `src/hooks/queries/useAdmin.ts`):
+`useAdminModerate` (in `src/features/admin/hooks/useAdmin.ts`):
 
 1. `onMutate`: cancels all `["admin", "listings"]` queries, snapshots their cached data, and removes the moderated listing from each cached response (decrementing `total`).
 2. `onError`: rolls back all snapshots.
@@ -143,11 +143,11 @@ The read hooks:
 
 | File | Purpose |
 | --- | --- |
-| `src/pages/admin/AdminLayout.tsx` | Fixed sidebar layout, two nav items, active-state logic |
-| `src/pages/admin/ModerationListingsPage.tsx` | Pending listings queue, approve, reject, search |
-| `src/pages/admin/ModerationReportsPage.tsx` | Open reports queue, dismiss, warn, suspend |
-| `src/pages/admin/PrescreenPage.tsx` | Single-listing detailed review with sticky action bar |
-| `src/pages/guards.tsx` | `AdminGuard` (checks `app_metadata.role === "admin"`) |
-| `src/hooks/queries/useAdmin.ts` | All admin query and mutation hooks with optimistic updates |
+| `src/app/layouts/AdminLayout.tsx` | Fixed sidebar layout, two nav items, active-state logic |
+| `src/features/admin/pages/ModerationListingsPage.tsx` | Pending listings queue, approve, reject, search |
+| `src/features/admin/pages/ModerationReportsPage.tsx` | Open reports queue, dismiss, warn, suspend |
+| `src/features/admin/pages/PrescreenPage.tsx` | Single-listing detailed review with sticky action bar |
+| `src/app/guards.tsx` | `AdminGuard` (checks `app_metadata.role === "admin"`) |
+| `src/features/admin/hooks/useAdmin.ts` | All admin query and mutation hooks with optimistic updates |
 | `src/lib/api/admin.types.ts` | `FlatmateListingAdmin`, `ReportAdmin`, payload types |
 | `src/lib/data/domain.ts` | `ModerationAction`, `ReportAction`, `ReportStatus`, `PropertyModerationStatus` enums |

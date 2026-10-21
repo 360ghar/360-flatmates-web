@@ -45,6 +45,8 @@ const API_BASE =
   process.env.SITEMAP_API_BASE_URL ?? "https://api.360ghar.com/api/v1";
 const REQUEST_TIMEOUT_MS = 10_000;
 const LISTING_PAGE_SIZE = 100;
+/** Stops a backend that keeps answering `has_more: true`; 100 rows a page. */
+const LISTING_MAX_PAGES = 200;
 
 /**
  * Decide whether the build is allowed to call the listing API at all.
@@ -69,8 +71,9 @@ export function shouldFetchListingData(): boolean {
  * Fetch every discoverable listing from the public `/properties` endpoint.
  *
  * The endpoint is unauthenticated (`security: []` in the OpenAPI spec) and
- * returns only active/approved listings. Pagination is page-based (max 100 per
- * page); this function iterates all pages.
+ * returns only active/approved listings. The list is a `CursorPage`
+ * (`items`, `next_cursor`, `has_more`; `limit` at most 100); this function
+ * follows `next_cursor` until `has_more` is false.
  *
  * On any failure the result is `{ listings: [], ok: false }` so the build never
  * hard-fails because of a listing fetch — callers decide whether a failed fetch
@@ -88,13 +91,14 @@ export async function fetchDiscoverableListings(): Promise<FetchListingsResult> 
   const apiToken = process.env.SITEMAP_API_TOKEN;
 
   const listings: DiscoverableListing[] = [];
-  let page = 1;
-  let totalPages = 1;
+  let cursor: string | null = null;
+  let page = 0;
 
   try {
-    while (page <= totalPages) {
+    do {
+      page++;
       const url = new URL(`${API_BASE}/properties`);
-      url.searchParams.set("page", String(page));
+      if (cursor) url.searchParams.set("cursor", cursor);
       url.searchParams.set("limit", String(LISTING_PAGE_SIZE));
       // sort_by=newest gives most-recently-created first — useful order for a
       // sitemap and avoids any geo-bias from the default relevance sort.
@@ -123,20 +127,19 @@ export async function fetchDiscoverableListings(): Promise<FetchListingsResult> 
       }
 
       const data = (await res.json()) as {
-        properties: Array<{
+        items: Array<{
           id: number;
           created_at?: string;
-          main_image_url?: string;
-          image_urls?: string[];
+          main_image_url?: string | null;
+          images?: Array<{ image_url: string }> | null;
           title?: string;
         }>;
-        total_pages: number;
+        next_cursor: string | null;
+        has_more: boolean;
       };
 
-      totalPages = data.total_pages ?? 1;
-
-      for (const prop of data.properties) {
-        const allImages = [prop.main_image_url, ...(prop.image_urls ?? [])].filter(
+      for (const prop of data.items) {
+        const allImages = [prop.main_image_url, ...(prop.images ?? []).map((image) => image.image_url)].filter(
           (u): u is string => Boolean(u),
         );
         const uniqueImages = [...new Set(allImages)];
@@ -149,13 +152,22 @@ export async function fetchDiscoverableListings(): Promise<FetchListingsResult> 
         });
       }
 
-      page++;
+      const nextCursor = data.has_more ? data.next_cursor : null;
+      if (nextCursor && (nextCursor === cursor || page >= LISTING_MAX_PAGES)) {
+        // Truncated: report it as a failed fetch so SITEMAP_STRICT builds do not ship a partial set.
+        console.warn(
+          `[listings] Stopped after ${page} page(s): the API kept reporting more rows ` +
+            "(repeated cursor or page cap). Returning a partial listing set.",
+        );
+        return { listings, ok: false };
+      }
+      cursor = nextCursor;
 
       // Brief delay between paginated requests to respect rate limits.
-      if (page <= totalPages) {
+      if (cursor) {
         await new Promise((r) => setTimeout(r, 200));
       }
-    }
+    } while (cursor);
 
     console.log(`[listings] Fetched ${listings.length} discoverable listing(s).`);
     return { listings, ok: true };

@@ -34,7 +34,7 @@ apiClient.request<CatalogEntry[]>({
 })
 ```
 
-The same `auth: false` appears in `useMapView.ts`, `useShareCard.ts`, `useSearch.ts`, and `useProperties.ts`. This was fixed on 2026-05-19 in commit 4c76ef3. When you add a new public query, set `auth: false`. If you are unsure whether an endpoint is public, check `docs/flatmates-openapi.yaml`.
+The same `auth: false` appears in `useMapView.ts`, `useShareCard.ts`, `useSearch.ts`, and `useProperties.ts`. This was fixed on 2026-05-19 in commit 4c76ef3. When you add a new public query, set `auth: false`. If you are unsure whether an endpoint is public, check `openapi/openapi.json`.
 
 ## Realtime bootstrap drift
 
@@ -42,7 +42,7 @@ The same `auth: false` appears in `useMapView.ts`, `useShareCard.ts`, `useSearch
 
 **Cause.** The backend owns the Supabase Broadcast channel and event list through `GET /flatmates/bootstrap`. If the frontend schema drops `bootstrap.realtime`, rejects a valid backend event list, or subscribes before `authStore.authStage` is `active`, the realtime hook has no usable channel even though the user is signed in.
 
-**Fix.** Keep `FlatmatesBootstrap.realtime` in sync across `src/lib/api/user.types.ts`, `src/lib/schemas/profile.ts`, `docs/flatmates-openapi.yaml`, and `e2e/fixtures/api.ts`. The provider must pass the current Supabase access token into `useFlatmatesRealtime`, which calls `supabase.realtime.setAuth(token)` before opening the private Broadcast channel.
+**Fix.** Keep `FlatmatesBootstrap.realtime` in sync across `src/lib/api/user.types.ts`, `src/lib/schemas/profile.ts`, `openapi/openapi.json`, and `e2e/fixtures/api.ts`. The provider must pass the current Supabase access token into `useFlatmatesRealtime`, which calls `supabase.realtime.setAuth(token)` before opening the private Broadcast channel.
 
 The no-SSE contract test (`tests/contracts/no-sse.contract.test.ts`) guards against accidentally reintroducing the removed backend stream endpoint. See [real-time](../features/real-time.md).
 
@@ -50,7 +50,7 @@ The no-SSE contract test (`tests/contracts/no-sse.contract.test.ts`) guards agai
 
 **Symptom.** A user verifying their phone OTP during login is bounced to `/home` before they reach the mandatory set-password step, leaving their account in a half-finished state.
 
-**Cause.** Supabase creates a real session the moment the OTP is verified, which is *before* the set-password (login) or new-password (reset) step that closes the flow. The `AuthRedirectGuard` and `GateGuard` in `src/pages/guards.tsx` see an authenticated user and redirect away from `/login` and `/forgot-password` immediately.
+**Cause.** Supabase creates a real session the moment the OTP is verified, which is *before* the set-password (login) or new-password (reset) step that closes the flow. The `AuthRedirectGuard` and `GateGuard` in `src/app/guards.tsx` see an authenticated user and redirect away from `/login` and `/forgot-password` immediately.
 
 **Fix.** The `authStore` holds a `midAuthFlow` flag (`src/lib/stores/auth-store.ts`). The auth pages set it to `true` when entering the post-OTP step and clear it when the flow completes. Both guards read this flag and skip the redirect while it is set:
 
@@ -122,7 +122,7 @@ So a client request to `/api/flatmates/catalogs` is rewritten to `https://api.36
 | `src/lib/api/index.ts` | Module-level token getter and refresh handler wiring |
 | `src/hooks/queries/useCatalogs.ts` | Example of the `auth: false` pattern on a public endpoint |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast auth, event subscription, reconnect, and cleanup |
-| `src/pages/guards.tsx` | `AuthRedirectGuard`, `GateGuard`, and the `midAuthFlow` hold |
+| `src/app/guards.tsx` | `AuthRedirectGuard`, `GateGuard`, and the `midAuthFlow` hold |
 | `src/lib/stores/auth-store.ts` | `midAuthFlow` flag definition |
 | `vite.config.ts` | Dev proxy `/api` to `/app/v1` rewrite |
 | `src/hooks/useAuth.ts` | Dev-only `getPlaywrightSession()` synthetic session |

@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * Token contract for the Airbnb Rausch design system.
+ * Token contract for the Paper Diorama design system (DESIGN.md).
  * Reads the shipped globals.css — not a reimplementation.
  */
 const globalsPath = resolve(__dirname, "../globals.css");
@@ -24,84 +24,50 @@ function darkThemeBlock(): string {
 }
 
 describe("design tokens (globals.css)", () => {
-  it("uses Airbnb Rausch as primary and accent brand color", () => {
-    expect(tokenValue("--color-primary")).toBe("#ff385c");
-    expect(tokenValue("--color-accent")).toBe("#ff385c");
+  it("maps primary and accent onto clay", () => {
+    expect(tokenValue("--color-clay")).toBe("#A94A2B");
+    expect(tokenValue("--color-primary")).toBe("var(--color-clay)");
+    expect(tokenValue("--color-accent")).toBe("var(--color-clay)");
   });
 
-  it("uses white/Airbnb neutrals as the default canvas (not cream paper)", () => {
-    expect(tokenValue("--color-paper")).toBe("#ffffff");
-    expect(tokenValue("--color-surface")).toBe("#ffffff");
-    expect(tokenValue("--color-surface-soft")).toBe("#f7f7f7");
-    expect(tokenValue("--color-ink")).toBe("#222222");
+  it("uses the sky as page canvas and paper for cards", () => {
+    expect(tokenValue("--color-sky")).toBe("#E4EBE3");
+    expect(tokenValue("--color-paper")).toBe("var(--color-sky)");
+    expect(tokenValue("--color-surface")).toBe("#FDFCFA");
+    expect(tokenValue("--color-ink")).toBe("#23201C");
   });
 
-  it("does not reintroduce the old violet as global primary/accent", () => {
-    expect(tokenValue("--color-primary")).not.toBe("#6e57e8");
-    expect(tokenValue("--color-accent")).not.toBe("#6e57e8");
-    // cream paper should not be the default
-    expect(tokenValue("--color-paper")).not.toBe("#f7f5ec");
+  it("does not bring back Rausch, Inter or the violet palette", () => {
+    const lower = css.toLowerCase();
+    expect(lower).not.toContain("#ff385c");
+    expect(lower).not.toContain("#6e57e8");
+    expect(css).not.toMatch(/font-inter|\bInter\b/);
   });
 
-  it("keeps a shadow ladder (not collapsed identical tiers)", () => {
-    const xs = tokenValue("--shadow-xs");
-    const sm = tokenValue("--shadow-sm");
-    const md = tokenValue("--shadow-md");
-    const lg = tokenValue("--shadow-lg");
-    const cta = tokenValue("--shadow-cta");
-    expect(xs).toBeTruthy();
-    expect(sm).toBeTruthy();
-    expect(md).toBeTruthy();
-    expect(lg).toBeTruthy();
-    expect(cta).toBeTruthy();
-    expect(xs).not.toBe("none");
-    expect(cta).not.toBe("none");
-    // tiers must differ for hierarchy
-    expect(xs).not.toBe(sm);
-    expect(sm).not.toBe(md);
-    expect(md).not.toBe(lg);
-    // CTA shadow carries Rausch tint
-    expect(cta!.toLowerCase()).toMatch(/255,\s*56,\s*92|ff385c/);
+  it("keeps a directional shadow ladder with distinct tiers", () => {
+    const tiers = ["--shadow-xs", "--shadow-sm", "--shadow-md", "--shadow-lg"].map((t) => tokenValue(t));
+    for (const tier of tiers) expect(tier).toBeTruthy();
+    expect(new Set(tiers).size).toBe(4);
+    // No symmetric bloom: every blurred layer after the edge lip is offset down.
+    for (const tier of tiers.slice(1)) {
+      expect(tier!).toMatch(/\d+px \d+px \d+px -\d+px/);
+    }
   });
 
-  it("provides distinct section-rhythm fills (not all identical greys)", () => {
-    const lavender = tokenValue("--color-lavender");
-    const peach = tokenValue("--color-peach");
-    const sky = tokenValue("--color-sky");
-    const mint = tokenValue("--color-mint");
-    const action = tokenValue("--color-action");
-    expect(lavender).toBeTruthy();
-    expect(peach).toBeTruthy();
-    expect(sky).toBeTruthy();
-    expect(mint).toBeTruthy();
-    // at least some differentiation between section bands
-    const set = new Set([lavender, peach, sky, mint]);
-    expect(set.size).toBeGreaterThan(1);
-    // action is ink secondary (Airbnb black CTA), not flat grey
-    expect(action).toBe("#222222");
+  it("defines pressed and disabled button states", () => {
+    expect(tokenValue("--color-primary-active")).toBe("var(--color-clay-press)");
+    expect(tokenValue("--color-primary-disabled")).toBeTruthy();
   });
 
-  it("defines primary-active and primary-disabled for button states (light)", () => {
-    expect(tokenValue("--color-primary-active")).toBe("#e00b41");
-    expect(tokenValue("--color-primary-disabled")).toBe("#ffd1da");
-  });
-
-  it("includes dark-mode Rausch lift, dark surfaces, and distinct disabled/active CTAs", () => {
-    expect(css).toContain('[data-theme="dark"]');
+  it("dark mode is a pine-black night, not blue-charcoal", () => {
     const dark = darkThemeBlock();
-    expect(tokenValue("--color-primary", dark)).toBe("#ff5572");
-    expect(tokenValue("--color-paper", dark)).toBe("#1a1a1a");
-    expect(tokenValue("--color-ink", dark)).toBe("#ffffff");
-    // Dark disabled must NOT inherit light soft-pink (#ffd1da) — white-on-pink fails contrast
-    const darkDisabled = tokenValue("--color-primary-disabled", dark);
-    const darkActive = tokenValue("--color-primary-active", dark);
-    expect(darkDisabled).toBeTruthy();
-    expect(darkActive).toBeTruthy();
-    expect(darkDisabled!.toLowerCase()).not.toBe("#ffd1da");
-    // Dark disabled fill is a deep muted tone (not light pink)
-    expect(darkDisabled!.toLowerCase()).toMatch(/^#[0-4]/);
-    // Active is a lifted Rausch, distinct from disabled
-    expect(darkActive).not.toBe(darkDisabled);
-    expect(darkActive!.toLowerCase()).toMatch(/#ff/);
+    expect(tokenValue("--color-sky", dark)).toBe("#121814");
+    expect(tokenValue("--color-clay", dark)).toBe("#E27E5A");
+    expect(tokenValue("--color-ink", dark)).toBe("#F1EDE6");
+    const disabled = tokenValue("--color-primary-disabled", dark)!;
+    expect(disabled.toLowerCase()).toMatch(/^#[0-4]/);
+    // Green channel >= blue channel on the night canvas.
+    const sky = tokenValue("--color-sky", dark)!;
+    expect(parseInt(sky.slice(3, 5), 16)).toBeGreaterThanOrEqual(parseInt(sky.slice(5, 7), 16));
   });
 });

@@ -4,7 +4,7 @@ Active contributors: Saksham
 
 360 Flatmates is a client-rendered React SPA. Browsers see one HTML document and React Router does the rest. That is great for users and painful for crawlers. Classic search-engine bots and the LLM answer-engine bots (GPTBot, ClaudeBot, CCBot, Applebot, Meta-ExternalAgent) generally do not execute JavaScript. If they fetch `https://360ghar.com/discover` and the response is an empty `<div id="root">`, they index nothing useful.
 
-This page documents how the SPA is made crawlable and SEO-optimized at build time. The mechanism is a Playwright-Chromium prerender step that launches a real headless browser against the built bundle, lets React mount and `react-helmet-async` flush its head, and writes the fully-rendered HTML to `dist/<route>/index.html`. The real files on disk take precedence over the SPA fallback, so JS-less bots see real meta tags, real JSON-LD, and real visible content. The system build pipeline and the [Architecture](../overview/architecture.md) build-pipeline section are the broader context.
+This page documents how the SPA is made crawlable and SEO-optimized at build time. The mechanism is a build step, `scripts/generate-static-html.ts`, that reads the built `dist/index.html` shell, injects per-route meta tags, JSON-LD and semantic body HTML as strings, and writes `dist/<route>/index.html`. It needs no browser. `scripts/prerender.ts` is a headless-Chromium alternative that is not part of the build. The real files on disk take precedence over the SPA fallback, so JS-less bots see real meta tags, real JSON-LD, and real visible content. The system build pipeline and the [Architecture](../overview/architecture.md) build-pipeline section are the broader context.
 
 ## Why prerender
 
@@ -26,7 +26,7 @@ It also buys three concrete wins:
 
 ## The build pipeline
 
-`npm run build` is a seven-step pipeline. Each step feeds the next, and the prerender step depends on every prior step having succeeded. See the [Architecture build pipeline](../overview/architecture.md#build-pipeline) for the canonical description.
+`npm run build` is a six-step pipeline. Each step feeds the next, and the static-HTML step depends on every prior step having succeeded. See the [Architecture build pipeline](../overview/architecture.md#build-pipeline) for the canonical description.
 
 ```bash
 npm run build
@@ -37,46 +37,45 @@ The `package.json` `build` script expands to:
 ```bash
 tsc --noEmit &&
 npx tsx scripts/generate-pwa-icons.ts &&
-npx tsx scripts/generate-og-image.ts &&
 npx tsx scripts/generate-favicon-ico.ts &&
 npx tsx scripts/generate-sitemap.ts &&
 vite build &&
-npx tsx scripts/prerender.ts
+npx tsx scripts/generate-static-html.ts
 ```
 
 | Step | Script | Output |
 | --- | --- | --- |
 | 1 | `tsc --noEmit` | Type-check failure halts the build before any artifacts are produced |
 | 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.webp`, `public/favicon-512.webp`, plus maskable variants |
-| 3 | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630) and `public/logo.webp` (512x512) |
-| 4 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution) |
-| 5 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries) |
-| 6 | `vite build` | `dist/` with the production bundle, service worker, and a clean `dist/index.html` shell |
-| 7 | `scripts/prerender.ts` | `dist/<route>/index.html` files, one per public route |
+| 3 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution) |
+| 4 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries) |
+| 5 | `vite build` | `dist/` with the production bundle, service worker, and a clean `dist/index.html` shell |
+| 6 | `scripts/generate-static-html.ts` | `dist/<route>/index.html` files, one per public route |
 
-The first five scripts write into `public/` so Vite copies them into `dist/` during step 6. The prerender step runs last because it serves `dist/` with `vite preview`, so the bundle must already exist.
+`scripts/generate-og-image.ts` is not part of the build. Run it manually with `npm run generate:og-image`; the output is committed. `scripts/prerender.ts` is the headless-Chromium alternative to step 6 and also runs manually.
+
+The three generators before Vite (icons, favicon, sitemap) write into `public/` so Vite copies them into `dist/` during step 5. The static-HTML step runs last because it reads the built `dist/` shell.
 
 ```mermaid
 flowchart TD
     A["tsc --noEmit"] --> B["generate-pwa-icons.ts"]
-    B --> C["generate-og-image.ts"]
-    C --> D["generate-favicon-ico.ts"]
+    B --> D["generate-favicon-ico.ts"]
     D --> E["generate-sitemap.ts"]
     E --> F["vite build\nproduces dist/"]
-    F --> G["prerender.ts"]
-    G --> G1["start vite preview on dist/"]
-    G1 --> G2["launch headless Chromium"]
-    G2 --> G3["capture every public route\ninto memory"]
-    G3 --> G4["flush captured HTML to disk\nhome route written last"]
-    G4 --> H["dist/ with prerendered\nroute HTML + SPA fallback"]
+    F --> G["generate-static-html.ts"]
+    G --> H["dist/ with static\nroute HTML + SPA fallback"]
 
     E -.uses.-> L["scripts/lib/listings.ts\nshared build-time listing fetch"]
     G -.uses.-> L
 ```
 
-## Prerender internals
+## Static HTML generation
 
-`scripts/prerender.ts` is the engine. It runs after `vite build` produces `dist/` and writes the final crawlable HTML. The whole step is in four phases: start the preview server, capture every route into memory, stop the browser, flush the captured HTML to disk.
+`scripts/generate-static-html.ts` runs after `vite build`. It reads `dist/index.html` as a shell template, builds the content of each public route with `buildStaticRoutes()` (`scripts/lib/route-content.ts`), injects the title, description, canonical link, Open Graph and Twitter tags, JSON-LD and a semantic `<main>` into the shell, and writes `dist/<route>/index.html`. Per-listing pages come from `scripts/lib/listings.ts` and are generated only when `CONTEXT=production`. A missing `dist/` fails the build; a listing fetch failure is logged and the build continues. Set `PRERENDER_LISTINGS=0` to skip listing pages.
+
+## Prerender internals (`scripts/prerender.ts`, manual alternative)
+
+The build does not run this script; step 6 above replaces it. `scripts/prerender.ts` is kept as a headless-Chromium alternative that renders the real app. It needs a built `dist/` and `npx playwright install chromium`. The whole step is in four phases: start the preview server, capture every route into memory, stop the browser, flush the captured HTML to disk.
 
 ### Phase 1, start the preview server
 
@@ -127,7 +126,7 @@ A single run logs a summary like `[prerender] done: 87/88 succeeded, 1 failed, 2
 
 ### Environment
 
-Vite inlines `VITE_*` vars from `.env` into the built bundle at `vite build` time, so the served bundle already contains valid Supabase and API config and `validateEnv()` in `src/entry.tsx` passes. No extra env is needed for a local build that has `.env`. In CI, ensure the `VITE_*` vars are present in the build environment, and that `npx playwright install chromium` has run (the e2e workflow already does this; the Netlify build command does it explicitly).
+Vite inlines `VITE_*` vars from `.env` into the built bundle at `vite build` time, so the served bundle already contains valid Supabase and API config and `validateEnv()` in `src/entry.tsx` passes. No extra env is needed for a local build that has `.env`. In CI, ensure the `VITE_*` vars are present in the build environment. The build needs no browser; only `scripts/prerender.ts` and the e2e tests need `npx playwright install chromium`.
 
 ## Route coverage
 
@@ -135,12 +134,12 @@ The prerender step, the sitemap generator, and `robots.txt` all agree on the sam
 
 | Bucket | Source | Examples |
 | --- | --- | --- |
-| Static public routes | Hardcoded in `scripts/prerender.ts` `STATIC_ROUTES` (verified against `<PublicLayout>` in `src/App.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, `/stats`, comparison and blog slugs |
+| Static public routes | `buildStaticRoutes()` in `scripts/lib/route-content.ts` (verified against `<PublicLayout>` in `src/app/routes.tsx`) | `/`, `/discover`, `/blog`, `/about`, `/terms`, `/privacy`, comparison and blog slugs |
 | City landing routes | Derived from `SUPPORTED_CITIES` in `src/lib/seo/config.ts` | `/cities/bangalore`, `/cities/gurugram` |
 | Neighborhood routes | Derived from `CITY_NEIGHBORHOODS` in `src/lib/seo/neighborhoods.ts` | `/cities/bangalore/koramangala`, `/cities/gurugram/cyber-city` |
 | Discoverable listing routes | Fetched at build time from `/properties` via `scripts/lib/listings.ts` | `/discover/:id` per active listing |
 
-Authenticated routes (`/search`, `/search/semantic`, `/app/*`, `/admin/*`, `/auth/*`) are deliberately excluded. They sit under `<AuthGuard>` or `<AdminGuard>` in `src/App.tsx`, they are disallowed in `public/robots.txt`, and they would render a login redirect at build time. Only `<PublicLayout>` routes are eligible.
+Authenticated routes (`/search`, `/search/semantic`, `/app/*`, `/admin/*`, `/auth/*`) are deliberately excluded. They sit under `<AuthGuard>` or `<AdminGuard>` in `src/app/routes.tsx`, they are disallowed in `public/robots.txt`, and they would render a login redirect at build time. Only `<PublicLayout>` routes are eligible.
 
 Adding a new city is a one-line change to `SUPPORTED_CITIES` and a neighborhood list entry, and the prerender step and sitemap pick it up automatically on the next build. Adding a new static public route means adding it to both `scripts/prerender.ts` `STATIC_ROUTES` and the static-route list in `scripts/generate-sitemap.ts`.
 
@@ -213,7 +212,7 @@ The shell in `index.html` carries fallback meta tags. These are the SPA-shell fa
 
 ### OG image and logo
 
-`scripts/generate-og-image.ts` renders a 1200x630 social preview WebP and a 512x512 brand logo WebP from inline SVG. The brand fonts (Fraunces, Inter, JetBrains Mono) are self-hosted as variable TTFs in `public/fonts/` and embedded into the SVG as base64 `@font-face` blocks, so `sharp`'s librsvg renderer paints the real brand typography deterministically. No reliance on system-installed fonts. Colors are pulled from the DESIGN.md tokens.
+`scripts/generate-og-image.ts` renders a 1200x630 social preview WebP and a 512x512 brand logo WebP. Chrome (Playwright) renders the page so the Gambarino type and the paper scene match the live site. It runs manually (`npm run generate:og-image`) and the output is committed.
 
 ### llms.txt for LLM crawlers
 
@@ -244,7 +243,7 @@ The file ends with `Host: https://360ghar.com` and `Sitemap: https://360ghar.com
 
 This is the SPA fallback for Netlify. Any request that does not match a real file in `dist/` falls through to `dist/index.html` with a 200 status, and React Router handles the route client-side. Real files on disk take precedence over the fallback, so the prerendered `dist/<route>/index.html` files are served directly for their routes. The precedence is what makes the prerendered output win for crawlers while keeping client-side routing intact for users navigating between prerendered and non-prerendered routes.
 
-The `/stats` route demonstrates the split. `src/components/page-clients/StatsClient.tsx` renders a prerenderable page with hardcoded city market statistics and a `useCities()` query for the city chips. The static marketing copy and the stats cards are baked into `dist/stats/index.html` by the prerender step, so crawlers see real numbers and real headings. The city chip selection and the underlying catalog query are interactive and hydrate on the client.
+The split works the same for any page: the static HTML carries the meta tags, JSON-LD and the main copy, and the client takes over once the bundle loads, so interactive parts (filters, queries) run in the browser.
 
 ## Key source files
 

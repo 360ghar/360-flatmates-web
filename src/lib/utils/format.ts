@@ -16,6 +16,15 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-IN", {
   year: "numeric"
 });
 
+// A date-only value (`YYYY-MM-DD`) names a calendar day, not an instant: format it
+// in UTC so no time zone moves it to the day before or after.
+const DATE_ONLY_FORMATTER = new Intl.DateTimeFormat("en-IN", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC"
+});
+
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-IN", {
   day: "numeric",
   month: "short",
@@ -31,7 +40,11 @@ function getOptionLabel(
     return "";
   }
 
-  return options.find((option) => option.value === value)?.label ?? value;
+  const label = options.find((option) => option.value === value)?.label;
+  if (label) return label;
+  // Unknown or legacy value (e.g. "this_month"): readable, never raw snake_case.
+  const words = value.replace(/_/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 export function formatCurrencyINR(amount: number): string {
@@ -40,6 +53,15 @@ export function formatCurrencyINR(amount: number): string {
 
 export function formatRent(amount: number): string {
   return `${formatCurrencyINR(amount)}/mo`;
+}
+
+/** Rent in a map-tag width: ₹22k, ₹1.5L. */
+export function formatRentShort(rent?: number | null): string {
+  if (rent === undefined || rent === null || !Number.isFinite(rent) || rent <= 0) return "₹--";
+  const short = (value: number, unit: string) => `₹${Number.isInteger(value) ? value : value.toFixed(1)}${unit}`;
+  if (rent >= 100000) return short(rent / 100000, "L");
+  if (rent >= 1000) return short(rent / 1000, "k");
+  return `₹${rent}`;
 }
 
 export function formatBudgetRange(min?: number, max?: number): string {
@@ -58,8 +80,33 @@ export function formatBudgetRange(min?: number, max?: number): string {
   return "Any budget";
 }
 
+const COUNT_FORMATTER = new Intl.NumberFormat("en-IN");
+
+const MONTH_YEAR_FORMATTER = new Intl.DateTimeFormat("en-IN", {
+  month: "long",
+  year: "numeric"
+});
+
+/** Indian digit grouping (1,20,000) for counts and stats. */
+export function formatCount(value: number): string {
+  return COUNT_FORMATTER.format(value);
+}
+
+/** "June 2026"; empty for a missing or invalid date. */
+export function formatMonthYear(value?: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : MONTH_YEAR_FORMATTER.format(date);
+}
+
 export function formatDate(value: string | Date): string {
   return DATE_FORMATTER.format(new Date(value));
+}
+
+/** A date-only field such as `available_from` (`YYYY-MM-DD`), shown as the same calendar day everywhere. */
+export function formatDateOnly(value: string): string {
+  const date = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) ? "" : DATE_ONLY_FORMATTER.format(date);
 }
 
 export function formatDateTime(value: string | Date): string {
@@ -74,7 +121,7 @@ export function formatSharingType(value?: string): string {
   return getOptionLabel(value, LISTING_SHARING_TYPE_OPTIONS);
 }
 
-export function formatLocation(locality?: string, city?: string): string {
+export function formatLocation(locality?: string | null, city?: string | null): string {
   return [locality, city].filter(Boolean).join(", ");
 }
 
@@ -134,8 +181,13 @@ export function stripEmptyFields(data: Record<string, unknown>): Record<string, 
 
 /** Coerce a numeric input to a number, mapping empty/NaN to undefined so a
  *  cleared field neither trips min/max validation nor gets sent to the API. */
-export function optionalNumberValue(raw: string): number | undefined {
-  if (raw.trim() === "") return undefined;
+/**
+ * An input's value as an optional number. Accepts numbers too: react-hook-form
+ * runs `setValueAs` on numeric default values (a saved age or budget).
+ */
+export function optionalNumberValue(raw: unknown): number | undefined {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : undefined;
+  if (typeof raw !== "string" || raw.trim() === "") return undefined;
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
 }

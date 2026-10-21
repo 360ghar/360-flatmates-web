@@ -1,19 +1,19 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { buildApiUrl } from "@/lib/api/client";
-import type { FlatmatesProfile } from "@/lib/api/types";
+import { buildApiUrl, parseErrorEnvelope } from "@/lib/api/client";
+import type { SelfUser } from "@/lib/api/types";
 import { refreshAccessToken } from "@/lib/auth/refresh";
 import { debug } from "@/lib/debug";
 import { getEnv } from "@/lib/env";
+import type { OwnProfile } from "@/lib/schemas/profile";
 import { convertUploadImageToDataUrl } from "@/lib/image-utils";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
-interface UploadResponse {
-  profile_image_url: string | null;
-}
+/** `POST /users/me/avatar` answers 200 with the signed-in user. */
+type UploadResponse = Pick<SelfUser, "profile_image_url">;
 
 async function toWebpBlob(file: File): Promise<Blob> {
   const dataUrl = await convertUploadImageToDataUrl(file);
@@ -38,38 +38,20 @@ function fileExtensionFor(blob: Blob): string {
   }
 }
 
+/**
+ * Message for a failed upload. The backend sends the error envelope: a 422 names
+ * the failing field first, any other status carries a `message`.
+ */
 async function readErrorMessage(response: Response): Promise<string> {
-  // The avatar endpoint isn't in the OpenAPI spec, so a 404 likely means the
-  // backend hasn't shipped it yet. Surface a friendly, actionable message
-  // instead of the raw "Not Found" status text.
-  if (response.status === 404) {
-    return "Photo upload isn't available right now. Your selection is saved — please try again later.";
-  }
+  const fallback = response.statusText || "Upload failed. Please try again.";
   try {
-    const payload = (await response.json()) as unknown;
-    if (typeof payload === "object" && payload !== null) {
-      const record = payload as Record<string, unknown>;
-      if (Array.isArray(record.detail)) {
-        const messages = record.detail
-          .map((item) => {
-            if (typeof item === "object" && item !== null) {
-              const msg = (item as Record<string, unknown>).msg;
-              return typeof msg === "string" ? msg : null;
-            }
-            return null;
-          })
-          .filter((msg): msg is string => Boolean(msg));
-        if (messages.length > 0) {
-          return messages.join(", ");
-        }
-      }
-      if (typeof record.detail === "string") return record.detail;
-      if (typeof record.message === "string") return record.message;
-    }
+    const { message, fields } = parseErrorEnvelope((await response.json()) as unknown, fallback);
+    const [first] = Object.values(fields).flat();
+    return first ?? message;
   } catch {
-    // body wasn't JSON — fall through to status text
+    // body was not JSON: fall through to the status text
+    return fallback;
   }
-  return response.statusText || "Upload failed. Please try again.";
 }
 
 async function postAvatar(form: FormData, token: string, signal: AbortSignal): Promise<Response> {
@@ -125,7 +107,7 @@ export function useAvatarUpload() {
           throw new Error("Upload succeeded but no image URL was returned.");
         }
 
-        queryClient.setQueryData<FlatmatesProfile | undefined>(["profile", "me"], (current) =>
+        queryClient.setQueryData<OwnProfile | undefined>(["profile", "me"], (current) =>
           current ? { ...current, profile_image_url: payload.profile_image_url ?? undefined } : current
         );
         void queryClient.invalidateQueries({ queryKey: ["profile", "me"] });

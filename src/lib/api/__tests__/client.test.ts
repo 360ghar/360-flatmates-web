@@ -154,11 +154,13 @@ describe("HttpApiClient.request", () => {
     expect(result).toEqual(body);
   });
 
-  it("throws ApiClientError on non-ok status with detail message", async () => {
+  it("throws ApiClientError on non-ok status with the envelope message", async () => {
     // Use mockImplementation to return a fresh Response per call because
     // Response.json() can only be consumed once per Response object.
     mockFetch.mockImplementation(() =>
-      Promise.resolve(jsonResponse({ detail: "Something went wrong" }, 500))
+      Promise.resolve(
+        jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Something went wrong" } }, 500)
+      )
     );
     try {
       await createTestClient().request({ path: "/test" });
@@ -198,11 +200,23 @@ describe("HttpApiClient.request", () => {
     }
   });
 
-  it("throws with validation fields on 422", async () => {
+  it("reads 422 field errors from error.details.fields", async () => {
     mockFetch.mockImplementation(() =>
       Promise.resolve(
         jsonResponse(
-          { detail: "Validation error", fields: { email: ["Invalid email"], name: ["Required"] } },
+          {
+            error: {
+              code: "VALIDATION_ERROR",
+              message: "Request validation failed",
+              details: {
+                fields: [
+                  { field: "body.email", msg: "Invalid email", type: "value_error" },
+                  { field: "body.name", msg: "Field required", type: "missing" },
+                  { field: "body.name", msg: "Too short", type: "string_too_short" }
+                ]
+              }
+            }
+          },
           422
         )
       )
@@ -215,16 +229,31 @@ describe("HttpApiClient.request", () => {
       expect(apiError.appError.type).toBe("validation");
       if (apiError.appError.type === "validation") {
         expect(apiError.appError.fields).toEqual({
-          email: ["Invalid email"],
-          name: ["Required"],
+          "body.email": ["Invalid email"],
+          "body.name": ["Field required", "Too short"],
         });
+        expect(apiError.errorCode).toBe("VALIDATION_ERROR");
       }
+    }
+  });
+
+  it("ignores bodies that are not the error envelope", async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve(jsonResponse({ detail: [{ loc: ["body", "x"], msg: "bad", type: "value_error" }] }, 422))
+    );
+    try {
+      await createTestClient().request({ path: "/test" });
+      expect.unreachable("Should have thrown");
+    } catch (error) {
+      const apiError = error as ApiClientError;
+      expect(apiError.appError.type).toBe("validation");
+      if (apiError.appError.type === "validation") expect(apiError.appError.fields).toEqual({});
     }
   });
 
   it("maps 401 to auth AppError", async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ detail: "Not authenticated" }, 401)
+      jsonResponse({ error: { code: "TOKEN_INVALID", message: "Not authenticated" } }, 401)
     );
     try {
       await createTestClient().request({ path: "/test" });
@@ -237,7 +266,7 @@ describe("HttpApiClient.request", () => {
 
   it("maps 403 to forbidden AppError", async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ detail: "Forbidden" }, 403)
+      jsonResponse({ error: { code: "FORBIDDEN", message: "Forbidden" } }, 403)
     );
     try {
       await createTestClient().request({ path: "/test" });
@@ -248,13 +277,13 @@ describe("HttpApiClient.request", () => {
     }
   });
 
-  it("maps 403 with error_code to forbidden AppError carrying errorCode", async () => {
+  it("maps 403 with a domain code to forbidden AppError carrying errorCode", async () => {
     // A real authorization denial (not session death) must surface errorCode
     // so callers can distinguish backend-specific reasons, without triggering
     // the auth-refresh path.
     mockFetch.mockResolvedValue(
       jsonResponse(
-        { code: 403, error_code: "not_owner", msg: "Not the owner" },
+        { error: { code: "not_owner", message: "Not the owner" } },
         403
       )
     );
@@ -268,6 +297,28 @@ describe("HttpApiClient.request", () => {
     }
   });
 
+  it("calls onInactiveUser on a 403 USER_INACTIVE and only then", async () => {
+    const onInactiveUser = vi.fn();
+    const client = createApiClient({
+      baseUrl: "https://api.test.com",
+      getAccessToken: () => "test-token",
+      fetcher: mockFetch,
+      onInactiveUser,
+    });
+
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ error: { code: "NOT_OWNER", message: "Not the owner" } }, 403)
+    );
+    await expect(client.request({ path: "/test" })).rejects.toBeInstanceOf(ApiClientError);
+    expect(onInactiveUser).not.toHaveBeenCalled();
+
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ error: { code: "USER_INACTIVE", message: "Account is inactive" } }, 403)
+    );
+    await expect(client.request({ path: "/test" })).rejects.toMatchObject({ errorCode: "USER_INACTIVE" });
+    expect(onInactiveUser).toHaveBeenCalledTimes(1);
+  });
+
   it("does not attempt token refresh on a plain 403 (no onAuthFailure wired)", async () => {
     // createTestClient wires getAccessToken but no onAuthFailure, so a 403
     // must not even consider refreshing. This guards the new 403 branch.
@@ -279,7 +330,7 @@ describe("HttpApiClient.request", () => {
       fetcher: mockFetch,
     });
     mockFetch.mockResolvedValue(
-      jsonResponse({ detail: "Forbidden" }, 403)
+      jsonResponse({ error: { code: "FORBIDDEN", message: "Forbidden" } }, 403)
     );
     try {
       await client.request({ path: "/test" });
@@ -307,10 +358,7 @@ describe("HttpApiClient.request", () => {
       .mockImplementationOnce(() =>
         Promise.resolve(
           jsonResponse(
-            {
-              code: "TOKEN_INVALID",
-              detail: "Invalid or expired token",
-            },
+            { error: { code: "TOKEN_INVALID", message: "Invalid or expired token" } },
             401
           )
         )
@@ -342,7 +390,7 @@ describe("HttpApiClient.request", () => {
     mockFetch.mockImplementation(() =>
       Promise.resolve(
         jsonResponse(
-          { code: "TOKEN_INVALID", detail: "Invalid or expired token" },
+          { error: { code: "TOKEN_INVALID", message: "Invalid or expired token" } },
           401
         )
       )
@@ -373,7 +421,7 @@ describe("HttpApiClient.request", () => {
       .mockImplementationOnce(() =>
         Promise.resolve(
           jsonResponse(
-            { code: "TOKEN_INVALID", detail: "Invalid or expired token" },
+            { error: { code: "TOKEN_INVALID", message: "Invalid or expired token" } },
             401
           )
         )
@@ -399,7 +447,7 @@ describe("HttpApiClient.request", () => {
     });
     mockFetch.mockResolvedValue(
       jsonResponse(
-        { code: "ADMIN_REQUIRED", detail: "Admin privileges required" },
+        { error: { code: "ADMIN_REQUIRED", message: "Admin privileges required" } },
         403
       )
     );
@@ -417,7 +465,7 @@ describe("HttpApiClient.request", () => {
 
   it("maps 404 to not_found AppError", async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ detail: "Not found" }, 404)
+      jsonResponse({ error: { code: "NOT_FOUND", message: "Not found" } }, 404)
     );
     try {
       await createTestClient().request({ path: "/test" });
@@ -430,7 +478,7 @@ describe("HttpApiClient.request", () => {
 
   it("maps 429 to rate_limit AppError with retryAfter", async () => {
     mockFetch.mockResolvedValue(
-      new Response(JSON.stringify({ detail: "Too many requests" }), {
+      new Response(JSON.stringify({ error: { code: "RATE_LIMIT_EXCEEDED", message: "Too many requests" } }), {
         status: 429,
         headers: { "Content-Type": "application/json", "Retry-After": "60" },
       })
@@ -446,9 +494,34 @@ describe("HttpApiClient.request", () => {
     }
   });
 
+  it("reads a blank Retry-After as no hint, not 0", async () => {
+    mockFetch.mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: "RATE_LIMIT_EXCEEDED", message: "Too many requests" } }), {
+        status: 429,
+        headers: { "Content-Type": "application/json", "Retry-After": " " },
+      })
+    );
+    const error = await createTestClient().request({ path: "/test" }).catch((e: unknown) => e);
+    const apiError = error as ApiClientError;
+    expect(apiError.appError.type).toBe("rate_limit");
+    if (apiError.appError.type === "rate_limit") {
+      expect(apiError.appError.retryAfter).toBeUndefined();
+    }
+  });
+
+  it("sends a FormData body as is, with no JSON Content-Type", async () => {
+    mockFetch.mockResolvedValue(jsonResponse({ ok: true }, 201));
+    const form = new FormData();
+    form.append("folder_type", "property_image");
+    await createTestClient().request({ method: "POST", path: "/upload", body: form });
+    const init = mockFetch.mock.calls[0][1] as RequestInit;
+    expect(init.body).toBe(form);
+    expect(new Headers(init.headers).has("Content-Type")).toBe(false);
+  });
+
   it("maps 500 to server AppError", async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ detail: "Internal server error" }, 500)
+      jsonResponse({ error: { code: "INTERNAL_ERROR", message: "Internal server error" } }, 500)
     );
     try {
       await createTestClient().request({ path: "/test" });
@@ -464,7 +537,7 @@ describe("HttpApiClient.request", () => {
 
   it("maps unknown status codes to unknown AppError", async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ detail: "I'm a teapot" }, 418)
+      jsonResponse({ error: { code: "TEAPOT", message: "I'm a teapot" } }, 418)
     );
     try {
       await createTestClient().request({ path: "/test" });
@@ -518,14 +591,77 @@ describe("HttpApiClient.request", () => {
   });
 
   it("passes AbortSignal through to fetch", async () => {
-    mockFetch.mockResolvedValue(jsonResponse({ data: "ok" }));
     const controller = new AbortController();
-    await createTestClient().request({
-      path: "/test",
-      signal: controller.signal,
+    // Aborting the caller while fetch is in flight must abort what fetch got.
+    mockFetch.mockImplementation((_url: string, init: RequestInit) => {
+      controller.abort();
+      return init.signal?.aborted
+        ? Promise.reject(new DOMException("aborted", "AbortError"))
+        : Promise.resolve(jsonResponse({ data: "ok" }));
     });
+    await expect(
+      createTestClient().request({ path: "/test", signal: controller.signal })
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
 
-    const requestInit = mockFetch.mock.calls[0][1] as RequestInit;
-    expect(requestInit.signal).toBe(controller.signal);
+  it("works where AbortSignal.any and AbortSignal.timeout are missing (Safari < 17.4)", async () => {
+    const signalStatics = AbortSignal as unknown as Record<string, unknown>;
+    const any = signalStatics.any;
+    const timeout = signalStatics.timeout;
+    delete signalStatics.any;
+    delete signalStatics.timeout;
+    try {
+      mockFetch.mockResolvedValue(jsonResponse({ data: "ok" }));
+      await expect(
+        createTestClient().request({ path: "/test", signal: new AbortController().signal })
+      ).resolves.toEqual({ data: "ok" });
+    } finally {
+      signalStatics.any = any;
+      signalStatics.timeout = timeout;
+    }
+  });
+});
+
+describe("HttpApiClient transport errors", () => {
+  it("maps a fetch TypeError to a network AppError", async () => {
+    mockFetch.mockRejectedValue(new TypeError("Failed to fetch"));
+    await expect(createTestClient().request({ path: "/x" })).rejects.toMatchObject({
+      appError: { type: "network" },
+    });
+  });
+
+  it("maps an elapsed timeout to a timeout AppError", async () => {
+    vi.useFakeTimers();
+    try {
+      mockFetch.mockImplementation(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () =>
+              reject(new DOMException("aborted", "AbortError"))
+            );
+          })
+      );
+      const pending = createTestClient().request({ path: "/slow" });
+      const assertion = expect(pending).rejects.toMatchObject({
+        appError: { type: "timeout" },
+      });
+      await vi.advanceTimersByTimeAsync(60_000);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rethrows caller aborts unchanged", async () => {
+    const controller = new AbortController();
+    mockFetch.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        init.signal?.aborted
+          ? Promise.reject(new DOMException("aborted", "AbortError"))
+          : Promise.resolve(jsonResponse({}))
+    );
+    controller.abort();
+    const pending = createTestClient().request({ path: "/x", signal: controller.signal });
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
   });
 });

@@ -1,4 +1,3 @@
-import type { FlatmatesPeer } from "@/lib/api/types";
 import { LIFESTYLE_DIMENSIONS } from "@/lib/data";
 import type { LifestyleDimensionKey } from "@/lib/data";
 import {
@@ -115,7 +114,7 @@ export function calculateCompatibility(
   };
 }
 
-export function rankPeersByCompatibility<TPeer extends FlatmatesPeer>(
+export function rankPeersByCompatibility<TPeer extends CompatibilityProfile>(
   user: CompatibilityProfile,
   peers: readonly TPeer[]
 ): Array<TPeer & { match_percentage: number }> {

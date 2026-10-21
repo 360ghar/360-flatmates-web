@@ -1,5 +1,6 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { setAccessToken } from "@/lib/api";
+import { authSessionLifecycle } from "./session-lifecycle";
 
 // Routes where an unauthenticated user is expected. Recovering (sign-out +
 // redirect to /login) on these would either loop or yank users off pages they
@@ -69,12 +70,15 @@ export function recoverDeadSession(): void {
  * @internal — consumed by providers.tsx as the API client 401 handler.
  */
 export function refreshAccessToken(): Promise<string | null> {
+  if (authSessionLifecycle.signingOut) return Promise.resolve(null);
   if (inflight) return inflight;
+  const sessionRevision = authSessionLifecycle.revision;
 
   inflight = (async () => {
     try {
       const supabase = getSupabaseBrowserClient();
       const { data, error } = await supabase.auth.refreshSession();
+      if (!authSessionLifecycle.isCurrent(sessionRevision)) return null;
       if (error) throw error;
       const newToken = data.session?.access_token ?? null;
       if (newToken) {
@@ -87,6 +91,7 @@ export function refreshAccessToken(): Promise<string | null> {
       }
       return newToken;
     } catch (err) {
+      if (!authSessionLifecycle.isCurrent(sessionRevision)) return null;
       // Recover only when the failure indicates a dead session. Transient
       // errors (network, 5xx) leave the user in place so the next
       // interaction can retry the refresh.

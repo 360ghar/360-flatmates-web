@@ -41,7 +41,7 @@ stateDiagram-v2
     completed --> [*]
 ```
 
-The frontend collapses these five backend statuses into four card statuses via `visitToVisitCardProps` in `src/lib/api/adapters.ts`, but the canonical lifecycle is the five-state machine above.
+The frontend collapses these five backend statuses into four card statuses via `visitToVisitCardProps` in `src/features/*/lib/adapters.ts`, but the canonical lifecycle is the five-state machine above.
 
 ## Shape
 
@@ -79,7 +79,7 @@ After a `completed` visit, the visitor can submit feedback. The star rating maps
 
 ## Mutations
 
-The visits hooks live in `src/hooks/queries/useVisits.ts`:
+The visits hooks live in `src/features/visits/hooks/useVisits.ts`:
 
 - `useVisits(filters?)` lists visits, filtered by status, context, upcoming, or past.
 - `useVisit(id)` loads a single visit.
@@ -102,4 +102,4 @@ The detail-cache seeding pattern means the detail view updates instantly on conf
 | `src/lib/api/visit.types.ts` | `Visit`, `VisitCreate`, `VisitUpdate`, `VisitReschedule`, `VisitCancel`, `VisitFilters`, `VisitList` |
 | `src/lib/schemas/visit.ts` | `visitCreateSchema` (with flatmate-meet refinement), `visitUpdateSchema`, `visitSchema`, `visitListSchema` |
 | `src/lib/data/domain.ts` | `VisitContext`, `VisitStatus`, `InterestLevel` |
-| `src/hooks/queries/useVisits.ts` | `useVisits`, `useVisit`, `useCreateVisit`, `useUpdateVisit`, `useCancelVisit` |
+| `src/features/visits/hooks/useVisits.ts` | `useVisits`, `useVisit`, `useCreateVisit`, `useUpdateVisit`, `useCancelVisit` |

@@ -4,7 +4,7 @@ export type AppError =
   | { type: "auth"; message: string }
   | { type: "forbidden"; message: string }
   | { type: "bad_request"; message: string }
-  | { type: "server"; status: number; message: string }
+  | { type: "server"; status: number; message: string; retryAfter?: number }
   | { type: "not_found"; message: string }
   | { type: "validation"; fields: Record<string, string[]>; message: string }
   | { type: "rate_limit"; message: string; retryAfter?: number }
@@ -95,9 +95,56 @@ export function mapStatusToAppError(
   }
 
   if (status >= 500) {
-    return { type: "server", status, message };
+    // A 503 carries `Retry-After`: the caller waits at least that long.
+    return { type: "server", status, message, retryAfter };
   }
 
   return { type: "unknown", message };
 }
 
+
+const FRIENDLY_MESSAGES: Record<AppError["type"], string> = {
+  network: "You seem to be offline. Check your connection and try again.",
+  timeout: "The server took too long to respond. Try again.",
+  auth: "Your session has ended. Sign in again.",
+  forbidden: "You do not have access to this.",
+  bad_request: "That request could not be completed.",
+  server: "Something went wrong on our side. Try again in a moment.",
+  not_found: "We could not find that.",
+  validation: "Some details need fixing.",
+  rate_limit: "Too many attempts. Wait a moment and try again.",
+  conflict: "This changed in the meantime. Refresh and try again.",
+  unknown: "Something went wrong. Try again."
+};
+
+// Backend 4xx messages for these types are written for people. Everything
+// else (network text, 5xx detail, zod dumps) is replaced by a friendly line.
+const SHOW_SERVER_MESSAGE = new Set<AppError["type"]>([
+  "bad_request",
+  "conflict",
+  "validation",
+  "forbidden"
+]);
+
+/** Human-readable message for any thrown value. Never returns raw stack or network text. */
+export function userMessage(error: unknown, fallback?: string): string {
+  const appError = toAppError(error);
+  if (appError.type === "validation") {
+    // The envelope message is the generic "Request validation failed"; the
+    // first field message says what to fix.
+    const [field, messages] = Object.entries(appError.fields)[0] ?? [];
+    const first = messages?.[0];
+    // Same rule as the server text below: show it whole, or fall through to the friendly line.
+    const text = field && first ? `${field.replace(/^(body|query|path)\./, "")}: ${first}` : "";
+    if (text && text.length <= 160) return text;
+  }
+  const serverText = appError.message.trim();
+  if (
+    SHOW_SERVER_MESSAGE.has(appError.type) &&
+    serverText.length > 0 &&
+    serverText.length <= 160
+  ) {
+    return serverText;
+  }
+  return fallback ?? FRIENDLY_MESSAGES[appError.type];
+}

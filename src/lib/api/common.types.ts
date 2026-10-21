@@ -1,31 +1,18 @@
-import type { DevicePlatform, ShareCardFormat } from "@/lib/data";
+import type { Schemas } from "./schema";
 
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | readonly JsonValue[];
 export type JsonObject = Record<string, unknown>;
 
-export interface CatalogEntry {
-  key: string;
-  version: number;
-  payload: JsonObject;
-}
+export type CatalogEntry = Schemas["CatalogEntry"];
+export type CatalogCursorPage = Schemas["CursorPage_CatalogEntry_"];
 
-export interface CatalogsResponse {
-  catalogs: CatalogEntry[];
-}
-
+/** Items of the `cities` catalog payload (UI view of a catalog entry). */
 export interface CatalogCity {
   id: number;
   name: string;
   state?: string;
   is_active: boolean;
-}
-
-export interface CatalogLocality {
-  id: number;
-  name: string;
-  city_id: number;
-  city_name?: string;
 }
 
 export interface CatalogAmenity {
@@ -35,25 +22,23 @@ export interface CatalogAmenity {
   icon?: string;
 }
 
-/** Matches backend `DeviceRegister` (`POST /notifications/devices/register`). */
-export interface RegisterDevicePayload {
-  token: string;
-  platform: DevicePlatform;
-  app_version?: string;
-  locale?: string;
-}
+/** Body of `POST /notifications/devices/register`. The web app is `flatmates`. */
+export type RegisterDevicePayload = Schemas["DeviceRegisterIn"];
 
-export interface ShareCardResponse {
-  card_url: string;
-  format: ShareCardFormat;
-  expires_at?: string;
-}
+/** Body of `DELETE /notifications/devices/unregister`. */
+export type UnregisterDevicePayload = Schemas["DeviceUnregisterIn"];
 
-/** Generic cursor-based pagination envelope returned by all list endpoints. */
+/** Every list route returns this envelope. All five keys are always present. */
 export interface CursorPage<T> {
   items: T[];
   next_cursor: string | null;
   has_more: boolean;
   limit: number;
-  total?: number | null;
+  /** Null unless the request sent `include_total=true`. */
+  total: number | null;
 }
+
+/** Error envelope of every non-2xx JSON response. */
+export type ErrorEnvelope = Schemas["ErrorEnvelope"];
+/** Error envelope of a 422. `details.fields` is always present. */
+export type ValidationErrorEnvelope = Schemas["ValidationErrorEnvelope"];

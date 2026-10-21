@@ -46,7 +46,7 @@ test.describe("Chats page — authenticated access", () => {
   test("renders fixture conversations after loading", async ({ page }) => {
     await page.goto("/chats");
     await expect(page.getByRole("heading", { name: /conversations/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /aarav mehta/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /aarav mehta/i }).first()).toHaveAttribute("href", /\/chats\/\d+$/);
   });
 
   test("renders matched peers for starting chats", async ({ page }) => {
@@ -55,14 +55,24 @@ test.describe("Chats page — authenticated access", () => {
     await expect(page.getByRole("button", { name: /start chat with aarav mehta/i })).toBeVisible();
   });
 
-  test("clicking a conversation navigates to /chats/[id]", async ({ page }) => {
+  test("opening a conversation shows the thread; from lg the list stays beside it", async ({ page }) => {
     await page.goto("/chats");
-    const url = page.url();
-    if (!url.includes("/login")) {
-      // This test is aspirational — requires backend data
-      // Verify the page rendered without crashing
-      await expect(page).toHaveURL(/\/chats/);
-    }
+    await page.getByRole("link", { name: /aarav mehta/i }).first().click();
+    await expect(page).toHaveURL(/\/chats\/\d+$/);
+    await expect(page.getByRole("log", { name: /messages with aarav mehta/i })).toBeVisible();
+    const wide = (page.viewportSize()?.width ?? 0) >= 1024;
+    await expect(page.getByRole("heading", { level: 1, name: "Chats" })).toBeVisible({ visible: wide });
+  });
+
+  test("the conversation menu reports or blocks from the keyboard", async ({ page }) => {
+    await page.goto("/chats/201");
+    await page.getByRole("button", { name: "Conversation options" }).click();
+    const menu = page.getByRole("menu");
+    await expect(menu.getByRole("menuitem", { name: "Report" })).toBeVisible();
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(page.getByRole("button", { name: "Conversation options" })).toBeFocused();
   });
 });
 
@@ -81,8 +91,9 @@ test.describe("Chat detail page — /chats/[id] (authenticated)", () => {
   test("renders chat detail view when authenticated", async ({ page }) => {
     await page.goto("/chats/201");
     await expect(page.getByRole("heading", { name: /aarav mehta/i })).toBeVisible();
-    await expect(page.getByRole("log", { name: /messages with aarav mehta/i })).toBeVisible();
-    await expect(page.getByText("Can I visit this weekend?")).toBeVisible();
+    const log = page.getByRole("log", { name: /messages with aarav mehta/i });
+    await expect(log).toBeVisible();
+    await expect(log.getByText("Can I visit this weekend?")).toBeVisible();
   });
 
   test("message input is present in chat detail", async ({ page }) => {

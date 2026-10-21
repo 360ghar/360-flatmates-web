@@ -19,21 +19,19 @@ export interface CardProps extends HTMLAttributes<HTMLElement> {
   selected?: boolean;
 }
 
-// Elevation tiers: surface tier + matching shadow. `elevated` lifts onto the
-// raised surface (pure white in light) for genuine depth over warm paper.
-// `flat` is a plain surface panel with no border and no shadow.
-// `stacked` uses an accent top border for a card-with-tab appearance.
+// Paper layers (DESIGN.md §4, §8): cards are grained paper-2 sheets with a
+// hand-cut radius and a directional shadow; no hairline border.
 const variantClasses: Record<CardVariant, string> = {
-  /* ~14px cards (Airbnb soft property cards); border for rest state, shadow for lift */
-  default: "rounded-[var(--radius-card)] p-4 bg-surface shadow-sm",
+  default: "rounded-hand p-4 bg-surface paper-grain shadow-sm",
   compact: "rounded-[var(--radius-compact)] p-3 bg-surface shadow-xs",
-  elevated: "rounded-[var(--radius-card)] p-4 bg-surface-elevated shadow-md",
-  flat: "rounded-[var(--radius-card)] p-4 bg-surface border-0 shadow-none",
-  /* Photo-first marketplace cards: padding owned by children, soft elevation */
-  media: "rounded-[var(--radius-card)] p-0 bg-surface shadow-sm overflow-hidden",
-  stacked: "rounded-[var(--radius-card)] p-4 bg-surface border-t-2 border-t-accent shadow-sm",
-  promo: "rounded-[var(--radius-promo)] p-5 bg-lavender shadow-none",
-  illustration: "rounded-[var(--radius-promo)] p-5 bg-surface shadow-xs"
+  elevated: "rounded-hand p-4 bg-surface-elevated paper-grain shadow-md",
+  flat: "rounded-hand p-4 bg-surface shadow-none",
+  /* Photo-first cards: padding owned by children. */
+  media: "rounded-hand p-0 bg-surface shadow-sm overflow-hidden",
+  /* A sheet resting on a second sheet: one layer higher than default. */
+  stacked: "rounded-hand p-4 bg-surface paper-grain shadow-md",
+  promo: "rounded-[var(--radius-promo)] p-5 bg-paper-1 paper-grain shadow-none",
+  illustration: "rounded-[var(--radius-promo)] p-5 bg-surface paper-grain shadow-xs"
 };
 
 export function Card({
@@ -45,23 +43,15 @@ export function Card({
   tabIndex,
   ...props
 }: CardProps) {
-  const noBorder = variant === "flat";
   return (
     <Component
       tabIndex={interactive && tabIndex === undefined ? 0 : tabIndex}
       className={cn(
         "text-ink",
-        !noBorder && "border border-line",
         variantClasses[variant],
-        selected && "border-[1.5px] border-accent bg-accent-soft",
+        selected && "bg-accent-soft ring-2 ring-accent",
         interactive &&
-        cn(
-          "cursor-pointer active:scale-[0.97] hover:-translate-y-px hover:shadow-hover",
-          // media cards already own shadow; border hover still helps non-media
-          variant !== "media" && "hover:border-accent/40",
-          interactiveMotion,
-          focusRing
-        ),
+          cn("paper-lift cursor-pointer active:scale-[0.99]", interactiveMotion, focusRing),
         className
       )}
       {...props}

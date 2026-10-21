@@ -4,6 +4,8 @@
 
 The 360 Flatmates mobile app (Flutter) has 27+ screens, 38+ API endpoints, Supabase Auth, real-time messaging, swipe deck, chat, visits, listings, and an 8-step onboarding flow. The web application is a **greenfield project** -- the repo at `360-flatmates-web` contains only an OpenAPI spec file and empty placeholder files. This PRD defines the complete product and technical specification for building a Vite + React Router v7 SPA that replicates all mobile features and adds web-specific features (advanced search, saved searches, analytics dashboard, etc.) using the existing backend API.
 
+> **Contract note (2026-10):** the backend has no listing boost, renew or extra-image route, no `/flatmates/web/*` route, and deleted every `/payments` route. The web has no boost, renew or payment-method screen (listing photos upload through `POST /upload`), and a listing's owner state is `listing_preferences.moderation_status` (pause and resume only). Where a section below still names one of them, it is superseded by `openapi/openapi.json` and `CLAUDE.md`.
+
 > **Architecture note:** The project was originally specified as Next.js but implemented as a Vite 8 + React Router v7 client-side SPA. All pages are CSR. SEO for public pages should be addressed via pre-rendering (e.g., prerender spa plugin) or a separate SSR layer if needed in future.
 
 ---
@@ -681,7 +683,7 @@ lib/
 
 ### 13.2 Type Generation
 
-Run `openapi-typescript docs/flatmates-openapi.yaml -o lib/api/types.ts` to generate TypeScript types from the OpenAPI spec. All API response/request types derive from this generated file. Manual overrides go in `lib/api/types.override.ts`.
+Run `openapi-typescript openapi/openapi.json -o lib/api/types.ts` to generate TypeScript types from the OpenAPI spec. All API response/request types derive from this generated file. Manual overrides go in `lib/api/types.override.ts`.
 
 ### 13.3 Error Handling in API Layer
 
@@ -726,7 +728,7 @@ Client-side handling: TanStack Query retry with exponential backoff on 429. UI s
 | Matches | `GET /flatmates/matches`, `PUT /flatmates/matches/{id}/unmatch` | Required |
 | Conversations | `GET /flatmates/conversations`, `GET /flatmates/conversations/{id}`, `GET/POST /flatmates/conversations/{id}/messages`, `POST /flatmates/conversations/{id}/mark-read`, `POST /flatmates/conversations/{id}/qna` | Required |
 | Visits | `POST /visits`, `GET /visits`, `GET /visits/upcoming`, `GET /visits/past`, `GET/PUT /visits/{id}`, `POST /visits/{id}/reschedule`, `POST /visits/{id}/cancel`, `POST /visits/{id}/complete` | Required |
-| Listings | `POST /properties`, `GET /properties`, `GET /properties/semantic-search`, `GET /properties/recommendations`, `GET /properties/me`, `GET/PUT/DELETE /properties/{id}`, `POST /properties/{id}/boost`, `POST /properties/{id}/renew` | Mixed |
+| Listings | `POST /properties`, `GET /properties`, `GET /properties/semantic-search`, `GET /properties/recommendations`, `GET /properties/me`, `GET/PUT/DELETE /properties/{id}` | Mixed |
 | Notifications | `GET/PUT /flatmates/notifications`, `PUT /flatmates/notifications/{id}`, `POST /notifications/devices/register`, `POST /notifications/devices/unregister` | Required |
 | Blocks & Reports | `GET/POST /flatmates/blocks`, `DELETE /flatmates/blocks/{id}`, `POST /flatmates/reports` | Required |
 | Interactions | `POST /flatmates/profile-views`, `POST /flatmates/listings/{id}/society-tags/votes` | Required |
@@ -1052,8 +1054,9 @@ All events follow `object_action` naming with a consistent property schema:
     icons/                         # PWA icons, favicons
     illustrations/                 # Empty state illustrations
     og/                            # OG image templates
-  docs/
-    flatmates-openapi.yaml         # OpenAPI 3.1.0 spec (source of truth)
+  docs/                            # Audit notes, OAuth setup
+  openapi/
+    openapi.json                   # Backend OpenAPI snapshot (source of truth)
   vite.config.ts
   tsconfig.json
   package.json
@@ -1378,7 +1381,7 @@ Client-side calculation from cached profile data. No server call per swipe. The 
 
 ### Critical Files for Implementation
 
-- `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates-web/docs/flatmates-openapi.yaml` -- The OpenAPI 3.1.0 spec with all 38 endpoints and 70+ schemas; source of truth for type generation and API client implementation
+- `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates-web/openapi/openapi.json` -- The OpenAPI 3.1.0 spec with all 38 endpoints and 70+ schemas; source of truth for type generation and API client implementation
 - `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/DESIGN.md` -- Complete design system (color tokens, typography, components, animations, screen-by-screen specs) that must be faithfully ported to web CSS/Tailwind
 - `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/docs/prd.md` -- Product requirements document with personas, user modes, onboarding flow, core features, chat system, trust and safety, and feature priority matrix
 - `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/docs/flatmates_technical_spec.md` -- Backend architecture, data model, API surface, chat/match behavior, and catalog strategy; informs the API integration layer design
@@ -1388,7 +1391,7 @@ Client-side calculation from cached profile data. No server call per swipe. The 
 
 ## Verification
 
-1. **Type Generation**: Run `openapi-typescript docs/flatmates-openapi.yaml -o lib/api/types.ts` and verify no errors
+1. **Type Generation**: Run `openapi-typescript openapi/openapi.json -o lib/api/types.ts` and verify no errors
 2. **Auth Flow**: Test phone OTP login -> bootstrap -> onboarding redirect -> home feed cycle
 3. **Public SEO**: Verify listing pages are indexable (view page source, check meta tags, JSON-LD, canonical URLs)
 4. **Realtime Broadcast**: Verify real-time events flow (new message appears in chat, match notification shows toast)

@@ -19,22 +19,22 @@ export type FlatmatesMode = (typeof FLATMATE_MODE_VALUES)[number];
 export const FLATMATE_MODE_OPTIONS = [
   {
     value: "room_poster",
-    label: "Room Poster",
+    label: "Room poster",
     description: "Has a room and wants to find a compatible flatmate."
   },
   {
     value: "seeker",
-    label: "Room Seeker",
+    label: "Room seeker",
     description: "Looking for a room in an existing flat."
   },
   {
     value: "co_hunter",
-    label: "Co-Hunter",
+    label: "Co-hunter",
     description: "Looking for people to search for a home with."
   },
   {
     value: "open_to_both",
-    label: "Open to Both",
+    label: "Open to both",
     description: "Flexible between posting a room and co-hunting."
   }
 ] as const satisfies readonly DomainOption<FlatmatesMode>[];
@@ -63,13 +63,45 @@ export type MoveInTimeline = (typeof MOVE_IN_TIMELINE_VALUES)[number];
 
 export const MOVE_IN_TIMELINE_OPTIONS = [
   { value: "immediately", label: "Immediately" },
-  { value: "within_1_week", label: "Within 1 Week" },
-  { value: "within_2_weeks", label: "Within 2 Weeks" },
-  { value: "within_1_month", label: "Within 1 Month" },
-  { value: "within_2_months", label: "Within 2 Months" },
-  { value: "within_3_months", label: "Within 3 Months" },
+  { value: "within_1_week", label: "Within 1 week" },
+  { value: "within_2_weeks", label: "Within 2 weeks" },
+  { value: "within_1_month", label: "Within 1 month" },
+  { value: "within_2_months", label: "Within 2 months" },
+  { value: "within_3_months", label: "Within 3 months" },
   { value: "flexible", label: "Flexible" }
 ] as const satisfies readonly DomainOption<MoveInTimeline>[];
+
+/**
+ * Move-in values the property search accepts (`move_in` on `GET /properties`,
+ * backend `MoveInTimeline`). A profile's own `move_in_timeline` is a free
+ * string and uses {@link MOVE_IN_TIMELINE_VALUES} above; the two sets differ
+ * (`immediate` here, `immediately` there), so never send one as the other.
+ */
+export const MOVE_IN_FILTER_VALUES = [
+  "immediate",
+  "within_1_week",
+  "within_2_weeks",
+  "this_month",
+  "next_month",
+  "within_1_month",
+  "within_2_months",
+  "within_3_months",
+  "flexible"
+] as const;
+
+export type MoveInFilter = (typeof MOVE_IN_FILTER_VALUES)[number];
+
+export const MOVE_IN_FILTER_OPTIONS = [
+  { value: "immediate", label: "Immediately" },
+  { value: "within_1_week", label: "Within 1 week" },
+  { value: "within_2_weeks", label: "Within 2 weeks" },
+  { value: "this_month", label: "This month" },
+  { value: "next_month", label: "Next month" },
+  { value: "within_1_month", label: "Within 1 month" },
+  { value: "within_2_months", label: "Within 2 months" },
+  { value: "within_3_months", label: "Within 3 months" },
+  { value: "flexible", label: "Flexible" }
+] as const satisfies readonly DomainOption<MoveInFilter>[];
 
 export const SLEEP_SCHEDULE_VALUES = [
   "early_bird",
@@ -124,15 +156,6 @@ export const AGE_BUCKET_VALUES = [
 
 export type AgeBucket = (typeof AGE_BUCKET_VALUES)[number];
 
-export const AGE_BUCKET_OPTIONS = [
-  { value: "18-24", label: "18-24" },
-  { value: "25-30", label: "25-30" },
-  { value: "31-35", label: "31-35" },
-  { value: "36-40", label: "36-40" },
-  { value: "41-45", label: "41-45" },
-  { value: "46+", label: "46+" }
-] as const satisfies readonly DomainOption<AgeBucket>[];
-
 /** Max length for a profile's native place (home town / city). */
 export const NATIVE_PLACE_MAX_LENGTH = 120;
 
@@ -163,12 +186,12 @@ export type LifestyleDimensionKey =
 export const LIFESTYLE_DIMENSIONS = [
   {
     key: "sleep_schedule",
-    label: "Sleep Schedule",
+    label: "Sleep schedule",
     weight: 0.2,
     options: [
-      { value: "early_bird", label: "Early Bird" },
+      { value: "early_bird", label: "Early bird" },
       { value: "flexible", label: "Flexible" },
-      { value: "night_owl", label: "Night Owl" }
+      { value: "night_owl", label: "Night owl" }
     ]
   },
   {
@@ -183,14 +206,14 @@ export const LIFESTYLE_DIMENSIONS = [
   },
   {
     key: "food_habits",
-    label: "Food Habits",
+    label: "Food habits",
     weight: 0.15,
     options: [
       { value: "vegetarian", label: "Vegetarian" },
       { value: "vegan", label: "Vegan" },
-      { value: "non_vegetarian", label: "Non-Vegetarian" },
+      { value: "non_vegetarian", label: "Non-vegetarian" },
       { value: "eggetarian", label: "Eggetarian" },
-      { value: "no_preference", label: "No Preference" }
+      { value: "no_preference", label: "No preference" }
     ]
   },
   {
@@ -215,25 +238,30 @@ export const LIFESTYLE_DIMENSIONS = [
   },
   {
     key: "guests_policy",
-    label: "Guests Policy",
+    label: "Guests policy",
     weight: 0.15,
     options: [
-      { value: "no_overnight_guests", label: "No Overnight Guests" },
-      { value: "occasional_ok", label: "Occasional Guests OK" },
-      { value: "open_house", label: "Open House" }
+      { value: "no_overnight_guests", label: "No overnight guests" },
+      { value: "occasional_ok", label: "Occasional guests OK" },
+      { value: "open_house", label: "Open house" }
     ]
   },
   {
     key: "work_style",
-    label: "Work Style",
+    label: "Work style",
     weight: 0.1,
     options: [
-      { value: "wfh", label: "WFH" },
+      { value: "wfh", label: "Work from home" },
       { value: "office", label: "Office" },
       { value: "hybrid", label: "Hybrid" }
     ]
   }
 ] as const;
+
+/** The ordered answers for one lifestyle question, as { value, label }. */
+export function lifestyleOptions(key: LifestyleDimensionKey): ReadonlyArray<{ value: string; label: string }> {
+  return LIFESTYLE_DIMENSIONS.find((d) => d.key === key)?.options ?? [];
+}
 
 export type LifestyleProfile = {
   sleep_schedule?: SleepSchedule;
@@ -266,17 +294,17 @@ export const NON_NEGOTIABLE_VALUES = [
 export type NonNegotiable = (typeof NON_NEGOTIABLE_VALUES)[number];
 
 export const NON_NEGOTIABLE_OPTIONS = [
-  { value: "food_veg_only", label: "Veg Only" },
-  { value: "food_vegan_only", label: "Vegan Only" },
-  { value: "no_smoking", label: "No Smoking" },
-  { value: "no_drinking", label: "No Drinking" },
-  { value: "no_overnight_guests", label: "No Overnight Guests" },
-  { value: "no_pets", label: "No Pets" },
-  { value: "gender_female_only", label: "Female Flatmates Only" },
-  { value: "gender_male_only", label: "Male Flatmates Only" },
-  { value: "no_parties", label: "No Parties" },
-  { value: "min_tidy", label: "Tidy Home" },
-  { value: "early_riser", label: "Early Riser" }
+  { value: "food_veg_only", label: "Veg only" },
+  { value: "food_vegan_only", label: "Vegan only" },
+  { value: "no_smoking", label: "No smoking" },
+  { value: "no_drinking", label: "No drinking" },
+  { value: "no_overnight_guests", label: "No overnight guests" },
+  { value: "no_pets", label: "No pets" },
+  { value: "gender_female_only", label: "Female flatmates only" },
+  { value: "gender_male_only", label: "Male flatmates only" },
+  { value: "no_parties", label: "No parties" },
+  { value: "min_tidy", label: "Tidy home" },
+  { value: "early_riser", label: "Early riser" }
 ] as const satisfies readonly DomainOption<NonNegotiable>[];
 
 export const PROPERTY_TYPE_VALUES = ["pg", "flatmate"] as const;
@@ -297,10 +325,10 @@ export const LISTING_SHARING_TYPE_VALUES = [
 export type ListingSharingType = (typeof LISTING_SHARING_TYPE_VALUES)[number];
 
 export const LISTING_SHARING_TYPE_OPTIONS = [
-  { value: "private_room", label: "Private Room" },
-  { value: "shared_room", label: "Shared Room" },
-  { value: "master_bedroom", label: "Master Bedroom" },
-  { value: "entire_flat", label: "Entire Flat" }
+  { value: "private_room", label: "Private room" },
+  { value: "shared_room", label: "Shared room" },
+  { value: "master_bedroom", label: "Master bedroom" },
+  { value: "entire_flat", label: "Entire flat" }
 ] as const satisfies readonly DomainOption<ListingSharingType>[];
 
 export const KITCHEN_TYPE_VALUES = [
@@ -314,7 +342,7 @@ export type KitchenType = (typeof KITCHEN_TYPE_VALUES)[number];
 
 export const KITCHEN_TYPE_OPTIONS = [
   { value: "vegetarian", label: "Vegetarian" },
-  { value: "non_vegetarian", label: "Non-Vegetarian" },
+  { value: "non_vegetarian", label: "Non-vegetarian" },
   { value: "eggetarian", label: "Eggetarian" },
   { value: "any", label: "Any" }
 ] as const satisfies readonly DomainOption<KitchenType>[];
@@ -339,7 +367,7 @@ export type FurnishingLevel = (typeof FURNISHING_LEVEL_VALUES)[number];
 
 export const FURNISHING_LEVEL_OPTIONS = [
   { value: "furnished", label: "Furnished" },
-  { value: "semi_furnished", label: "Semi-Furnished" },
+  { value: "semi_furnished", label: "Semi-furnished" },
   { value: "unfurnished", label: "Unfurnished" }
 ] as const satisfies readonly DomainOption<FurnishingLevel>[];
 
@@ -352,18 +380,13 @@ export const SOCIETY_TYPE_VALUES = [
 
 export type SocietyType = (typeof SOCIETY_TYPE_VALUES)[number];
 
-export const SEARCH_TYPE_VALUES = ["listings", "profiles", "all"] as const;
-
-export type SearchType = (typeof SEARCH_TYPE_VALUES)[number];
-
 export const SEARCH_SORT_VALUES = [
   "distance",
   "price_low",
   "price_high",
   "newest",
   "popular",
-  "relevance",
-  "match_percentage"
+  "relevance"
 ] as const;
 
 export type SearchSort = (typeof SEARCH_SORT_VALUES)[number];
@@ -410,8 +433,6 @@ export type UserReportReason = "spam" | "fake_profile" | "abuse" | "inappropriat
 
 export type UserReportStatus = "open" | "reviewed" | "dismissed" | "actioned";
 
-export type BoostDuration = "24h" | "7d" | "30d";
-
 export type ShareCardFormat = "whatsapp_square" | "instagram_story" | "original";
 
 export type DevicePlatform = "ios" | "android" | "web";
@@ -420,15 +441,47 @@ export type UserRole = "user" | "admin" | "agent";
 
 export type UserMatchStatus = "active" | "unmatched" | "blocked";
 
-export type ConversationSource = "listing_interest" | "profile_match";
+export const CONVERSATION_SOURCE_VALUES = [
+  "listing_interest",
+  "profile_match",
+  "booking_inquiry",
+  "property_inquiry",
+  "lease_inquiry",
+  "other"
+] as const;
+
+export type ConversationSource = (typeof CONVERSATION_SOURCE_VALUES)[number];
 
 export type ConversationStatus = "active" | "archived" | "blocked" | "closed";
 
-export type PropertyLifecycleStatus = "draft" | "active" | "paused" | "expired";
+/** Backend `PropertyStatus` (`Property.status`). */
+export const PROPERTY_STATUS_VALUES = [
+  "available",
+  "sold",
+  "rented",
+  "under_offer",
+  "maintenance"
+] as const;
 
-export const PROPERTY_MODERATION_STATUS_VALUES = ["pending_review", "approved", "rejected"] as const;
+export type PropertyStatus = (typeof PROPERTY_STATUS_VALUES)[number];
 
-export type PropertyModerationStatus = (typeof PROPERTY_MODERATION_STATUS_VALUES)[number];
+/** Backend `ListingModerationStatus` (`listing_preferences.moderation_status`). */
+export const LISTING_MODERATION_STATUS_VALUES = [
+  "pending_review",
+  "live",
+  "paused",
+  "rejected"
+] as const;
+
+export type ListingModerationStatus = (typeof LISTING_MODERATION_STATUS_VALUES)[number];
+
+/** How an owner reads a listing state (owner dashboard, listing page). */
+export const LISTING_STATUS_LABEL: Record<ListingModerationStatus, string> = {
+  live: "Published",
+  pending_review: "In review",
+  paused: "Paused",
+  rejected: "Rejected"
+};
 
 export type CompatibilityColor = "green" | "amber" | "red";
 
@@ -436,11 +489,14 @@ export type InterestLevel = "high" | "medium" | "low";
 
 export type ModerationAction = "approve" | "reject" | "request_edit";
 
-export const REPORT_STATUS_VALUES = ["open", "under_review", "resolved", "dismissed"] as const;
+/** Backend `UserReportStatus`. */
+export const REPORT_STATUS_VALUES = ["open", "reviewed", "dismissed", "actioned"] as const;
 
 export type ReportStatus = (typeof REPORT_STATUS_VALUES)[number];
 
-export type ReportAction = "dismiss" | "warn" | "suspend";
+/** Backend `ReportAction` (`PUT /flatmates/moderation/reports/{id}`). */
+export const REPORT_ACTION_VALUES = ["dismiss", "warn_user", "suspend_user", "escalate"] as const;
+
+export type ReportAction = (typeof REPORT_ACTION_VALUES)[number];
 
 export type SocietyTagVoteDirection = "up" | "down";
-

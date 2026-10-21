@@ -10,19 +10,18 @@ Active contributors: Saksham
 
 ```toml
 [build]
-  command = "npx playwright install chromium && npm run build"
+  command = "npm run build"
   publish = "dist"
 
 [build.environment]
   VITE_API_BASE_URL = "https://api.360ghar.com/api/v1"
-  PRERENDER_CONCURRENCY = "20"
 ```
 
-- **Build command.** `npx playwright install chromium && npm run build`. The Playwright Chromium install is the build-only prerequisite the prerender step needs. The e2e workflow already installs it; a build-only job must too, so it is prepended to the build command here so a fresh CI runner works without manual setup.
-- **Publish directory.** `dist`. Vite writes the production bundle here, and the prerender step writes one `dist/<route>/index.html` per public route on top.
+- **Build command.** `npm run build`. The build needs no browser: the static HTML step is string-based.
+- **Publish directory.** `dist`. Vite writes the production bundle here, and the static HTML step writes one `dist/<route>/index.html` per public route on top.
 - **Build environment.** One variable is baked into the build. `VITE_API_BASE_URL` is the production backend URL the bundle is compiled against (Vite inlines `VITE_*` vars at build time, so the served bundle already knows its backend). There is no explicit `PRERENDER_FETCH_DATA` env var: build-time listing fetches gate themselves on Netlify's automatic `CONTEXT` variable (see [SEO and prerendering](features/seo-prerendering.md#build-context-gating-local--preview) — only `CONTEXT=production` fetches listing data; previews and local builds skip the backend entirely).
 
-## SPA fallback and prerender precedence
+## SPA fallback and static HTML precedence
 
 `public/_redirects` is a single line:
 
@@ -32,48 +31,46 @@ Active contributors: Saksham
 
 This is Netlify's SPA fallback: any path that does not match a real file on disk is served from `dist/index.html` with a 200 status, so React Router can take over. The 200 (not 301 or 302) is what keeps deep links shareable without redirect chains.
 
-Real files on disk take precedence over the fallback. That is the whole point of the prerender step: `scripts/prerender.ts` writes a real `dist/discover/index.html`, `dist/cities/bangalore/index.html`, `dist/discover/123/index.html`, and so on, so a crawler that fetches `/discover/123` gets the prerendered HTML (with real meta, JSON-LD, and visible content) instead of the empty SPA shell. Browsers still get the SPA fallback on first paint because the prerendered HTML hydrates into the same React tree. See [SEO and prerendering](features/seo-prerendering.md) for the route inventory and the capture mechanics.
+Real files on disk take precedence over the fallback. That is the whole point of the static HTML step: `scripts/generate-static-html.ts` writes a real `dist/discover/index.html`, `dist/cities/bangalore/index.html`, `dist/discover/123/index.html`, and so on, so a crawler that fetches `/discover/123` gets the static HTML (with real meta, JSON-LD, and visible content) instead of the empty SPA shell. See [SEO and prerendering](features/seo-prerendering.md) for the route inventory and the generation mechanics.
 
 ## The build pipeline
 
-`npm run build` expands (in `package.json`) to a seven-step pipeline. Each step feeds the next, and the prerender step depends on every prior step having succeeded.
+`npm run build` expands (in `package.json`) to a six-step pipeline. Each step feeds the next, and the static HTML step depends on every prior step having succeeded.
 
 ```bash
 tsc --noEmit &&
 npx tsx scripts/generate-pwa-icons.ts &&
-npx tsx scripts/generate-og-image.ts &&
 npx tsx scripts/generate-favicon-ico.ts &&
 npx tsx scripts/generate-sitemap.ts &&
 vite build &&
-npx tsx scripts/prerender.ts
+npx tsx scripts/generate-static-html.ts
 ```
 
 | Step | Script | Output |
 | --- | --- | --- |
 | 1 | `tsc --noEmit` | Type-check the whole project. A failure halts the build before any artifacts are produced. |
 | 2 | `scripts/generate-pwa-icons.ts` | `public/favicon-192.webp`, `public/favicon-512.webp`, plus maskable variants, all derived from `public/favicon.svg`. |
-| 3 | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630 social card) and `public/logo.webp` (512x512). |
-| 4 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution legacy icon). |
-| 5 | `scripts/generate-sitemap.ts` | `public/sitemap.xml`, derived from the same route inventory and city/neighborhood catalog the prerender step uses. |
-| 6 | `vite build` | `dist/` with the production bundle, the service worker, and a clean `dist/index.html` shell. |
-| 7 | `scripts/prerender.ts` | `dist/<route>/index.html` files, one per public route, captured into memory and flushed to disk at the end. |
+| 3 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution legacy icon). |
+| 4 | `scripts/generate-sitemap.ts` | `public/sitemap.xml`, derived from the same route inventory and city/neighborhood catalog the static HTML step uses. |
+| 5 | `vite build` | `dist/` with the production bundle, the service worker, and a clean `dist/index.html` shell. |
+| 6 | `scripts/generate-static-html.ts` | `dist/<route>/index.html` files, one per public route, built from the shell as strings. |
 
-Steps 2 through 5 write into `public/` so Vite copies them into `dist/` during step 6. The prerender step runs last because it serves `dist/` with `vite preview`, so the bundle must already exist. A single-route failure inside the prerender step logs a warning and continues; the build never fails because of one flaky route. Infrastructure failures (no `dist/`, the preview server will not start, Chromium cannot launch) do fail the build, because if the step cannot run at all there is nothing to degrade to. See [SEO and prerendering](features/seo-prerendering.md) for the capture internals.
+The social card (`scripts/generate-og-image.ts`) is manual (`npm run generate:og-image`) and committed.
+
+Steps 2 through 4 write into `public/` so Vite copies them into `dist/` during step 5. The static HTML step runs last because it reads the built `dist/index.html` shell. A listing fetch failure logs a warning and the build continues. A missing `dist/` fails the build. See [SEO and prerendering](features/seo-prerendering.md) for the internals.
 
 ```mermaid
 flowchart TD
-    A["Netlify trigger\n(push to main)"] --> B["npx playwright install chromium"]
-    B --> C["npm run build"]
+    A["Netlify trigger\n(push to main)"] --> C["npm run build"]
     C --> C1["tsc --noEmit"]
     C1 --> C2["generate-pwa-icons.ts"]
-    C2 --> C3["generate-og-image.ts"]
-    C3 --> C4["generate-favicon-ico.ts"]
+    C2 --> C4["generate-favicon-ico.ts"]
     C4 --> C5["generate-sitemap.ts"]
     C5 --> C6["vite build -> dist/"]
-    C6 --> C7["prerender.ts\nserve dist, capture routes, write HTML"]
+    C6 --> C7["generate-static-html.ts\nwrite per-route HTML"]
     C7 --> D["dist/ published to Netlify CDN"]
     D --> E["public/_redirects\n/* -> /index.html 200"]
-    D --> F["prerendered dist/<route>/index.html\ntakes precedence over fallback"]
+    D --> F["static dist/<route>/index.html\ntakes precedence over fallback"]
     E --> G["Visitors and crawlers"]
     F --> G
 ```

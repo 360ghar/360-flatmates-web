@@ -40,6 +40,7 @@ export function Modal({
   // viewport-relative even when ancestors apply transform/filter (e.g. the
   // .page-fade animation fill mode).
   return createPortal(
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop click; Escape closes from the keyboard
     <dialog
       ref={dialogRef}
       aria-modal="true"
@@ -47,7 +48,7 @@ export function Modal({
       aria-describedby={description ? descriptionId : undefined}
       onClick={(e) => handleDialogBackdropClick(e, onClose)}
       className={cn(
-        "fixed inset-x-0 bottom-0 top-auto m-0 max-h-[92vh] w-full overflow-y-auto rounded-t-[20px] border border-line bg-surface-elevated p-0 text-ink shadow-lg animate-fade-slide-up backdrop:bg-black/50 backdrop:backdrop-blur-[9px] md:inset-0 md:m-auto md:h-fit md:rounded-[16px]",
+        "paper-grain max-md:paper-edge-torn-top fixed inset-x-0 bottom-0 top-auto m-0 max-h-[92vh] w-full overflow-y-auto bg-surface-elevated p-0 text-ink shadow-md animate-bottom-sheet-in backdrop:bg-[rgb(18_24_20/0.5)] md:inset-0 md:m-auto md:h-fit md:rounded-cut-lg md:animate-fade-slide-up",
         size === "default" ? "md:max-w-[480px]" : "md:max-w-[600px]",
         className
       )}
@@ -67,7 +68,7 @@ export function Modal({
       <div className="p-6">
         {title ? (
           <div className="pr-10">
-            <h2 className="text-h3 font-semibold text-ink" id={titleId}>
+            <h2 className="text-h3 text-ink" id={titleId}>
               {title}
             </h2>
             {description ? (
@@ -111,27 +112,28 @@ export function Drawer({
   }
 
   return createPortal(
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop click; Escape closes from the keyboard
     <dialog
       ref={dialogRef}
       aria-modal="true"
       aria-labelledby={title ? titleId : undefined}
       onClick={(e) => handleDialogBackdropClick(e, onClose)}
       className={cn(
-        "fixed m-0 max-h-none overflow-y-auto border-line bg-surface-elevated p-0 text-ink shadow-lg backdrop:bg-black/50 backdrop:backdrop-blur-[9px]",
+        "paper-grain fixed m-0 max-h-none overflow-y-auto bg-surface-elevated p-0 text-ink shadow-md backdrop:bg-[rgb(18_24_20/0.5)]",
         side === "right"
-          ? cn("inset-y-0 right-0 left-auto h-full border-l animate-drawer-in", width === "wide" ? "w-full md:w-[480px]" : "w-full md:w-[400px]")
+          ? cn("inset-y-0 right-0 left-auto h-full animate-drawer-in", width === "wide" ? "w-[min(92vw,480px)]" : "w-[min(88vw,400px)]")
           : cn(
-            "inset-x-0 bottom-0 top-auto max-h-[85vh] w-full rounded-t-2xl border-t animate-bottom-sheet-in md:inset-y-0 md:left-auto md:right-0 md:top-0 md:max-h-none md:rounded-none md:border-l md:border-t-0 md:animate-drawer-in",
+            "max-md:paper-edge-torn-top inset-x-0 bottom-0 top-auto max-h-[85vh] w-full animate-bottom-sheet-in md:inset-y-0 md:left-auto md:right-0 md:top-0 md:max-h-none md:animate-drawer-in",
             width === "wide" ? "md:w-[480px]" : "md:w-[400px]"
           ),
         className
       )}
       {...props}
     >
-      {side === "bottom" ? <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-ink-4 md:hidden" /> : null}
-      <div className="flex items-center justify-between gap-4 border-b border-line p-4">
+      {side === "bottom" ? <div className="mx-auto mt-4 h-1 w-10 rounded-full bg-ink-4 md:hidden" /> : null}
+      <div className="flex items-center justify-between gap-4 p-4 pt-5">
         {title ? (
-          <h2 className="text-h3 font-semibold text-ink" id={titleId}>
+          <h2 className="text-h3 text-ink" id={titleId}>
             {title}
           </h2>
         ) : (
@@ -151,19 +153,4 @@ export type BottomSheetProps = Omit<DrawerProps, "side">;
 
 export function BottomSheet(props: BottomSheetProps) {
   return <Drawer {...props} side="bottom" />;
-}
-
-export function ModalFooterAction({
-  children,
-  className,
-  ...props
-}: {
-  children: ReactNode;
-  className?: string;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <Button className={cn("w-full md:w-auto", className)} {...props}>
-      {children}
-    </Button>
-  );
 }

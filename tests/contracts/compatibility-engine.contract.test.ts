@@ -47,7 +47,7 @@ describe("compatibility engine", () => {
     expect(result.overall_percentage).toBe(40);
     expect(result.color).toBe("amber");
     expect(result.dimensions.find((item) => item.name === "food_habits")?.score).toBe(0);
-    expect(result.summary).toContain("Food Habits: preference gap");
+    expect(result.summary).toContain("Food habits: preference gap");
   });
 
   it("ranks peers by calculated compatibility without mutating input order", () => {

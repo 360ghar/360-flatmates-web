@@ -26,6 +26,10 @@ const mockSupabaseAuth = {
 };
 
 vi.mock("@/lib/supabase/client", () => ({
+  signOutBrowserSession: async () => {
+    const { error } = await mockSignOut();
+    return error;
+  },
   getSupabaseBrowserClient: () => ({
     auth: mockSupabaseAuth
   })
@@ -119,6 +123,18 @@ describe("useAuth", () => {
     expect(result.current.session).toEqual(mockSession);
   });
 
+  it("does not restore a bootstrap session after a signed-out event", async () => {
+    let resolve!: (value: unknown) => void;
+    mockGetSession.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+    await act(async () => {
+      mockOnAuthStateChange.mock.calls[0][0]("SIGNED_OUT", null);
+      resolve({ data: { session: { user: { id: "old-account" }, access_token: "old", expires_at: Date.now() / 1000 + 3600 } } });
+    });
+    expect(result.current.session).toBeNull();
+    expect(result.current.loading).toBe(false);
+  });
+
   it("calls signInWithPhone with shouldCreateUser:false by default (login/reset safe)", async () => {
     mockSignInWithOtp.mockResolvedValue({ error: null });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
@@ -184,7 +200,7 @@ describe("useAuth", () => {
     });
   });
 
-  it("calls signOut and throws on error", async () => {
+  it("calls signOut once when the revoke succeeds", async () => {
     mockSignOut.mockResolvedValue({ error: null });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
@@ -194,16 +210,16 @@ describe("useAuth", () => {
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
-  it("signOut re-throws Supabase error", async () => {
-    const error = new Error("Sign out failed");
-    mockSignOut.mockResolvedValue({ error });
+  it("signOut still clears the local session when the server revoke fails (W18)", async () => {
+    mockSignOut.mockResolvedValueOnce({ error: new Error("network") }).mockResolvedValue({ error: null });
     const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
 
-    await expect(
-      act(async () => {
-        await result.current.signOut();
-      })
-    ).rejects.toThrow("Sign out failed");
+    await act(async () => {
+      await result.current.signOut();
+    });
+    expect(result.current.session).toBeNull();
+    // Storage and SDK cleanup are covered with the real SDK in session-storage.test.
+    expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
   it("signInWithEmailOtp sends a 6-digit OTP with shouldCreateUser:false by default", async () => {

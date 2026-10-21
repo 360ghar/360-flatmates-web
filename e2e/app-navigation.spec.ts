@@ -60,8 +60,8 @@ test.describe("App pages — authenticated page structure", () => {
 
   test("Home page renders greeting and feed sections", async ({ page }) => {
     await page.goto("/home");
-    await expect(page.getByRole("heading", { name: /hi/i })).toBeVisible();
-    await expect(page.getByRole("checkbox", { name: "Nearby" })).toBeVisible();
+    await expect(page.getByText(/^Hi, .+!$/).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /New for you/ })).toBeVisible();
   });
 
   test("Home page shows notification bell", async ({ page }) => {
@@ -69,13 +69,15 @@ test.describe("App pages — authenticated page structure", () => {
     await expect(page.getByRole("link", { name: /notifications/i })).toBeVisible();
   });
 
-  test("Home page renders filter chips", async ({ page }) => {
+  test("Home page links quick searches to search", async ({ page }) => {
     await page.goto("/home");
-    await expect(page.getByRole("checkbox", { name: "Nearby" })).toBeVisible();
-    await expect(page.getByText("1BHK")).toBeVisible();
-    await expect(page.getByText("Furnished")).toBeVisible();
-    await expect(page.getByText("Budget+")).toBeVisible();
-    await expect(page.getByText("Vegetarian")).toBeVisible();
+    const quick = page.getByRole("navigation", { name: "Quick searches" });
+    await expect(quick.getByRole("link", { name: "All rooms" })).toHaveAttribute("href", "/search");
+    await expect(quick.getByRole("link", { name: "1BHK" })).toHaveAttribute("href", "/search?bedrooms=1");
+    await expect(quick.getByRole("link", { name: "Under ₹10,000" })).toHaveAttribute("href", "/search?priceMax=10000");
+    await page.getByRole("search").getByRole("combobox", { name: "Search rooms and flatmates" }).fill("Koramangala");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/search\?q=Koramangala/);
   });
 
   test("Swipe page renders SwipeDeck", async ({ page }) => {
@@ -85,7 +87,8 @@ test.describe("App pages — authenticated page structure", () => {
 
   test("Profile page renders Likes and Matches menu rows", async ({ page }) => {
     await page.goto("/profile");
-    await expect(page.getByRole("link", { name: /likes & matches/i })).toBeVisible();
+    await expect(page.getByText("People who liked you")).toBeVisible();
+    await expect(page.getByText("People you matched with")).toBeVisible();
   });
 
   test("Chats page renders Chats heading", async ({ page }) => {
@@ -93,19 +96,19 @@ test.describe("App pages — authenticated page structure", () => {
     await expect(page.getByRole("heading", { name: /chats/i })).toBeVisible();
   });
 
-  test("Visits page renders My Visits heading", async ({ page }) => {
+  test("Visits page renders the Visits heading", async ({ page }) => {
     await page.goto("/visits");
-    await expect(page.getByRole("heading", { name: /my visits/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Visits", exact: true })).toBeVisible();
   });
 
   test("Settings entry point redirects to profile menu items", async ({ page }) => {
     await page.goto("/settings");
     await expect(page).toHaveURL(/\/profile/);
     await expect(page.getByText("Notifications")).toBeVisible();
-    await expect(page.getByText("Blocked Users")).toBeVisible();
-    await expect(page.getByText("Report a Problem")).toBeVisible();
-    await expect(page.getByText("Sign Out")).toBeVisible();
-    await expect(page.getByText("Delete Account")).toBeVisible();
+    await expect(page.getByText("Blocked people")).toBeVisible();
+    await expect(page.getByText("Report a problem")).toBeVisible();
+    await expect(page.getByText("Sign out", { exact: true })).toBeVisible();
+    await expect(page.getByText("Delete account", { exact: true })).toBeVisible();
   });
 
   test("Settings — Notifications link navigates to /settings/notifications", async ({
@@ -116,11 +119,11 @@ test.describe("App pages — authenticated page structure", () => {
     await expect(page).toHaveURL(/\/settings\/notifications/);
   });
 
-  test("Settings — Blocked Users link navigates to /settings/blocked-users", async ({
+  test("Settings: Blocked people link navigates to /settings/blocked-users", async ({
     page,
   }) => {
     await page.goto("/settings");
-    await page.getByText("Blocked Users").click();
+    await page.getByText("Blocked people").click();
     await expect(page).toHaveURL(/\/settings\/blocked-users/);
   });
 });
@@ -158,38 +161,35 @@ test.describe("App page — loading and error states", () => {
   });
 
   test("Home page shows loading skeletons before data loads", async ({ page }) => {
-    await delayApiResponse(page, "/flatmates/bootstrap");
+    // Long enough to outlast the lazy Home chunk loading in dev.
+    await delayApiResponse(page, "/flatmates/bootstrap", 3_000);
     await page.goto("/home");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Swipe page shows loading skeleton before profiles load", async ({ page }) => {
     await delayApiResponse(page, "/flatmates/profiles");
     await page.goto("/swipe");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Chats page shows loading skeletons before conversations load", async ({ page }) => {
     await delayApiResponse(page, "/flatmates/conversations");
     await page.goto("/chats");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("Visits page shows loading skeletons before visits load", async ({ page }) => {
     await delayApiResponse(page, "/visits");
     await page.goto("/visits");
-    const skeletons = page.locator(
-      ".shimmer:visible, [class*='animate-shimmer']:visible, [class*='animate-pulse']:visible, [class*='skeleton']:visible"
-    );
+    // Skeletons announce loading; match that, not styling class names.
+    const skeletons = page.locator('[role="status"][aria-busy="true"]').filter({ visible: true });
     await expect(skeletons.first()).toBeVisible({ timeout: 5_000 });
   });
 });

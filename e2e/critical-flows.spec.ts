@@ -6,10 +6,13 @@ test("public discovery sends unauthenticated listing contact to login", async ({
   await expect(page.getByRole("heading", { name: /find your flatmate.*not a nightmare/i })).toBeVisible();
   await page.locator("#main").getByRole("link", { name: /start matching/i }).first().click();
   await expect(page).toHaveURL(/\/discover$/);
-  await expect(page.getByRole("heading", { name: "Browse Listings" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Browse rooms" })).toBeVisible();
 
-  await page.getByRole("button", { name: "View Details" }).first().click();
-  await expect(page).toHaveURL(/\/login\?redirect=.*%2Fdiscover%2F/);
+  // Viewing is public; contacting the owner asks for sign-in.
+  await page.getByRole("button", { name: "View details" }).first().click();
+  await expect(page).toHaveURL(/\/discover\/101$/);
+  await page.getByRole("button", { name: "Contact owner" }).first().click();
+  await expect(page).toHaveURL(/\/login\?redirect=.*%2Flisting%2F101/);
   await expect(page.getByRole("heading", { name: /sign in or sign up/i })).toBeVisible();
 });
 
@@ -17,11 +20,11 @@ test("search filters open the saved searches workflow", async ({ page }) => {
   await seedDevAuth(page);
   await page.goto("/search");
 
-  await expect(page.getByRole("heading", { name: "Search Listings" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Search rooms" })).toBeVisible();
   await page.getByLabel(/filter by city/i).selectOption("2");
-  await page.getByRole("button", { name: "Save search" }).click();
+  await page.getByRole("button", { name: "Saved searches" }).click();
   await expect(page).toHaveURL(/\/saved-searches$/);
-  await expect(page.locator("#main").getByRole("heading", { name: "Saved Searches", exact: true })).toBeVisible();
+  await expect(page.locator("#main").getByRole("heading", { name: /saved searches/i, level: 1 })).toBeVisible();
 });
 
 test("password setup recovery survives reload and can be cancelled", async ({ page }) => {
@@ -94,7 +97,7 @@ test("listing builder submits into moderation review", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Review & Publish" })).toBeVisible();
   await page.getByRole("button", { name: "Publish Listing" }).click();
   await expect(page).toHaveURL(/\/post\/review\/\d+$/);
-  await expect(page.getByRole("heading", { name: "Under Review" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your listing is in review" })).toBeVisible();
 });
 
 test("settings apply theme tokens", async ({ page }) => {
@@ -102,7 +105,7 @@ test("settings apply theme tokens", async ({ page }) => {
   await page.goto("/settings/appearance");
 
   await expect(page.locator("#main").getByRole("heading", { name: "Appearance" })).toBeVisible();
-  await page.getByRole("button", { name: /^Dark/i }).click();
+  await page.getByRole("radio", { name: /^Dark/i }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
 
@@ -110,12 +113,12 @@ test("admin moderation list links into prescreen and reports workflows", async (
   await seedDevAuth(page, { admin: true });
   await page.goto("/admin/moderation/listings");
 
-  await expect(page.getByRole("heading", { name: "Listing Review Queue" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Listing queue" })).toBeVisible();
   await page.getByRole("link", { name: "Review" }).first().click();
   await expect(page).toHaveURL(/\/admin\/moderation\/prescreen\/.+/);
   await expect(page.getByRole("heading", { name: "Listing Review" })).toBeVisible();
 
   await page.goto("/admin/moderation/reports");
-  await expect(page.getByRole("heading", { name: "Report Review Queue" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Reports", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Suspend" }).first()).toBeVisible();
 });

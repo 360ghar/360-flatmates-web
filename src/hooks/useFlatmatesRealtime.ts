@@ -114,7 +114,6 @@ export function useFlatmatesRealtime({
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["search", "web"] });
       queryClient.invalidateQueries({ queryKey: ["map"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["matches"] });
       queryClient.invalidateQueries({ queryKey: ["incoming-likes"] });
       queryClient.invalidateQueries({ queryKey: ["outgoing-likes"] });
@@ -178,7 +177,6 @@ export function useFlatmatesRealtime({
           queryClient.invalidateQueries({ queryKey: ["properties"] });
           queryClient.invalidateQueries({ queryKey: ["search", "web"] });
           queryClient.invalidateQueries({ queryKey: ["map"] });
-          queryClient.invalidateQueries({ queryKey: ["dashboard"] });
           const propertyId = toPositiveNumber(data.property_id);
           if (propertyId !== null) {
             queryClient.invalidateQueries({ queryKey: ["properties", propertyId] });
@@ -239,6 +237,7 @@ export function useFlatmatesRealtime({
 
         if (status === "SUBSCRIBED") {
           reconnectDelayMs = 1_000;
+          uiStore.getState().setRealtimeEvents(events);
           uiStore.getState().setRealtimeState("connected");
           if (reconnectingAfterOutage) {
             reconnectingAfterOutage = false;
@@ -266,6 +265,7 @@ export function useFlatmatesRealtime({
       cancelled = true;
       clearReconnectTimer();
       void removeCurrentChannel();
+      uiStore.getState().setRealtimeEvents([]);
       uiStore.getState().setRealtimeState("disconnected");
     };
   }, [

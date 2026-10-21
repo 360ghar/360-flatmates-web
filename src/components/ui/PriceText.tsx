@@ -13,8 +13,8 @@ export interface PriceTextProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantClasses: Record<PriceTextVariant, string> = {
-  hero: "text-display font-semibold leading-none text-ink",
-  card: "text-h3 font-bold leading-tight text-ink",
+  hero: "text-display text-ink",
+  card: "text-h3 text-ink",
   inline: "text-body-md font-semibold text-ink-2"
 };
 

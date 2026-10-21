@@ -19,8 +19,7 @@ The rules every contributor must follow. These are summarized from [CLAUDE.md](.
 
 ## Fonts
 
-- Fraunces (display, headlines), Inter (body, UI), JetBrains Mono (eyebrow, tabular), Instrument Serif (italic emphasis). Loaded via `<link>` in `index.html` with `display: swap`.
-- Italic emphasis is the Instrument Serif italic of the same headline, never a randomly injected serif word. Audit italic words with descenders.
+- Gambarino (display, headlines, self-hosted woff2, preloaded in `index.html`) and system-ui (body, UI). See DESIGN.md section 2.
 
 ## Async state (mandatory on every data page)
 
@@ -44,8 +43,8 @@ Never mirror server state into a Zustand store. Never `useEffect + useState` for
 
 ## Routing and code splitting
 
-- Every page is `lazy()`-loaded in `src/App.tsx`. New pages must be added there.
-- Route guards: `AuthGuard` (any signed-in user), `AdminGuard` (admin role), `GateGuard` (enforces profile-completion and onboarding gates), `AuthRedirectGuard` (bounces signed-in users away from `/login`). See `src/pages/guards.tsx`.
+- Every page is `lazy()`-loaded in `src/app/routes.tsx`. New pages must be added there.
+- Route guards: `AuthGuard` (any signed-in user), `AdminGuard` (admin role), `GateGuard` (enforces profile-completion and onboarding gates), `AuthRedirectGuard` (bounces signed-in users away from `/login`). See `src/app/guards.tsx`.
 - Layouts: `PublicLayout`, `AuthLayout`, `AppLayout`, `AdminLayout`. Pick the right one for the page's auth requirements.
 
 ## Components

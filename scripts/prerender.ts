@@ -67,7 +67,7 @@ const CONCURRENCY = Math.max(1, Number(process.env.PRERENDER_CONCURRENCY ?? 20))
 const PRERENDER_LISTINGS = process.env.PRERENDER_LISTINGS !== "0";
 
 /**
- * Static public routes to prerender (derived from src/App.tsx public layout).
+ * Static public routes to prerender (derived from src/app/routes.tsx public layout).
  *
  * IMPORTANT: only include routes that are (a) under <PublicLayout/> (not
  * <AuthGuard>/<AdminGuard>) and (b) allowed by public/robots.txt. Authenticated

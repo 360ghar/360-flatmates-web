@@ -4,8 +4,6 @@ import { createSafeJsonStorage } from "./storage";
 
 export const UI_STORE_KEY = "360-flatmates-ui";
 
-export type ModalId = "settings" | "photo-viewer" | "report-user" | "visit-reschedule" | "delete-confirm";
-export type DrawerId = "filters" | "chat-info" | "profile-edit" | "notifications";
 
 export type ThemePreference = "light" | "dark" | "system";
 export type SidebarState = "expanded" | "collapsed";
@@ -20,7 +18,7 @@ export const THEME_OPTIONS: ReadonlyArray<{ value: ThemePreference; label: strin
 export const SIDEBAR_WIDTH_DEFAULT = 200;
 export const SIDEBAR_WIDTH_MIN = 180;
 export const SIDEBAR_WIDTH_MAX = 360;
-export const SIDEBAR_WIDTH_COLLAPSED = 56;
+export const SIDEBAR_WIDTH_COLLAPSED = 72;
 export type ToastType = "success" | "error" | "info" | "warning";
 
 export interface ToastMessage {
@@ -36,21 +34,16 @@ export interface UiStoreState {
   theme: ThemePreference;
   sidebar: SidebarState;
   sidebarWidth: number;
-  activeModal: ModalId | null;
-  activeDrawer: DrawerId | null;
   realtimeConnected: boolean;
   realtimeState: RealtimeState;
-  reducedMotion: boolean;
+  /** Broadcast events the live channel subscribes to (not persisted). */
+  realtimeEvents: readonly string[];
   toasts: ToastMessage[];
   setTheme: (theme: ThemePreference) => void;
   setSidebar: (sidebar: SidebarState) => void;
   setSidebarWidth: (width: number) => void;
-  openModal: (modal: ModalId) => void;
-  closeModal: () => void;
-  openDrawer: (drawer: DrawerId) => void;
-  closeDrawer: () => void;
   setRealtimeState: (state: RealtimeState) => void;
-  setReducedMotion: (reduced: boolean) => void;
+  setRealtimeEvents: (events: readonly string[]) => void;
   pushToast: (toast: Omit<ToastMessage, "id" | "createdAt"> & { id?: string }) => string;
   dismissToast: (id: string) => void;
   clearToasts: () => void;
@@ -62,11 +55,9 @@ export type UiStoreInitialState = Partial<
     | "theme"
     | "sidebar"
     | "sidebarWidth"
-    | "activeModal"
-    | "activeDrawer"
     | "realtimeConnected"
     | "realtimeState"
-    | "reducedMotion"
+    | "realtimeEvents"
     | "toasts"
   >
 >;
@@ -82,20 +73,15 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
         theme: "light",
         sidebar: "expanded",
         sidebarWidth: SIDEBAR_WIDTH_DEFAULT,
-        activeModal: null,
-        activeDrawer: null,
         realtimeConnected: false,
         realtimeState: "disconnected",
-        reducedMotion: false,
+        realtimeEvents: [],
         toasts: [],
         ...initialState,
         setTheme: (theme) => set((state) => state.theme === theme ? state : { theme }),
         setSidebar: (sidebar) => set({ sidebar }),
         setSidebarWidth: (sidebarWidth) => set({ sidebarWidth }),
-        openModal: (activeModal) => set({ activeModal }),
-        closeModal: () => set({ activeModal: null }),
-        openDrawer: (activeDrawer) => set({ activeDrawer }),
-        closeDrawer: () => set({ activeDrawer: null }),
+        setRealtimeEvents: (realtimeEvents) => set({ realtimeEvents }),
         setRealtimeState: (realtimeState) =>
           set((s) => {
             const realtimeConnected = realtimeState === "connected";
@@ -104,7 +90,6 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
               ? s
               : { realtimeState, realtimeConnected };
           }),
-        setReducedMotion: (reducedMotion) => set({ reducedMotion }),
         pushToast: (toast) => {
           const id = toast.id ?? createToastId();
           set((state) => {
@@ -132,12 +117,14 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
       }),
       {
         name: UI_STORE_KEY,
+        // Bump `version` and handle the old one in `migrate` when a stored key changes meaning.
+        version: 1,
+        migrate: (persistedState) => (persistedState ?? {}) as UiStoreState,
         storage: createSafeJsonStorage(),
         partialize: (state) => ({
           theme: state.theme,
           sidebar: state.sidebar,
-          sidebarWidth: state.sidebarWidth,
-          reducedMotion: state.reducedMotion
+          sidebarWidth: state.sidebarWidth
         }),
         merge: (persistedState, currentState) => {
           const persisted = (persistedState ?? {}) as Partial<UiStoreState>;

@@ -4,18 +4,19 @@ import { Button } from "../Button";
 import { buttonClasses } from "../component-utils";
 
 /**
- * Design-system contract tests for the Airbnb Rausch migration.
+ * Design-system contract tests for the Paper Diorama buttons (DESIGN.md §8).
  * Asserts shipped class strings (not mocked reimplementations).
  */
-describe("Button design system (Airbnb Rausch)", () => {
-  it("primary uses Rausch accent fill with CTA shadow and active hover", () => {
+describe("Button design system (Paper Diorama)", () => {
+  it("primary is a clay fill that presses, never lifts on hover", () => {
     const classes = buttonClasses("primary", "default");
-    expect(classes).toContain("bg-accent");
-    expect(classes).toContain("text-white");
-    expect(classes).toContain("shadow-cta");
-    expect(classes).toContain("hover:bg-primary-active");
-    expect(classes).toContain("rounded-[8px]");
-    expect(classes).toContain("normal-case");
+    expect(classes).toContain("bg-clay");
+    expect(classes).toContain("text-on-clay");
+    expect(classes).toContain("shadow-sm");
+    expect(classes).toContain("hover:bg-clay-press");
+    expect(classes).toContain("paper-press");
+    expect(classes).toContain("rounded-[var(--radius-button)]");
+    expect(classes).not.toMatch(/hover:-?translate-y/);
   });
 
   it("highlight is a distinct ink secondary fill (not grey-on-grey)", () => {
@@ -26,18 +27,18 @@ describe("Button design system (Airbnb Rausch)", () => {
     expect(classes).not.toBe(buttonClasses("primary", "default"));
   });
 
-  it("secondary uses ink outline rather than accent flood", () => {
+  it("secondary is a pine paper fill, not an outline button", () => {
     const classes = buttonClasses("secondary", "default");
-    expect(classes).toContain("border-ink");
+    expect(classes).toContain("bg-pine-soft");
     expect(classes).toContain("text-ink");
-    expect(classes).toContain("bg-transparent");
+    expect(classes).not.toMatch(/border-\[1\.5px\]|bg-transparent/);
   });
 
   it("renders primary CTA in the DOM with expected class contract", () => {
     render(<Button variant="primary">Start matching</Button>);
     const btn = screen.getByRole("button", { name: "Start matching" });
-    expect(btn.className).toMatch(/bg-accent/);
-    expect(btn.className).toMatch(/shadow-cta/);
+    expect(btn.className).toMatch(/bg-clay/);
+    expect(btn.className).toMatch(/shadow-sm/);
   });
 
   it("renders highlight as action-ink secondary path", () => {
@@ -50,7 +51,7 @@ describe("Button design system (Airbnb Rausch)", () => {
   it("disabled primary uses theme-aware disabled fill + ink-2 text (AA on light pink)", () => {
     const classes = buttonClasses("primary", "default");
     expect(classes).toContain("disabled:bg-primary-disabled");
-    // ink-2 (~7.7:1 on #ffd1da) not white-on-pink and not ink-3 (~3.96:1)
+    // ink-2 on the disabled clay tint, never white-on-tint
     expect(classes).toContain("disabled:text-ink-2");
     expect(classes).not.toMatch(/disabled:text-white(?![/\w-])/);
 

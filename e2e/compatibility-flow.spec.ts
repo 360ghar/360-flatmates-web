@@ -62,12 +62,12 @@ test.describe("Compatibility page — authenticated access", () => {
     await expect(page.getByRole("heading", { name: /breakdown/i })).toBeVisible();
   });
 
-  test("summary section shows", async ({ page }) => {
+  test("summary lines show under the verdict", async ({ page }) => {
     await page.goto("/compatibility/1");
     await expect(
       page.getByRole("heading", { name: /compatibility/i })
     ).toBeVisible();
-    // The Summary card should be present once compatibility data resolves.
-    await expect(page.getByRole("heading", { name: /summary/i })).toBeVisible();
+    // The summary lines sit under the verdict once compatibility data resolves.
+    await expect(page.getByText("Strong lifestyle overlap")).toBeVisible();
   });
 });

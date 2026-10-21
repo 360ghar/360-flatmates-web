@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useStore } from "zustand";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, signOutBrowserSession } from "@/lib/supabase/client";
+import { authSessionLifecycle } from "@/lib/auth/session-lifecycle";
 import { authStore } from "@/lib/stores/auth-store";
 import {
   checkIdentifierStatus as checkIdentifierStatusApi,
@@ -12,7 +13,10 @@ import {
   stashOAuthNext,
 } from "@/lib/auth/oauth-redirect";
 import { setLastAuthMethod, type AuthMethod } from "@/lib/lastAuthMethod";
-import type { Session, User } from "@supabase/supabase-js";
+import { unregisterDevice } from "@/lib/push/fcm";
+import { readPushToken } from "@/lib/push/token";
+import { debug } from "@/lib/debug";
+import { isAuthRetryableFetchError, type Session, type User } from "@supabase/supabase-js";
 import {
   mapSupabaseAuthError,
   type AuthErrorContext,
@@ -83,9 +87,6 @@ export function _resetAuthForTests() {
     user: null,
     session: null,
     loading: true,
-    isLoginModalOpen: false,
-    pendingRedirect: null,
-    authError: null,
     midAuthFlow: false,
     authStage: "unknown",
     authStageError: null,
@@ -98,6 +99,7 @@ function initAuthSubscription() {
   _initialized = true;
 
   const supabase = getSupabaseBrowserClient();
+  const sessionRevision = authSessionLifecycle.revision;
 
   // Safety timeout: force loading to false after 5s even if getSession hangs
   const timeout = setTimeout(() => {
@@ -108,11 +110,15 @@ function initAuthSubscription() {
     .getSession()
     .then(async (result: { data: { session: Session | null } }) => {
       clearTimeout(timeout);
+      if (!authSessionLifecycle.isCurrent(sessionRevision)) return;
       let currentSession = result.data.session;
 
       if (currentSession && isTokenExpired(currentSession)) {
         const refreshResult = await supabase.auth.refreshSession();
-        if (refreshResult.error || !refreshResult.data.session) {
+        if (refreshResult.error && isAuthRetryableFetchError(refreshResult.error)) {
+          // Offline or a flaky network: keep the stored session. The API
+          // client refreshes on the first 401 once the network is back (W10).
+        } else if (refreshResult.error || !refreshResult.data.session) {
           currentSession = null;
           clearPlaywrightSession();
           authStore.getState().resetAuthFlow();
@@ -121,6 +127,7 @@ function initAuthSubscription() {
         }
       }
 
+      if (!authSessionLifecycle.isCurrent(sessionRevision)) return;
       const testSession =
         currentSession ??
         (import.meta.env.DEV ? getPlaywrightSession() : null);
@@ -135,7 +142,9 @@ function initAuthSubscription() {
 
   // Subscribe to auth state changes — single subscription for the entire app
   supabase.auth.onAuthStateChange(
-    (_event: string, newSession: Session | null) => {
+    (event: string, newSession: Session | null) => {
+      if (event === "SIGNED_OUT") authSessionLifecycle.signedOut();
+      if (newSession && authSessionLifecycle.signingOut) return;
       const currentSession =
         newSession ?? (import.meta.env.DEV ? getPlaywrightSession() : null);
       authStore.getState().setSession(currentSession);
@@ -281,12 +290,22 @@ export function useAuth(): UseAuthReturn {
   );
 
   const signOut = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
+    // Stop push to this device while the session can still authorise it (W17).
+    const pushToken = readPushToken();
+    if (pushToken) {
+      // Sign-out must not hang on a slow backend: give unregister 5 s.
+      await Promise.race([
+        unregisterDevice(pushToken),
+        new Promise((resolve) => setTimeout(resolve, 5_000))
+      ]).catch(() => undefined);
+    }
     clearPlaywrightSession();
+    const error = await signOutBrowserSession();
     authStore.getState().resetAuthFlow();
     authStore.getState().setSession(null);
-    if (error) throwMapped(error);
-  }, [supabase]);
+    // Only report local cleanup after both storage and SDK sign-out succeed.
+    if (error) debug.warn("Auth", "Server sign-out failed; local session cleared", error);
+  }, []);
 
   const recordAuthSuccess = useCallback(
     async (method: AuthMethod, identifier?: string) => {

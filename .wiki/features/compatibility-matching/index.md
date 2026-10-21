@@ -76,7 +76,7 @@ The `/flatmates/profiles` endpoint now returns `match_percentage` and `top_match
 The score is rendered two ways, both driven by the same `color` bucket:
 
 - **`ProgressRing`** (`src/components/ui/ProgressRing.tsx`) draws an animated SVG ring with a `stroke-dashoffset` that eases from empty to the percentage on mount (an 800ms spring curve, disabled under reduced motion). The ring's fill color comes from `toneForValue`, which maps the percentage to `text-success`, `text-warning`, or `text-error`. It exposes `role="progressbar"` with `aria-valuenow` for screen readers, and comes in four sizes (`sm`, `md`, `lg`, `xl`).
-- **`CompatibilityPage`** (`src/pages/app/CompatibilityPage.tsx`) is the dedicated detail view. It shows the `xl` ring, a badge with the color tone and status, a per-dimension breakdown bar (each bar colored by the same three-way bucket), and the human summary lines. It fetches the breakdown via the `useCompatibility(peerId)` hook, which calls `GET /flatmates/profiles/{user_id}/compatibility`.
+- **`CompatibilityPage`** (`src/features/profile/pages/CompatibilityPage.tsx`) is the dedicated detail view. It shows the `xl` ring, a badge with the color tone and status, a per-dimension breakdown bar (each bar colored by the same three-way bucket), and the human summary lines. It fetches the breakdown via the `useCompatibility(peerId)` hook, which calls `GET /flatmates/profiles/{user_id}/compatibility`.
 
 ```mermaid
 graph TD
@@ -108,6 +108,6 @@ This page summarizes the engine. For the product rationale behind the six dimens
 | `src/lib/compatibility/dimensions.ts` | Per-dimension scorers, `COMPATIBILITY_WEIGHTS`, `COMPATIBILITY_MATCH_THRESHOLD` |
 | `src/lib/compatibility/types.ts` | `CompatibilityProfile`, `CompatibilityResult`, `DimensionScorer` types |
 | `src/lib/data/domain.ts` | `LIFESTYLE_DIMENSIONS`, enum values, option labels |
-| `src/hooks/queries/useCompatibility.ts` | `useCompatibility(peerId)` hook calling the breakdown endpoint |
-| `src/pages/app/CompatibilityPage.tsx` | Detail page rendering the ring, breakdown bars, and summary |
+| `src/features/profile/hooks/useCompatibility.ts` | `useCompatibility(peerId)` hook calling the breakdown endpoint |
+| `src/features/profile/pages/CompatibilityPage.tsx` | Detail page rendering the ring, breakdown bars, and summary |
 | `src/components/ui/ProgressRing.tsx` | Animated SVG score ring with semantic color tones |

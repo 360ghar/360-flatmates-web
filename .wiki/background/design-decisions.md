@@ -20,7 +20,7 @@ flowchart LR
 
 **Alternatives considered.** The more common Zustand pattern is `create()(config)`, which returns a React hook directly. That is the pattern in most tutorials and starter templates.
 
-**Rationale.** The vanilla store can be read and written from non-React code. Concrete consumers include realtime integration hooks that push connection state into `uiStore`, the providers in `src/providers.tsx` that read `authStore.getState()` inside effects to gate the backend auth-state fetch, and tests that assert against `store.getState()` directly without mounting a component tree. The `create()` hook wrapper would have forced each of these to thread a React context, or to duplicate the state. This decision landed on 2026-05-20 (commits d487579 and d069942) and was standardized across the codebase the same day. The trade-off is a tiny ergonomic cost: components must call `useStore(uiStore, selector)` instead of `useUiStore()`. See [state management](../systems/state-management.md).
+**Rationale.** The vanilla store can be read and written from non-React code. Concrete consumers include realtime integration hooks that push connection state into `uiStore`, the providers in `src/app/providers.tsx` that read `authStore.getState()` inside effects to gate the backend auth-state fetch, and tests that assert against `store.getState()` directly without mounting a component tree. The `create()` hook wrapper would have forced each of these to thread a React context, or to duplicate the state. This decision landed on 2026-05-20 (commits d487579 and d069942) and was standardized across the codebase the same day. The trade-off is a tiny ergonomic cost: components must call `useStore(uiStore, selector)` instead of `useUiStore()`. See [state management](../systems/state-management.md).
 
 ## No SSR. Prerender the public surface instead
 
@@ -93,7 +93,7 @@ sequenceDiagram
 | --- | --- |
 | `src/lib/stores/ui-store.ts` | Vanilla `createStore()` example: theme, toasts, modals, realtime state |
 | `src/lib/stores/auth-store.ts` | Vanilla store consumed by guards and providers without React context |
-| `src/providers.tsx` | Token getter + refresh handler injection that keeps the API client Supabase-agnostic |
+| `src/app/providers.tsx` | Token getter + refresh handler injection that keeps the API client Supabase-agnostic |
 | `scripts/prerender.ts` | Build-time Chromium prerender of every public route |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription; invalidates the QueryClient cache and surfaces toasts / realtime UI state |
 | `src/lib/api/client.ts` | `ApiAdapter` interface and `HttpApiClient` with single-refresh retry |

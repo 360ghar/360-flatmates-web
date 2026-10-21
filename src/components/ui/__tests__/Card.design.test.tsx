@@ -3,26 +3,28 @@ import { render, screen } from "@testing-library/react";
 import { Card } from "../Card";
 
 describe("Card design system", () => {
-  it("default card uses Airbnb card radius and surface elevation", () => {
+  it("default card is a grained paper sheet with a hand-cut radius", () => {
     render(
       <Card data-testid="card" variant="default">
         Content
       </Card>
     );
     const el = screen.getByTestId("card");
-    expect(el.className).toMatch(/rounded-\[var\(--radius-card\)\]|rounded-2xl/);
+    expect(el.className).toMatch(/rounded-hand/);
     expect(el.className).toMatch(/bg-surface/);
+    expect(el.className).toMatch(/paper-grain/);
     expect(el.className).toMatch(/shadow-sm/);
+    expect(el.className).not.toMatch(/border-line/);
   });
 
-  it("promo card uses soft Rausch-tinted lavender band", () => {
+  it("promo card is a grained paper-1 band", () => {
     render(
       <Card data-testid="promo" variant="promo">
         Promo
       </Card>
     );
     const el = screen.getByTestId("promo");
-    expect(el.className).toMatch(/bg-lavender/);
+    expect(el.className).toMatch(/bg-paper-1/);
     expect(el.className).toMatch(/radius-promo/);
   });
 

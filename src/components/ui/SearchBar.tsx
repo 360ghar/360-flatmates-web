@@ -96,7 +96,7 @@ export function SearchBar({
     <div className="relative w-full">
       <div
         className={cn(
-          "group flex h-12 items-center gap-2 rounded-full border border-line bg-surface px-4 text-ink shadow-sm focus-within:border-ink focus-within:shadow-md hover:shadow-md",
+          "group flex h-12 items-center gap-2 rounded-full border border-line bg-surface px-4 text-ink shadow-sm focus-within:border-ink focus-within:shadow-md",
           interactiveMotion,
           disabled && "bg-surface-soft text-ink-3",
           className
@@ -140,9 +140,10 @@ export function SearchBar({
         <div
           id={listboxId}
           role="listbox"
+          tabIndex={-1}
           aria-label="Recent searches"
           onKeyDown={handlePopoverKeyDown}
-          className="absolute left-0 right-0 top-[calc(100%+8px)] z-[var(--z-overlay)] rounded-lg border border-line bg-surface p-2 shadow-md"
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-[var(--z-overlay)] paper-grain rounded-cut-md bg-paper-3 p-2 shadow-md"
         >
           <div className="flex flex-col">
             {visibleRecents.map((query, index) => (
@@ -152,7 +153,7 @@ export function SearchBar({
                 role="option"
                 aria-selected={index === activeIndex}
                 className={cn(
-                  "rounded-[8px] px-3 py-2 text-left text-body-md text-ink hover:bg-accent-soft",
+                  "rounded-cut-md px-3 py-2 text-left text-body-md text-ink hover:bg-accent-soft",
                   index === activeIndex && "bg-accent-soft"
                 )}
                 key={query}
@@ -166,7 +167,7 @@ export function SearchBar({
           {onClearHistory ? (
             <button
               type="button"
-              className="mt-1 rounded-[8px] px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="mt-1 rounded-cut-md px-3 py-2 text-caption font-semibold text-accent hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               onClick={onClearHistory}
             >
               Clear history

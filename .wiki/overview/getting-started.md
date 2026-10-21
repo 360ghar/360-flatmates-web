@@ -46,7 +46,7 @@ A dev-only test session can be forced by setting `localStorage["flatmates-playwr
 | `npm run test:integration` | Run only the tests under `tests/integration/`. |
 | `npm run test:e2e` | Run Playwright E2E tests under `e2e/`. Starts its own dev server. |
 | `npm run generate:pwa-icons` | Regenerate PWA icons from `public/favicon.svg`. |
-| `npm run generate:api-types` | Regenerate `src/lib/api/openapi-types.ts` from `docs/flatmates-openapi.yaml` via `openapi-typescript`. |
+| `npm run generate:api-types` | Regenerate `src/lib/api/openapi-types.ts` from `openapi/openapi.json` via `openapi-typescript`. |
 
 ## Dev server proxy
 

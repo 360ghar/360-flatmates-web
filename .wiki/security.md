@@ -10,9 +10,9 @@ The app splits cleanly into three surfaces, each with its own layout and guard:
 
 | Boundary | Layout | Guard | Example routes |
 | --- | --- | --- | --- |
-| Public | `PublicLayout` (`src/pages/public/PublicLayout.tsx`) | None (crawlers and signed-out visitors allowed) | `/`, `/discover`, `/cities/*`, `/blog/*`, `/compare/*`, `/about`, `/terms`, `/privacy`, `/stats` |
-| Authenticated | `AppLayout` (`src/pages/app/AppLayout.tsx`) | `AuthGuard` then `GateGuard` | `/home`, `/search`, `/swipe`, `/likes`, `/matches`, `/chats/*`, `/visits`, `/listing/*`, `/post`, `/manage`, `/dashboard`, `/profile` |
-| Admin | `AdminLayout` (`src/pages/admin/AdminLayout.tsx`) | `AdminGuard` | `/admin`, `/admin/moderation`, `/admin/reports` |
+| Public | `PublicLayout` (`src/app/layouts/PublicLayout.tsx`) | None (crawlers and signed-out visitors allowed) | `/`, `/discover`, `/cities/*`, `/blog/*`, `/compare/*`, `/about`, `/terms`, `/privacy`, `/stats` |
+| Authenticated | `AppLayout` (`src/app/layouts/AppLayout.tsx`) | `AuthGuard` then `GateGuard` | `/home`, `/search`, `/swipe`, `/likes`, `/matches`, `/chats/*`, `/visits`, `/listing/*`, `/post`, `/manage`, `/dashboard`, `/profile` |
+| Admin | `AdminLayout` (`src/app/layouts/AdminLayout.tsx`) | `AdminGuard` | `/admin`, `/admin/moderation`, `/admin/reports` |
 
 There is also an auth surface (`AuthLayout` wrapping `/login`, `/signup`, `/forgot-password`, `/auth/callback`, `/add-phone`) gated by `AuthRedirectGuard`, which bounces already-signed-in users away from the auth screens. See [Routing and guards](systems/routing-guards.md) for the full route tree and the guard implementations.
 
@@ -21,7 +21,7 @@ There is also an auth surface (`AuthLayout` wrapping `/login`, `/signup`, `/forg
 Auth is owned by Supabase (phone OTP, password, Google, Apple). The SPA never sees a password and never mints its own tokens. The flow:
 
 1. Supabase issues a short-lived access token (JWT) and a refresh token after a successful sign-in. The session is held by the Supabase browser client and mirrored into the Zustand `authStore` by `src/hooks/useAuth.ts`.
-2. `src/providers.tsx` watches `session?.access_token` in an effect and pushes the live value into the API client via `setAccessToken(token)`. The client reads the current token on every request without being re-created, so a refreshed token is picked up immediately.
+2. `src/app/providers.tsx` watches `session?.access_token` in an effect and pushes the live value into the API client via `setAccessToken(token)`. The client reads the current token on every request without being re-created, so a refreshed token is picked up immediately.
 3. The `HttpApiClient` attaches `Authorization: Bearer <token>` to every authenticated request via `buildHeaders`. Public requests (marked `auth: false` on the `ApiRequest`) skip the header entirely.
 
 ```mermaid
@@ -46,7 +46,7 @@ The mechanics, implemented in `src/lib/api/client.ts`:
 
 - The first 401 sets `this.refreshing = this.onAuthFailure()` and clears it in a `finally` block.
 - Any 401 that arrives while `this.refreshing` is non-null awaits the same promise rather than starting a second refresh.
-- `onAuthFailure` is wired in `src/providers.tsx` to call `getSupabaseBrowserClient().auth.refreshSession()`, update `_accessToken` on success, and itself use a module-level `refreshPromise` for a second layer of single-flight dedup.
+- `onAuthFailure` is wired in `src/app/providers.tsx` to call `getSupabaseBrowserClient().auth.refreshSession()`, update `_accessToken` on success, and itself use a module-level `refreshPromise` for a second layer of single-flight dedup.
 - If the refresh resolves to a token, the original request is retried once with the new token. If it resolves to `null` (refresh failed or no session), the 401 surfaces as an `ApiClientError` of type `auth`.
 - A non-401 failure never triggers a refresh.
 
@@ -54,7 +54,7 @@ The `QueryClient` retry policy in `providers.tsx` reads `appError.type === "auth
 
 ## Realtime authorization
 
-The Flatmates realtime channel uses Supabase private Broadcast. `src/providers.tsx` fetches the backend-owned `FlatmatesBootstrap.realtime` config, and `src/hooks/useFlatmatesRealtime.ts` calls `supabase.realtime.setAuth(session.access_token)` before subscribing to the configured private channel.
+The Flatmates realtime channel uses Supabase private Broadcast. `src/app/providers.tsx` fetches the backend-owned `FlatmatesBootstrap.realtime` config, and `src/hooks/useFlatmatesRealtime.ts` calls `supabase.realtime.setAuth(session.access_token)` before subscribing to the configured private channel.
 
 The access token is passed to the Supabase Realtime client as auth state, not embedded in a backend stream URL. The channel name comes from the backend (`flatmates:user:{id}`), and Supabase Realtime Authorization/RLS is responsible for allowing only the owning authenticated user to receive private broadcasts on that channel. The frontend treats Broadcast payloads as invalidation hints only; it refetches authoritative data through the normal REST API before rendering changed records.
 
@@ -62,7 +62,7 @@ See [Real-time](features/real-time.md) for the connection lifecycle and event di
 
 ## Route guards
 
-All guards live in `src/pages/guards.tsx` and render `<PageSpinner />` while `useAuth().loading` is true, then make a single redirect decision and otherwise render `<Outlet />`.
+All guards live in `src/app/guards.tsx` and render `<PageSpinner />` while `useAuth().loading` is true, then make a single redirect decision and otherwise render `<Outlet />`.
 
 | Guard | Protects | Behavior |
 | --- | --- | --- |
@@ -71,7 +71,7 @@ All guards live in `src/pages/guards.tsx` and render `<PageSpinner />` while `us
 | `AuthRedirectGuard` | `/login`, `/signup`, `/forgot-password`, `/auth/callback` | Already signed in and not mid-auth-flow: bounce to the resolved `?redirect=` target (default `/home`). The `midAuthFlow` exception is critical, because OTP verification signs the user in before the set-password step finishes. |
 | `GateGuard` | Sits between `AuthGuard` and `AppLayout` | Reads the backend-computed auth stage from `authStore.authStage` (fetched once per session via `getAuthState`). Redirects to `/complete-profile` for `profile_completion`, or `/onboarding` for `app_onboarding`. Skips enforcement for unauthenticated users, mid-auth flows, and when already on a gate route. |
 
-The `?redirect=` value is sanitized by `resolveRedirect` in `src/pages/guards.tsx`: it accepts only same-origin absolute paths (must start with a single `/`, must not start with `//` which would be protocol-relative to another host). Anything else, including a missing value, falls back to `/home`. This closes the open-redirect hole where a crafted link could send a freshly signed-in user to an attacker-controlled site. See [Routing and guards](systems/routing-guards.md) for the full route tree.
+The `?redirect=` value is sanitized by `resolveRedirect` in `src/app/guards.tsx`: it accepts only same-origin absolute paths (must start with a single `/`, must not start with `//` which would be protocol-relative to another host). Anything else, including a missing value, falls back to `/home`. This closes the open-redirect hole where a crafted link could send a freshly signed-in user to an attacker-controlled site. See [Routing and guards](systems/routing-guards.md) for the full route tree.
 
 ## Environment variable handling
 
@@ -124,9 +124,9 @@ The client never surfaces raw `TypeError` or unknown thrown values to the UI. `s
 | `src/lib/api/errors.ts` | `AppError` union, `ApiClientError`, `mapStatusToAppError`, `toAppError`, `isAppError` |
 | `src/lib/api/auth.ts` | `checkIdentifierStatus` (public), `reportLastMethod`, `getAuthState` (gate stage) |
 | `src/hooks/useAuth.ts` | Supabase session bootstrap, the auth-state subscription, `isTokenExpired` |
-| `src/providers.tsx` | Pushes `session.access_token` into the client, wires the Supabase-backed refresh handler, runs the gate-state fetch, and starts realtime from bootstrap |
+| `src/app/providers.tsx` | Pushes `session.access_token` into the client, wires the Supabase-backed refresh handler, runs the gate-state fetch, and starts realtime from bootstrap |
 | `src/hooks/useFlatmatesRealtime.ts` | Authorizes Supabase Realtime and subscribes to the private Broadcast channel |
-| `src/pages/guards.tsx` | `AuthGuard`, `AdminGuard`, `AuthRedirectGuard`, `GateGuard`, `resolveRedirect` (open-redirect defense) |
+| `src/app/guards.tsx` | `AuthGuard`, `AdminGuard`, `AuthRedirectGuard`, `GateGuard`, `resolveRedirect` (open-redirect defense) |
 | `src/lib/env.ts` | Zod-validated environment variable accessor; only `VITE_`-prefixed vars reach the client |
 | `src/entry.tsx` | Calls `validateEnv()` before mount; renders the configuration-error screen on failure |
 | `.env.example` | Documents the required and optional `VITE_` variables |

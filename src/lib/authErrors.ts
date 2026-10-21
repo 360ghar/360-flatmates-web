@@ -104,7 +104,7 @@ export function mapSupabaseAuthError(
 }
 
 export const UNVERIFIED_ACCOUNT_MESSAGE =
-  "Your account isn't verified yet. We've sent a code — enter it below or resend.";
+  "Your account isn't verified yet. We sent a code. Enter it below, or ask for a new one.";
 
 export const NO_ACCOUNT_FOUND_MESSAGE =
   'No account found with this email or phone. Check the address or sign up.';

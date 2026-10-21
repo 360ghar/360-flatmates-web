@@ -1,7 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { ZodType } from "zod";
 import { apiClient } from "@/lib/api";
-import type { FlatmatesBootstrap } from "@/lib/api/types";
 import { flatmatesBootstrapSchema } from "@/lib/schemas";
 
 /**
@@ -15,7 +14,7 @@ import { flatmatesBootstrapSchema } from "@/lib/schemas";
  * codegen.
  */
 export async function validateApiResponse<T>(
-  response: T,
+  response: unknown,
   schema: ZodType<T>
 ): Promise<T> {
   const parsed = schema.safeParse(response);
@@ -30,7 +29,7 @@ export async function validateApiResponse<T>(
 export const bootstrapOptions = queryOptions({
   queryKey: ["bootstrap"],
   queryFn: async () => {
-    const raw = await apiClient.request<FlatmatesBootstrap>({
+    const raw = await apiClient.request<unknown>({
       method: "GET",
       path: "/flatmates/bootstrap"
     });

@@ -1,24 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useBlocker } from "react-router";
 
 /**
- * Block in-app navigation and warn on browser tab close / reload while a form
- * is dirty. Mirrors the pattern used in ProfileEditPage so all multi-field
- * forms share the same guard UX.
+ * Hold navigation while a form is dirty: in-app links, navigate() calls and
+ * browser Back all go through the router blocker; tab close and reload get the
+ * native beforeunload prompt.
  *
- * Pass `false` for `isDirty` once the form has been successfully saved (or
- * while a save is in flight) so the guard doesn't fire on the post-save nav.
+ * Pass `false` for `isDirty` once the form is saved. A navigation that must
+ * not be held (the redirect after a save) passes
+ * `navigate(to, { state: { skipDirtyGuard: true } })`.
  */
-interface DirtyFormBlocker {
+export interface DirtyFormBlocker {
   state: "unblocked" | "blocked" | "proceeding";
   proceed?: () => void;
   reset?: () => void;
+  /** Runs a navigation action; the blocker holds it while the form is dirty. */
   confirmNavigation: (action: () => void) => boolean;
 }
 
 export function useDirtyFormGuard(isDirty: boolean, message: string): DirtyFormBlocker {
-  const pendingActionRef = useRef<(() => void) | null>(null);
-  const [state, setState] = useState<DirtyFormBlocker["state"]>("unblocked");
-
   useEffect(() => {
     if (!isDirty) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -29,44 +29,25 @@ export function useDirtyFormGuard(isDirty: boolean, message: string): DirtyFormB
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty, message]);
 
-  const reset = useCallback(() => {
-    pendingActionRef.current = null;
-    setState("unblocked");
-  }, []);
-
-  const proceed = useCallback(() => {
-    const action = pendingActionRef.current;
-    pendingActionRef.current = null;
-    setState("proceeding");
-    action?.();
-    setState("unblocked");
-  }, []);
-
-  const confirmNavigation = useCallback(
-    (action: () => void) => {
-      if (!isDirty) {
-        action();
-        return true;
-      }
-      pendingActionRef.current = action;
-      setState("blocked");
-      return false;
-    },
-    [isDirty]
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty &&
+      currentLocation.pathname !== nextLocation.pathname &&
+      !(nextLocation.state as { skipDirtyGuard?: boolean } | null)?.skipDirtyGuard
   );
 
-  const effectiveState = !isDirty && state === "blocked" ? "unblocked" : state;
+  const confirmNavigation = useCallback((action: () => void) => {
+    action();
+    return !isDirty;
+  }, [isDirty]);
 
-  // `useBlocker` only works reliably in React Router data routers. This app
-  // currently uses BrowserRouter, so callers opt into modal-backed blocking for
-  // explicit cancel/back actions via `confirmNavigation`.
   return useMemo(
     () => ({
-      state: effectiveState,
-      proceed,
-      reset,
-      confirmNavigation,
+      state: blocker.state,
+      proceed: blocker.proceed,
+      reset: blocker.reset,
+      confirmNavigation
     }),
-    [confirmNavigation, effectiveState, proceed, reset]
+    [blocker.state, blocker.proceed, blocker.reset, confirmNavigation]
   );
 }

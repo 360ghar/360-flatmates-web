@@ -1,9 +1,24 @@
 import type { ReactNode } from "react";
+import { clsx, type ClassValue } from "clsx";
+import { extendTailwindMerge } from "tailwind-merge";
 
-export type ClassValue = string | false | null | undefined;
+/* tailwind-merge must know the design-system roles (globals.css @utility),
+   or it reads `text-h1` as a colour and drops it next to `text-ink`. */
+const twMerge = extendTailwindMerge({
+  extend: {
+    theme: {
+      text: [
+        "hero-display", "display", "h1", "h2", "h3", "h4", "h5",
+        "body-lg", "body-md", "body-sm", "label-lg", "label-md", "caption", "eyebrow", "micro"
+      ],
+      radius: ["cut-sm", "cut-md", "cut-lg", "cut-xl", "hand"]
+    }
+  }
+});
 
-export function cn(...classes: ClassValue[]): string {
-  return classes.filter(Boolean).join(" ");
+/** Joins class names; later Tailwind classes win over conflicting earlier ones. */
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
 }
 
 export function clampPercentage(value: number): number {
@@ -137,7 +152,7 @@ export const focusRing =
 
 /** Standard interactive transition. Consumes the motion tokens; collapses under reduced-motion. */
 export const interactiveMotion =
-  "transition-[background-color,border-color,box-shadow,color,opacity,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)] motion-reduce:transition-none motion-reduce:transform-none";
+  "transition-[background-color,border-color,box-shadow,color,opacity,transform,filter] duration-[var(--duration-fast)] ease-[var(--ease-standard)] motion-reduce:transition-none";
 
 export type ButtonVariant =
   | "primary"
@@ -151,34 +166,32 @@ export type ButtonVariant =
 export type ButtonSize = "compact" | "default" | "tall" | "icon";
 
 export const variantClasses: Record<ButtonVariant, string> = {
-  /* Rausch primary — brand voltage for main CTAs.
-     Disabled uses primary-disabled (theme-aware) + muted ink text for contrast
-     in both light (soft pink fill) and dark (deep muted fill). */
+  /* Clay primary (DESIGN.md §8). Hover shifts tone only; press sinks one layer. */
   primary:
-    "bg-accent text-white shadow-cta hover:-translate-y-px hover:bg-primary-active hover:shadow-hover disabled:bg-primary-disabled disabled:text-ink-2 disabled:shadow-none disabled:translate-y-0",
-  /* Ink secondary fill — Airbnb black button, distinct from Rausch */
+    "bg-clay text-on-clay shadow-sm hover:bg-clay-press disabled:bg-primary-disabled disabled:text-ink-2 disabled:shadow-none",
+  /* Ink fill for a second strong action. */
   highlight:
-    "bg-action text-action-ink shadow-sm hover:-translate-y-px hover:bg-action-hover hover:shadow-hover disabled:bg-surface-soft disabled:text-ink-3 disabled:shadow-none disabled:translate-y-0",
+    "bg-action text-action-ink shadow-sm hover:bg-action-hover disabled:bg-surface-soft disabled:text-ink-3 disabled:shadow-none",
+  /* Secondary is a pine-tinted paper fill, never an outline. */
   secondary:
-    "border-[1.5px] border-ink bg-transparent text-ink hover:bg-surface-soft disabled:border-line disabled:bg-transparent disabled:text-ink-3",
+    "bg-pine-soft text-ink shadow-xs hover:brightness-[0.96] disabled:bg-surface-soft disabled:text-ink-3 disabled:shadow-none",
   tertiary:
-    "bg-transparent text-ink shadow-none hover:bg-surface-soft hover:underline disabled:bg-transparent disabled:text-ink-3",
+    "bg-transparent text-accent shadow-none hover:bg-surface-soft hover:underline underline-offset-4 disabled:bg-transparent disabled:text-ink-3",
   icon:
-    "bg-transparent text-ink hover:bg-surface-soft disabled:bg-surface-soft disabled:text-ink-3",
+    "bg-transparent text-ink hover:bg-surface-soft disabled:bg-transparent disabled:text-ink-3",
   google:
-    "bg-google-bg text-google-text border border-google-border shadow-sm hover:bg-google-hover hover:shadow-md disabled:bg-surface-soft disabled:text-ink-3 disabled:border-transparent",
+    "bg-google-bg text-google-text border border-google-border shadow-xs hover:bg-google-hover disabled:bg-surface-soft disabled:text-ink-3 disabled:border-transparent",
   destructive:
-    "bg-error text-white shadow-sm hover:-translate-y-px hover:bg-error/95 hover:shadow-hover disabled:bg-primary-disabled disabled:text-ink-2 disabled:shadow-none disabled:translate-y-0",
+    "bg-danger text-on-clay shadow-sm hover:brightness-[0.94] disabled:bg-primary-disabled disabled:text-ink-2 disabled:shadow-none",
   inverted:
-    "bg-surface-elevated text-accent shadow-sm hover:-translate-y-px hover:bg-surface hover:shadow-hover disabled:bg-surface-soft disabled:text-ink-3 disabled:shadow-none disabled:translate-y-0"
+    "bg-surface-elevated text-accent shadow-sm hover:bg-surface disabled:bg-surface-soft disabled:text-ink-3 disabled:shadow-none"
 };
 
 export const sizeClasses: Record<ButtonSize, string> = {
-  /* Sentence-case body labels (Airbnb) — not uppercase label-lg */
-  compact: "min-h-[var(--touch-min)] px-4 py-2 text-body-md font-medium normal-case tracking-normal",
-  default: "min-h-[var(--control-h-lg)] px-6 py-3.5 text-body-md font-medium normal-case tracking-normal",
-  tall: "min-h-[var(--control-h-xl)] px-6 py-4 text-body-lg font-medium normal-case tracking-normal",
-  icon: "h-10 w-10 p-2"
+  compact: "min-h-[var(--touch-min)] px-4 py-2 text-body-md font-semibold normal-case tracking-normal",
+  default: "min-h-[var(--control-h-md)] px-6 py-3 text-body-md font-semibold normal-case tracking-normal",
+  tall: "min-h-[var(--control-h-xl)] px-6 py-4 text-body-lg font-semibold normal-case tracking-normal",
+  icon: "h-11 w-11 p-2.5"
 };
 
 // NOTE (#7): `shrink-0` is intentionally NOT in `baseClasses`. A button that is
@@ -186,13 +199,9 @@ export const sizeClasses: Record<ButtonSize, string> = {
 // shrink, so when it sits in a flex row next to a sibling (e.g. Back + Next)
 // the combined width exceeds 100% and the fullWidth button bleeds past the
 // container edge. Instead `shrink-0` is applied only to non-fullWidth buttons;
-// fullWidth buttons get `w-full min-w-0` — full-width when alone, and able to
-// shrink (past their content min-size, handled by the inner `truncate` span)
-// when sharing a row. We avoid `flex-1` here because it would make fullWidth
-// buttons grow along the main axis of `flex-col` containers (stretching them
-// vertically in stacked forms), a regression for the many auth/form layouts.
+// fullWidth buttons get `w-full min-w-0`.
 export const baseClasses =
-  "inline-flex items-center justify-center gap-2 rounded-[8px] font-medium active:scale-[0.97]";
+  "paper-press inline-flex items-center justify-center gap-2 rounded-[var(--radius-button)] font-semibold";
 
 /** Shared classes for Link elements that should look like a Button. */
 export function buttonClasses(

@@ -8,15 +8,15 @@ import { describe, it, expect } from "vitest";
 
 // ── Hook imports ──────────────────────────────────────────────────────────
 import * as useProfiles from "@/hooks/queries/useProfiles";
-import * as useProperties from "@/hooks/queries/useProperties";
-import * as useSearch from "@/hooks/queries/useSearch";
-import * as useSwipes from "@/hooks/queries/useSwipes";
-import * as useConversations from "@/hooks/queries/useConversations";
-import * as useVisits from "@/hooks/queries/useVisits";
-import * as useNotifications from "@/hooks/queries/useNotifications";
-import * as useDashboard from "@/hooks/queries/useDashboard";
-import * as useMatches from "@/hooks/queries/useMatches";
-import * as useMapView from "@/hooks/queries/useMapView";
+import * as useProperties from "@/features/listings/hooks/useProperties";
+import * as useSearch from "@/features/listings/hooks/useSearch";
+import * as useSwipes from "@/features/swipe/hooks/useSwipes";
+import * as useConversations from "@/features/chat/hooks/useConversations";
+import * as useVisits from "@/features/visits/hooks/useVisits";
+import * as useNotifications from "@/features/notifications/hooks/useNotifications";
+import * as useDashboard from "@/features/hosting/hooks/useDashboard";
+import * as useMatches from "@/features/matches/hooks/useMatches";
+import * as useMapView from "@/features/explore/hooks/useMapView";
 
 // ── Type helpers ──────────────────────────────────────────────────────────
 
@@ -296,8 +296,8 @@ describe("TanStack Query key contracts", () => {
     const crossModuleAllowed: Record<string, string[]> = {
       // useUnmatchMutation also invalidates conversations — that is correct
       useMatches: ["matches", "conversations"],
-      // useBoostListing also invalidates dashboard — that is correct
-      useProperties: ["properties", "dashboard"],
+      // The owner dashboard is derived from ["properties", "mine"], so it has no key of its own.
+      useProperties: ["properties"],
       // useSendMessage also invalidates conversations list — same scope
       useConversations: ["conversations"],
       // Accepting a like through the swipe endpoint can create a match/chat.
