@@ -15,6 +15,7 @@ import {
   useUpdateVisit
 } from "@/features/visits/hooks/useVisits";
 import type { Visit, VisitUpdate } from "@/lib/api/types";
+import { uiStore } from "@/lib/stores/ui-store";
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -136,6 +137,27 @@ describe("useVisits hooks", () => {
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["visits"] });
     });
 
+    it("warns when the visits list already holds a visit for that property and day", async () => {
+      mockRequest.mockResolvedValue({ id: 11, property_id: 301, status: "requested" });
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      queryClient.setQueryData(["visits", "infinite", undefined], {
+        pages: [{ items: [{ id: 5, property_id: 301, status: "confirmed", scheduled_date: "2026-06-01T12:00:00Z" }] }],
+        pageParams: [undefined]
+      });
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      uiStore.getState().clearToasts();
+
+      const { result } = renderHook(() => useCreateVisit(), { wrapper });
+      result.current.mutate({ property_id: 301, scheduled_date: "2026-06-01T12:00:00Z" });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(uiStore.getState().toasts).toEqual(
+        expect.arrayContaining([expect.objectContaining({ title: "You already have a visit on this day" })])
+      );
+    });
+
     it("sends POST /visits", async () => {
       mockRequest.mockResolvedValue({
         id: 10,
@@ -205,12 +227,14 @@ describe("useVisits hooks", () => {
         wrapper: createWrapper()
       });
 
-      result.current.mutate({ reason: "Conflict" });
+      result.current.mutate({ reason: "  Conflict  " });
 
       await waitFor(() => expect(mockRequest).toHaveBeenCalled());
       const call = mockRequest.mock.calls[0][0];
       expect(call.method).toBe("POST");
       expect(call.path).toBe("/visits/10/cancel");
+      // The reason is required and sent trimmed: the backend rejects an empty body with 422.
+      expect(call.body).toEqual({ reason: "Conflict" });
     });
   });
 
@@ -293,6 +317,35 @@ describe("useVisits hooks", () => {
         })
       );
       expect(queryClient.getQueryData(["visits", 20])).toEqual(updated);
+    });
+
+    it("sends a flatmate_meet's feedback to PUT /visits/{id}, and its status to the flatmate route", async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } }
+      });
+      queryClient.setQueryData(["visits", 40], { id: 40, visit_context: "flatmate_meet", status: "requested" });
+      mockRequest
+        .mockResolvedValueOnce({ id: 40, status: "confirmed" })
+        .mockResolvedValueOnce({ id: 40, visit_context: "flatmate_meet", status: "confirmed" });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useUpdateVisit(40), { wrapper });
+      result.current.mutate({ status: "confirmed", visitor_feedback: "Nice place" });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockRequest).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ method: "PUT", path: "/flatmates/visits/40", body: { status: "confirmed" } })
+      );
+      expect(mockRequest).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ method: "PUT", path: "/visits/40", body: { visitor_feedback: "Nice place" } })
+      );
     });
 
     it("fetches visit on cold cache then routes flatmate_meet correctly", async () => {

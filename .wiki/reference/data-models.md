@@ -4,7 +4,7 @@ Active contributors: Saksham
 
 The 360 Flatmates web app talks to a FastAPI backend at `/api/v1`. The types in `src/lib/api/` describe the shapes that come back over the wire, and `src/lib/data/domain.ts` holds the enums and option catalogs (modes, statuses, lifestyle dimensions, sharing types, visit statuses, and so on) that those types reference. Together these two layers are the client's model of the world.
 
-The canonical source of truth is the OpenAPI spec at `docs/flatmates-openapi.yaml`. The TypeScript types here mirror it, and `npm run generate:api-types` regenerates `src/lib/api/openapi-types.ts` from that spec. When the spec and the hand-written types disagree, the spec wins. This page documents the hand-written types (the ones the app actually imports), grouped by domain.
+The canonical source of truth is the OpenAPI spec at `openapi/openapi.json`. The TypeScript types here mirror it, and `npm run generate:api-types` regenerates `src/lib/api/openapi-types.ts` from that spec. When the spec and the hand-written types disagree, the spec wins. This page documents the hand-written types (the ones the app actually imports), grouped by domain.
 
 ## Enum and option catalog
 
@@ -129,7 +129,7 @@ The admin view is `FlatmateListingAdmin`, which adds `ai_prescreen_result`, `ai_
 The hand-written types in `src/lib/api/*.types.ts` are re-exported from `src/lib/api/types.ts` for convenience, but they are a mirror, not the source. The source is the OpenAPI spec:
 
 - [REST endpoints](../api/rest-endpoints.md) for the endpoint map.
-- [`docs/flatmates-openapi.yaml`](../../docs/flatmates-openapi.yaml) for the canonical contract. Run `npm run generate:api-types` after editing it to refresh `src/lib/api/openapi-types.ts`.
+- [`openapi/openapi.json`](../../openapi/openapi.json) for the canonical contract. Run `npm run generate:api-types` after editing it to refresh `src/lib/api/openapi-types.ts`.
 
 ## Related pages
 
@@ -137,7 +137,7 @@ The hand-written types in `src/lib/api/*.types.ts` are re-exported from `src/lib
 - [Listing and property](../primitives/listing-property.md) for the property field-level detail.
 - [Compatibility profile](../primitives/compatibility-profile.md) for the lifestyle-only subset the engine reads.
 - [REST endpoints](../api/rest-endpoints.md) for the endpoint map.
-- [`docs/flatmates-openapi.yaml`](../../docs/flatmates-openapi.yaml) for the canonical API contract.
+- [`openapi/openapi.json`](../../openapi/openapi.json) for the canonical API contract.
 
 ## Key source files
 
@@ -154,4 +154,4 @@ The hand-written types in `src/lib/api/*.types.ts` are re-exported from `src/lib
 | `src/lib/api/match.types.ts` | `MatchSummary`, `IncomingLikeSummary`, `CompatibilityBreakdown` |
 | `src/lib/api/notification.types.ts` | `FlatmatesNotification`, mark-read payloads |
 | `src/lib/api/admin.types.ts` | Admin moderation, reports, and dashboard |
-| `docs/flatmates-openapi.yaml` | Canonical API contract (source of truth) |
+| `openapi/openapi.json` | Canonical API contract (source of truth) |

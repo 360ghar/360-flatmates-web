@@ -8,10 +8,13 @@ import {
 } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type {
+  FlatmatesNotification,
   NotificationCursorPage,
   MarkNotificationReadPayload,
   MarkAllNotificationsReadPayload,
-  NotificationFilters
+  NotificationFilters,
+  NotificationsMarkedRead,
+  NotificationUnreadCount
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
@@ -42,27 +45,21 @@ export function useNotifications(filters?: NotificationFilters) {
 }
 
 /**
- * Server-side unread total for the shell badge.
- *
- * Counting `!is_read` over the first page undercounts once unread spans
- * pages, so ask the backend for the unread slice (`is_read: false`) and
- * read its `total`. `limit: 1` keeps the payload tiny; the count is what
- * matters. Falls back to the fetched items when `total` is absent.
+ * Server-side unread total for the shell badge: `GET /flatmates/notifications/unread-count`
+ * returns `{ unread_count }`. The list route has no unread filter, and its `total`
+ * is null unless `include_total=true`, so the list cannot give this number.
  */
 export function useUnreadNotificationCount() {
   const refetchInterval = useRealtimeFallbackInterval("new_notification");
   return useQuery({
     queryKey: ["notifications", "unread-count"],
-    queryFn: async () => {
-      const response = await apiClient.request<NotificationCursorPage>({
+    queryFn: async ({ signal }) => {
+      const response = await apiClient.request<NotificationUnreadCount>({
         method: "GET",
-        path: "/flatmates/notifications",
-        query: { is_read: false, limit: 1 } as Record<string, QueryValue>
+        path: "/flatmates/notifications/unread-count",
+        signal
       });
-      if (typeof response?.total === "number") return response.total;
-      return Array.isArray(response?.items)
-        ? response.items.filter((n) => !n.is_read).length
-        : 0;
+      return response.unread_count;
     },
     refetchInterval
   });
@@ -111,7 +108,7 @@ export function useMarkNotificationRead() {
       notificationId: string;
       payload: MarkNotificationReadPayload;
     }) =>
-      apiClient.request<{ message: string }>({
+      apiClient.request<FlatmatesNotification>({
         method: "PUT",
         path: `/flatmates/notifications/${notificationId}`,
         body: payload
@@ -126,11 +123,11 @@ export function useMarkAllNotificationsRead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload?: MarkAllNotificationsReadPayload) =>
-      apiClient.request<{ message: string }>({
+    mutationFn: (payload: MarkAllNotificationsReadPayload = { mark_all_read: true }) =>
+      apiClient.request<NotificationsMarkedRead>({
         method: "PUT",
         path: "/flatmates/notifications",
-        body: payload ?? { mark_all_read: true }
+        body: payload
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });

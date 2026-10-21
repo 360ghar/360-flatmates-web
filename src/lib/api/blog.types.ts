@@ -1,88 +1,35 @@
-import type { CursorPage, JsonObject } from "./common.types";
+import type { Schemas } from "./schema";
 
-/** Lifecycle status for a BlogPost. Matches the backend `BlogPostStatus` enum. */
-export type BlogPostStatus = "draft" | "published" | "archived" | "scheduled";
+export type BlogPostStatus = Schemas["BlogPostStatus"];
 
-/** Authoring / taxonomy metadata attached to a blog post. */
-export interface BlogCategory {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-}
+export type BlogCategory = Schemas["BlogCategory"];
+export type BlogTag = Schemas["BlogTag"];
+export type BlogCategoryCursorPage = Schemas["CursorPage_BlogCategory_"];
+export type BlogTagCursorPage = Schemas["CursorPage_BlogTag_"];
 
-export interface BlogTag {
-  id: number;
-  name: string;
-  slug: string;
-}
+/** Public post (list and detail). It carries no preview token. */
+export type BlogPost = Schemas["BlogPost"];
+export type BlogPostList = Schemas["CursorPage_BlogPost_"];
 
-/** Canonical BlogPost payload returned by `/blog/posts` endpoints. */
-export interface BlogPost {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt?: string;
-  /** Post body (HTML/markdown). Backend field name is `content`. */
-  content: string;
-  status: BlogPostStatus;
-  /** ISO-8601 publish timestamp; absent while in draft. */
-  published_at?: string | null;
-  /** ISO-8601 scheduled publish timestamp for scheduled posts. */
-  scheduled_at?: string | null;
-  /** SEO metadata attached at creation time. */
-  meta_title?: string;
-  meta_description?: string;
-  focus_keyword?: string;
-  canonical_url?: string;
-  og_image_url?: string;
-  /** Calculated read time / word count from the backend. */
-  reading_time_minutes?: number;
-  word_count?: number;
-  /** Cover image (separate from the SEO og_image). */
-  cover_image_url?: string;
-  categories?: BlogCategory[];
-  tags?: BlogTag[];
-  /** Citations / external sources referenced in the article body. */
-  sources?: Array<{ label: string; url: string }>;
-  seo_metadata?: JsonObject;
-  created_at?: string;
-  updated_at?: string;
-}
+/** Admin view of a post: adds `author_id` and `preview_token`. */
+export type BlogPostAdmin = Schemas["BlogPostAdmin"];
 
-/** Cursor-paginated blog post list. */
-export type BlogPostList = CursorPage<BlogPost>;
+/** `GET /blog/posts/preview/{token}`. */
+export type BlogPostPreviewResponse = Schemas["BlogPostPreviewResponse"];
 
-/** Filters supported by `GET /blog/posts`. */
+/** `POST /blog/posts/{id}/preview-token` takes no body. */
+export type BlogPreviewTokenResponse = Schemas["BlogPostPreviewToken"];
+
+/**
+ * Declared query keys of `GET /blog/posts`. `categories` and `tags` are slug
+ * lists. `status` is for admins only: a public reader gets a 422 when it sends
+ * it, so a public page never does.
+ */
 export interface BlogPostFilters {
   status?: BlogPostStatus;
-  category_id?: number;
-  tag_id?: number;
+  categories?: string[];
+  tags?: string[];
   q?: string;
   cursor?: string;
   limit?: number;
-}
-
-/**
- * Response returned by `GET /blog/posts/preview/{token}` (public preview link).
- *
- * The backend returns a flat object with the same fields as BlogPost
- * (minus sensitive internal fields like `preview_token`).
- */
-export type BlogPostPreviewResponse = Omit<BlogPost, "seo_metadata"> & {
-  preview_token?: string;
-};
-
-/** Payload for `POST /blog/posts/{post_id}/preview-token`. */
-export interface BlogPreviewTokenCreate {
-  /** Validity window in hours. Defaults to 72h when omitted. */
-  ttl_hours?: number;
-}
-
-/** Response returned by `POST /blog/posts/{post_id}/preview-token`. */
-export interface BlogPreviewTokenResponse {
-  token: string;
-  /** Public URL that can be shared. */
-  url: string;
-  expires_at: string;
 }

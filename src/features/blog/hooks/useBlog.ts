@@ -1,20 +1,21 @@
 import {
   infiniteQueryOptions,
-  queryOptions,
   useInfiniteQuery,
   useMutation,
   useQuery
 } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
+import { fetchAllPages, MAX_PAGE_LIMIT } from "@/lib/api/pagination";
 import type {
   BlogCategory,
+  BlogCategoryCursorPage,
   BlogPost,
   BlogPostFilters,
   BlogPostList,
   BlogPostPreviewResponse,
-  BlogPreviewTokenCreate,
   BlogPreviewTokenResponse,
-  BlogTag
+  BlogTag,
+  BlogTagCursorPage
 } from "@/lib/api/types";
 import type { QueryValue } from "@/lib/api/client";
 
@@ -34,25 +35,14 @@ function asDetail(post: BlogPost): BlogPostDetail {
   return { ...post, renderedBody: post.content };
 }
 
-export function blogPostsOptions(filters?: BlogPostFilters) {
-  return queryOptions({
-    queryKey: ["blog", "posts", filters],
-    queryFn: async () => {
-      const response = await apiClient.request<BlogPostList>({
-        method: "GET",
-        path: "/blog/posts",
-        query: (filters ?? {}) as Record<string, QueryValue>
-      });
-      // Defense-in-depth against envelope shape drift (see RCA for the
-      // notifications `h?.filter is not a function` regression).
-      return Array.isArray(response?.items) ? response.items : [];
-    },
-    staleTime: 60_000
-  });
-}
-
-export function useBlogPosts(filters?: BlogPostFilters) {
-  return useQuery(blogPostsOptions(filters));
+/** Query keys of `GET /blog/posts` as the client sends them. */
+function postQuery(filters?: Omit<BlogPostFilters, "cursor" | "limit">): Record<string, QueryValue> {
+  return {
+    q: filters?.q,
+    categories: filters?.categories,
+    tags: filters?.tags,
+    status: filters?.status
+  };
 }
 
 export function infiniteBlogPostsOptions(
@@ -64,11 +54,7 @@ export function infiniteBlogPostsOptions(
       const response = await apiClient.request<BlogPostList>({
         method: "GET",
         path: "/blog/posts",
-        query: {
-          ...(filters ?? {}),
-          cursor: pageParam,
-          limit: BLOG_PAGE_SIZE
-        } as Record<string, QueryValue>,
+        query: { ...postQuery(filters), cursor: pageParam, limit: BLOG_PAGE_SIZE },
         signal
       });
       return response;
@@ -119,11 +105,15 @@ export function useBlogPreview(token: string) {
 export function useBlogCategories() {
   return useQuery({
     queryKey: ["blog", "categories"],
-    queryFn: () =>
-      apiClient.request<BlogCategory[]>({
-        method: "GET",
-        path: "/blog/categories"
-      }),
+    queryFn: ({ signal }) =>
+      fetchAllPages<BlogCategory>((cursor) =>
+        apiClient.request<BlogCategoryCursorPage>({
+          method: "GET",
+          path: "/blog/categories",
+          query: { cursor, limit: MAX_PAGE_LIMIT },
+          signal
+        })
+      ),
     staleTime: 5 * 60_000
   });
 }
@@ -131,27 +121,30 @@ export function useBlogCategories() {
 export function useBlogTags() {
   return useQuery({
     queryKey: ["blog", "tags"],
-    queryFn: () =>
-      apiClient.request<BlogTag[]>({
-        method: "GET",
-        path: "/blog/tags"
-      }),
+    queryFn: ({ signal }) =>
+      fetchAllPages<BlogTag>((cursor) =>
+        apiClient.request<BlogTagCursorPage>({
+          method: "GET",
+          path: "/blog/tags",
+          query: { cursor, limit: MAX_PAGE_LIMIT },
+          signal
+        })
+      ),
     staleTime: 5 * 60_000
   });
 }
 
 /**
- * Admin-only: mint a preview token for a draft or scheduled post. The post
- * id is supplied per-call so a single hook instance can mint tokens for any
- * post in the list.
+ * Admin-only: mint a preview token for a draft or scheduled post. The route
+ * takes no body and answers `{ preview_token, preview_url }`. The post id is
+ * supplied per call so one hook instance can mint tokens for any post.
  */
 export function useCreateBlogPreviewToken() {
-  return useMutation<BlogPreviewTokenResponse, Error, { id: number; payload?: BlogPreviewTokenCreate }>({
-    mutationFn: ({ id, payload = {} }) =>
+  return useMutation<BlogPreviewTokenResponse, Error, { id: number }>({
+    mutationFn: ({ id }) =>
       apiClient.request<BlogPreviewTokenResponse>({
         method: "POST",
-        path: `/blog/posts/${id}/preview-token`,
-        body: payload
+        path: `/blog/posts/${id}/preview-token`
       })
   });
 }

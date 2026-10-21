@@ -1,49 +1,19 @@
-import type { CompatibilityColor, LifestyleDimensionKey, UserMatchStatus } from "@/lib/data";
-import type { FlatmatesPeer } from "./user.types";
-import type { ConversationPropertyContext } from "./conversation.types";
-import type { CursorPage } from "./common.types";
+import type { Schemas } from "./schema";
 
-export interface IncomingLikeSummary {
-  id: number;
-  peer: FlatmatesPeer;
-  context_property?: ConversationPropertyContext;
-  created_at?: string;
-}
+export type IncomingLikeSummary = Schemas["IncomingLikeSummary"];
+export type OutgoingLikeSummary = Schemas["OutgoingLikeSummary"];
+export type MatchSummary = Schemas["MatchSummary"];
+export type MatchCursorPage = Schemas["CursorPage_MatchSummary_"];
+export type IncomingLikeCursorPage = Schemas["CursorPage_IncomingLikeSummary_"];
+export type OutgoingLikeCursorPage = Schemas["CursorPage_OutgoingLikeSummary_"];
 
-export interface MatchSummary {
-  id: number;
-  status: UserMatchStatus;
-  peer: FlatmatesPeer;
-  context_property?: ConversationPropertyContext;
-  created_at?: string;
-}
+/** `GET /flatmates/matches/{id}/contact`: the only place a peer phone appears. */
+export type MatchContact = Schemas["MatchContactOut"];
+export type MatchStatusOut = Schemas["MatchStatusOut"];
 
-/** @deprecated Use {@link MatchCursorPage} instead. */
-export interface MatchesResponse {
-  matches: MatchSummary[];
-  total: number;
-}
+export type CompatibilityBreakdown = Schemas["CompatibilityBreakdown"];
+export type CompatibilityDimension = Schemas["CompatibilityDimension"];
 
-export type MatchCursorPage = CursorPage<MatchSummary>;
-export type IncomingLikeCursorPage = CursorPage<IncomingLikeSummary>;
-
-export interface CompatibilityDimension {
-  name: LifestyleDimensionKey;
-  weight: number;
-  user_value: string | null;
-  peer_value: string | null;
-  score: number;
-  match: boolean;
-  summary: string;
-}
-
-export interface CompatibilityBreakdown {
-  user_id: number;
-  peer_id: number;
-  /** Null when no dimensions are comparable (incomplete profiles). */
-  overall_percentage: number | null;
-  color: CompatibilityColor;
-  /** Optional in the API spec; treat a missing list as empty. */
-  dimensions?: CompatibilityDimension[];
-  summary?: string[];
-}
+/** Body and result of `POST /flatmates/swipes`. */
+export type SwipeRequest = Schemas["SwipeRequest"];
+export type SwipeResult = Schemas["SwipeResult"];

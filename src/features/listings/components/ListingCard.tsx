@@ -9,10 +9,11 @@ import { formatCurrencyINR, formatLocation } from "@/lib/utils";
 export interface ListingCardData {
   id: string;
   title: string;
-  price: number;
+  /** Monthly rent. Null when the listing states none. */
+  price: number | null;
   imageUrl?: string | null;
-  locality: string;
-  city?: string;
+  locality?: string | null;
+  city?: string | null;
   beds?: number;
   baths?: number;
   areaSqFt?: number;
@@ -75,8 +76,14 @@ export function ListingCard({
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
         <p className="flex items-baseline justify-between gap-3">
           <span className="text-h4 tabular-nums text-ink">
-            {formatCurrencyINR(listing.price)}
-            <span className="text-body-md font-normal text-ink-3"> a month</span>
+            {listing.price === null ? (
+              "Rent on request"
+            ) : (
+              <>
+                {formatCurrencyINR(listing.price)}
+                <span className="text-body-md font-normal text-ink-3"> a month</span>
+              </>
+            )}
           </span>
           {listing.compatibilityScore !== undefined ? (
             <span className="shrink-0 text-label-md tabular-nums text-pine">{Math.round(listing.compatibilityScore)}% match</span>

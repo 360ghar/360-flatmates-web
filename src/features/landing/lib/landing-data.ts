@@ -14,7 +14,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Are the listings real?",
     answer:
-      "Every listing is reviewed before it goes live: rent and availability are checked, and owners or current flatmates confirm the details directly. Photos are optional at posting — owners can add them after publishing."
+      "Every listing is reviewed before it goes live: rent and availability are checked, and owners or current flatmates confirm the details directly. Photos are optional at posting."
   },
   {
     question: "Is my data safe?",
@@ -33,7 +33,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Is it free?",
     answer:
-      "Searching and matching are free. Optional paid boosts put a listing or profile in front of more people; the core app costs nothing."
+      "Searching, matching and posting a room are free."
   },
   {
     question: "Which cities are you in?",

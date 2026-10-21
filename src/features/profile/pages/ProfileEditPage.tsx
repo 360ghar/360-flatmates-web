@@ -1,12 +1,12 @@
 import { userMessage } from "@/lib/api/errors";
+import { applyFieldErrors } from "@/lib/api/form-errors";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMyProfile, useUpdateProfile } from "@/hooks/queries/useProfiles";
 import { uiStore } from "@/lib/stores/ui-store";
-import { profileSchema, type ProfileFormData } from "@/features/profile/lib/profile-form";
-import { stripEmptyFields } from "@/lib/utils";
+import { profileSchema, toProfileUpdate, type ProfileFormData } from "@/features/profile/lib/profile-form";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { InlineError } from "@/components/ui/StateViews";
@@ -33,7 +33,9 @@ export function ProfileEditPage() {
     handleSubmit,
     reset,
     control,
-    formState: { errors, isDirty }
+    getValues,
+    setError,
+    formState: { errors, isDirty, dirtyFields }
   } = useForm<ProfileFormData>({
     // moveInTimelineSchema preprocesses legacy values, so its inferred input
     // type is wider than the form's output type; the resolver is safe because
@@ -56,14 +58,11 @@ export function ProfileEditPage() {
       drinking: undefined,
       native_place: "",
       linkedin_url: "",
-      age_bucket: undefined,
       guests_policy: undefined,
       work_style: undefined,
       gender: "",
       gender_preference: undefined,
-      mode: undefined,
-      email: "",
-      phone: ""
+      mode: undefined
     }
   });
 
@@ -79,7 +78,6 @@ export function ProfileEditPage() {
         age: profile.age,
         native_place: profile.native_place ?? "",
         linkedin_url: profile.linkedin_url ?? "",
-        age_bucket: profile.age_bucket,
         city: profile.city ?? "",
         locality: profile.locality ?? "",
         budget_min: profile.budget_min,
@@ -94,46 +92,17 @@ export function ProfileEditPage() {
         work_style: profile.work_style,
         gender: profile.gender ?? "",
         gender_preference: profile.gender_preference,
-        mode: profile.mode,
-        email: profile.email ?? "",
-        phone: profile.phone ?? ""
+        mode: profile.mode ?? undefined
       };
       reset(defaults);
     }
   }, [profile, isDirty, reset]);
 
-  const hasEmail = typeof profile?.email === "string" && profile.email.trim().length > 0;
-  const hasPhone = typeof profile?.phone === "string" && profile.phone.trim().length > 0;
-
   function onSubmit(data: ProfileFormData) {
     setServerError(null);
 
-    const payload = stripEmptyFields(data as Record<string, unknown>);
-
-    if (typeof data.linkedin_url === "string" && data.linkedin_url.trim() === "") {
-      // Empty input clears the stored LinkedIn URL (backend treats null as clear).
-      payload.linkedin_url = null;
-    }
-
-    if (hasEmail) {
-      delete payload.email;
-    }
-    if (hasPhone) {
-      delete payload.phone;
-    } else if (payload.phone) {
-      // Accept any 10-digit Indian mobile number. Strip spaces, dashes, the
-      // country code prefix (91), and any other non-digits; require exactly
-      // 10 surviving digits (A-15). Anything else surfaces an inline error.
-      const digits = (payload.phone as string)
-        .replace(/\D/g, "")
-        .replace(/^91/, "")
-        .slice(-10);
-      if (digits.length !== 10) {
-        setServerError("Please enter a valid 10-digit phone number.");
-        return;
-      }
-      payload.phone = `+91${digits}`;
-    }
+    // Only the changed fields go out. Email and phone are not profile fields.
+    const payload = toProfileUpdate(data, dirtyFields);
 
     updateProfile.mutate(payload, {
       onSuccess: () => {
@@ -148,7 +117,8 @@ export function ProfileEditPage() {
         navigate("/profile", { state: { skipDirtyGuard: true } });
       },
       onError: (err) => {
-        setServerError(userMessage(err, "Failed to update profile"));
+        const fieldLine = applyFieldErrors(err, setError, Object.keys(getValues()));
+        setServerError(fieldLine ?? userMessage(err, "Failed to update profile"));
       }
     });
   }
@@ -188,12 +158,7 @@ export function ProfileEditPage() {
           </Card>
         )}
 
-        <ProfileContactInfoSection
-          register={register}
-          errors={errors}
-          hasEmail={hasEmail}
-          hasPhone={hasPhone}
-        />
+        <ProfileContactInfoSection email={profile.email} phone={profile.phone} />
 
         <ProfileBasicInfoSection register={register} errors={errors} bioValue={bioValue} />
 

@@ -86,7 +86,7 @@ graph LR
 
 ## Source-of-truth docs
 
-For the notification event payload shapes, see [Real-time](real-time.md) and [docs/flatmates-openapi.yaml](../../docs/flatmates-openapi.yaml). For the env var reference including `VITE_VAPID_PUBLIC_KEY`, see `.env.example` and [Configuration](../reference/configuration.md). For the async-state rules that govern the notification and alert pages, see [DESIGN.md](../../DESIGN.md) section 12.
+For the notification event payload shapes, see [Real-time](real-time.md) and [openapi/openapi.json](../../openapi/openapi.json). For the env var reference including `VITE_VAPID_PUBLIC_KEY`, see `.env.example` and [Configuration](../reference/configuration.md). For the async-state rules that govern the notification and alert pages, see [DESIGN.md](../../DESIGN.md) section 12.
 
 ## Key source files
 

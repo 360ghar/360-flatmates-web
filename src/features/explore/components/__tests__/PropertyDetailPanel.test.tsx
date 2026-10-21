@@ -14,8 +14,9 @@ const pin: MapPin = {
   main_image_url: "https://example.com/photo.jpg",
 };
 
-const baseProperty: Property = {
+const baseProperty = {
   id: 42,
+  owner_id: 99,
   property_type: "apartment",
   purpose: "rent",
   title: "Spacious 2BHK in Indiranagar",
@@ -27,12 +28,12 @@ const baseProperty: Property = {
   area_sqft: 1200,
   description: "A bright, quiet flat with a balcony.",
   features: ["Wifi", "Parking"],
-  image_urls: ["https://example.com/a.jpg", "https://example.com/b.jpg"],
-  owner: {
-    id: 99,
-    full_name: "Riya Sharma",
-  },
-};
+  images: [
+    { id: 1, image_url: "https://example.com/a.jpg", display_order: 0, is_main_image: true },
+    { id: 2, image_url: "https://example.com/b.jpg", display_order: 1, is_main_image: false }
+  ],
+  owner_name: "Riya Sharma",
+} as Property;
 
 it("renders skeletons while loading", () => {
   const { container } = render(
@@ -141,15 +142,15 @@ it("navigates to the owner's public profile", async () => {
   expect(onNavigate).toHaveBeenCalledWith("/profile/99");
 });
 
-it("hides the profile link when the property has no owner", () => {
+it("keeps the profile link with a generic label when the owner has no name", () => {
   render(
     <PropertyDetailPanel
       selectedPin={pin}
-      fullProperty={{ ...baseProperty, owner: undefined }}
+      fullProperty={{ ...baseProperty, owner_name: null }}
       isPropertyLoading={false}
       onClose={vi.fn()}
       onNavigate={vi.fn()}
     />
   );
-  expect(screen.queryByRole("button", { name: /profile/i })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "See the owner's profile" })).toBeInTheDocument();
 });

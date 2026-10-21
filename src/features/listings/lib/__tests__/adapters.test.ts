@@ -50,7 +50,7 @@ describe("propertyToListingCardProps", () => {
     expect(result.imageUrl).toBe("https://example.com/img.jpg");
   });
 
-  it("maps owner object when present", () => {
+  it("reads the owner name only: a property carries no owner photo or phone", () => {
     const property = {
       id: 1,
       property_type: "flatmate",
@@ -59,17 +59,14 @@ describe("propertyToListingCardProps", () => {
       city: "Bangalore",
       locality: "HSR",
       monthly_rent: 20000,
-      owner: {
-        id: 10,
-        full_name: "Rohan Mehta",
-        profile_image_url: "https://example.com/avatar.jpg"
-      }
+      owner_name: "Rohan Mehta"
     } as Property;
 
-    const result = propertyToListingCardProps(property);
-    expect(result.owner).toEqual({
-      name: "Rohan Mehta",
-      avatarUrl: "https://example.com/avatar.jpg"
-    });
+    expect(propertyToListingCardProps(property).owner).toEqual({ name: "Rohan Mehta" });
+  });
+
+  it("has no owner when the property carries no owner name", () => {
+    const property = { id: 1, title: "Room", owner_name: null } as Property;
+    expect(propertyToListingCardProps(property).owner).toBeUndefined();
   });
 });

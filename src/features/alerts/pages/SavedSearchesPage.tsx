@@ -15,7 +15,6 @@ function filtersToSearchParams(filters: SearchFilters): string {
   const params = new URLSearchParams();
 
   if (filters.q) params.set("q", filters.q);
-  if (filters.search_type) params.set("search_type", filters.search_type);
   if (filters.lat !== undefined) params.set("lat", String(filters.lat));
   if (filters.lng !== undefined) params.set("lng", String(filters.lng));
   if (filters.radius !== undefined) params.set("radius", String(filters.radius));
@@ -25,30 +24,19 @@ function filtersToSearchParams(filters: SearchFilters): string {
   if (filters.purpose) params.set("purpose", filters.purpose);
   if (filters.city) params.set("city", filters.city);
   if (filters.locality) params.set("locality", filters.locality);
-  if (filters.sub_locality) params.set("sub_locality", filters.sub_locality);
   if (filters.price_min !== undefined) params.set("priceMin", String(filters.price_min));
   if (filters.price_max !== undefined) params.set("priceMax", String(filters.price_max));
   if (filters.bedrooms_min !== undefined) params.set("bedrooms_min", String(filters.bedrooms_min));
   if (filters.bedrooms_max !== undefined) params.set("bedrooms_max", String(filters.bedrooms_max));
-  if (filters.sharing_type && filters.sharing_type.length > 0) {
-    params.set("sharing_type", filters.sharing_type.join(","));
-  }
-  if (filters.gender_preference && filters.gender_preference.length > 0) {
-    params.set("gender_preference", filters.gender_preference.join(","));
-  }
-  if (filters.move_in && filters.move_in.length > 0) {
-    params.set("move_in", filters.move_in.join(","));
-  }
+  if (filters.sharing_type) params.set("sharing_type", filters.sharing_type);
+  if (filters.gender_preference) params.set("gender_preference", filters.gender_preference);
+  if (filters.move_in) params.set("move_in", filters.move_in);
   if (filters.available_from) params.set("available_from", filters.available_from);
   if (filters.amenities && filters.amenities.length > 0) {
     params.set("amenities", filters.amenities.join(","));
   }
   if (filters.features && filters.features.length > 0) {
     params.set("features", filters.features.join(","));
-  }
-  if (filters.society_type) params.set("society_type", filters.society_type);
-  if (filters.society_vibe_tags && filters.society_vibe_tags.length > 0) {
-    params.set("society_vibe_tags", filters.society_vibe_tags.join(","));
   }
   if (filters.sort_by) params.set("sort_by", filters.sort_by);
   if (filters.semantic_search !== undefined) {

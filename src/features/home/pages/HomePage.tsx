@@ -8,7 +8,6 @@ import { useSwipeDeck } from "@/features/swipe/hooks/useSwipes";
 import { searchStore } from "@/lib/stores/search-store";
 import { propertyToListingCardProps } from "@/features/listings/lib/adapters";
 import { profileToProfileGridCardProps } from "@/features/matches/lib/adapters";
-import type { Property } from "@/lib/api/types";
 import { PaperMiniScene } from "@/components/paper/PaperScene";
 import { chipClasses } from "@/components/ui/Chip";
 import { Page } from "@/components/ui/Layout";
@@ -78,9 +77,7 @@ export function HomePage() {
   const swipeFilters = profile?.city ? { city: profile.city, limit: 8 } : { limit: 8 };
   const { data: swipeDeckProfiles, isLoading: swipeLoading, error: swipeError } = useSwipeDeck(swipeFilters);
 
-  const listings = (newListingsData?.results ?? []).filter(
-    (r): r is Property => "monthly_rent" in r && r.owner_id !== profile?.id
-  );
+  const listings = (newListingsData?.results ?? []).filter((r) => r.owner_id !== profile?.id);
   const nearbyPeers = recommendedPeers ?? [];
   const recommended = swipeDeckProfiles ?? [];
 
@@ -91,8 +88,8 @@ export function HomePage() {
     if (!currentCity && profile?.city) {
       searchStore.getState().setFilters({
         city: profile.city,
-        price_min: profile.budget_min,
-        price_max: profile.budget_max,
+        price_min: profile.budget_min ?? undefined,
+        price_max: profile.budget_max ?? undefined,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when city changes
@@ -173,7 +170,7 @@ export function HomePage() {
             )}
           </FeedSection>
 
-          <FeedSection title="Flatmates near you" actionLabel="See all" onAction={() => navigate("/explore?search_type=profiles")}>
+          <FeedSection title="Flatmates near you" actionLabel="See all" onAction={() => navigate("/swipe")}>
             {nearbyPeers.length > 0 ? (
               nearbyPeers.slice(0, 4).map(peerCard)
             ) : (

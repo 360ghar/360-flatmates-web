@@ -1,78 +1,29 @@
-import type { InterestLevel, VisitContext, VisitStatus } from "@/lib/data";
+import type { VisitStatus } from "@/lib/data";
+import type { Schemas, WriteBody } from "./schema";
 
-export interface VisitCreate {
-  property_id: number;
-  visit_context?: VisitContext;
-  scheduled_date: string;
-  conversation_id?: number;
-  counterparty_user_id?: number;
-  match_id?: number;
-  special_requirements?: string;
-  visit_notes?: string;
-}
+export type Visit = Schemas["Visit"];
+export type VisitCursorPage = Schemas["CursorPage_Visit_"];
+/** Counterparty and visitor on a visit: name and avatar only. */
+export type PublicUserRef = Schemas["PublicUserRef"];
 
-export interface VisitUpdate {
-  status?: VisitStatus;
-  scheduled_date?: string;
-  special_requirements?: string;
-  visit_notes?: string;
-  visitor_feedback?: string;
-  interest_level?: InterestLevel;
-  follow_up_required?: boolean;
-  follow_up_date?: string;
-}
+/** Body of `POST /visits`. `scheduled_date` is an ISO time with a UTC offset. */
+export type VisitCreate = WriteBody<Schemas["VisitCreate"], "visit_context">;
 
-export interface VisitReschedule {
-  new_date: string;
-  reason?: string;
-}
+/** Body of `PUT /visits/{id}`: confirm, notes and feedback only. */
+export type VisitUpdate = Schemas["VisitUpdate"];
 
-export interface VisitCancel {
-  reason?: string;
-}
+/** Body of `POST /visits/{id}/reschedule`. `new_date` carries a UTC offset. */
+export type VisitReschedule = Schemas["VisitReschedule"];
 
-export interface VisitComplete {
-  notes?: string;
-  feedback?: string;
-}
+/** Body of `POST /visits/{id}/cancel`. The reason is required. */
+export type VisitCancel = Schemas["VisitCancel"];
 
-export interface Visit {
-  id: number;
-  user_id?: number;
-  property_id: number;
-  property_title?: string;
-  agent_id?: number;
-  counterparty_user_id?: number;
-  conversation_id?: number;
-  match_id?: number;
-  visit_context: VisitContext;
-  scheduled_date: string;
-  actual_date?: string;
-  status: VisitStatus;
-  special_requirements?: string;
-  visit_notes?: string;
-  visitor_feedback?: string;
-  interest_level?: InterestLevel;
-  follow_up_required?: boolean;
-  follow_up_date?: string;
-  cancellation_reason?: string;
-  rescheduled_from?: string;
-  created_at?: string;
-}
+/** Body of `PUT /flatmates/visits/{id}` (flatmate meets). */
+export type FlatmateVisitUpdate = Schemas["FlatmateVisitUpdate"];
 
-/** @deprecated Use {@link VisitCursorPage} instead. */
-export interface VisitList {
-  visits: Visit[];
-  total: number;
-}
-
-export type VisitCursorPage = import("./common.types").CursorPage<Visit>;
-
+/** `GET /visits` declares `status`, `cursor`, `limit` and `include_total` only. */
 export interface VisitFilters {
   status?: VisitStatus;
-  context?: VisitContext;
-  upcoming?: boolean;
-  past?: boolean;
   limit?: number;
   cursor?: string;
 }

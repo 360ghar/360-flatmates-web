@@ -6,22 +6,24 @@ import { Page, PageHeader } from "@/components/ui/Layout";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AsyncView, EmptyState, ErrorState } from "@/components/ui/StateViews";
 import { uiStore } from "@/lib/stores/ui-store";
-import type { ReportAdmin, ReportStatus } from "@/lib/api/types";
-import type { ReportAction } from "@/lib/data";
+import type { ReportAdmin } from "@/lib/api/types";
+import type { ReportAction, ReportStatus } from "@/lib/data";
+import { adminUserName } from "@/lib/api/admin-fields";
 import { ModerationReportActionModal } from "@/features/admin/components/ModerationReportActionModal";
 import { ModerationReportRow } from "@/features/admin/components/ModerationReportRow";
 import { ModerationReportsFilterBar, type ReportsStatusFilter } from "@/features/admin/components/ModerationReportsFilterBar";
 
 const actionPastTense: Record<ReportAction, string> = {
   dismiss: "dismissed",
-  warn: "resolved with a warning",
-  suspend: "resolved, user suspended"
+  warn_user: "resolved with a warning",
+  suspend_user: "resolved, user suspended",
+  escalate: "escalated"
 };
 
-const statusBadgeMap: Record<string, "pending" | "confirmed" | "rejected"> = {
+const statusBadgeMap: Record<ReportStatus, "pending" | "confirmed" | "rejected"> = {
   open: "pending",
-  under_review: "pending",
-  resolved: "confirmed",
+  reviewed: "pending",
+  actioned: "confirmed",
   dismissed: "rejected"
 };
 
@@ -68,13 +70,7 @@ function actionModalReducer(state: ActionModalState, action: ActionModalDispatch
 export function ModerationReportsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ReportsStatusFilter>("open");
-  const filters = useMemo(
-    () =>
-      statusFilter === "all"
-        ? undefined
-        : { status: statusFilter as ReportStatus },
-    [statusFilter]
-  );
+  const filters = useMemo(() => ({ status: statusFilter }), [statusFilter]);
   const {
     data,
     isLoading,
@@ -116,8 +112,8 @@ export function ModerationReportsPage() {
       if (!needle) return allReports;
       return allReports.filter(
         (r) =>
-          r.reporter_name.toLowerCase().includes(needle) ||
-          r.reported_name.toLowerCase().includes(needle) ||
+          adminUserName(r.reporter, r.reporter_user_id).toLowerCase().includes(needle) ||
+          adminUserName(r.reported_user, r.reported_user_id).toLowerCase().includes(needle) ||
           r.reason.toLowerCase().includes(needle)
       );
     },
@@ -130,11 +126,11 @@ export function ModerationReportsPage() {
 
   function handleConfirmAction() {
     if (!liveSelectedReport || !actionModal.action || reportAction.isPending) return;
-    if (actionModal.action === "suspend") {
+    if (actionModal.action === "suspend_user") {
       // Defence-in-depth: the button is also disabled in the UI, but block
       // here too in case the disabled state is bypassed (e.g. dev tools).
       const token = actionModal.suspendConfirmation.trim();
-      const expected = liveSelectedReport.reported_name.trim();
+      const expected = adminUserName(liveSelectedReport.reported_user, liveSelectedReport.reported_user_id).trim();
       if (!actionModal.notes.trim() || (token !== "SUSPEND" && token !== expected)) {
         return;
       }
@@ -156,7 +152,7 @@ export function ModerationReportsPage() {
           uiStore.getState().pushToast({
             type: "success",
             title: `Report ${actionPastTense[action]}`,
-            description: `Action taken on the report against ${report.reported_name}.`
+            description: `Action taken on the report against ${adminUserName(report.reported_user, report.reported_user_id)}.`
           });
         },
         onError: () => {
@@ -171,11 +167,11 @@ export function ModerationReportsPage() {
     );
   }
 
-  const isSuspend = actionModal.action === "suspend";
+  const isSuspend = actionModal.action === "suspend_user";
   const suspendTokenMatches =
     liveSelectedReport &&
     (actionModal.suspendConfirmation.trim() === "SUSPEND" ||
-      actionModal.suspendConfirmation.trim() === liveSelectedReport.reported_name.trim());
+      actionModal.suspendConfirmation.trim() === adminUserName(liveSelectedReport.reported_user, liveSelectedReport.reported_user_id).trim());
   const canConfirm = Boolean(
     actionModal.action &&
     !reportAction.isPending &&

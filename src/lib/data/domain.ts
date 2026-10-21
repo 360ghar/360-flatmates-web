@@ -71,6 +71,38 @@ export const MOVE_IN_TIMELINE_OPTIONS = [
   { value: "flexible", label: "Flexible" }
 ] as const satisfies readonly DomainOption<MoveInTimeline>[];
 
+/**
+ * Move-in values the property search accepts (`move_in` on `GET /properties`,
+ * backend `MoveInTimeline`). A profile's own `move_in_timeline` is a free
+ * string and uses {@link MOVE_IN_TIMELINE_VALUES} above; the two sets differ
+ * (`immediate` here, `immediately` there), so never send one as the other.
+ */
+export const MOVE_IN_FILTER_VALUES = [
+  "immediate",
+  "within_1_week",
+  "within_2_weeks",
+  "this_month",
+  "next_month",
+  "within_1_month",
+  "within_2_months",
+  "within_3_months",
+  "flexible"
+] as const;
+
+export type MoveInFilter = (typeof MOVE_IN_FILTER_VALUES)[number];
+
+export const MOVE_IN_FILTER_OPTIONS = [
+  { value: "immediate", label: "Immediately" },
+  { value: "within_1_week", label: "Within 1 week" },
+  { value: "within_2_weeks", label: "Within 2 weeks" },
+  { value: "this_month", label: "This month" },
+  { value: "next_month", label: "Next month" },
+  { value: "within_1_month", label: "Within 1 month" },
+  { value: "within_2_months", label: "Within 2 months" },
+  { value: "within_3_months", label: "Within 3 months" },
+  { value: "flexible", label: "Flexible" }
+] as const satisfies readonly DomainOption<MoveInFilter>[];
+
 export const SLEEP_SCHEDULE_VALUES = [
   "early_bird",
   "flexible",
@@ -348,18 +380,13 @@ export const SOCIETY_TYPE_VALUES = [
 
 export type SocietyType = (typeof SOCIETY_TYPE_VALUES)[number];
 
-export const SEARCH_TYPE_VALUES = ["listings", "profiles", "all"] as const;
-
-export type SearchType = (typeof SEARCH_TYPE_VALUES)[number];
-
 export const SEARCH_SORT_VALUES = [
   "distance",
   "price_low",
   "price_high",
   "newest",
   "popular",
-  "relevance",
-  "match_percentage"
+  "relevance"
 ] as const;
 
 export type SearchSort = (typeof SEARCH_SORT_VALUES)[number];
@@ -406,8 +433,6 @@ export type UserReportReason = "spam" | "fake_profile" | "abuse" | "inappropriat
 
 export type UserReportStatus = "open" | "reviewed" | "dismissed" | "actioned";
 
-export type BoostDuration = "24h" | "7d" | "30d";
-
 export type ShareCardFormat = "whatsapp_square" | "instagram_story" | "original";
 
 export type DevicePlatform = "ios" | "android" | "web";
@@ -416,15 +441,47 @@ export type UserRole = "user" | "admin" | "agent";
 
 export type UserMatchStatus = "active" | "unmatched" | "blocked";
 
-export type ConversationSource = "listing_interest" | "profile_match";
+export const CONVERSATION_SOURCE_VALUES = [
+  "listing_interest",
+  "profile_match",
+  "booking_inquiry",
+  "property_inquiry",
+  "lease_inquiry",
+  "other"
+] as const;
+
+export type ConversationSource = (typeof CONVERSATION_SOURCE_VALUES)[number];
 
 export type ConversationStatus = "active" | "archived" | "blocked" | "closed";
 
-export type PropertyLifecycleStatus = "draft" | "active" | "paused" | "expired";
+/** Backend `PropertyStatus` (`Property.status`). */
+export const PROPERTY_STATUS_VALUES = [
+  "available",
+  "sold",
+  "rented",
+  "under_offer",
+  "maintenance"
+] as const;
 
-export const PROPERTY_MODERATION_STATUS_VALUES = ["pending_review", "approved", "rejected"] as const;
+export type PropertyStatus = (typeof PROPERTY_STATUS_VALUES)[number];
 
-export type PropertyModerationStatus = (typeof PROPERTY_MODERATION_STATUS_VALUES)[number];
+/** Backend `ListingModerationStatus` (`listing_preferences.moderation_status`). */
+export const LISTING_MODERATION_STATUS_VALUES = [
+  "pending_review",
+  "live",
+  "paused",
+  "rejected"
+] as const;
+
+export type ListingModerationStatus = (typeof LISTING_MODERATION_STATUS_VALUES)[number];
+
+/** How an owner reads a listing state (owner dashboard, listing page). */
+export const LISTING_STATUS_LABEL: Record<ListingModerationStatus, string> = {
+  live: "Published",
+  pending_review: "In review",
+  paused: "Paused",
+  rejected: "Rejected"
+};
 
 export type CompatibilityColor = "green" | "amber" | "red";
 
@@ -432,11 +489,14 @@ export type InterestLevel = "high" | "medium" | "low";
 
 export type ModerationAction = "approve" | "reject" | "request_edit";
 
-export const REPORT_STATUS_VALUES = ["open", "under_review", "resolved", "dismissed"] as const;
+/** Backend `UserReportStatus`. */
+export const REPORT_STATUS_VALUES = ["open", "reviewed", "dismissed", "actioned"] as const;
 
 export type ReportStatus = (typeof REPORT_STATUS_VALUES)[number];
 
-export type ReportAction = "dismiss" | "warn" | "suspend";
+/** Backend `ReportAction` (`PUT /flatmates/moderation/reports/{id}`). */
+export const REPORT_ACTION_VALUES = ["dismiss", "warn_user", "suspend_user", "escalate"] as const;
+
+export type ReportAction = (typeof REPORT_ACTION_VALUES)[number];
 
 export type SocietyTagVoteDirection = "up" | "down";
-

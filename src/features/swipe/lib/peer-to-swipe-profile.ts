@@ -1,28 +1,41 @@
-import type { FlatmatesPeer, FlatmatesProfile } from "@/lib/api/types";
+import type { FlatmatesPeer } from "@/lib/api/types";
+import type { OwnProfile } from "@/lib/schemas/profile";
+import { readEnum } from "@/lib/api/schema";
+import { peerName } from "@/lib/api/peer-fields";
 import { calculateCompatibility, type CompatibilityProfile } from "@/lib/compatibility";
+import {
+  CLEANLINESS_VALUES,
+  DRINKING_VALUES,
+  FOOD_HABITS_VALUES,
+  GUESTS_POLICY_VALUES,
+  SLEEP_SCHEDULE_VALUES,
+  SMOKING_VALUES,
+  WORK_STYLE_VALUES
+} from "@/lib/data";
 import { formatLocation, formatMoveInTimeline } from "@/lib/utils/format";
 import type { SwipeProfile } from "@/features/swipe/lib/swipeDeck.types";
 
+/** Lifestyle answers as the compatibility engine reads them. An unknown value reads as missing. */
 function toCompatibilityProfile(
-  source: FlatmatesProfile | FlatmatesPeer | null | undefined,
+  source: OwnProfile | FlatmatesPeer | null | undefined,
   id?: number
 ): CompatibilityProfile {
   return {
     id: id ?? source?.id,
-    sleep_schedule: source?.sleep_schedule,
-    cleanliness: source?.cleanliness,
-    food_habits: source?.food_habits,
-    smoking: source?.smoking,
-    drinking: source?.drinking,
-    guests_policy: source?.guests_policy,
-    work_style: source?.work_style
+    sleep_schedule: readEnum(SLEEP_SCHEDULE_VALUES, source?.sleep_schedule) ?? undefined,
+    cleanliness: readEnum(CLEANLINESS_VALUES, source?.cleanliness) ?? undefined,
+    food_habits: readEnum(FOOD_HABITS_VALUES, source?.food_habits) ?? undefined,
+    smoking: readEnum(SMOKING_VALUES, source?.smoking) ?? undefined,
+    drinking: readEnum(DRINKING_VALUES, source?.drinking) ?? undefined,
+    guests_policy: readEnum(GUESTS_POLICY_VALUES, source?.guests_policy) ?? undefined,
+    work_style: readEnum(WORK_STYLE_VALUES, source?.work_style) ?? undefined
   };
 }
 
 /** A deck card from an API peer; scored against `me` when the server gives no score. */
 export function peerToSwipeProfile(
   peer: FlatmatesPeer,
-  me?: FlatmatesProfile | null
+  me?: OwnProfile | null
 ): SwipeProfile {
   const compat =
     me != null
@@ -31,57 +44,55 @@ export function peerToSwipeProfile(
           toCompatibilityProfile(peer, peer.id)
         )
       : null;
+  // Listing context is one object. It is null when the peer has no live listing.
+  const listing = peer.listing ?? null;
 
   return {
     id: String(peer.id),
-    name: peer.full_name,
-    age: peer.age,
-    ageBucket: peer.age_bucket,
-    photoUrl: peer.profile_image_url ?? peer.main_image_url,
-    mode: peer.mode,
+    name: peerName(peer),
+    ageBucket: peer.age_bucket ?? undefined,
+    photoUrl: peer.profile_image_url ?? listing?.main_image_url,
+    mode: peer.mode ?? undefined,
     verified: false,
     location: formatLocation(peer.locality, peer.city) || undefined,
     matchScore: peer.match_percentage ?? compat?.overall_percentage ?? 0,
-    topMatches: peer.top_matches ?? [],
+    topMatches: peer.top_matches,
     moveInLabel: peer.move_in_timeline
       ? formatMoveInTimeline(peer.move_in_timeline)
       : undefined,
-    bio: peer.bio,
-    profession: peer.profession,
-    budgetMin: peer.budget_min,
-    budgetMax: peer.budget_max,
-    moveInTimeline: peer.move_in_timeline,
-    sleepSchedule: peer.sleep_schedule,
-    cleanliness: peer.cleanliness,
-    foodHabits: peer.food_habits,
-    smoking: peer.smoking,
-    drinking: peer.drinking,
-    guestsPolicy: peer.guests_policy,
-    workStyle: peer.work_style,
-    gender: peer.gender,
-    genderPreference: peer.gender_preference,
+    bio: peer.bio ?? undefined,
+    profession: peer.profession ?? undefined,
+    budgetMin: peer.budget_min ?? undefined,
+    budgetMax: peer.budget_max ?? undefined,
+    moveInTimeline: peer.move_in_timeline ?? undefined,
+    sleepSchedule: peer.sleep_schedule ?? undefined,
+    cleanliness: peer.cleanliness ?? undefined,
+    foodHabits: peer.food_habits ?? undefined,
+    smoking: peer.smoking ?? undefined,
+    drinking: peer.drinking ?? undefined,
+    guestsPolicy: peer.guests_policy ?? undefined,
+    workStyle: peer.work_style ?? undefined,
+    gender: peer.gender ?? undefined,
+    genderPreference: peer.gender_preference ?? undefined,
     nonNegotiables: peer.non_negotiables,
     hasPets: peer.has_pets,
-    partyHabit: peer.party_habit,
+    partyHabit: peer.party_habit ?? undefined,
     compatibilityDimensions: compat?.dimensions,
-    propertyTitle: peer.property_title,
-    imageUrls: peer.image_urls,
-    monthlyRent: peer.monthly_rent,
-    securityDeposit: peer.security_deposit,
-    maintenance: peer.maintenance ?? peer.maintenance_charges,
-    roomType: peer.room_type,
-    flatConfig: peer.flat_config,
-    floor: peer.floor ?? (peer.floor_number != null ? String(peer.floor_number) : null),
-    societyName: peer.society_name,
-    flatAmenities: peer.flat_amenities,
-    societyAmenities: peer.society_amenities,
-    amenities: peer.amenities,
-    features: peer.features,
-    furnishing: peer.furnishing,
-    availableFrom: peer.available_from,
-    areaSqft: peer.area_sqft,
-    bedrooms: peer.bedrooms,
-    totalFloors: peer.total_floors,
-    videoTourUrl: peer.video_tour_url
+    hasListing: listing != null,
+    propertyTitle: listing?.title ?? undefined,
+    listingLocation: listing ? formatLocation(listing.locality, listing.city) || undefined : undefined,
+    imageUrls: listing?.image_urls,
+    monthlyRent: listing?.monthly_rent,
+    securityDeposit: listing?.security_deposit,
+    maintenance: listing?.maintenance_charges,
+    roomType: listing?.room_type,
+    floor: listing?.floor_number != null ? String(listing.floor_number) : null,
+    amenities: listing?.amenities,
+    features: listing?.features,
+    availableFrom: listing?.available_from,
+    areaSqft: listing?.area_sqft,
+    bedrooms: listing?.bedrooms,
+    totalFloors: listing?.total_floors,
+    videoTourUrl: listing?.video_tour_url
   };
 }

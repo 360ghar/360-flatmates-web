@@ -52,8 +52,7 @@ export function AppShell({
   style,
   ...props
 }: AppShellProps) {
-  // One lightweight query: the server unread total (the hook falls back to counting
-  // the fetched slice when `total` is absent).
+  // The badge is the server's `unread_count`. A page of the list cannot give it.
   const { data: serverUnreadTotal } = useUnreadNotificationCount();
   const unreadNotifications = notificationCount ?? serverUnreadTotal ?? 0;
 

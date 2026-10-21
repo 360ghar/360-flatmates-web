@@ -1,6 +1,6 @@
 import { Copy, Eye } from "lucide-react";
 import { useState } from "react";
-import { useBlogPosts, useCreateBlogPreviewToken } from "@/features/blog/hooks/useBlog";
+import { useCreateBlogPreviewToken, useInfiniteBlogPosts } from "@/features/blog/hooks/useBlog";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { ChoiceChips } from "@/components/ui/ChoiceChips";
@@ -9,7 +9,11 @@ import { EmptyState, InlineError } from "@/components/ui/StateViews";
 import { cn } from "@/components/ui/component-utils";
 import { formatDate } from "@/lib/utils/format";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { userMessage } from "@/lib/api/errors";
+import { readEnum } from "@/lib/api/schema";
 import type { BlogPost, BlogPostStatus } from "@/lib/api/types";
+
+const BLOG_POST_STATUS_VALUES = ["draft", "published", "archived", "scheduled"] as const satisfies readonly BlogPostStatus[];
 
 const STATUS_LABELS: Record<BlogPostStatus, string> = {
   draft: "Draft",
@@ -45,22 +49,23 @@ function copyText(text: string): Promise<boolean> {
 
 export function BlogAdminPage() {
   const [status, setStatus] = useState<BlogPostStatus | "all">("all");
-  const { data: posts, isLoading, error, refetch } = useBlogPosts({
-    status: status === "all" ? undefined : status,
-    limit: 50
+  // Page by page: an admin can have hundreds of posts.
+  const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError } = useInfiniteBlogPosts({
+    status: status === "all" ? undefined : status
   });
+  const posts = data?.pages.flatMap((page) => page.items);
   const createToken = useCreateBlogPreviewToken();
 
   const handleGenerateToken = async (post: BlogPost) => {
     createToken.mutate(
-      { id: post.id, payload: { ttl_hours: 72 } },
+      { id: post.id },
       {
         onSuccess: (response) => {
-          void copyText(response.url).then((copied) => {
+          void copyText(response.preview_url).then((copied) => {
             uiStore.getState().pushToast({
               type: "success",
               title: copied ? "Preview link generated and copied" : "Preview link generated",
-              description: response.url
+              description: response.preview_url
             });
           });
         },
@@ -84,7 +89,7 @@ export function BlogAdminPage() {
 
       {isLoading ? (
         <Skeleton variant="moderationRow" count={4} />
-      ) : error ? (
+      ) : error && !posts ? (
         <InlineError title="Could not load posts" onRetry={() => refetch()} />
       ) : !posts || posts.length === 0 ? (
         <EmptyState
@@ -94,7 +99,9 @@ export function BlogAdminPage() {
         />
       ) : (
         <div className="flex flex-col gap-2">
-          {posts.map((post) => (
+          {posts.map((post) => {
+            const postStatus = readEnum(BLOG_POST_STATUS_VALUES, post.status);
+            return (
             <div
               key={post.id}
               className="paper-grain flex flex-wrap items-center justify-between gap-3 rounded-hand bg-surface p-4 shadow-sm"
@@ -104,8 +111,10 @@ export function BlogAdminPage() {
                   {post.title}
                 </span>
                 <p className="mt-1 flex flex-wrap items-center gap-x-2 text-caption text-ink-3">
-                  <span className={cn("text-label-md", STATUS_TONE[post.status])}>{STATUS_LABELS[post.status]}</span>
-                  {post.published_at ? <span>· {formatDate(post.published_at)}</span> : null}
+                  {postStatus ? (
+                    <span className={cn("text-label-md", STATUS_TONE[postStatus])}>{STATUS_LABELS[postStatus]}</span>
+                  ) : null}
+                  {post.published_at ? <span>{postStatus ? "· " : ""}{formatDate(post.published_at)}</span> : null}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -136,7 +145,20 @@ export function BlogAdminPage() {
                 </Button>
               </div>
             </div>
-          ))}
+            );
+          })}
+          {hasNextPage ? (
+            <div className="flex flex-col items-center gap-1.5 pt-2">
+              {isFetchNextPageError ? (
+                <p role="alert" className="text-body-sm text-danger">
+                  {userMessage(error, "Could not load more posts.")}
+                </p>
+              ) : null}
+              <Button variant="secondary" onClick={() => fetchNextPage()} loading={isFetchingNextPage}>
+                {isFetchNextPageError ? "Try again" : "More posts"}
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
     </Page>

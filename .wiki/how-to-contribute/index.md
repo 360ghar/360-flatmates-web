@@ -20,7 +20,7 @@ The wiki summarizes the four authoritative docs that live outside it. Read them 
 - [CLAUDE.md](../../CLAUDE.md) and [AGENTS.md](../../AGENTS.md): coding conventions, project structure, and async-state rules.
 - [plans/prd.md](../../plans/prd.md): product requirements and technical architecture.
 - [plans/ui_ux.md](../../plans/ui_ux.md): page-by-page UI and interaction specs.
-- [docs/flatmates-openapi.yaml](../../docs/flatmates-openapi.yaml): the backend API contract.
+- [openapi/openapi.json](../../openapi/openapi.json): the backend API contract.
 
 ## Quick links
 

@@ -157,13 +157,11 @@ export function DiscoverPage() {
     isLoading: searchLoading,
     error: searchError,
     refetch,
-  } = useWebSearch(filters);
+  } = useWebSearch(filters, { includeTotal: true });
 
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.results) return [];
-    return searchResults.results
-      .filter((r): r is Extract<typeof r, { property_type: unknown }> => "property_type" in (r as unknown as Record<string, unknown>))
-      .map((r) => propertyToListingCardProps(r as Parameters<typeof propertyToListingCardProps>[0]));
+    return searchResults.results.map(propertyToListingCardProps);
   }, [searchResults]);
 
   const cityOptions: SelectOption[] = useMemo(

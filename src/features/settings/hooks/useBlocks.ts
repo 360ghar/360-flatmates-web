@@ -1,45 +1,37 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { CursorPage, FlatmatesPeer } from "@/lib/api/types";
+import { fetchAllPages, MAX_PAGE_LIMIT } from "@/lib/api/pagination";
+import type { BlockedUser, BlockedUserCursorPage, BlockOut } from "@/lib/api/types";
+
+export const BLOCKS_QUERY_KEY = ["blocks"] as const;
 
 /**
- * Block row from `GET /flatmates/blocks` (CursorPage envelope).
- * Wire shape: `{ id, blocked_user: FlatmatesPeer, created_at }`.
+ * Every row of `GET /flatmates/blocks`. A block row carries the blocked user as
+ * a `PublicUserRef` (id, display name, avatar) and `blocked_user_id`. The list
+ * follows `next_cursor`, so a long block list is shown whole.
  */
-export interface BlockedUser {
-  id: number;
-  created_at: string;
-  blocked_user: FlatmatesPeer;
-}
-
-/** Convenience: blocked user id from nested peer (not a top-level field). */
-export function blockedUserIdOf(block: BlockedUser): number {
-  return block.blocked_user.id;
-}
-
-const BLOCKS_QUERY_KEY = ["blocks"] as const;
-
 export function useBlockedUsers() {
   return useQuery({
     queryKey: BLOCKS_QUERY_KEY,
-    queryFn: async ({ signal }) => {
-      const response = await apiClient.request<CursorPage<BlockedUser>>({
-        method: "GET",
-        path: "/flatmates/blocks",
-        signal
-      });
-      // Backend returns CursorPage; unwrap items for the list UI.
-      return Array.isArray(response?.items) ? response.items : [];
-    }
+    queryFn: ({ signal }) =>
+      fetchAllPages<BlockedUser>((cursor) =>
+        apiClient.request<BlockedUserCursorPage>({
+          method: "GET",
+          path: "/flatmates/blocks",
+          query: { cursor, limit: MAX_PAGE_LIMIT },
+          signal
+        })
+      )
   });
 }
 
+/** `DELETE /flatmates/blocks/{blocked_user_id}` answers 204 with no body. */
 export function useUnblockUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (blockedUserId: number) =>
-      apiClient.request<{ message: string }>({
+      apiClient.request<void>({
         method: "DELETE",
         path: `/flatmates/blocks/${blockedUserId}`
       }),
@@ -51,7 +43,7 @@ export function useUnblockUser() {
       if (previous) {
         queryClient.setQueryData<BlockedUser[]>(
           BLOCKS_QUERY_KEY,
-          previous.filter((b) => blockedUserIdOf(b) !== blockedUserId)
+          previous.filter((b) => b.blocked_user_id !== blockedUserId)
         );
       }
       return { previous };
@@ -63,6 +55,25 @@ export function useUnblockUser() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: BLOCKS_QUERY_KEY });
+    }
+  });
+}
+
+/** `POST /flatmates/blocks` answers 201 with the block row. */
+export function useBlockUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (blockedUserId: number) =>
+      apiClient.request<BlockOut>({
+        method: "POST",
+        path: "/flatmates/blocks",
+        body: { blocked_user_id: blockedUserId }
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BLOCKS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
     }
   });
 }

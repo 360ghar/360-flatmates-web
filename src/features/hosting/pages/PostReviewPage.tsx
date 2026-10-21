@@ -6,7 +6,7 @@ import { StepProgress } from "@/components/ui/StepProgress";
 const WHAT_HAPPENS = [
   "An automatic check looks at the photos, the rent and the required details.",
   "A person from our team reviews the listing.",
-  "Once it is approved, it goes live with a 24-hour boost."
+  "Once it is approved, it goes live."
 ];
 
 /** After publishing: the listing waits for review; say what happens next. */

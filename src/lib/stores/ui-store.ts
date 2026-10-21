@@ -117,6 +117,9 @@ export function createUiStore(initialState: UiStoreInitialState = {}) {
       }),
       {
         name: UI_STORE_KEY,
+        // Bump `version` and handle the old one in `migrate` when a stored key changes meaning.
+        version: 1,
+        migrate: (persistedState) => (persistedState ?? {}) as UiStoreState,
         storage: createSafeJsonStorage(),
         partialize: (state) => ({
           theme: state.theme,

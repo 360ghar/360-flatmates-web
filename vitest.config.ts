@@ -10,6 +10,12 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    // Non-secret placeholders so env validation passes on CI, where no .env exists.
+    env: {
+      VITE_API_BASE_URL: "http://localhost:8000/api/v1",
+      VITE_SUPABASE_URL: "http://localhost:54321",
+      VITE_SUPABASE_PUBLISHABLE_KEY: "test-publishable-key"
+    },
     setupFiles: ["./vitest.setup.ts"],
     include: [
       "tests/contracts/**/*.test.ts",

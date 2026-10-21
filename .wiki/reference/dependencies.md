@@ -42,7 +42,7 @@ The categorical note on state: `zustand` holds client toggles, drafts, and viewp
 | **tailwindcss** | `^4.3.0` | Tailwind v4. Reads its config from CSS `@theme` in `src/styles/globals.css`, not a JS file. |
 | **@tailwindcss/postcss** | `^4.3.0` | Tailwind v4 PostCSS plugin (the only PostCSS plugin, see `postcss.config.mjs`). |
 | **sharp** | `^0.34.5` | Image processing for the asset-generation scripts (PWA icons, OG image, favicon, sitemap previews). |
-| **openapi-typescript** | `^7.10.1` | Generates `src/lib/api/openapi-types.ts` from `docs/flatmates-openapi.yaml` via `npm run generate:api-types`. |
+| **openapi-typescript** | `^7.10.1` | Generates `src/lib/api/openapi-types.ts` from `openapi/openapi.json` via `npm run generate:api-types`. |
 
 ### Linting
 

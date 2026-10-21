@@ -1,29 +1,22 @@
-import type { CursorPage } from "./common.types";
+import type { Schemas } from "./schema";
 
-export interface FlatmatesNotification {
-  id: string;
-  type: string;
-  title: string;
-  body: string;
-  is_read: boolean;
-  reference_id?: number | null;
-  route?: string | null;
-  created_at?: string;
-}
+export type FlatmatesNotification = Schemas["FlatmatesNotificationOut"];
+export type NotificationCursorPage = Schemas["CursorPage_FlatmatesNotificationOut_"];
+export type NotificationUnreadCount = Schemas["NotificationUnreadCount"];
+export type NotificationsMarkedRead = Schemas["NotificationsMarkedRead"];
 
-export type NotificationCursorPage = CursorPage<FlatmatesNotification>;
+/** Body of `PUT /flatmates/notifications/{id}`. */
+export type MarkNotificationReadPayload = Schemas["FlatmatesNotificationUpdate"];
 
-export interface MarkNotificationReadPayload {
-  is_read: boolean;
-}
+/** Body of `PUT /flatmates/notifications`. Only `{ mark_all_read: true }` is valid. */
+export type MarkAllNotificationsReadPayload = Schemas["FlatmatesNotificationBulkUpdate"];
 
-export interface MarkAllNotificationsReadPayload {
-  mark_all_read: boolean;
-}
+/** Body of `PUT /users/notification-settings`: the four canonical keys. */
+export type NotificationSettings = Schemas["NotificationSettings"];
+export type NotificationSettingsWrite = Schemas["NotificationSettingsWrite"];
 
+/** `GET /flatmates/notifications` declares `cursor`, `limit` and `include_total` only. */
 export interface NotificationFilters {
-  type?: string;
-  is_read?: boolean;
   limit?: number;
   cursor?: string;
 }

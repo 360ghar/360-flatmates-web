@@ -1,6 +1,10 @@
 export * from "./client";
 export * from "./errors";
 export * from "./types";
+export * from "./pagination";
+export * from "./property-fields";
+export * from "./peer-fields";
+export * from "./admin-fields";
 
 import { createApiClient } from "./client";
 import type { ApiAdapter } from "./client";
@@ -46,7 +50,15 @@ async function handleRefresh(): Promise<string | null> {
   return newToken;
 }
 
+let _inactiveUserHandler: (() => void) | null = null;
+
+/** Wire what ends the session when the backend answers 403 `USER_INACTIVE`. */
+export function setInactiveUserHandler(handler: (() => void) | null): void {
+  _inactiveUserHandler = handler;
+}
+
 export const apiClient: ApiAdapter = createApiClient({
   getAccessToken: currentAccessToken,
   onAuthFailure: handleRefresh,
+  onInactiveUser: () => _inactiveUserHandler?.(),
 });

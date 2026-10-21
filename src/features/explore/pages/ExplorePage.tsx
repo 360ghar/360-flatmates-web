@@ -129,7 +129,7 @@ export function ExplorePage() {
 
   const activeFilters = useMemo(
     () =>
-      [filters.sharing_type?.[0], filters.move_in?.[0]].filter(Boolean) as string[],
+      [filters.sharing_type, filters.move_in].filter((value): value is NonNullable<typeof value> => Boolean(value)),
     [filters.sharing_type, filters.move_in]
   );
 

@@ -1,5 +1,7 @@
 import { Input, SelectField } from "@/components/ui/Input";
-import type { PropertyCreate } from "@/lib/api/types";
+import type { ListingDraftForm } from "@/features/hosting/lib/listing-payload";
+import { readEnum } from "@/lib/api/schema";
+import { KITCHEN_TYPE_VALUES, VENTILATION_TYPE_VALUES } from "@/lib/data";
 import { useKitchenTypes, useVentilationOptions } from "@/hooks/queries/useCatalogs";
 import { optionalNumberValue } from "@/lib/utils/format";
 
@@ -12,8 +14,8 @@ export function PostPropertyDetailsStep({
   form,
   onChange
 }: {
-  form: Partial<PropertyCreate>;
-  onChange: (patch: Partial<PropertyCreate>) => void;
+  form: ListingDraftForm;
+  onChange: (patch: ListingDraftForm) => void;
 }) {
   const { data: kitchenTypes } = useKitchenTypes();
   const { data: ventilationOptions } = useVentilationOptions();
@@ -122,7 +124,7 @@ export function PostPropertyDetailsStep({
           value={form.kitchen_type ?? ""}
           options={kitchenTypes.map((o) => ({ value: o.value, label: o.label }))}
           onChange={(e) =>
-            onChange({ kitchen_type: (e.target.value || undefined) as PropertyCreate["kitchen_type"] })
+            onChange({ kitchen_type: readEnum(KITCHEN_TYPE_VALUES, e.target.value) ?? undefined })
           }
         />
         <SelectField
@@ -131,7 +133,7 @@ export function PostPropertyDetailsStep({
           value={form.ventilation_type ?? ""}
           options={ventilationOptions.map((o) => ({ value: o.value, label: o.label }))}
           onChange={(e) =>
-            onChange({ ventilation_type: (e.target.value || undefined) as PropertyCreate["ventilation_type"] })
+            onChange({ ventilation_type: readEnum(VENTILATION_TYPE_VALUES, e.target.value) ?? undefined })
           }
         />
       </div>

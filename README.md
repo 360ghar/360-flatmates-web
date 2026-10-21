@@ -52,7 +52,8 @@ src/
 public/          fonts/Gambarino-Regular.woff2, icons, OG image, sitemap
 scripts/         build scripts; generate-paper-art.py (scene art for web + Flutter)
 e2e/             Playwright specs
-docs/            OpenAPI mirror, audit-2026-09.md
+openapi/         backend OpenAPI snapshot (openapi.json), refreshed with `npm run api:sync`
+docs/            audit-2026-09.md, oauth-setup.md
 DESIGN.md        design tokens (identical in the Flutter repo)
 ```
 
@@ -62,7 +63,7 @@ DESIGN.md        design tokens (identical in the Flutter repo)
 - **DESIGN.md** — design tokens, component specs, visual targets
 - **plans/prd.md** — product requirements and architecture
 - **plans/ui_ux.md** — page and interaction specifications
-- **docs/flatmates-openapi.yaml** — backend API contract
+- **openapi/openapi.json** — backend API contract
 
 ## Conventions
 

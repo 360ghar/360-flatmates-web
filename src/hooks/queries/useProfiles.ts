@@ -83,7 +83,8 @@ export function useUpdateProfile() {
     onSuccess: (updated) => {
       // Seed the fresh server response straight into the cache so the profile
       // re-renders without a refetch flash, then revalidate in the background.
-      queryClient.setQueryData(["profile", "me"], updated);
+      // The cache holds the parsed profile, like `myProfileOptions` returns.
+      queryClient.setQueryData(["profile", "me"], flatmatesProfileSchema.parse(updated));
       queryClient.invalidateQueries({ queryKey: ["profile", "me"] });
     }
   });
@@ -109,8 +110,9 @@ export function useDeleteAccount() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // 204, no body.
     mutationFn: () =>
-      apiClient.request<{ message: string }>({
+      apiClient.request<void>({
         method: "DELETE",
         path: "/users/me"
       }),

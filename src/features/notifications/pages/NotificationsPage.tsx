@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Page, PageHeader } from "@/components/ui/Layout";
 import { useNavigate } from "react-router";
 import { useInfiniteNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/features/notifications/hooks/useNotifications";
-import { notificationToNotificationCardProps } from "@/features/notifications/lib/adapters";
+import { notificationToNotificationCardProps, notificationWebRoute } from "@/features/notifications/lib/adapters";
 import type { FlatmatesNotification } from "@/lib/api/types";
 import { formatRelativeTime } from "@/lib/utils";
 import { resolveRedirect } from "@/lib/redirect";
@@ -63,8 +63,9 @@ export function NotificationsPage() {
         payload: { is_read: true }
       });
     }
-    if (notification.route) {
-      navigate(resolveRedirect(notification.route));
+    const route = notificationWebRoute(notification.route);
+    if (route) {
+      navigate(resolveRedirect(route));
     }
   };
 
@@ -130,7 +131,7 @@ export function NotificationsPage() {
                     ...cardProps,
                     timestamp: formatRelativeTime(notification.created_at)
                   }}
-                  actionLabel={getNotificationActionLabel(cardProps.type, notification.route)}
+                  actionLabel={getNotificationActionLabel(cardProps.type, notificationWebRoute(notification.route))}
                   onAction={() => handleNotificationAction(notification)}
                   interactive
                   onClick={() => {
@@ -140,11 +141,12 @@ export function NotificationsPage() {
                         payload: { is_read: true }
                       });
                     }
-                    if (notification.route) {
+                    const route = notificationWebRoute(notification.route);
+                    if (route) {
                       // Guard the server-supplied route against off-site or
                       // protocol-relative values before navigating (same
                       // policy used for auth redirects via resolveRedirect).
-                      navigate(resolveRedirect(notification.route));
+                      navigate(resolveRedirect(route));
                     }
                   }}
                 />

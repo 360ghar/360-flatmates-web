@@ -6,24 +6,18 @@ export function propertyToListingCardProps(property: Property): ListingCardData 
   return {
     id: String(property.id),
     title: property.title,
-    price: property.monthly_rent,
+    price: property.monthly_rent ?? null,
     imageUrl: property.main_image_url,
     locality: property.locality,
     city: property.city,
-    beds: property.bedrooms,
-    baths: property.bathrooms,
-    areaSqFt: property.area_sqft,
-    features: property.features,
-    owner: property.owner
-      ? {
-          name: property.owner.full_name,
-          avatarUrl: property.owner.profile_image_url
-        }
-      : property.owner_name
-        ? { name: property.owner_name }
-        : undefined,
+    beds: property.bedrooms ?? undefined,
+    baths: property.bathrooms ?? undefined,
+    areaSqFt: property.area_sqft ?? undefined,
+    features: property.features ?? undefined,
+    // The owner's name only. A property carries no owner photo or phone.
+    owner: property.owner_name ? { name: property.owner_name } : undefined,
     interestCount: property.interest_count,
-    description: property.description,
+    description: property.description ?? undefined,
     compatibilityScore: property.compatibility_score ?? undefined
   };
 }

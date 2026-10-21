@@ -1,6 +1,7 @@
 import { Chip } from "@/components/ui/Chip";
 import { ChoiceChips } from "@/components/ui/ChoiceChips";
-import type { PropertyCreate } from "@/lib/api/types";
+import { readEnum } from "@/lib/api/schema";
+import { GENDER_PREFERENCE_VALUES, type GenderPreference } from "@/lib/data";
 import { humanizeSnakeCase } from "@/lib/utils";
 
 const GENDER_OPTIONS = [
@@ -17,9 +18,9 @@ export function PostPreferencesStep({
   onGenderPreferenceChange,
   onToggleTag
 }: {
-  genderPreference?: PropertyCreate["gender_preference"];
+  genderPreference?: GenderPreference;
   tags: string[];
-  onGenderPreferenceChange: (value: PropertyCreate["gender_preference"]) => void;
+  onGenderPreferenceChange: (value: GenderPreference | undefined) => void;
   onToggleTag: (tag: string) => void;
 }) {
   return (
@@ -28,7 +29,7 @@ export function PostPreferencesStep({
       <div className="flex flex-col gap-4">
         <div>
           <p id="gender-preference-label" className="text-label-md text-ink-2 mb-2">Gender preference</p>
-          <ChoiceChips label="Gender preference" options={GENDER_OPTIONS} value={genderPreference} onValueChange={(value) => onGenderPreferenceChange(value as PropertyCreate["gender_preference"])} />
+          <ChoiceChips label="Gender preference" options={GENDER_OPTIONS} value={genderPreference} onValueChange={(value) => onGenderPreferenceChange(readEnum(GENDER_PREFERENCE_VALUES, value) ?? undefined)} />
         </div>
         <div role="group" aria-labelledby="additional-tags-label">
           <p id="additional-tags-label" className="text-label-md text-ink-2 mb-2">Additional tags</p>

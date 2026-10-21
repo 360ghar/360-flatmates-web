@@ -1,15 +1,9 @@
 import { NetworkImage } from "@/components/ui/NetworkImage";
-import type { PropertyCreate } from "@/lib/api/types";
+import type { ListingDraftForm } from "@/features/hosting/lib/listing-payload";
 import { formatRent, humanizeSnakeCase } from "@/lib/utils";
-import type { PendingImage } from "@/features/hosting/lib/postListingUtils";
 
-export function PostReviewStep({
-  form,
-  pendingImages
-}: {
-  form: Partial<PropertyCreate>;
-  pendingImages: PendingImage[];
-}) {
+export function PostReviewStep({ form }: { form: ListingDraftForm }) {
+  const photos = form.image_urls ?? [];
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-h2 text-ink">Review & publish</h2>
@@ -39,7 +33,7 @@ export function PostReviewStep({
         {form.other_charges !== undefined && (
           <p><span className="font-semibold text-ink">Other Charges:</span> {formatRent(form.other_charges)}{form.other_charges_description ? ` (${form.other_charges_description})` : ""}</p>
         )}
-        <p><span className="font-semibold text-ink">Photos:</span> {pendingImages.length > 0 ? `${pendingImages.length} photo${pendingImages.length > 1 ? "s" : ""} selected` : "None"}</p>
+        <p><span className="font-semibold text-ink">Photos:</span> {photos.length > 0 ? `${photos.length} photo${photos.length > 1 ? "s" : ""}` : "None"}</p>
         {(form.features?.length ?? 0) > 0 && (
           <p><span className="font-semibold text-ink">Features:</span> {form.features?.join(", ")}</p>
         )}
@@ -47,15 +41,11 @@ export function PostReviewStep({
           <p><span className="font-semibold text-ink">Amenities:</span> {form.society_amenities?.join(", ")}</p>
         )}
       </div>
-      {pendingImages.length > 0 && (
+      {photos.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {pendingImages.map((img, index) => (
-            <div key={img.id} className="h-16 w-20 shrink-0 overflow-hidden rounded-cut-md">
-              <NetworkImage
-                alt={`Selected listing photo ${index + 1}`}
-                src={img.preview}
-                wrapperClassName="h-full w-full"
-              />
+          {photos.map((url, index) => (
+            <div key={url} className="h-16 w-20 shrink-0 overflow-hidden rounded-cut-md">
+              <NetworkImage alt={`Listing photo ${index + 1}`} src={url} wrapperClassName="h-full w-full" />
             </div>
           ))}
         </div>

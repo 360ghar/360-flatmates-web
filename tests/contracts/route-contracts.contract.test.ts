@@ -44,8 +44,6 @@ const expectedRoutes = [
   "/notifications",
   "/saved-searches",
   "/alerts",
-  "/payments",
-  "/payments/new",
   "/my-listings/koramangala-studio/edit",
   "/my-listings/koramangala-studio",
   "/choose-role",
@@ -63,7 +61,8 @@ const expectedRoutes = [
   "/admin/blog",
 ] as const;
 
-const staleDesignAliases = ["/chat", "/bookings", "/admin/moderation", "/app/compatibility/1", "/app/explore"] as const;
+// `/payments*` is stale too: the backend deleted every /payments route.
+const staleDesignAliases = ["/chat", "/bookings", "/admin/moderation", "/app/compatibility/1", "/app/explore", "/payments", "/payments/new"] as const;
 
 describe("route contracts", () => {
   it("tracks every documented route sample in one canonical inventory", () => {

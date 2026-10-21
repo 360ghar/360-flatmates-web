@@ -1,11 +1,13 @@
 import { userMessage } from "@/lib/api/errors";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { useVisit, useCancelVisit, useUpdateVisit } from "@/features/visits/hooks/useVisits";
+import { useVisit, useCancelVisit, useRescheduleVisit, useUpdateVisit } from "@/features/visits/hooks/useVisits";
+import { visitDateToUtcIso } from "@/features/visits/lib/schedule";
 import { visitToVisitCardProps, visitStatusToCardStatus } from "@/features/visits/lib/adapters";
 import { uiStore } from "@/lib/stores/ui-store";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { TextArea } from "@/components/ui/Input";
 import { Page, PageHeader } from "@/components/ui/Layout";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { VisitCardSkeleton } from "@/features/visits/components/VisitCardSkeleton";
@@ -53,6 +55,7 @@ export function VisitDetailPage() {
   const { data: visit, isLoading, error, refetch } = useVisit(visitId);
   const cancelVisit = useCancelVisit(visitId);
   const updateVisit = useUpdateVisit(visitId);
+  const rescheduleVisit = useRescheduleVisit(visitId);
 
   // Reschedule state
   const [showReschedule, setShowReschedule] = useState(false);
@@ -60,8 +63,9 @@ export function VisitDetailPage() {
   const minDate = todayLocalISODate();
   const rescheduleInvalid = newDate !== "" && newDate < minDate;
 
-  // Cancel-confirmation state
+  // Cancel-confirmation state. The backend requires a reason.
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   // Feedback state — the "submitted" flag is *derived* from the server data
   // (visitor_feedback / interest_level) so a page refresh doesn't re-show
@@ -69,7 +73,7 @@ export function VisitDetailPage() {
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackComment, setFeedbackComment] = useState("");
 
-  const isMutating = cancelVisit.isPending || updateVisit.isPending;
+  const isMutating = cancelVisit.isPending || updateVisit.isPending || rescheduleVisit.isPending;
   const feedbackSubmitted =
     Boolean(visit?.visitor_feedback) || Boolean(visit?.interest_level);
 
@@ -87,10 +91,12 @@ export function VisitDetailPage() {
   }
 
   function handleCancel() {
-    if (cancelVisit.isPending) return;
-    cancelVisit.mutate(undefined, {
+    const reason = cancelReason.trim();
+    if (cancelVisit.isPending || !reason) return;
+    cancelVisit.mutate({ reason }, {
       onSuccess: () => {
         setShowCancelConfirm(false);
+        setCancelReason("");
         uiStore.getState().pushToast({
           type: "success",
           title: "Visit cancelled",
@@ -130,8 +136,17 @@ export function VisitDetailPage() {
 
   function handleReschedule() {
     if (!newDate || rescheduleInvalid || isMutating) return;
-    updateVisit.mutate(
-      { scheduled_date: newDate },
+    const nextDate = visitDateToUtcIso(newDate);
+    if (!nextDate) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: "Pick a later date",
+        description: "That day has no time left for a visit."
+      });
+      return;
+    }
+    rescheduleVisit.mutate(
+      { new_date: nextDate },
       {
         onSuccess: () => {
           setShowReschedule(false);
@@ -248,7 +263,7 @@ export function VisitDetailPage() {
         minDate={minDate}
         rescheduleInvalid={rescheduleInvalid}
         isMutating={isMutating}
-        submitting={updateVisit.isPending}
+        submitting={rescheduleVisit.isPending}
         onClose={() => setShowReschedule(false)}
         onDateChange={setNewDate}
         onConfirm={handleReschedule}
@@ -262,9 +277,19 @@ export function VisitDetailPage() {
         confirmLabel="Cancel visit"
         destructive
         loading={cancelVisit.isPending}
+        confirmDisabled={cancelReason.trim().length === 0}
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={handleCancel}
-      />
+      >
+        <TextArea
+          label="Why are you cancelling?"
+          placeholder="A short reason for the cancellation"
+          value={cancelReason}
+          maxLength={1000}
+          rows={3}
+          onChange={(e) => setCancelReason(e.target.value)}
+        />
+      </ConfirmModal>
         </>
       )}
     </Page>

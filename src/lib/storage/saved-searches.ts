@@ -10,16 +10,23 @@
  * place that needs to change; the hooks and pages above are agnostic to the
  * transport.
  *
- * Keys are versioned (`.v1`) so we can ship a breaking shape change without
- * crashing returning users.
+ * Keys are versioned (`.v2`) so we can ship a breaking shape change without
+ * crashing returning users. v2 holds filters in the current `SearchFilters`
+ * shape (one value for `sharing_type`, `gender_preference` and `move_in`); a
+ * v1 entry is upgraded on first read and removed. Sign-out purges every key,
+ * v1 included, so one account's searches never reach the next.
  */
 
-const SAVED_SEARCHES_KEY = "360ghar:saved-searches:v1";
-const SEARCH_ALERTS_KEY = "360ghar:search-alerts:v1";
+import { upgradeLegacyFilters } from "@/lib/stores/search-store";
+
+const SAVED_SEARCHES_KEY = "360ghar:saved-searches:v2";
+const SEARCH_ALERTS_KEY = "360ghar:search-alerts:v2";
+const LEGACY_SAVED_SEARCHES_KEY = "360ghar:saved-searches:v1";
+const LEGACY_SEARCH_ALERTS_KEY = "360ghar:search-alerts:v1";
 
 // Re-export the keys for tests and other consumers that need to clear or
 // inspect the storage directly without depending on the rest of the module.
-export { SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY };
+export { SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY, LEGACY_SAVED_SEARCHES_KEY, LEGACY_SEARCH_ALERTS_KEY };
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && !!window.localStorage;
@@ -36,6 +43,30 @@ function readJson<T>(key: string): T[] {
   } catch {
     return [];
   }
+}
+
+/** Read `key`; when `legacyKey` still exists, upgrade its entries, merge them after the current ones and remove it. */
+function readUpgrading<T extends { filters: Record<string, unknown> }>(key: string, legacyKey: string): T[] {
+  const current = readJson<T>(key);
+  if (!isBrowser()) return current;
+  try {
+    if (window.localStorage.getItem(legacyKey) === null) return current;
+    const legacy = readJson<T>(legacyKey).map((item) => ({
+      ...item,
+      filters: upgradeLegacyFilters({ ...item.filters })
+    }));
+    const merged = [...current, ...legacy];
+    window.localStorage.setItem(key, JSON.stringify(merged));
+    window.localStorage.removeItem(legacyKey);
+    return merged;
+  } catch {
+    return current;
+  }
+}
+
+/** A patch from a form names every field, set or not: an unset one must not erase the stored value. */
+function definedOnly<T extends object>(patch: T): Partial<T> {
+  return Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)) as Partial<T>;
 }
 
 function writeJson<T>(key: string, value: T[]): void {
@@ -76,7 +107,7 @@ function nextSavedSearchId(): number {
 }
 
 export function loadSavedSearches(): LocalSavedSearch[] {
-  return readJson<LocalSavedSearch>(SAVED_SEARCHES_KEY);
+  return readUpgrading<LocalSavedSearch>(SAVED_SEARCHES_KEY, LEGACY_SAVED_SEARCHES_KEY);
 }
 
 export function saveSavedSearches(items: LocalSavedSearch[]): void {
@@ -121,7 +152,7 @@ export function updateSavedSearch(
   if (idx === -1) return undefined;
   const next: LocalSavedSearch = {
     ...items[idx],
-    ...patch,
+    ...definedOnly(patch),
     id: items[idx].id,
     user_id: items[idx].user_id,
     created_at: items[idx].created_at,
@@ -158,7 +189,7 @@ function nextAlertId(): number {
 }
 
 export function loadSearchAlerts(): LocalSearchAlert[] {
-  return readJson<LocalSearchAlert>(SEARCH_ALERTS_KEY);
+  return readUpgrading<LocalSearchAlert>(SEARCH_ALERTS_KEY, LEGACY_SEARCH_ALERTS_KEY);
 }
 
 export function saveSearchAlerts(items: LocalSearchAlert[]): void {
@@ -196,7 +227,7 @@ export function updateSearchAlert(
   if (idx === -1) return undefined;
   const next: LocalSearchAlert = {
     ...items[idx],
-    ...patch,
+    ...definedOnly(patch),
     id: items[idx].id,
     user_id: items[idx].user_id,
     created_at: items[idx].created_at

@@ -4,11 +4,11 @@ import { useNavigate } from "react-router";
 import { Pencil, ImageOff, Loader2 } from "lucide-react";
 import { useUpdateProfile } from "@/hooks/queries/useProfiles";
 import type { FlatmatesProfileUpdate } from "@/lib/api/types";
-import type { FlatmatesProfileInput } from "@/lib/schemas/profile";
+import type { OwnProfile } from "@/lib/schemas/profile";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { formatLifestyleLabel } from "@/lib/utils/format";
 import { uiStore } from "@/lib/stores/ui-store";
-import { ONBOARDING_STEPS } from "@/features/onboarding/store";
+import { profileCompletion } from "@/features/profile/lib/profile-progress";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -17,7 +17,7 @@ import { PaperScene } from "@/components/paper/PaperScene";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 
 interface ProfileHeaderCardProps {
-  profile: FlatmatesProfileInput;
+  profile: OwnProfile;
 }
 
 export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
@@ -43,12 +43,7 @@ export function ProfileHeaderCard({ profile }: ProfileHeaderCardProps) {
     };
   }, []);
 
-  const onboardingProgress = profile.onboarding_completed
-    ? 100
-    : Math.min(
-        ((profile.onboarding_current_step ?? 0) / ONBOARDING_STEPS.length) * 100,
-        100
-      );
+  const onboardingProgress = profileCompletion(profile);
 
   const lifestyle = (
     [

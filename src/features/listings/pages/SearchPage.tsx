@@ -8,7 +8,9 @@ import { useInfiniteWebSearch } from "@/features/listings/hooks/useSearch";
 import { useAmenities, useCities } from "@/hooks/queries/useCatalogs";
 import { propertyToListingCardProps } from "@/features/listings/lib/adapters";
 import type { SearchFilters, CatalogAmenity, CatalogCity } from "@/lib/api/types";
-import { FURNISHING_LEVEL_OPTIONS, KITCHEN_TYPE_OPTIONS } from "@/lib/data";
+import { FURNISHING_LEVEL_OPTIONS, FURNISHING_LEVEL_VALUES, KITCHEN_TYPE_OPTIONS, KITCHEN_TYPE_VALUES } from "@/lib/data";
+import { readEnumList } from "@/lib/api/schema";
+import { MONEY_MAX } from "@/lib/api/property-fields";
 import { searchPageParams } from "@/features/listings/lib/search-params";
 import { searchStore } from "@/lib/stores/search-store";
 import { type FilterSection, FilterPanel } from "@/features/listings/components/FilterPanel";
@@ -38,6 +40,11 @@ const KEY_AMENITY_PRIORITY = [
   "24/7 Security",
   "WiFi"
 ];
+
+/** `value` when it is a finite number inside the range, else undefined: a hand-edited URL must not send a 422. */
+function inRangeOrUndefined(value: number | null | undefined, min: number, max: number): number | undefined {
+  return value != null && Number.isFinite(value) && value >= min && value <= max ? value : undefined;
+}
 
 function normalizedKey(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -160,35 +167,29 @@ export function SearchPage() {
     }
   }, []);
 
-  const filters: Omit<SearchFilters, "page"> = useMemo(
-    () => ({
+  const filters: Omit<SearchFilters, "page"> = useMemo(() => {
+    // A URL can carry any text. Only values the backend knows go out: an unknown one is a 422.
+    const furnishing = readEnumList(FURNISHING_LEVEL_VALUES, params.furnishing);
+    const kitchenTypes = readEnumList(KITCHEN_TYPE_VALUES, params.kitchen);
+    // The same goes for numbers: the backend takes bedrooms 0..50 and a price 0..MONEY_MAX.
+    const bedroomCount = Number(params.bedrooms || NaN);
+    // The backend declares bedrooms as an integer: 2.5 would be a 422.
+    const bedrooms = params.bedrooms === "4+" ? 4 : Number.isInteger(bedroomCount) ? inRangeOrUndefined(bedroomCount, 0, 50) : undefined;
+    return {
       q: params.q || undefined,
       city: cities?.find((c) => c.id === params.city)?.name,
       // "4+" is an open-ended BHK filter (no upper bound); numeric strings
       // are exact. Avoids Number("4+") → NaN leaking into the query.
-      bedrooms_min:
-        params.bedrooms === "4+"
-          ? 4
-          : params.bedrooms
-            ? Number(params.bedrooms)
-            : undefined,
-      bedrooms_max:
-        params.bedrooms && params.bedrooms !== "4+"
-          ? Number(params.bedrooms)
-          : undefined,
+      bedrooms_min: bedrooms,
+      bedrooms_max: params.bedrooms === "4+" ? undefined : bedrooms,
       amenities: params.amenities.length > 0 ? params.amenities : undefined,
-      furnishing:
-        params.furnishing.length > 0
-          ? (params.furnishing as SearchFilters["furnishing"])
-          : undefined,
-      kitchen_type:
-        params.kitchen.length > 0
-          ? (params.kitchen as SearchFilters["kitchen_type"])
-          : undefined,
-      price_min: params.priceMin ?? undefined,
-      price_max: params.priceMax ?? undefined,
+      furnishing: furnishing.length > 0 ? furnishing : undefined,
+      kitchen_type: kitchenTypes.length > 0 ? kitchenTypes : undefined,
+      price_min: inRangeOrUndefined(params.priceMin, 0, MONEY_MAX),
+      price_max: inRangeOrUndefined(params.priceMax, 0, MONEY_MAX),
       limit: PAGE_SIZE,
-    }),
+    };
+  },
     [params.q, params.city, params.bedrooms, params.amenities, params.furnishing, params.kitchen, params.priceMin, params.priceMax, cities]
   );
 
@@ -226,16 +227,7 @@ export function SearchPage() {
   const listings: ListingCardData[] = useMemo(() => {
     if (!searchResults?.pages) return [];
     const allListings = searchResults.pages.flatMap((page) =>
-      (page.results || [])
-        .filter(
-          (r): r is Extract<typeof r, { property_type: unknown }> =>
-            "property_type" in (r as unknown as Record<string, unknown>)
-        )
-        .map((r) =>
-          propertyToListingCardProps(
-            r as Parameters<typeof propertyToListingCardProps>[0]
-          )
-        )
+      (page.results || []).map(propertyToListingCardProps)
     );
 
     const seen = new Set<string | number>();

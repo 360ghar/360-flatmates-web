@@ -14,7 +14,6 @@ import {
   Repeat,
   MapPin,
   HelpCircle,
-  CreditCard,
   ShieldCheck,
 } from "lucide-react";
 import { useMyProfile, useDeleteAccount } from "@/hooks/queries/useProfiles";
@@ -195,12 +194,6 @@ export function ProfilePage() {
       </MenuSection>
 
       <MenuSection title="Account">
-        <MenuItemRow
-          icon={CreditCard}
-          label="Payment methods"
-          description="Cards and UPI for boosts"
-          onClick={() => navigate("/payments")}
-        />
         {isAdmin ? (
           <MenuItemRow
             icon={ShieldCheck}

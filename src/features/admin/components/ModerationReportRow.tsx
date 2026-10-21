@@ -1,6 +1,7 @@
 import { humanizeSnakeCase } from "@/lib/utils/format";
 import {
   AlertTriangle,
+  ArrowUpRight,
   Ban,
   CheckCircle2
 } from "lucide-react";
@@ -8,7 +9,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { ReportAdmin } from "@/lib/api/types";
-import type { ReportAction } from "@/lib/data";
+import type { ReportAction, ReportStatus } from "@/lib/data";
+import { adminUserName } from "@/lib/api/admin-fields";
 
 export function ModerationReportRow({
   report,
@@ -18,7 +20,7 @@ export function ModerationReportRow({
   actionsDisabled
 }: {
   report: ReportAdmin;
-  statusBadgeMap: Record<string, "pending" | "confirmed" | "rejected">;
+  statusBadgeMap: Record<ReportStatus, "pending" | "confirmed" | "rejected">;
   onAction: (action: ReportAction) => void;
   isActing: boolean;
   actionsDisabled: boolean;
@@ -28,13 +30,15 @@ export function ModerationReportRow({
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="text-body-lg font-semibold text-ink">{report.reason}</h3>
+            <h3 className="text-body-lg font-semibold text-ink">
+              {humanizeSnakeCase(report.reason).replace(/^./, (c) => c.toUpperCase())}
+            </h3>
             <p className="mt-1 text-caption text-ink-2">
-              <span className="font-semibold text-ink">{report.reporter_name}</span> reported{" "}
-              <span className="font-semibold text-ink">{report.reported_name}</span>
+              <span className="font-semibold text-ink">{adminUserName(report.reporter, report.reporter_user_id)}</span> reported{" "}
+              <span className="font-semibold text-ink">{adminUserName(report.reported_user, report.reported_user_id)}</span>
             </p>
           </div>
-          <Badge variant="status" status={statusBadgeMap[report.status] ?? "pending"}>
+          <Badge variant="status" status={statusBadgeMap[report.status]}>
             {humanizeSnakeCase(report.status).replace(/^./, (c) => c.toUpperCase())}
           </Badge>
         </div>
@@ -67,16 +71,25 @@ export function ModerationReportRow({
             variant="secondary"
             disabled={actionsDisabled}
             leadingIcon={<AlertTriangle aria-hidden="true" className="h-4 w-4" />}
-            onClick={() => onAction("warn")}
+            onClick={() => onAction("warn_user")}
           >
             Warn
+          </Button>
+          <Button
+            size="compact"
+            variant="secondary"
+            disabled={actionsDisabled}
+            leadingIcon={<ArrowUpRight aria-hidden="true" className="h-4 w-4" />}
+            onClick={() => onAction("escalate")}
+          >
+            Escalate
           </Button>
           <Button
             size="compact"
             variant="destructive"
             disabled={actionsDisabled}
             leadingIcon={<Ban aria-hidden="true" className="h-4 w-4" />}
-            onClick={() => onAction("suspend")}
+            onClick={() => onAction("suspend_user")}
           >
             Suspend
           </Button>

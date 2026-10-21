@@ -28,12 +28,12 @@ export function ModerationListingActionModals({
       rejectOpen={rejectTarget !== null}
       approveDescription={
         approveTarget
-          ? `"${approveTarget.title}" will be marked as approved and become visible to all users.`
+          ? `"${approveTarget.title ?? "this listing"}" will be marked as approved and become visible to all users.`
           : ""
       }
       rejectDescription={
         rejectTarget
-          ? `Provide a reason for rejecting "${rejectTarget.title}". The owner will see this.`
+          ? `Provide a reason for rejecting "${rejectTarget.title ?? "this listing"}". The owner will see this.`
           : ""
       }
       approveConfirmVariant="destructive"

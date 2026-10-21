@@ -185,7 +185,6 @@ describe("useFlatmatesRealtime", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["properties"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["properties", 9] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["properties", 9, "mine"] });
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["dashboard"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["matches"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["incoming-likes"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["outgoing-likes"] });
@@ -263,7 +262,6 @@ describe("useFlatmatesRealtime", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["properties"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["search", "web"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["map"] });
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["dashboard"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["matches"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["incoming-likes"] });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["outgoing-likes"] });

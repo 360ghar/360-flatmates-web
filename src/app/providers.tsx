@@ -7,9 +7,10 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useFlatmatesRealtime } from "@/hooks/useFlatmatesRealtime";
 import { bootstrapOptions } from "@/hooks/queries/useBootstrap";
-import { ApiClientError, setRefreshTokenHandler } from "@/lib/api";
+import { ApiClientError, setInactiveUserHandler, setRefreshTokenHandler } from "@/lib/api";
+import { queryRetryDelay, withinAutoRetryWait } from "@/lib/api/retry";
 import { getAuthState } from "@/lib/api/auth";
-import { refreshAccessToken } from "@/lib/auth/refresh";
+import { recoverDeadSession, refreshAccessToken } from "@/lib/auth/refresh";
 import { authStore } from "@/lib/stores/auth-store";
 import { useStore } from "zustand";
 import { uiStore } from "@/lib/stores/ui-store";
@@ -18,7 +19,12 @@ import { searchStore } from "@/lib/stores/search-store";
 import { onboardingStore } from "@/features/onboarding/store";
 import { chatStore } from "@/features/chat/store";
 import { LISTING_DRAFT_STORAGE_KEY } from "@/lib/schemas/listing-builder";
-import { SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY } from "@/lib/storage/saved-searches";
+import {
+  LEGACY_SAVED_SEARCHES_KEY,
+  LEGACY_SEARCH_ALERTS_KEY,
+  SAVED_SEARCHES_KEY,
+  SEARCH_ALERTS_KEY
+} from "@/lib/storage/saved-searches";
 import { PUSH_TOKEN_KEY } from "@/lib/push/token";
 import { toast } from "sonner";
 import { Toast, Toaster } from "@/components/ui/Toast";
@@ -46,7 +52,14 @@ function ProviderInternals({
       chatStore.getState().reset();
       searchStore.getState().clearRecentSearches();
       // Per-user data kept in localStorage must not leak to the next user (W17).
-      for (const key of [LISTING_DRAFT_STORAGE_KEY, SAVED_SEARCHES_KEY, SEARCH_ALERTS_KEY, PUSH_TOKEN_KEY]) {
+      for (const key of [
+        LISTING_DRAFT_STORAGE_KEY,
+        SAVED_SEARCHES_KEY,
+        SEARCH_ALERTS_KEY,
+        LEGACY_SAVED_SEARCHES_KEY,
+        LEGACY_SEARCH_ALERTS_KEY,
+        PUSH_TOKEN_KEY
+      ]) {
         try {
           localStorage.removeItem(key);
         } catch {
@@ -72,6 +85,12 @@ function ProviderInternals({
   useEffect(() => {
     setRefreshTokenHandler(() => refreshAccessToken());
     return () => setRefreshTokenHandler(null);
+  }, []);
+
+  // A deactivated account (403 USER_INACTIVE) ends the session like a dead one.
+  useEffect(() => {
+    setInactiveUserHandler(recoverDeadSession);
+    return () => setInactiveUserHandler(null);
   }, []);
 
   const { data: realtimeConfig } = useQuery({
@@ -140,7 +159,8 @@ function useAuthStateQuery(isAuthenticated: boolean) {
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    retry: 1
+    // One retry, but not behind a long `Retry-After`: the gate spinner would wait it out.
+    retry: (failureCount, error) => failureCount < 1 && withinAutoRetryWait(error)
   });
 
   useEffect(() => {
@@ -190,7 +210,10 @@ export function Providers({ children }: { children: ReactNode }) {
         defaultOptions: {
           queries: {
             refetchOnWindowFocus: false,
+            retryDelay: queryRetryDelay,
             retry: (failureCount, error) => {
+              // Honour `Retry-After` (429, 503): wait it out, or fail at once when it is long.
+              if (!withinAutoRetryWait(error)) return false;
               if (
                 error instanceof ApiClientError &&
                 error.appError.type === "auth"

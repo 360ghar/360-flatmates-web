@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { useCreateProperty, useUploadPropertyImage } from "@/features/listings/hooks/useProperties";
+import { useCreateProperty } from "@/features/listings/hooks/useProperties";
 import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
-import type { PropertyCreate } from "@/lib/api/types";
 import { FURNISHING_LEVEL_VALUES } from "@/lib/data";
 import { uiStore } from "@/lib/stores/ui-store";
 import { userMessage } from "@/lib/api/errors";
-import { LISTING_DRAFT_STORAGE_KEY } from "@/lib/schemas/listing-builder";
+import { LISTING_DRAFT_STORAGE_KEY, LISTING_DRAFT_VERSION } from "@/lib/schemas/listing-builder";
+import { toPropertyCreate, type ListingDraftForm } from "@/features/hosting/lib/listing-payload";
+import { AREA_MAX, FLOOR_MAX, MONEY_MAX } from "@/lib/api/property-fields";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ListingBuilder, type ListingBuilderStep } from "@/features/hosting/components/ListingBuilder";
@@ -18,7 +19,7 @@ import { PostAmenitiesStep } from "@/features/hosting/components/post/PostAmenit
 import { PostPhotosStep } from "@/features/hosting/components/post/PostPhotosStep";
 import { PostPreferencesStep } from "@/features/hosting/components/post/PostPreferencesStep";
 import { PostReviewStep } from "@/features/hosting/components/post/PostReviewStep";
-import { usePendingImages } from "@/features/hosting/hooks/usePendingImages";
+import { useListingPhotoUpload } from "@/features/hosting/hooks/useListingPhotoUpload";
 
 const STEPS: ListingBuilderStep[] = [
   { id: "basics", label: "Basic information" },
@@ -32,30 +33,32 @@ const STEPS: ListingBuilderStep[] = [
 ];
 
 interface DraftState {
-  form: Partial<PropertyCreate>;
+  form: ListingDraftForm;
   currentStep: number;
 }
 
-const DEFAULT_FORM: Partial<PropertyCreate> = {
+const DEFAULT_FORM: ListingDraftForm = {
   property_type: "flatmate",
   purpose: "rent",
   features: [],
   tags: [],
   society_amenities: [],
-  society_vibe_tags: [],
-  image_urls: []
+  society_vibe_tags: []
 };
 
 const DEFAULT_DRAFT: DraftState = { form: DEFAULT_FORM, currentStep: 0 };
 const DRAFT_SAVE_DELAY_MS = 500;
 
-/** Saves the draft without base64 photo previews. Returns false when storage fails. */
+/** Saves the draft to localStorage. Returns false when storage fails. */
 export function saveDraft(draft: DraftState): boolean {
   try {
-    const form = { ...draft.form, image_urls: hostedImageUrls(draft.form.image_urls) ?? [] };
     window.localStorage.setItem(
       LISTING_DRAFT_STORAGE_KEY,
-      JSON.stringify({ form, currentStep: draft.currentStep })
+      JSON.stringify({
+        version: LISTING_DRAFT_VERSION,
+        form: draft.form,
+        currentStep: draft.currentStep
+      })
     );
     return true;
   } catch {
@@ -63,12 +66,14 @@ export function saveDraft(draft: DraftState): boolean {
   }
 }
 
-function loadDraft(): DraftState {
+export function loadDraft(): DraftState {
   if (typeof window === "undefined") return DEFAULT_DRAFT;
   try {
     const raw = window.localStorage.getItem(LISTING_DRAFT_STORAGE_KEY);
     if (!raw) return DEFAULT_DRAFT;
-    const parsed = JSON.parse(raw) as Partial<DraftState>;
+    const parsed = JSON.parse(raw) as { version?: unknown; form?: ListingDraftForm; currentStep?: unknown };
+    // A draft from another shape of the form is dropped, not migrated.
+    if (parsed.version !== LISTING_DRAFT_VERSION) return DEFAULT_DRAFT;
     return {
       form: { ...DEFAULT_FORM, ...(parsed.form ?? {}) },
       currentStep:
@@ -81,23 +86,13 @@ function loadDraft(): DraftState {
   }
 }
 
-/** Returns only hosted http(s) URLs, filtering out base64 data URLs and blob: previews
- *  that the backend's `format: uri` validation would reject with a 422. */
-export function hostedImageUrls(urls: string[] | undefined): string[] | undefined {
-  if (!urls || urls.length === 0) return undefined;
-  const filtered = urls.filter(
-    (u) => typeof u === "string" && (u.startsWith("http://") || u.startsWith("https://"))
-  );
-  return filtered.length > 0 ? filtered : undefined;
-}
-
 /** Returns true when the given step has all required fields filled in.
  *  Constraints mirror the Zod schema in `lib/schemas/listing-builder.ts`
  *  (propertyCreateSchema): title ≥ 5 chars, monthly_rent ≥ 500, city &
  *  locality non-empty, numeric fields within their schema bounds. The
  *  wizard never runs propertyCreateSchema itself, so out-of-range values
  *  would otherwise pass gating and fail with a 422 only at publish time. */
-function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
+function isStepValid(step: number, form: ListingDraftForm): boolean {
   const inRange = (
     value: number | undefined,
     min: number,
@@ -111,9 +106,9 @@ function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
         Boolean(form.title?.trim()) &&
         (form.title?.trim().length ?? 0) >= 5 &&
         Number.isFinite(form.monthly_rent) &&
-        (form.monthly_rent ?? 0) >= 500 &&
-        inRange(form.setup_cost, 0, Number.MAX_SAFE_INTEGER) &&
-        inRange(form.other_charges, 0, Number.MAX_SAFE_INTEGER)
+        inRange(form.monthly_rent, 500, MONEY_MAX) &&
+        inRange(form.setup_cost, 0, MONEY_MAX) &&
+        inRange(form.other_charges, 0, MONEY_MAX)
       );
     case 1:
       return Boolean(form.city?.trim()) && Boolean(form.locality?.trim());
@@ -122,10 +117,10 @@ function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
       return (
         inRange(form.bedrooms, 0, 20) &&
         inRange(form.bathrooms, 0, 20) &&
-        inRange(form.area_sqft, 0, Number.MAX_SAFE_INTEGER) &&
-        inRange(form.security_deposit, 0, Number.MAX_SAFE_INTEGER) &&
-        inRange(form.floor_number, 0, Number.MAX_SAFE_INTEGER) &&
-        inRange(form.total_floors, 1, Number.MAX_SAFE_INTEGER) &&
+        inRange(form.area_sqft, 0, AREA_MAX) &&
+        inRange(form.security_deposit, 0, MONEY_MAX) &&
+        inRange(form.floor_number, 0, FLOOR_MAX) &&
+        inRange(form.total_floors, 1, FLOOR_MAX) &&
         inRange(form.windows_count, 0, 100) &&
         inRange(form.ventilation_shafts, 0, 50)
       );
@@ -144,17 +139,13 @@ function isStepValid(step: number, form: Partial<PropertyCreate>): boolean {
 export function PostPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(() => loadDraft().currentStep);
-  const [form, setForm] = useState<Partial<PropertyCreate>>(() => loadDraft().form);
+  const [form, setForm] = useState<ListingDraftForm>(() => loadDraft().form);
   const [showStepError, setShowStepError] = useState(false);
-  const { pendingImages, handleFiles, removeImage, retryImage } = usePendingImages(setForm);
   const [hasPublished, setHasPublished] = useState(false);
-  const [uploadingPhotos, setUploadingPhotos] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoUpload = useListingPhotoUpload();
 
   /* Persist the form + current step as a draft so a refresh mid-wizard does
-     not lose progress. Only hosted photo URLs are saved: base64 previews are
-     megabytes each and would exhaust the storage quota, so un-published
-     photos must be re-added after a refresh. */
+     not lose progress. */
   const draftWarned = useRef(false);
   useEffect(() => {
     // After publish the draft is deleted; a save still pending must not restore it.
@@ -172,17 +163,7 @@ export function PostPage() {
     return () => window.clearTimeout(timer);
   }, [form, currentStep, hasPublished]);
 
-  // Uploads can outlast the page; do not pull a user who left back to review.
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-
   const createProperty = useCreateProperty();
-  const uploadImage = useUploadPropertyImage();
 
   /* Treat the wizard as "dirty" any time the user has entered something
      beyond the defaults. The guard stays armed until the property is
@@ -201,9 +182,29 @@ export function PostPage() {
     "You have unsaved listing changes. Leaving will discard them."
   );
 
-  function patchForm(patch: Partial<PropertyCreate>) {
+  function patchForm(patch: ListingDraftForm) {
     setShowStepError(false);
     setForm((prev) => ({ ...prev, ...patch }));
+  }
+
+  /* Each photo is uploaded when picked, so the draft keeps hosted URLs only.
+     The form is read in the updater: a second batch can finish first. */
+  async function addPhotos(files: File[]) {
+    const { urls, failed } = await photoUpload.upload(files);
+    if (urls.length > 0) {
+      setForm((prev) => ({ ...prev, image_urls: [...(prev.image_urls ?? []), ...urls] }));
+    }
+    if (failed > 0) {
+      uiStore.getState().pushToast({
+        type: "error",
+        title: failed === 1 ? "A photo did not upload" : `${failed} photos did not upload`,
+        description: "Check your connection and add them again."
+      });
+    }
+  }
+
+  function removePhoto(url: string) {
+    setForm((prev) => ({ ...prev, image_urls: (prev.image_urls ?? []).filter((u) => u !== url) }));
   }
 
   function toggleArrayItem(
@@ -227,19 +228,23 @@ export function PostPage() {
     setShowStepError(false);
 
     if (currentStep >= STEPS.length - 1) {
-      if (createProperty.isPending || uploadingPhotos) return; // guard against double-submit
+      if (createProperty.isPending) return; // guard against double-submit
+      if (photoUpload.uploadingCount > 0) {
+        uiStore.getState().pushToast({ type: "info", title: "Photos are still uploading", description: "Publish when they finish." });
+        return;
+      }
       /* The furnishing dimension now lives in `furnishing_level`; drop legacy
          furnishing values from features[] so they are not sent twice. */
       const features =
         form.furnishing_level !== undefined
           ? (form.features ?? []).filter((f) => !FURNISHING_LEVEL_VALUES.some((level) => level === f))
           : form.features;
-      const submissionPayload: PropertyCreate = {
-        ...form,
-        features,
-        image_urls: hostedImageUrls(form.image_urls)
-      } as PropertyCreate;
-      createProperty.mutate(submissionPayload, {
+      const payload = toPropertyCreate({ ...form, features });
+      if (!payload) {
+        setShowStepError(true);
+        return;
+      }
+      createProperty.mutate(payload, {
         onSuccess: (property) => {
           try {
             window.localStorage.removeItem(LISTING_DRAFT_STORAGE_KEY);
@@ -248,7 +253,8 @@ export function PostPage() {
           }
           /* Disable the dirty-form guard so the post-publish nav isn't blocked. */
           setHasPublished(true);
-          void uploadPhotosThenLeave(property.id);
+          uiStore.getState().pushToast({ type: "success", title: "Listing submitted for review" });
+          navigate(`/post/review/${property.id}`, { state: { listingId: property.id, skipDirtyGuard: true } });
         },
         onError: (err) => {
           uiStore.getState().pushToast({
@@ -260,46 +266,6 @@ export function PostPage() {
       });
     } else {
       setCurrentStep((s) => s + 1);
-    }
-  }
-
-  /* Upload the processed photos, wait for all of them, then leave. Failed
-     photos are reported; they can be added later from the listing page. */
-  async function uploadPhotosThenLeave(propertyId: number) {
-    const toUpload = pendingImages.filter((img) => !img.uploaded && img.preview);
-    let failed = 0;
-    if (toUpload.length > 0) {
-      setUploadingPhotos(true);
-      // Two at a time: each base64 body is large, and a slow uplink would
-      // otherwise time out every upload together.
-      let next = 0;
-      const worker = async () => {
-        while (next < toUpload.length) {
-          const index = next++;
-          try {
-            await uploadImage.mutateAsync({
-              propertyId,
-              payload: { image_url: toUpload[index].preview, is_main: index === 0 }
-            });
-          } catch {
-            failed += 1;
-          }
-        }
-      };
-      await Promise.all([worker(), worker()]);
-      setUploadingPhotos(false);
-    }
-    uiStore.getState().pushToast(
-      failed === 0
-        ? { type: "success", title: "Listing published" }
-        : {
-            type: "warning",
-            title: "Listing published",
-            description: `${failed} of ${toUpload.length} photos did not upload. Add them again from your listing.`
-          }
-    );
-    if (mounted.current) {
-      navigate(`/post/review/${propertyId}`, { state: { listingId: propertyId, skipDirtyGuard: true } });
     }
   }
 
@@ -323,7 +289,7 @@ export function PostPage() {
       onNext={handleNext}
       onBack={handleBack}
       nextLabel={currentStep >= STEPS.length - 1 ? "Publish listing" : "Next"}
-      submitting={createProperty.isPending || uploadingPhotos}
+      submitting={createProperty.isPending}
     >
       {currentStep === 0 && (
         <PostBasicInfoStep form={form} showStepError={showStepError} onChange={patchForm} />
@@ -359,11 +325,10 @@ export function PostPage() {
 
       {currentStep === 5 && (
         <PostPhotosStep
-          pendingImages={pendingImages}
-          fileInputRef={fileInputRef}
-          onFilesSelected={(files) => void handleFiles(files)}
-          onRetryImage={retryImage}
-          onRemoveImage={removeImage}
+          imageUrls={form.image_urls ?? []}
+          uploadingCount={photoUpload.uploadingCount}
+          onFilesSelected={(files) => void addPhotos(files)}
+          onRemovePhoto={removePhoto}
         />
       )}
 
@@ -377,7 +342,7 @@ export function PostPage() {
       )}
 
       {currentStep === 7 && (
-        <PostReviewStep form={form} pendingImages={pendingImages} />
+        <PostReviewStep form={form} />
       )}
     </ListingBuilder>
     <Modal

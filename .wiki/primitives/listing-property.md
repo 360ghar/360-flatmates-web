@@ -23,16 +23,15 @@ A listing carries two status fields, kept separate because they answer different
 
 | Field | Type | Answers |
 | --- | --- | --- |
-| `status` | `PropertyLifecycleStatus` (`draft`, `active`, `paused`, `expired`) | Is this listing live and visible to seekers? |
-| `property_status` | `PropertyModerationStatus` (`pending_review`, `approved`, `rejected`) | Has this listing passed moderation? |
+| `status` | `PropertyStatus` (`available`, `sold`, `rented`, `under_offer`, `maintenance`) | The sales state of the property. The web does not use it for the owner state. |
+| `listing_preferences.moderation_status` | `ListingModerationStatus` (`pending_review`, `live`, `paused`, `rejected`) | The owner state of a flatmate or PG listing: moderation and the owner's pause. |
 
-Only a listing that is both `active` and `approved` is discoverable. The lifecycle field is user-controlled (the poster can pause or let it expire); the moderation field is admin-controlled (see [admin moderation](../features/admin-moderation.md)). `expires_at` drives the expiry, and the dashboard surfaces `days_until_expiry` per listing.
+Only a `live` listing is discoverable. The owner pauses and resumes it; a moderator approves or rejects it (see [admin moderation](../features/admin-moderation.md)). `listing_preferences.expires_at` is the expiry date.
 
 ## Shape
 
 ```mermaid
 erDiagram
-    Property ||--|| Owner : "owned by"
     Property {
         number id PK
         PropertyType property_type
@@ -42,28 +41,19 @@ erDiagram
         string city
         string locality
         ListingSharingType sharing_type
-        PropertyLifecycleStatus status
-        PropertyModerationStatus property_status
-        string expires_at
-        boolean boost_active
-    }
-    Owner {
-        number id PK
-        string full_name
-        string profile_image_url
+        PropertyStatus status
+        number owner_id
+        string owner_name
+        ListingPreferences listing_preferences
+        PropertyImage images
     }
 ```
 
-The full `Property` type also carries engagement counters (`interest_count`, `view_count`, `like_count`), the viewer's relationship to it (`liked`, `user_has_scheduled_visit`, `user_next_visit_date`), optional geo (`latitude`, `longitude`, `distance_km`), and the embedded `PropertyOwner`. The create payload, `PropertyCreate`, is a strict subset (no counters, no status fields, no owner) and is validated by `propertyCreateSchema`, which refines the payload so `security_deposit` cannot exceed twelve months of rent.
+The full `Property` type also carries engagement counters (`interest_count`, `view_count`, `like_count`), the viewer's relationship to it (`liked`, `user_has_scheduled_visit`, `user_next_visit_date`), optional geo (`latitude`, `longitude`, `distance_km`), and the owner as `owner_id`, `owner_name` and `owner_contact` (for a viewer who is not the owner, `owner_contact` is the agent or company number). The create payload, `PropertyCreate`, is a strict subset (no counters, no status fields, no owner) and is validated by `propertyCreateSchema`, which refines the payload so `security_deposit` cannot exceed twelve months of rent.
 
-## Boost and renew
+## Owner state and photos
 
-Two mutations extend a listing's reach or lifetime:
-
-- **Boost** (`useBoostListing` in `src/features/listings/hooks/useProperties.ts`) posts to `POST /properties/{id}/boost` with a `BoostDuration` of `24h`, `7d`, or `30d` (defined by `BOOST_DURATION_VALUES`). The response carries a `boost_until` timestamp. Boost also invalidates the dashboard query so the active-boost flag refreshes.
-- **Renew** (`useRenewListing`) posts to `POST /properties/{id}/renew` with a new `available_from` and `expires_at`, extending the listing's window. It returns the updated `Property`.
-
-Both invalidate the `["properties", "mine"]` and the single-property caches on success so the dashboard and detail views reconcile immediately. See [dashboard analytics](../features/dashboard-analytics.md) for how `ListingAnalytics` reports on boost performance.
+The owner state of a listing is `listing_preferences.moderation_status` (`pending_review`, `live`, `paused`, `rejected`). The owner pauses and resumes a listing with `useSetListingStatus` (`PUT /properties/{id}`). A content edit sends a live listing back to `pending_review`. Photos are `Property.images[].image_url`, in display order. The owner adds photos (uploaded first with `POST /upload`), removes photos or picks the main one by sending the new `image_urls` list. The web has no boost or renew: no backend route exists for them.
 
 ## Builder schema
 
@@ -80,7 +70,7 @@ The listing builder (`src/lib/schemas/listing-builder.ts`) splits the create flo
 
 | File | Role |
 | --- | --- |
-| `src/lib/api/property.types.ts` | `Property`, `PropertyCreate`, `PropertyUpdate`, boost and renew payloads, dashboard types |
+| `src/lib/api/property.types.ts` | `Property`, `PropertyCreate`, `PropertyUpdate`, generated-schema aliases and UI summary types |
 | `src/lib/schemas/listing-builder.ts` | `propertyCreateSchema`, `propertySchema`, per-step builder schemas, `listingDraftSchema` |
-| `src/lib/data/domain.ts` | `PropertyType`, `PropertyPurpose`, `ListingSharingType`, `SocietyType`, lifecycle and moderation statuses, `BoostDuration` |
-| `src/features/listings/hooks/useProperties.ts` | `useMyProperties`, `useCreateProperty`, `useBoostListing`, `useRenewListing` |
+| `src/lib/data/domain.ts` | `PropertyType`, `PropertyPurpose`, `ListingSharingType`, `SocietyType`, `PropertyStatus`, `ListingModerationStatus` |
+| `src/features/listings/hooks/useProperties.ts` | `useMyProperties`, `useCreateProperty`, `useUpdateProperty`, `useSetListingStatus`, `useDeleteProperty` |

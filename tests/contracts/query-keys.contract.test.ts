@@ -296,8 +296,8 @@ describe("TanStack Query key contracts", () => {
     const crossModuleAllowed: Record<string, string[]> = {
       // useUnmatchMutation also invalidates conversations — that is correct
       useMatches: ["matches", "conversations"],
-      // useBoostListing also invalidates dashboard — that is correct
-      useProperties: ["properties", "dashboard"],
+      // The owner dashboard is derived from ["properties", "mine"], so it has no key of its own.
+      useProperties: ["properties"],
       // useSendMessage also invalidates conversations list — same scope
       useConversations: ["conversations"],
       // Accepting a like through the swipe endpoint can create a match/chat.

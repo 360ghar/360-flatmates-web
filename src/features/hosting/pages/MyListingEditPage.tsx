@@ -1,14 +1,16 @@
 import { userMessage } from "@/lib/api/errors";
+import { applyFieldErrors } from "@/lib/api/form-errors";
 import { Page, PageHeader } from "@/components/ui/Layout";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { useForm } from "react-hook-form";
+import { useForm, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMyProperty, useUpdateProperty } from "@/features/listings/hooks/useProperties";
 import { useDirtyFormGuard } from "@/hooks/useDirtyFormGuard";
 import { uiStore } from "@/lib/stores/ui-store";
 import { listingSchema, type ListingFormData } from "@/features/hosting/lib/listing-form";
-import { stripEmptyFields } from "@/lib/utils";
+import { toPropertyUpdate } from "@/features/hosting/lib/listing-payload";
+import { propertyImageUrls, readListingPreferences } from "@/lib/api/property-fields";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -34,7 +36,9 @@ export function MyListingEditPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isDirty }
+    getValues,
+    setError,
+    formState: { errors, isDirty, dirtyFields }
   } = useForm<ListingFormData>({
     resolver: zodResolver(listingSchema),
     defaultValues: {
@@ -64,43 +68,42 @@ export function MyListingEditPage() {
       gender_preference: undefined,
       sharing_type: undefined,
       society_type: undefined,
-      video_tour_url: "",
-      is_available: true
+      video_tour_url: ""
     }
   });
 
   /* Populate form when property data arrives */
   useEffect(() => {
     if (property && !isDirty) {
-      const defaults: ListingFormData = {
-        title: property.title ?? "",
+      const preferences = readListingPreferences(property);
+      const defaults: DefaultValues<ListingFormData> = {
+        title: property.title,
         description: property.description ?? "",
         city: property.city ?? "",
         locality: property.locality ?? "",
         sub_locality: property.sub_locality ?? "",
-        address: "",
-        monthly_rent: property.monthly_rent,
-        security_deposit: property.security_deposit,
-        maintenance_charges: property.maintenance_charges,
-        setup_cost: property.setup_cost,
-        other_charges: property.other_charges,
+        address: property.full_address ?? "",
+        monthly_rent: property.monthly_rent ?? undefined,
+        security_deposit: property.security_deposit ?? undefined,
+        maintenance_charges: property.maintenance_charges ?? undefined,
+        setup_cost: property.setup_cost ?? undefined,
+        other_charges: property.other_charges ?? undefined,
         other_charges_description: property.other_charges_description ?? "",
-        area_sqft: property.area_sqft,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        floor_number: property.floor_number,
-        total_floors: property.total_floors,
-        kitchen_type: property.kitchen_type,
-        ventilation_type: property.ventilation_type,
-        windows_count: property.windows_count,
-        ventilation_shafts: property.ventilation_shafts,
-        furnishing_level: property.furnishing_level,
+        area_sqft: property.area_sqft ?? undefined,
+        bedrooms: property.bedrooms ?? undefined,
+        bathrooms: property.bathrooms ?? undefined,
+        floor_number: property.floor_number ?? undefined,
+        total_floors: property.total_floors ?? undefined,
+        kitchen_type: property.kitchen_type ?? undefined,
+        ventilation_type: property.ventilation_type ?? undefined,
+        windows_count: property.windows_count ?? undefined,
+        ventilation_shafts: property.ventilation_shafts ?? undefined,
+        furnishing_level: property.furnishing_level ?? undefined,
         available_from: property.available_from ?? "",
-        gender_preference: property.gender_preference,
-        sharing_type: property.sharing_type,
-        society_type: property.society_type,
-        video_tour_url: property.video_tour_url ?? "",
-        is_available: property.is_available ?? true
+        gender_preference: preferences.genderPreference ?? undefined,
+        sharing_type: preferences.sharingType ?? undefined,
+        society_type: preferences.societyType ?? undefined,
+        video_tour_url: property.video_tour_url ?? ""
       };
       reset(defaults);
     }
@@ -109,9 +112,7 @@ export function MyListingEditPage() {
   function onSubmit(data: ListingFormData) {
     setServerError(null);
 
-    const payload = stripEmptyFields(data as Record<string, unknown>);
-
-    updateProperty.mutate(payload, {
+    updateProperty.mutate(toPropertyUpdate(data, dirtyFields), {
       onSuccess: () => {
         // Reset the form to the submitted values so isDirty clears (this also
         // stops the unsaved-changes guard from firing on the post-save nav).
@@ -124,7 +125,9 @@ export function MyListingEditPage() {
         navigate("/manage", { state: { skipDirtyGuard: true } });
       },
       onError: (err) => {
-        setServerError(userMessage(err, "Failed to update listing"));
+        // The wire key `full_address` is the `address` field of this form.
+        const fieldLine = applyFieldErrors(err, setError, Object.keys(getValues()), { full_address: "address" });
+        setServerError(fieldLine ?? userMessage(err, "Failed to update listing"));
       }
     });
   }
@@ -163,7 +166,8 @@ export function MyListingEditPage() {
     );
   }
 
-  const imageUrls = property?.image_urls ?? [];
+  const imageUrls = property ? propertyImageUrls(property) : [];
+  const goesBackToReview = property ? readListingPreferences(property).moderationStatus === "live" : false;
 
   return (
     <Page width="narrow">
@@ -184,7 +188,7 @@ export function MyListingEditPage() {
         )}
 
         {/* Photos */}
-        <ListingPhotoManager propertyId={propertyId} imageUrls={imageUrls} />
+        <ListingPhotoManager propertyId={propertyId} imageUrls={imageUrls} goesBackToReview={goesBackToReview} />
 
         {/* Basic Info */}
         <ListingBasicInfoFields register={register} errors={errors} />
@@ -192,17 +196,11 @@ export function MyListingEditPage() {
         {/* Location */}
         <ListingLocationFields register={register} errors={errors} />
 
-        {/* Availability */}
-        <Card className="flex flex-col gap-4 p-5">
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              className="h-5 w-5 rounded accent-accent"
-              {...register("is_available")}
-            />
-            <span className="text-body-md text-ink">Listing is available</span>
-          </label>
-        </Card>
+        {goesBackToReview ? (
+          <Card className="p-4 text-body-md text-ink-2" role="note">
+            Saving changes sends your live listing back to review. It stays hidden until a moderator approves it.
+          </Card>
+        ) : null}
 
         {/* Submit */}
         <div className="flex flex-col gap-2 pb-6">

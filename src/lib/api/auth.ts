@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api";
 import type { AuthMethod } from "@/lib/lastAuthMethod";
+import type { Schemas } from "./schema";
 
 /**
  * Auth state-machine + bookkeeping endpoints (frozen backend contract).
@@ -13,8 +14,8 @@ import type { AuthMethod } from "@/lib/lastAuthMethod";
  * service.
  */
 
-export type IdentifierChannel = "email" | "phone";
-export type IdentifierNextStep = "password" | "otp";
+export type IdentifierChannel = Schemas["IdentifierStatusResponse"]["channel"];
+export type IdentifierNextStep = Schemas["IdentifierStatusResponse"]["next_step"];
 
 /**
  * Heuristically classify a raw identifier as an email or a phone number.
@@ -29,14 +30,8 @@ export function detectIdentifierChannel(identifier: string): IdentifierChannel {
   return /^[+\d][\d\s()-]*$/.test(value) ? "phone" : "email";
 }
 
-export interface IdentifierStatus {
-  exists: boolean;
-  verified: boolean;
-  has_password: boolean;
-  channel: IdentifierChannel;
-  /** `password` iff exists && verified && has_password, else `otp`. */
-  next_step: IdentifierNextStep;
-}
+/** `next_step` is `password` iff the account exists, is verified and has a password, else `otp`. */
+export type IdentifierStatus = Schemas["IdentifierStatusResponse"];
 
 /**
  * Ask the backend how to proceed for a given identifier (email or phone).
@@ -46,7 +41,7 @@ export function checkIdentifierStatus(
   identifier: string,
   signal?: AbortSignal
 ): Promise<IdentifierStatus> {
-  return apiClient.request<IdentifierStatus, { identifier: string }>({
+  return apiClient.request<IdentifierStatus, Schemas["IdentifierStatusRequest"]>({
     method: "POST",
     path: "/auth/identifier-status",
     body: { identifier },
@@ -61,7 +56,7 @@ export function checkIdentifierStatus(
  * should treat this as best-effort (see `reportLastMethod`).
  */
 export function postLastMethod(method: AuthMethod): Promise<void> {
-  return apiClient.request<void, { method: AuthMethod }>({
+  return apiClient.request<void, Schemas["LastMethodRequest"]>({
     method: "POST",
     path: "/auth/last-method",
     body: { method },
@@ -90,11 +85,7 @@ import type { AuthStage } from "./core.types";
 
 export type { AuthStage };
 
-export interface AuthStateResponse {
-  stage: AuthStage;
-  next_action: string;
-  missing_fields: string[];
-}
+export type AuthStateResponse = Schemas["AuthGateState"];
 
 /**
  * Fetch the current auth gate stage from the backend.
@@ -103,15 +94,10 @@ export interface AuthStateResponse {
  * @param app the app slug whose onboarding to check (defaults to "flatmates").
  */
 export function getAuthState(
-  app: string = "flatmates",
+  app: Schemas["AppKey"] = "flatmates",
   signal?: AbortSignal
 ): Promise<AuthStateResponse> {
-  // TODO (F10 #32, A-24): the request body type generic is misleading for
-  // a GET — the `app` argument is a query param, not a body. apiClient
-  // discards the body for GETs but the type still reads `{ app: string }`.
-  // A clean fix is to split `ApiRequest<TBody>` so GETs take no body slot.
-  // Out of scope for this pass; tracked in `.todo/wire-protocol-divergences.md`.
-  return apiClient.request<AuthStateResponse, { app: string }>({
+  return apiClient.request<AuthStateResponse>({
     method: "GET",
     path: "/users/me/auth-state",
     query: { app },

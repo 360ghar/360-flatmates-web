@@ -10,7 +10,7 @@ describe("profileToProfileGridCardProps", () => {
       mode: "open_to_both",
       city: "Bangalore",
       locality: "HSR Layout",
-      age: 27,
+      age_bucket: "25-30",
       profession: "Designer",
       profile_image_url: "https://example.com/photo.jpg",
       match_percentage: 85
@@ -32,6 +32,11 @@ describe("profileToProfileGridCardProps", () => {
 
     const result = profileToProfileGridCardProps(profile);
     expect(result.location).toBe("HSR Layout, Bangalore");
+  });
+
+  it("falls back to a neutral name when the peer has none", () => {
+    const profile = { id: 3, full_name: null } as FlatmatesPeer;
+    expect(profileToProfileGridCardProps(profile).name).toBe("A flatmate");
   });
 
   it("uses match_percentage for matchScore", () => {

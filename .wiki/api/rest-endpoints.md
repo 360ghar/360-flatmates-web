@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-The 360 Flatmates web SPA talks to a single FastAPI backend mounted at `/api/v1`. The authoritative contract is [`docs/flatmates-openapi.yaml`](../../docs/flatmates-openapi.yaml), a single OpenAPI 3.1 file that defines every path, request body, response shape, status code, and enum. This page is a summary of that contract: the base URL, the domain groups, the type generation pipeline, and the primary operations per group. When this page and the spec disagree, the spec wins, and this page needs updating.
+The 360 Flatmates web SPA talks to a single FastAPI backend mounted at `/api/v1`. The authoritative contract is [`openapi/openapi.json`](../../openapi/openapi.json), a single OpenAPI 3.1 file that defines every path, request body, response shape, status code, and enum. This page is a summary of that contract: the base URL, the domain groups, the type generation pipeline, and the primary operations per group. When this page and the spec disagree, the spec wins, and this page needs updating.
 
 ## Base URL and transport
 
@@ -29,7 +29,7 @@ The spec tags every operation, and the tags cluster into eleven domain groups. T
 | Likes and matches | `Likes`, `Matches` | `GET /flatmates/likes`, `GET /flatmates/matches`, `PUT /flatmates/matches/{match_id}/unmatch` | `src/lib/api/match.types.ts` |
 | Conversations | `Conversations` | `GET /flatmates/conversations`, `GET /flatmates/conversations/{id}`, `GET .../messages`, `POST .../messages`, `POST .../mark-read`, `POST .../qna` | `src/lib/api/conversation.types.ts` |
 | Visits | `Visits` | `POST /visits`, `GET /visits/upcoming`, `GET /visits/past`, `PUT /visits/{id}`, `POST /visits/{id}/reschedule`, `POST /visits/{id}/cancel`, `POST /visits/{id}/complete` | `src/lib/api/visit.types.ts` |
-| Listings | `Listings` | `POST /properties`, `GET /properties` (search), `GET /properties/semantic-search`, `GET /properties/recommendations`, `GET /properties/me`, `GET /properties/{id}`, `PUT /properties/{id}`, `DELETE /properties/{id}`, `POST /properties/{id}/boost`, `POST /properties/{id}/renew` | `src/lib/api/property.types.ts` |
+| Listings | `Listings` | `POST /properties`, `GET /properties` (search), `GET /properties/semantic-search`, `GET /properties/recommendations`, `GET /properties/me`, `GET /properties/{id}`, `PUT /properties/{id}`, `DELETE /properties/{id}` | `src/lib/api/property.types.ts` |
 | Notifications | `Notifications` | `GET /flatmates/notifications`, `PUT /flatmates/notifications/{id}`, `POST /notifications/devices/register`, `POST /notifications/devices/unregister` | `src/lib/api/notification.types.ts`, `src/lib/api/common.types.ts` (`RegisterDevicePayload`) |
 | Blocks and reports | `Blocks & Reports` | `GET /flatmates/blocks`, `POST /flatmates/blocks`, `DELETE /flatmates/blocks/{blocked_user_id}`, `POST /flatmates/reports` | `src/lib/api/user.types.ts` (`ReportCreate`, `ReportOut`) |
 | Interactions | `Interactions` | `POST /flatmates/profile-views`, `POST /flatmates/listings/{listing_id}/society-tags/votes` | `src/lib/api/user.types.ts` (`ProfileViewEventCreate`, `SocietyTagVoteCreate`) |
@@ -43,7 +43,7 @@ The `GET /flatmates/web/search` endpoint is the one public web discovery call (i
 
 TypeScript types are generated from the OpenAPI spec in two complementary layers.
 
-1. **Generated raw types.** `npm run generate:api-types` runs `openapi-typescript docs/flatmates-openapi.yaml -o src/lib/api/openapi-types.ts`, producing a deeply-nested `paths` and `components.schemas` object the rest of the codebase can `interface paths`-style import from. Re-run this whenever the spec changes, then commit the regenerated file. See [Getting started](../overview/getting-started.md) for the command list.
+1. **Generated raw types.** `npm run generate:api-types` runs `openapi-typescript openapi/openapi.json -o src/lib/api/openapi-types.ts`, producing a deeply-nested `paths` and `components.schemas` object the rest of the codebase can `interface paths`-style import from. Re-run this whenever the spec changes, then commit the regenerated file. See [Getting started](../overview/getting-started.md) for the command list.
 2. **Hand-curated domain type files.** The domain type files in `src/lib/api/*.types.ts` (`common`, `user`, `property`, `conversation`, `visit`, `search`, `match`, `notification`, `admin`) are the types actually consumed by hooks and components. They are hand-curated, named in the shapes the UI wants, and import their enum values from `src/lib/data` (the canonical string unions). Enum values are the contract; the domain files restate the shapes around them.
 
 The hand-curated layer exists because the raw generated types are verbose and path-keyed, while the UI needs flat, named interfaces (`Property`, `FlatmatesPeer`, `ConversationSummary`, `Visit`, etc.) that compose cleanly into component props. The two layers are kept consistent by convention: when a backend field changes, regenerate the raw types, then update the matching domain file in the same change.
@@ -84,13 +84,13 @@ The spec marks operations as `security: []` (public) or `security: [{ BearerAuth
 - [API client](../systems/api-client.md) for `HttpApiClient`, URL building, the 401 refresh-and-retry flow, and error normalization.
 - [Data models](../reference/data-models.md) for the entity reference (Property, FlatmateProfile, Conversation, Visit, etc.).
 - [Dependencies](../reference/dependencies.md) for the runtime and dev dependency inventory.
-- [`docs/flatmates-openapi.yaml`](../../docs/flatmates-openapi.yaml), the source of truth.
+- [`openapi/openapi.json`](../../openapi/openapi.json), the source of truth.
 
 ## Key source files
 
 | File | Role |
 | --- | --- |
-| `docs/flatmates-openapi.yaml` | The OpenAPI 3.1 contract; source of truth for paths, bodies, responses, enums |
+| `openapi/openapi.json` | The OpenAPI 3.1 contract; source of truth for paths, bodies, responses, enums |
 | `src/lib/api/client.ts` | `HttpApiClient`, `buildApiUrl`, the `ApiAdapter` interface, the 401 refresh-and-retry loop |
 | `src/lib/api/errors.ts` | `ApiClientError`, `AppError`, `mapStatusToAppError`, `toAppError`, `isAppError` |
 | `src/lib/api/index.ts` | Module-level token/refresh singletons, the `apiClient` singleton, `setAccessToken` and `setRefreshTokenHandler` |

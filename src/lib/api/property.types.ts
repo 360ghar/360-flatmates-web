@@ -1,188 +1,31 @@
-import type {
-  BoostDuration,
-  FurnishingLevel,
-  GenderPreference,
-  KitchenType,
-  ListingSharingType,
-  PropertyLifecycleStatus,
-  PropertyModerationStatus,
-  PropertyPurpose,
-  PropertyType,
-  SocietyType,
-  VentilationType
-} from "@/lib/data";
-import type { CursorPage, JsonObject } from "./common.types";
+import type { ListingModerationStatus } from "@/lib/data";
+import type { Schemas, WriteBody } from "./schema";
 
-export interface PropertyCreate {
-  property_type: PropertyType;
-  purpose: PropertyPurpose;
-  title: string;
-  description?: string;
-  city: string;
-  state?: string;
-  locality: string;
-  sub_locality?: string;
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-  monthly_rent: number;
-  security_deposit?: number;
-  maintenance_charges?: number;
-  area_sqft?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  features?: string[];
-  tags?: string[];
-  main_image_url?: string;
-  image_urls?: string[];
-  available_from?: string;
-  gender_preference?: GenderPreference;
-  sharing_type?: ListingSharingType;
-  video_tour_url?: string;
-  society_type?: SocietyType;
-  society_amenities?: string[];
-  society_vibe_tags?: string[];
-  listing_preferences?: JsonObject;
-  kitchen_type?: KitchenType;
-  ventilation_type?: VentilationType;
-  windows_count?: number;
-  ventilation_shafts?: number;
-  floor_number?: number;
-  total_floors?: number;
-  setup_cost?: number;
-  other_charges?: number;
-  other_charges_description?: string;
-  furnishing_level?: FurnishingLevel;
-}
+/** `GET /properties`, `GET /properties/me` and write responses. */
+export type Property = Schemas["Property"];
+/** `GET /properties/{id}`: a `Property` plus the detail-only fields. */
+export type PropertyDetail = Schemas["PropertyDetail"];
+export type PropertyImage = Schemas["PropertyImage"];
+export type ListingPreferences = Schemas["ListingPreferences"];
+export type PropertyCursorPage = Schemas["CursorPage_Property_"];
 
-export type PropertyUpdate = Partial<Omit<PropertyCreate, "property_type" | "purpose">> & {
-  is_available?: boolean;
-};
+/**
+ * Body of `POST /properties`. `country` and `minimum_stay_days` have server
+ * defaults, so a client may omit them. `base_price` is required and equals
+ * `monthly_rent` for a rent listing.
+ */
+export type PropertyCreate = WriteBody<
+  Schemas["PropertyCreate"],
+  "country" | "minimum_stay_days"
+>;
 
-export interface PropertyOwner {
-  id: number;
-  full_name: string;
-  profile_image_url?: string;
-  phone?: string;
-}
+/** Body of `PUT /properties/{id}`: PATCH semantics, send only changed keys. */
+export type PropertyUpdate = Schemas["PropertyUpdate"];
 
-export interface Property {
-  id: number;
-  owner_id?: number;
-  property_type: PropertyType;
-  purpose: PropertyPurpose;
-  title: string;
-  description?: string;
-  city: string;
-  state?: string;
-  locality: string;
-  sub_locality?: string;
-  latitude?: number;
-  longitude?: number;
-  monthly_rent: number;
-  main_image_url?: string;
-  image_urls?: string[];
-  area_sqft?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  features?: string[];
-  tags?: string[];
-  owner_name?: string;
-  available_from?: string;
-  gender_preference?: GenderPreference;
-  sharing_type?: ListingSharingType;
-  video_tour_url?: string;
-  security_deposit?: number;
-  maintenance_charges?: number;
-  society_type?: SocietyType;
-  society_amenities?: string[];
-  society_vibe_tags?: string[];
-  kitchen_type?: KitchenType;
-  ventilation_type?: VentilationType;
-  windows_count?: number;
-  ventilation_shafts?: number;
-  floor_number?: number;
-  total_floors?: number;
-  setup_cost?: number;
-  other_charges?: number;
-  other_charges_description?: string;
-  furnishing_level?: FurnishingLevel;
-  interest_count?: number;
-  view_count?: number;
-  like_count?: number;
-  is_available?: boolean;
-  created_at?: string;
-  preferences?: JsonObject;
-  status?: PropertyLifecycleStatus;
-  property_status?: PropertyModerationStatus;
-  expires_at?: string;
-  distance_km?: number;
-  liked?: boolean | null;
-  user_has_scheduled_visit?: boolean;
-  user_scheduled_visit_count?: number;
-  user_next_visit_date?: string;
-  compatibility_score?: number | null;
-  owner?: PropertyOwner;
-}
+/** The owner's own status toggle: `listing_preferences.moderation_status`. */
+export type OwnerListingStatus = "live" | "paused";
 
-/** @deprecated Use {@link PropertyCursorPage} instead. */
-export interface PaginatedPropertyResponse {
-  properties: Property[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
-  filters_applied?: JsonObject;
-  search_center?: {
-    latitude?: number;
-    longitude?: number;
-  };
-}
-
-export type PropertyCursorPage = CursorPage<Property>;
-
-/** Property search cursor page with optional filter metadata. */
-export interface PropertySearchCursorPage extends CursorPage<Property> {
-  filters_applied?: JsonObject;
-  search_center?: {
-    latitude?: number;
-    longitude?: number;
-  };
-}
-
-/** Filter metadata emitted with property search responses. */
-export interface PropertySearchMeta {
-  filters_applied?: JsonObject;
-  search_center?: {
-    latitude?: number;
-    longitude?: number;
-  };
-}
-
-export interface PropertyImageUploadPayload {
-  image_url: string;
-  is_main?: boolean;
-}
-
-export interface PropertyImageUploadResponse {
-  image_url: string;
-  is_main: boolean;
-}
-
-export interface BoostListingPayload {
-  duration: BoostDuration;
-}
-
-export interface BoostListingResponse {
-  boost_until: string;
-  message: string;
-}
-
-export interface RenewListingPayload {
-  available_from: string;
-  expires_at: string;
-}
-
+/** UI summary of an owner's listings (derived from `GET /properties/me`). */
 export interface RoomPosterDashboard {
   total_listings: number;
   active_listings: number;
@@ -191,44 +34,20 @@ export interface RoomPosterDashboard {
   total_views: number;
   total_likes: number;
   total_conversations: number;
-  total_visits: number;
   listings: Array<{
     id: number;
     title: string;
-    status: string;
+    status: ListingModerationStatus;
     views: number;
     likes: number;
     conversations: number;
-    days_until_expiry: number;
-    boost_active: boolean;
   }>;
 }
 
+/** UI summary of one listing (derived from the listing's own counters). */
 export interface ListingAnalytics {
   listing_id: number;
-  period: "7d" | "30d" | "all" | string;
   total_views: number;
-  unique_views: number;
   likes: number;
-  shares: number;
   conversations_started: number;
-  visits_scheduled: number;
-  daily_stats: Array<{
-    date: string;
-    views: number;
-    likes: number;
-    shares: number;
-  }>;
-  boost_active: boolean;
-  boost_expires_at?: string | null;
-}
-
-export interface CityStats {
-  city: string;
-  active_users: number;
-  total_listings: number;
-  new_listings_7d: number;
-  total_matches_7d: number;
-  match_rate: number;
-  is_waitlist: boolean;
 }

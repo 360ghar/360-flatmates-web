@@ -190,7 +190,7 @@ describe("fcm push utilities", () => {
       expect(mockRequest).toHaveBeenCalledWith({
         method: "POST",
         path: "/notifications/devices/register",
-        body: { token: "test-token-123", platform: "web" },
+        body: { token: "test-token-123", platform: "web", app_key: "flatmates" },
       });
     });
 
@@ -213,7 +213,7 @@ describe("fcm push utilities", () => {
       expect(mockRequest).toHaveBeenCalledWith({
         method: "DELETE",
         path: "/notifications/devices/unregister",
-        query: { token: "test-token-456" },
+        body: { token: "test-token-456" },
       });
     });
 
@@ -322,7 +322,11 @@ describe("fcm push utilities", () => {
       expect(mockRequest).toHaveBeenCalledWith({
         method: "POST",
         path: "/notifications/devices/register",
-        body: { token: "https://push.example.com/success-token", platform: "web" },
+        body: {
+          token: "https://push.example.com/success-token",
+          platform: "web",
+          app_key: "flatmates"
+        },
       });
     });
 

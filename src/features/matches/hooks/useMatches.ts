@@ -7,22 +7,29 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { IncomingLikeCursorPage, MatchCursorPage } from "@/lib/api/types";
+import { fetchAllPages, MAX_PAGE_LIMIT } from "@/lib/api/pagination";
+import type {
+  IncomingLikeCursorPage,
+  MatchCursorPage,
+  MatchStatusOut,
+  MatchSummary,
+  OutgoingLikeCursorPage
+} from "@/lib/api/types";
 
 export const MATCHES_STALE_TIME = 60_000;
 
+/** Every match of the user: the list follows `next_cursor` (100 rows a page). */
 export const matchesOptions = queryOptions({
   queryKey: ["matches"],
-  queryFn: async ({ signal }) => {
-    const response = await apiClient.request<MatchCursorPage>({
-      method: "GET",
-      path: "/flatmates/matches",
-      signal
-    });
-    // Defense-in-depth against envelope shape drift (see RCA for the
-    // notifications `h?.filter is not a function` regression).
-    return Array.isArray(response?.items) ? response.items : [];
-  },
+  queryFn: ({ signal }) =>
+    fetchAllPages<MatchSummary>((cursor) =>
+      apiClient.request<MatchCursorPage>({
+        method: "GET",
+        path: "/flatmates/matches",
+        query: { cursor, limit: MAX_PAGE_LIMIT },
+        signal
+      })
+    ),
   staleTime: MATCHES_STALE_TIME
 });
 
@@ -65,7 +72,7 @@ export function outgoingLikesInfiniteOptions() {
   return infiniteQueryOptions({
     queryKey: ["outgoing-likes", "infinite"],
     queryFn: async ({ pageParam, signal }) => {
-      const response = await apiClient.request<IncomingLikeCursorPage>({
+      const response = await apiClient.request<OutgoingLikeCursorPage>({
         method: "GET",
         path: "/flatmates/outgoing-likes",
         query: { limit: OUTGOING_LIKES_PAGE_SIZE, cursor: pageParam },
@@ -107,7 +114,7 @@ export function useUnmatchMutation() {
 
   return useMutation({
     mutationFn: (matchId: number) =>
-      apiClient.request<{ message: string }>({
+      apiClient.request<MatchStatusOut>({
         method: "PUT",
         path: `/flatmates/matches/${matchId}/unmatch`
       }),

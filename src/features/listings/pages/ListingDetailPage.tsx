@@ -34,14 +34,17 @@ export function ListingDetailPage() {
   const listingLd = property
     ? buildResidenceSchema({
         name: property.title,
-        description: property.description ?? `Verified listing in ${property.locality}, ${property.city}`,
+        description: property.description ??
+          (formatLocation(property.locality, property.city)
+            ? `Verified listing in ${formatLocation(property.locality, property.city)}`
+            : "Verified listing"),
         url,
-        image: property.main_image_url,
+        image: property.main_image_url ?? undefined,
         monthlyRent: property.monthly_rent,
-        locality: property.locality,
-        city: property.city,
-        bedrooms: property.bedrooms,
-        areaSqft: property.area_sqft,
+        locality: property.locality ?? undefined,
+        city: property.city ?? undefined,
+        bedrooms: property.bedrooms ?? undefined,
+        areaSqft: property.area_sqft ?? undefined,
       })
     : null;
 
@@ -51,7 +54,7 @@ export function ListingDetailPage() {
         title={metaTitle}
         description={metaDescription}
         canonicalUrl={url}
-        ogImage={property?.main_image_url}
+        ogImage={property?.main_image_url ?? undefined}
         breadcrumb={breadcrumb}
         jsonLd={listingLd ?? undefined}
       />

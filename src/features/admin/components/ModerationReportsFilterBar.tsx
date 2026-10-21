@@ -1,25 +1,22 @@
 import { AdminStatusFilterBar } from "./AdminStatusFilterBar";
-import type { ReportStatus } from "@/lib/api/types";
-import { REPORT_STATUS_VALUES } from "@/lib/data";
+import { REPORT_STATUS_VALUES, type ReportStatus } from "@/lib/data";
 
 const STATUS_CHIP_LABELS: Record<ReportStatus, string> = {
   open: "Open",
-  under_review: "In review",
-  resolved: "Resolved",
-  dismissed: "Dismissed"
+  reviewed: "Reviewed",
+  dismissed: "Dismissed",
+  actioned: "Actioned"
 };
 
 const STATUS_OPTIONS: ReportStatus[] = [...REPORT_STATUS_VALUES];
 
-export type ReportsStatusFilter = ReportStatus | "all";
+// The route has no "all": it lists one status at a time and answers `open` when none is sent.
+export type ReportsStatusFilter = ReportStatus;
 
-// Status-filter chip labels. NOTE: when A-2/A-3 are resolved
-// (REPORT_STATUS and REPORT_ACTION divergence), the labels here will need
-// to be re-evaluated against the new values from the backend.
+// Status-filter chips: the four `UserReportStatus` values the backend stores.
 const statusChips: { value: ReportsStatusFilter; label: string }[] = [
-  { value: "all", label: "All" },
   ...STATUS_OPTIONS.map((status) => ({
-    value: status as ReportsStatusFilter,
+    value: status,
     label: STATUS_CHIP_LABELS[status]
   }))
 ];

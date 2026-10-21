@@ -34,4 +34,4 @@ function AlertCardBones() {
   );
 }
 
-/** Payment method / blocked user list row */
+/** Alert row */

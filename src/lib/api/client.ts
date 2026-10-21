@@ -35,6 +35,8 @@ export interface ApiClientOptions {
   baseUrl?: string;
   getAccessToken?: () => Promise<string | null> | string | null;
   onAuthFailure?: () => Promise<string | null>;
+  /** Called on a 403 `USER_INACTIVE`: the account is deactivated, so the session must end. */
+  onInactiveUser?: () => void;
   fetcher?: typeof fetch;
   defaultHeaders?: HeadersInit;
 }
@@ -76,75 +78,52 @@ export function buildApiUrl(
   return url.toString();
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Read an error body. The backend sends one shape for every non-2xx JSON
+ * response: `{ "error": { "code", "message", "details" } }`. A 422 carries
+ * `details.fields`, a list of `{ field, msg, type }`; `field` keeps its source
+ * prefix (`body.title`, `query.limit`). Any other body gets the status text.
+ */
+export function parseErrorEnvelope(
+  payload: unknown,
+  fallback: string
+): { message: string; fields: Record<string, string[]>; errorCode?: string } {
+  const error = isRecord(payload) && isRecord(payload.error) ? payload.error : null;
+  if (!error) return { message: fallback, fields: {} };
+
+  const fields: Record<string, string[]> = {};
+  const details = isRecord(error.details) ? error.details : null;
+  if (details && Array.isArray(details.fields)) {
+    for (const item of details.fields) {
+      if (isRecord(item) && typeof item.field === "string" && typeof item.msg === "string") {
+        (fields[item.field] ??= []).push(item.msg);
+      }
+    }
+  }
+
+  return {
+    message:
+      typeof error.message === "string" && error.message.length > 0 ? error.message : fallback,
+    fields,
+    errorCode: typeof error.code === "string" ? error.code : undefined
+  };
+}
+
 async function readErrorBody(response: Response): Promise<{
   message: string;
   fields: Record<string, string[]>;
   errorCode?: string;
 }> {
   const fallback = response.statusText || "Request failed";
-
   try {
-    const payload = (await response.json()) as unknown;
-
-    if (typeof payload !== "object" || payload === null) {
-      return { message: fallback, fields: {} };
-    }
-
-    const record = payload as Record<string, unknown>;
-    // Backend standardized envelope: `{ error: { code, message, details? } }`.
-    const nestedError =
-      typeof record.error === "object" && record.error !== null
-        ? (record.error as Record<string, unknown>)
-        : null;
-    const detail = record.detail;
-    const message =
-      nestedError && typeof nestedError.message === "string"
-        ? nestedError.message
-        : typeof detail === "string"
-          ? detail
-          : typeof record.message === "string"
-            ? record.message
-            : fallback;
-
-    const fields =
-      typeof record.fields === "object" && record.fields !== null
-        ? normalizeValidationFields(record.fields as Record<string, unknown>)
-        : nestedError &&
-            typeof nestedError.details === "object" &&
-            nestedError.details !== null &&
-            "fields" in (nestedError.details as Record<string, unknown>)
-          ? normalizeValidationFields(
-              (nestedError.details as { fields: Record<string, unknown> }).fields
-            )
-          : {};
-
-    const errorCode =
-      nestedError && typeof nestedError.code === "string"
-        ? nestedError.code
-        : typeof record.error_code === "string"
-          ? record.error_code
-          : undefined;
-
-    return { message, fields, errorCode };
+    return parseErrorEnvelope((await response.json()) as unknown, fallback);
   } catch {
     return { message: fallback, fields: {} };
   }
-}
-
-function normalizeValidationFields(
-  fields: Record<string, unknown>
-): Record<string, string[]> {
-  const normalized: Record<string, string[]> = {};
-
-  for (const [key, value] of Object.entries(fields)) {
-    if (Array.isArray(value)) {
-      normalized[key] = value.map(String);
-    } else if (value !== undefined && value !== null) {
-      normalized[key] = [String(value)];
-    }
-  }
-
-  return normalized;
 }
 
 export class HttpApiClient implements ApiAdapter {
@@ -152,6 +131,7 @@ export class HttpApiClient implements ApiAdapter {
   private readonly fetcher: typeof fetch;
   private readonly getAccessToken?: ApiClientOptions["getAccessToken"];
   private readonly onAuthFailure?: ApiClientOptions["onAuthFailure"];
+  private readonly onInactiveUser?: ApiClientOptions["onInactiveUser"];
   private readonly defaultHeaders?: HeadersInit;
   // NOTE (F10 #23): `refreshing` is per-client. In the singleton `apiClient`
   // used by the app there is only one instance, so concurrent 401s dedupe to
@@ -164,6 +144,7 @@ export class HttpApiClient implements ApiAdapter {
     this.fetcher = options.fetcher ?? fetch.bind(window);
     this.getAccessToken = options.getAccessToken;
     this.onAuthFailure = options.onAuthFailure;
+    this.onInactiveUser = options.onInactiveUser;
     this.defaultHeaders = options.defaultHeaders;
   }
 
@@ -190,16 +171,23 @@ export class HttpApiClient implements ApiAdapter {
     token: string | null,
     deadline: Deadline
   ): Promise<Response> {
+    // A FormData body goes as is: fetch sets the multipart Content-Type and boundary.
+    const isForm = req.body instanceof FormData;
     const headers = this.buildHeaders(
       req.auth !== false ? token : null,
-      req.body !== undefined,
+      req.body !== undefined && !isForm,
       req.headers
     );
     try {
       return await this.fetcher(buildApiUrl(this.baseUrl, req.path, req.query), {
         method: req.method ?? "GET",
         headers,
-        body: req.body === undefined ? undefined : JSON.stringify(req.body),
+        body:
+          req.body === undefined
+            ? undefined
+            : req.body instanceof FormData
+              ? req.body
+              : JSON.stringify(req.body),
         signal: deadline.signal
       });
     } catch (error) {
@@ -222,7 +210,7 @@ export class HttpApiClient implements ApiAdapter {
     // wrapping `getAccessToken` in an abortable promise. Flag for follow-up.
     const token = await this.getAuthHeader(auth);
 
-    // Uploads send base64 JSON bodies, so writes get a longer budget. The
+    // Uploads send multipart bodies, so writes get a longer budget. The
     // deadline also covers reading the body.
     const deadline = createDeadline(
       req.signal,
@@ -278,8 +266,11 @@ export class HttpApiClient implements ApiAdapter {
 
     if (!response.ok) {
       const retryAfterHeader = response.headers.get("Retry-After");
+      // A blank header is no hint: Number("") is 0, which would retry at once.
       const retryAfter =
-        retryAfterHeader === null ? undefined : Number(retryAfterHeader);
+        retryAfterHeader === null || retryAfterHeader.trim() === ""
+          ? undefined
+          : Number(retryAfterHeader);
       const { message, fields, errorCode } = await readBody(
         () => readErrorBody(response),
         req.signal,
@@ -293,6 +284,7 @@ export class HttpApiClient implements ApiAdapter {
       );
       debug.error("API", `${method} ${req.path} — ${response.status}: ${message}`, { fields, appError });
       stopTimer();
+      if (auth && response.status === 403 && errorCode === "USER_INACTIVE") this.onInactiveUser?.();
       throw new ApiClientError(appError, response.status, errorCode);
     }
 

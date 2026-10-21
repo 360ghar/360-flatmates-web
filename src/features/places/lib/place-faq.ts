@@ -16,7 +16,7 @@ export function cityFaq(cityName: string, areas: ReadonlyArray<Neighborhood>): F
     },
     {
       question: `Is 360 Flatmates free to use in ${cityName}?`,
-      answer: "Searching, matching and booking visits are free. Optional paid boosts show a listing to more people."
+      answer: "Searching, matching and booking visits are free."
     },
     {
       question: `Which ${cityName} areas can I search?`,

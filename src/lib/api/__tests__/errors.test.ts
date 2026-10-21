@@ -254,4 +254,27 @@ describe("userMessage", () => {
     expect(userMessage(new ApiClientError({ type: "conflict", message: "Phone already in use" }))).toBe("Phone already in use");
     expect(userMessage(new Error("x"), "Could not save")).toBe("Could not save");
   });
+
+  it("names the first invalid field, without its body. prefix", async () => {
+    const { userMessage, ApiClientError } = await import("../errors");
+    const error = new ApiClientError({
+      type: "validation",
+      message: "Request validation failed",
+      fields: { "body.monthly_rent": ["Input should be greater than 0"] }
+    });
+    expect(userMessage(error)).toBe("monthly_rent: Input should be greater than 0");
+  });
+
+  it("falls back to the envelope message when a validation error has no fields", async () => {
+    const { userMessage, ApiClientError } = await import("../errors");
+    const error = new ApiClientError({ type: "validation", message: "Request validation failed", fields: {} });
+    expect(userMessage(error)).toBe("Request validation failed");
+  });
+
+  it("does not cut a long field message: it falls through", async () => {
+    const { userMessage, ApiClientError } = await import("../errors");
+    const long = "x".repeat(200);
+    const error = new ApiClientError({ type: "validation", message: "Request validation failed", fields: { "body.title": [long] } });
+    expect(userMessage(error)).toBe("Request validation failed");
+  });
 });

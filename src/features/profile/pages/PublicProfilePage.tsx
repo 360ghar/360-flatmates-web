@@ -22,6 +22,8 @@ import { PublicProfileSkeleton } from "@/features/profile/components/PublicProfi
 import { InlineError } from "@/components/ui/StateViews";
 import { FlatmateProfileDetail } from "@/features/profile/components/FlatmateProfileDetail";
 import { formatLocation } from "@/lib/utils/format";
+import { peerName } from "@/lib/api/peer-fields";
+import { userMessage } from "@/lib/api/errors";
 
 const breadcrumb = [{ name: "Profile", item: `${SITE_URL}/profile` }];
 
@@ -80,11 +82,11 @@ export function PublicProfilePage() {
         onSuccess: (conversation) => {
           navigate(`/chats/${conversation.id}`);
         },
-        onError: () => {
+        onError: (err) => {
           uiStore.getState().pushToast({
             type: "error",
             title: "Could not start conversation",
-            description: "Something went wrong. Please try again."
+            description: userMessage(err, "Something went wrong. Please try again.")
           });
         }
       }
@@ -128,16 +130,17 @@ export function PublicProfilePage() {
   const matchScore = compatibility?.overall_percentage ?? 0;
   const dimensions = compatibility?.dimensions ?? [];
   const matched = dimensions.filter((d) => d.match).length;
+  const name = profile ? peerName(profile) : "";
   const subtitle = profile ? [profile.profession, formatLocation(profile.locality, profile.city)].filter(Boolean).join(" · ") : "";
 
   return (
     <>
       <SeoHelmet
-        title={profile ? `${profile.full_name}: Flatmate Profile` : "Flatmate Profile"}
-        description={profile ? `View ${profile.full_name}'s flatmate profile on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores and lifestyle preferences.` : "View flatmate profiles on 360 Flatmates."}
+        title={profile ? `${name}: Flatmate Profile` : "Flatmate Profile"}
+        description={profile ? `${profile.full_name?.trim() ? `View ${name}'s flatmate profile` : "View a flatmate profile"} on 360 Flatmates. ${profile.profession ? `${profile.profession} looking for flatmates. ` : ""}Compatibility scores and lifestyle preferences.` : "View flatmate profiles on 360 Flatmates."}
         canonicalUrl={url}
         ogType="profile"
-        breadcrumb={[...breadcrumb, { name: profile?.full_name ?? "Profile" }]}
+        breadcrumb={[...breadcrumb, { name: profile ? name : "Profile" }]}
       />
 
       <Page width="narrow">
@@ -153,8 +156,8 @@ export function PublicProfilePage() {
         ) : (
           <>
             <PageHeader
-              media={<Avatar name={profile.full_name} size="lg" src={profile.profile_image_url} />}
-              title={profile.full_name}
+              media={<Avatar name={name} size="lg" src={profile.profile_image_url} />}
+              title={name}
               description={
                 subtitle || profile.mode ? (
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -208,7 +211,7 @@ export function PublicProfilePage() {
 
             <ReportUserModal
               open={isReportOpen}
-              participantName={profile.full_name}
+              participantName={name}
               reportReason={reportReason}
               onReportReasonChange={setReportReason}
               reportNotes={reportNotes}

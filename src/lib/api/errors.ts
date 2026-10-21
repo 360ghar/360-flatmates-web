@@ -4,7 +4,7 @@ export type AppError =
   | { type: "auth"; message: string }
   | { type: "forbidden"; message: string }
   | { type: "bad_request"; message: string }
-  | { type: "server"; status: number; message: string }
+  | { type: "server"; status: number; message: string; retryAfter?: number }
   | { type: "not_found"; message: string }
   | { type: "validation"; fields: Record<string, string[]>; message: string }
   | { type: "rate_limit"; message: string; retryAfter?: number }
@@ -95,7 +95,8 @@ export function mapStatusToAppError(
   }
 
   if (status >= 500) {
-    return { type: "server", status, message };
+    // A 503 carries `Retry-After`: the caller waits at least that long.
+    return { type: "server", status, message, retryAfter };
   }
 
   return { type: "unknown", message };
@@ -128,6 +129,15 @@ const SHOW_SERVER_MESSAGE = new Set<AppError["type"]>([
 /** Human-readable message for any thrown value. Never returns raw stack or network text. */
 export function userMessage(error: unknown, fallback?: string): string {
   const appError = toAppError(error);
+  if (appError.type === "validation") {
+    // The envelope message is the generic "Request validation failed"; the
+    // first field message says what to fix.
+    const [field, messages] = Object.entries(appError.fields)[0] ?? [];
+    const first = messages?.[0];
+    // Same rule as the server text below: show it whole, or fall through to the friendly line.
+    const text = field && first ? `${field.replace(/^(body|query|path)\./, "")}: ${first}` : "";
+    if (text && text.length <= 160) return text;
+  }
   const serverText = appError.message.trim();
   if (
     SHOW_SERVER_MESSAGE.has(appError.type) &&

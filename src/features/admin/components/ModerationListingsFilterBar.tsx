@@ -1,26 +1,22 @@
 import { AdminStatusFilterBar } from "./AdminStatusFilterBar";
-import type { PropertyModerationStatus } from "@/lib/api/types";
-import { PROPERTY_MODERATION_STATUS_VALUES } from "@/lib/data";
+import { LISTING_MODERATION_STATUS_VALUES, type ListingModerationStatus } from "@/lib/data";
 
-const STATUS_CHIP_LABELS: Record<PropertyModerationStatus, string> = {
+const STATUS_CHIP_LABELS: Record<ListingModerationStatus, string> = {
   pending_review: "Pending",
-  approved: "Approved",
+  live: "Live",
+  paused: "Paused",
   rejected: "Rejected"
 };
 
-const STATUS_OPTIONS: PropertyModerationStatus[] = [
-  ...PROPERTY_MODERATION_STATUS_VALUES
-];
+const STATUS_OPTIONS: ListingModerationStatus[] = [...LISTING_MODERATION_STATUS_VALUES];
 
-export type ListingStatusFilter = PropertyModerationStatus | "all";
+// The route has no "all": it lists one status at a time and answers `pending_review` when none is sent.
+export type ListingStatusFilter = ListingModerationStatus;
 
-// Status-filter chip labels. NOTE: when A-2/A-3 are resolved (REPORT_STATUS
-// and REPORT_ACTION divergence), audit the label set for reports and listings
-// together.
+// Status-filter chips: the four `ListingModerationStatus` values the backend stores.
 const statusChips: { value: ListingStatusFilter; label: string }[] = [
-  { value: "all", label: "All" },
   ...STATUS_OPTIONS.map((status) => ({
-    value: status as ListingStatusFilter,
+    value: status,
     label: STATUS_CHIP_LABELS[status]
   }))
 ];
