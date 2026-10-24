@@ -35,7 +35,7 @@ Vite plus React 19 plus React Router v7 (SPA, no SSR). TypeScript strict mode. T
 These live outside the wiki and are the source of truth for their domains. The wiki summarizes them and links out rather than duplicating:
 
 - [DESIGN.md](../../DESIGN.md) - all UI tokens, component specs, color, typography, motion, accessibility.
-- [AGENTS.md](../../AGENTS.md) and [CLAUDE.md](../../CLAUDE.md) - coding conventions, structure, async-state rules.
+- [AGENTS.md](../../AGENTS.md) - coding conventions, structure, async-state rules.
 - [plans/prd.md](../../plans/prd.md) - product requirements and technical architecture.
 - [plans/ui_ux.md](../../plans/ui_ux.md) - page-by-page UI and interaction specs.
 - [openapi/openapi.json](../../openapi/openapi.json) - the backend API contract.

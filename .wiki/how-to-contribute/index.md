@@ -17,7 +17,7 @@ If you are setting up the repo for the first time, start with [Getting started](
 The wiki summarizes the four authoritative docs that live outside it. Read them when a wiki page points you there:
 
 - [DESIGN.md](../../DESIGN.md): all UI tokens, component specs, color, typography, motion, and accessibility.
-- [CLAUDE.md](../../CLAUDE.md) and [AGENTS.md](../../AGENTS.md): coding conventions, project structure, and async-state rules.
+- [AGENTS.md](../../AGENTS.md): coding conventions, project structure, and async-state rules.
 - [plans/prd.md](../../plans/prd.md): product requirements and technical architecture.
 - [plans/ui_ux.md](../../plans/ui_ux.md): page-by-page UI and interaction specs.
 - [openapi/openapi.json](../../openapi/openapi.json): the backend API contract.

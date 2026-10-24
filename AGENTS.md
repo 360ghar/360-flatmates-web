@@ -1,7 +1,5 @@
 # Repository Guidelines
 
-> **Canonical guide: [CLAUDE.md](./CLAUDE.md).** Read it first for stack, structure, commands, and conventions.
-
 ## Project Structure & Module Organization
 
 ```
@@ -183,6 +181,6 @@ Every page that fetches data must handle all three async states: **loading**, **
   - Update wiki pages when architecture, features, systems, or primitives change significantly.
   - Run `npm run wiki:render-video` to re-render the video overview after major changes.
   - The video source lives in `.wiki/video/source/` and uses HyperFrames with the pre-redesign branding (Rausch, Inter); re-render it with the Paper Diorama tokens before the next publish.
-- **CLAUDE.md** and **AGENTS.md** must be updated whenever project structure, conventions, architecture, key commands, or design-system references change.
+- **AGENTS.md** must be updated whenever project structure, conventions, architecture, key commands, or design-system references change.
 - **DESIGN.md** is the single source of truth for UI tokens. Visual changes must update it in the same commit.
 - Before finalizing any change, verify these files still accurately describe the codebase.

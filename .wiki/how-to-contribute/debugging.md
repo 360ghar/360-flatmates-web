@@ -79,14 +79,6 @@ For the production wiring, see [real-time](../features/real-time.md).
 
 **Fix:** Confirm the client calls relative paths (the base URL is resolved by the client, not hardcoded). Confirm the rewrite is in place: the proxy strips `/api` and prepends `/app/v1`. If you are hitting a different backend, update the `target` in `vite.config.ts`, not the app code. See [Getting started](../overview/getting-started.md) "Dev server proxy".
 
-### Playwright auth state stale
-
-**Symptom:** The `authenticated` Playwright project fails every test with a redirect to `/login`, or with a cookie error.
-
-**Cause:** The storage state at `.auth/user.json` is stale or missing. The `auth-setup` project writes it, and the `authenticated` project reads it. If the Supabase project URL changed, the cookie name (`sb-<projectRef>-auth-token`) changed too, and the old file no longer matches. If `auth-setup` failed silently (no backend), the file may have an injected fake cookie that no longer parses.
-
-**Fix:** Delete `.auth/user.json` and re-run `npm run test:e2e`. The `auth-setup` project runs first and regenerates the file. The `.auth/` directory is gitignored, so this is always a local rebuild. See [testing](testing.md) for the project dependency order.
-
 ### Unit test hangs on a framer-motion component
 
 **Symptom:** A component test that renders a `motion.div` or `AnimatePresence` hangs or times out.
@@ -106,7 +98,6 @@ For the production wiring, see [real-time](../features/real-time.md).
 | Realtime stuck on `disconnected` | No active user, no access token, or missing bootstrap realtime config | Sign in, confirm the auth stage is active, and inspect `/flatmates/bootstrap` |
 | Realtime stuck on `reconnecting` | Supabase Realtime channel auth failed or the socket closed repeatedly | Confirm `setAuth(token)`, private channel policy, and Supabase Realtime availability |
 | Dev API calls 404 | Proxy rewrite mismatch (`/api` to `/app/v1`) | Call relative paths, confirm the rewrite in `vite.config.ts` |
-| `authenticated` E2E project redirects to `/login` | `.auth/user.json` stale or missing | Delete `.auth/user.json`, re-run `npm run test:e2e` |
 | Unit test hangs on a `motion.*` element | Real framer-motion loaded instead of the mock | Run via `npx vitest`, do not import real framer-motion |
 | `ApiClientError` with `type: "validation"` | Backend returned 400/422 with a `fields` map | Read `appError.fields`, surface per-field errors in the UI |
 | `query-keys.test.ts` fails after a key rename | A mutation still invalidates the old key | Update every `invalidateQueries` call to match the new scope |
@@ -121,5 +112,4 @@ For the production wiring, see [real-time](../features/real-time.md).
 | `src/hooks/useAuth.ts` | The singleton `initAuthSubscription`, the 5s safety timeout, `getPlaywrightSession`, `_resetAuthForTests`. |
 | `src/hooks/useFlatmatesRealtime.ts` | Supabase Broadcast subscription, query invalidation, backoff, and cleanup. |
 | `vite.config.ts` | The dev server proxy (`/api` to backend, rewrite to `/app/v1`, `changeOrigin`). |
-| `playwright.config.ts` | The four projects and the `.auth/user.json` storage state wiring. |
-| `e2e/auth-setup.ts` | The auth-setup project that writes `.auth/user.json`. |
+| `playwright.config.ts` | The two Playwright projects (`chromium`, `mobile`). |

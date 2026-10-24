@@ -31,7 +31,7 @@ Stores that should survive a reload wrap their creator in Zustand's `persist` mi
 
 ## The hard rule: server state never lives here
 
-Zustand stores hold UI state only: toggles, drafts, the active viewport, filter chips, toast queues, theme. Any value whose source of truth is the backend must go through a TanStack Query hook in `src/hooks/queries/`. Mirroring server data into Zustand creates two sources of truth, and the two inevitably drift (stale cache, missed invalidation, optimistic update applied to the wrong copy). See [Server state](server-state.md) for the other half of the boundary, and `CLAUDE.md` for the project-wide rule.
+Zustand stores hold UI state only: toggles, drafts, the active viewport, filter chips, toast queues, theme. Any value whose source of truth is the backend must go through a TanStack Query hook in `src/hooks/queries/`. Mirroring server data into Zustand creates two sources of truth, and the two inevitably drift (stale cache, missed invalidation, optimistic update applied to the wrong copy). See [Server state](server-state.md) for the other half of the boundary, and `AGENTS.md` for the project-wide rule.
 
 The one exception is auth: `authStore` does hold the Supabase `Session` and `User`, because `useAuth()` is a singleton subscription that needs to be readable from guards and providers without going through Query. Even there, the API-derived gate stage is fetched through the API client (`getAuthState`) and only the resulting stage string is cached in the store.
 
@@ -64,7 +64,7 @@ Each store is created through a `createXStore()` factory and exported as a singl
 - `authStore` is read by every guard in `src/app/guards.tsx` (see [Routing and guards](routing-guards.md)).
 - `mapStore` and `swipeStore` are scoped to the map and swipe surfaces respectively.
 
-For the broader architectural split between Zustand and TanStack Query, see [Architecture](../overview/architecture.md) and [CLAUDE.md](../../CLAUDE.md).
+For the broader architectural split between Zustand and TanStack Query, see [Architecture](../overview/architecture.md) and [AGENTS.md](../../AGENTS.md).
 
 ## Key source files
 

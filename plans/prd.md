@@ -4,7 +4,7 @@
 
 The 360 Flatmates mobile app (Flutter) has 27+ screens, 38+ API endpoints, Supabase Auth, real-time messaging, swipe deck, chat, visits, listings, and an 8-step onboarding flow. The web application is a **greenfield project** -- the repo at `360-flatmates-web` contains only an OpenAPI spec file and empty placeholder files. This PRD defines the complete product and technical specification for building a Vite + React Router v7 SPA that replicates all mobile features and adds web-specific features (advanced search, saved searches, analytics dashboard, etc.) using the existing backend API.
 
-> **Contract note (2026-10):** the backend has no listing boost, renew or extra-image route, no `/flatmates/web/*` route, and deleted every `/payments` route. The web has no boost, renew or payment-method screen (listing photos upload through `POST /upload`), and a listing's owner state is `listing_preferences.moderation_status` (pause and resume only). Where a section below still names one of them, it is superseded by `openapi/openapi.json` and `CLAUDE.md`.
+> **Contract note (2026-10):** the backend has no listing boost, renew or extra-image route, no `/flatmates/web/*` route, and deleted every `/payments` route. The web has no boost, renew or payment-method screen (listing photos upload through `POST /upload`), and a listing's owner state is `listing_preferences.moderation_status` (pause and resume only). Where a section below still names one of them, it is superseded by `openapi/openapi.json` and `AGENTS.md`.
 
 > **Architecture note:** The project was originally specified as Next.js but implemented as a Vite 8 + React Router v7 client-side SPA. All pages are CSR. SEO for public pages should be addressed via pre-rendering (e.g., prerender spa plugin) or a separate SSR layer if needed in future.
 
@@ -1385,7 +1385,7 @@ Client-side calculation from cached profile data. No server call per swipe. The 
 - `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/DESIGN.md` -- Complete design system (color tokens, typography, components, animations, screen-by-screen specs) that must be faithfully ported to web CSS/Tailwind
 - `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/docs/prd.md` -- Product requirements document with personas, user modes, onboarding flow, core features, chat system, trust and safety, and feature priority matrix
 - `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/docs/flatmates_technical_spec.md` -- Backend architecture, data model, API surface, chat/match behavior, and catalog strategy; informs the API integration layer design
-- `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/CLAUDE.md` -- Mobile architecture patterns (Riverpod state, GoRouter, Dio interceptors, error handling, shared component library) that inform web equivalents
+- `/Users/sakshammittal/Documents/360ghar/github/360ghar/360-flatmates/AGENTS.md` -- Mobile architecture patterns (Riverpod state, GoRouter, Dio interceptors, error handling, shared component library) that inform web equivalents
 
 ---
 

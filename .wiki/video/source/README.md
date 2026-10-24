@@ -13,8 +13,8 @@ This directory holds the editable HyperFrames composition, narration script, and
 | `hyperframes.json` | Render config (fps, quality, output path). |
 | `meta.json` | Composition metadata (width, height, fps, duration). |
 | `videoOverview.json` | Final video metadata (status, size, duration, warnings). |
-| `assets/narration.mp3` | TTS narration audio (en-US-AriaNeural via edge-tts). |
-| `assets/narration.vtt` | Word-level captions from TTS. |
+| `assets/narration.mp3` | Narration audio. Regenerate with Gradium Phonon 31m (local; the only allowed English voice). The current file predates that rule. |
+| `assets/narration.vtt` | Word-level captions, transcribed from the narration. |
 | `assets/web-*.png` | Screenshots embedded in the composition. |
 
 ## How to re-render after edits
@@ -31,11 +31,11 @@ npx hyperframes lint .
 # 3. Render the visual-only video (standard quality)
 npx hyperframes render . -o out/visual.mp4 --fps 24 --quality standard --no-browser-gpu
 
-# 4. Regenerate narration if script.txt changed
-edge-tts --voice en-US-AriaNeural --rate "+0%" \
-  --text "$(cat script.txt | tr '\n' ' ')" \
-  --write-media assets/narration.mp3 \
-  --write-subtitles assets/narration.vtt
+# 4. Regenerate narration if script.txt changed (Phonon 31m, local; no other TTS)
+uvx ptts==0.4.1 --lang en --model hf://gradium/phonon-31m-en@8c64b55ec301728e2d1695bfea87a08a267d0c2d \
+  "$(cat script.txt | tr '\n' ' ')" -o assets/narration.wav
+ffmpeg -y -i assets/narration.wav -b:a 128k assets/narration.mp3
+npx hyperframes transcribe assets/narration.wav --to vtt -o assets/narration.vtt
 
 # 5. Mux video + audio
 ffmpeg -y -i out/visual.mp4 -i assets/narration.mp3 \
@@ -71,5 +71,5 @@ The composition uses 360 Flatmates design tokens (terracotta `#C96442`, Fraunces
 - Node.js 22+
 - HyperFrames 0.4.44+ (`npm install` handles this)
 - FFmpeg and ffprobe on PATH
-- `edge-tts` Python package for narration (`pip install edge-tts`)
+- `uv` for the narration voice (`uvx ptts`, Gradium Phonon 31m)
 - Google Chrome (HyperFrames uses it for frame capture)

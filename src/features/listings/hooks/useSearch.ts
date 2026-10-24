@@ -86,7 +86,7 @@ export function webSearchOptions(filters: SearchFilters, extra?: { includeTotal?
         })
       ),
     // Keep showing prior results while the next query loads so filter
-    // changes do not blank the grid (see CLAUDE.md async-state rules).
+    // changes do not blank the grid (see AGENTS.md async-state rules).
     placeholderData: keepPreviousData,
     staleTime: 30_000,
     enabled: Object.values(filters).some(

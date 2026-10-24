@@ -1,6 +1,6 @@
 # Patterns and conventions
 
-The rules every contributor must follow. These are summarized from [CLAUDE.md](../../CLAUDE.md), [AGENTS.md](../../AGENTS.md), and [DESIGN.md](../../DESIGN.md); read those for the full text.
+The rules every contributor must follow. These are summarized from [AGENTS.md](../../AGENTS.md) and [DESIGN.md](../../DESIGN.md); read those for the full text.
 
 ## TypeScript
 
@@ -29,7 +29,7 @@ Every page that fetches data must handle all three async states: **loading, erro
 - **Error:** never a full-page `<ErrorState>` early return on pages that have non-API chrome. Render the page shell and show an inline `<ErrorState>` inside a `<Card>` for the API-dependent section. Always pass `onRetry={refetch}` when available.
 - **Empty:** an `<EmptyState>` that tells the user what goes here and how to add it.
 
-Use `<AsyncView>` from `src/components/ui/StateViews.tsx` for simple flows. The full pattern is in [CLAUDE.md](../../CLAUDE.md) "Async State & Data Fetching Guidelines".
+Use `<AsyncView>` from `src/components/ui/StateViews.tsx` for simple flows. The full pattern is in [AGENTS.md](../../AGENTS.md) "Async State & Data Fetching Guidelines".
 
 ## State management split
 
@@ -73,7 +73,7 @@ Never mirror server state into a Zustand store. Never `useEffect + useState` for
 - Tokens: `--duration-fast` (120ms), `--duration-normal` (200ms), `--duration-slow` (300ms), `--duration-slowest` (400ms).
 - Easings: `--ease-standard`, `--ease-emphasized`, `--ease-spring` (chips and FAB overshoot only).
 - Press: `:active { scale(0.97) }` on buttons, cards, menu items.
-- Reveal: `.stagger-*` classes or `<RevealSection>` + `useInView` (IntersectionObserver). Never `window` scroll listeners.
+- Reveal: none. Content is visible from the first paint. Never `window` scroll listeners.
 - All motion collapses under `prefers-reduced-motion: reduce`, already enforced globally.
 
 ## Commit and PR
@@ -81,4 +81,4 @@ Never mirror server state into a Zustand store. Never `useEffect + useState` for
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
 - Visual PRs reference the DESIGN.md tokens used and include light and dark screenshots.
 - Verify dark mode rendering for all UI changes.
-- Update [CLAUDE.md](../../CLAUDE.md) and [AGENTS.md](../../AGENTS.md) when structure, conventions, or architecture change.
+- Update [AGENTS.md](../../AGENTS.md) when structure, conventions, or architecture change.

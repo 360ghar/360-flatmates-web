@@ -27,7 +27,7 @@ Conventional commits, enforced by convention rather than a tooling check. The ty
 | `feat:` | A new user-facing capability or component | `feat: add compatibility breakdown sheet on swipe card` |
 | `fix:` | A bug fix | `fix: clear query cache on account deletion` |
 | `refactor:` | A code change that neither adds a feature nor fixes a bug | `refactor: extract focus ring into a shared helper` |
-| `docs:` | Documentation only (CLAUDE.md, AGENTS.md, wiki, DESIGN.md) | `docs: document realtime reconnect behavior in the wiki` |
+| `docs:` | Documentation only (AGENTS.md, wiki, DESIGN.md) | `docs: document realtime reconnect behavior in the wiki` |
 | `chore:` | Tooling, deps, build config | `chore: bump tanstack/react-query to 5.90` |
 
 A scope is optional but encouraged when the change is scoped to one module: `feat(listings): add price range filter`. The subject line is imperative mood, lowercase, no trailing period, no em dashes (use commas, colons, or parentheses instead, per [DESIGN.md](../../DESIGN.md) section 1).
@@ -69,7 +69,7 @@ Run every one of these before pushing for review. A PR that fails any step is se
 
 - **Reference DESIGN.md tokens** for any visual change. List the tokens you used (for example `bg-surface`, `text-content`, `border-line`, `shadow-sm`) in the PR description. If you added a token, document it in [DESIGN.md](../../DESIGN.md) in the same PR.
 - **Include light and dark screenshots** for visual PRs. A diff that changes pixels without both screenshots is incomplete.
-- **Update [CLAUDE.md](../../CLAUDE.md) and [AGENTS.md](../../AGENTS.md)** when project structure, conventions, architecture, key commands, or design-system references change. These two files must stay in lockstep with the code.
+- **Update [AGENTS.md](../../AGENTS.md)** when project structure, conventions, architecture, key commands, or design-system references change. This file must stay in lockstep with the code.
 - **Regenerate API types** if you changed the API contract: run `npm run generate:api-types` and commit the regenerated `src/lib/api/openapi-types.ts`.
 - **One label per intent.** Do not mix CTA copy ("Join" / "Get started" / "Start swiping" for the same action).
 
@@ -79,7 +79,7 @@ A change is done when all of the following are true:
 
 - The pre-PR checklist passes locally.
 - The PR is reviewed and merged to `main`.
-- [CLAUDE.md](../../CLAUDE.md), [AGENTS.md](../../AGENTS.md), and [DESIGN.md](../../DESIGN.md) are updated if the change affected structure, conventions, or tokens.
+- [AGENTS.md](../../AGENTS.md) and [DESIGN.md](../../DESIGN.md) are updated if the change affected structure, conventions, or tokens.
 - New tests cover the behavior, and existing tests still pass.
 - The change is verified in dark mode and under reduced motion.
 
@@ -90,8 +90,7 @@ For the broader system context, see [Architecture](../overview/architecture.md).
 | File | Why it matters |
 | --- | --- |
 | `package.json` | The `scripts` block defines every command in the cycle (`dev`, `build`, `lint`, `typecheck`, `test`, generators). |
-| `CLAUDE.md` | Coding conventions, async-state rules, commit and PR guidelines. |
-| `AGENTS.md` | Mirrors CLAUDE.md, with the project structure and architecture overview. |
+| `AGENTS.md` | Coding conventions, async-state rules, commit and PR guidelines, project structure and architecture overview. |
 | `DESIGN.md` | The single source of truth for tokens, components, motion, and voice. |
 | `.gitignore` | Lists `node_modules/`, `dist/`, `.env*`, `.auth/`, `playwright-report/`, `test-results/`, `.factory/`, `.claude/`. |
 | `vite.config.ts` | The dev server proxy (`/api` to backend, rewriting to `/app/v1`) and the `@/` alias. |

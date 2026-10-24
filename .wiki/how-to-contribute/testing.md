@@ -114,20 +114,16 @@ Vitest runs in band by default; the test suite is fast enough that watch mode is
 
 Configured in `playwright.config.ts`. The test directory is `e2e/`, the base URL is `http://127.0.0.1:5173`, and the `webServer` block auto-starts `npm run dev` (reusing an existing server outside CI, starting fresh inside CI). You do not need to start the dev server yourself.
 
-There are four projects, run in dependency order:
+There are two projects:
 
-| Project | Device | Storage state | Purpose |
-| --- | --- | --- | --- |
-| `auth-setup` | Desktop Chrome | writes `.auth/user.json` | Runs first. Authenticates a test user and saves storage state. |
-| `chromium` | Desktop Chrome | none | Unauthenticated desktop tests. Depends on `auth-setup`. |
-| `mobile` | Pixel 5 | none | Unauthenticated mobile viewport tests. Depends on `auth-setup`. |
-| `authenticated` | Desktop Chrome | reads `.auth/user.json` | Tests that require a logged-in session. Depends on `auth-setup`. |
+| Project | Device | Purpose |
+| --- | --- | --- |
+| `chromium` | Desktop Chrome | Desktop tests. |
+| `mobile` | Pixel 5 | Mobile viewport tests. |
 
-### Auth setup
+### Authenticated tests
 
-`e2e/auth-setup.ts` is the first project. It navigates to `/login`, attempts a best-effort OTP flow against the dev backend, sets `localStorage["flatmates-playwright-auth"] = "true"` (which the dev-only `getPlaywrightSession()` in `src/hooks/useAuth.ts` turns into a fake session), and saves the browser storage state to `.auth/user.json`. If the real backend is unavailable, it injects a minimal Supabase auth cookie so the authenticated project can at least reach the guarded routes.
-
-The `.auth/` directory is gitignored (see `.gitignore`). If you see auth-state errors in the `authenticated` project, delete `.auth/user.json` and re-run `auth-setup`. See [debugging](debugging.md) for this and other common failures.
+No project writes or reads a saved storage state. Authenticated tests use the dev-only `localStorage["flatmates-playwright-auth"]` marker from `e2e/fixtures/test.ts` (which `getPlaywrightSession()` in `src/hooks/useAuth.ts` turns into a fake session) plus deterministic API mocks. Tests against a real backend are gated by `E2E_REAL_AUTH`; see `e2e/user-stories/README.md`.
 
 ### Running
 
@@ -155,5 +151,4 @@ For common test failures and their fixes, see [debugging](debugging.md). For the
 | `tests/integration/query-keys.test.ts` | The query-key contract guardrail. |
 | `tests/integration/compatibility-engine.test.ts` | The compatibility math and threshold contract. |
 | `playwright.config.ts` | The four projects, the `webServer` auto-start, the base URL. |
-| `e2e/auth-setup.ts` | The auth-setup project that writes `.auth/user.json`. |
 | `e2e/auth-flow.spec.ts` | Login page structure and route-protection tests. |

@@ -530,24 +530,6 @@
 }
 
 @layer components {
-  /* Scroll reveal: the section is visible from the first paint and only
-     settles 12 px into place when it enters the viewport. */
-  .reveal {
-    transform: translateY(12px);
-    transition: transform 320ms var(--ease-paper-out);
-  }
-
-  .reveal.in-view {
-    transform: none;
-  }
-
-  .stagger-1 { transition-delay: 40ms; }
-  .stagger-2 { transition-delay: 80ms; }
-  .stagger-3 { transition-delay: 120ms; }
-  .stagger-4 { transition-delay: 160ms; }
-  .stagger-5 { transition-delay: 200ms; }
-  .stagger-6 { transition-delay: 240ms; }
-
   .chip-spring {
     transition: transform 120ms var(--ease-paper-out),
       background-color 120ms ease-out,
@@ -741,7 +723,6 @@
     transition-duration: 0.01ms !important;
   }
 
-  .reveal,
   .chip-spring:active {
     transform: none;
   }

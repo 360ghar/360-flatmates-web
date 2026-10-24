@@ -40,7 +40,7 @@ const eslintConfig = tseslint.config(
       "tsconfig.tsbuildinfo"
     ]
   },
-  // Layers (CLAUDE.md "Project structure"): app -> features -> shared.
+  // Layers (AGENTS.md "Project structure"): app -> features -> shared.
   {
     files: ["src/components/**", "src/hooks/**", "src/lib/**"],
     ignores: ["**/__tests__/**", "**/*.test.*"],

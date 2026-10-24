@@ -95,7 +95,7 @@ Shared helpers in `src/components/ui/component-utils.ts`:
 - `elevation` maps the four shadow tiers (`flat`, `raised`, `overlay`, `modal`).
 - `controlHeight` maps the four canonical control heights (`sm` 42, `md` 48, `lg` 52, `xl` 56), all at or above the 44px `--touch-min`.
 
-Choreography is CSS-driven: press is `:active { scale(0.97) }` (150ms), inputs gain `shadow-focus` + `scale(1.01)` on focus, chips spring `scale(1.03)` on select, and reveals use `.stagger-*` classes or `RevealSection` + `useInView` (IntersectionObserver), never `window` scroll listeners. Named keyframes include `page-fade`, `fade-slide-up`, `drawer-in`, `bottom-sheet-in`, `match-pop`, `shimmer`, `breathe`. See [DESIGN.md](../../DESIGN.md) section 9 for the full list and the reduced-motion contract.
+Choreography is CSS-driven: press is `:active { scale(0.97) }` (150ms), inputs gain `shadow-focus` + `scale(1.01)` on focus, chips spring `scale(1.03)` on select, and nothing reveals on scroll: content is visible from the first paint, and code never adds `window` scroll listeners. Named keyframes include `page-fade`, `fade-slide-up`, `drawer-in`, `bottom-sheet-in`, `match-pop`, `shimmer`, `breathe`. See [DESIGN.md](../../DESIGN.md) section 9 for the full list and the reduced-motion contract.
 
 ## Shared primitives
 
@@ -129,7 +129,7 @@ Pages compose these instead of re-implementing chrome or state handling. All liv
 | `OrDivider` | `src/components/ui/OrDivider.tsx` | auth divider |
 | `GoogleIcon` | `src/features/auth/components/GoogleIcon.tsx` | Google Material Symbols glyph for the nav |
 | `Layout`, `FullPageMessage`, `PrefetchLink` | respective files in `src/components/ui/` | page scaffold, full-viewport message, prefetching link |
-| `RevealSection`, `ScrollProgressBar` | respective files in `src/components/ui/` | IntersectionObserver-driven reveal and top reading-progress bar |
+| `ScrollProgressBar` | `src/components/ui/ScrollProgressBar.tsx` | Top reading-progress bar |
 
 ### The `FieldWrapper` pattern
 
@@ -137,7 +137,7 @@ Form fields share one chrome via `FieldWrapper` in `src/components/ui/Input.tsx`
 
 ### The async-state contract
 
-Every page that fetches data must handle loading, error, and empty. Loading is a content-shaped `<Skeleton>` matching the real layout (never a bare spinner where a skeleton fits). Error is never a full-page `<ErrorState>` early return on pages that have non-API chrome; render the page shell and show an inline `<ErrorState>` inside a `<Card>` for the API-dependent section, with `onRetry={refetch}`. Empty is an `<EmptyState>` that says what goes here and how to add it. `<AsyncView>` handles the simple flow. The full pattern is in [Patterns and conventions](../how-to-contribute/patterns-and-conventions.md) and [CLAUDE.md](../../CLAUDE.md).
+Every page that fetches data must handle loading, error, and empty. Loading is a content-shaped `<Skeleton>` matching the real layout (never a bare spinner where a skeleton fits). Error is never a full-page `<ErrorState>` early return on pages that have non-API chrome; render the page shell and show an inline `<ErrorState>` inside a `<Card>` for the API-dependent section, with `onRetry={refetch}`. Empty is an `<EmptyState>` that says what goes here and how to add it. `<AsyncView>` handles the simple flow. The full pattern is in [Patterns and conventions](../how-to-contribute/patterns-and-conventions.md) and [AGENTS.md](../../AGENTS.md).
 
 ## Utility CSS classes
 
@@ -154,7 +154,6 @@ Beyond the Tailwind-generated utilities, `src/styles/globals.css` defines these 
 | `.breathing` | slow `breathe` pulse for empty-state icons |
 | `.scrollbar-thin` | thin scrollbar styling |
 | `.sr-only` / `.skip-link` | screen-reader-only and focusable skip link |
-| `.reveal` | scroll-triggered fade and rise, paired with `RevealSection` |
 
 [DESIGN.md](../../DESIGN.md) section 11.4 documents the full utility inventory, including the bento, card-glow, accent-pill, noise-texture, and scroll-progress classes.
 
@@ -174,11 +173,10 @@ Beyond the Tailwind-generated utilities, `src/styles/globals.css` defines these 
 | `src/components/ui/Modal.tsx` | `Modal`, `Drawer`, `BottomSheet`, focus-trap hook |
 | `src/components/ui/Skeleton.tsx` | Layout-accurate skeleton variants |
 | `src/components/ui/StateViews.tsx` | `AsyncView`, `ErrorState`, `EmptyState` |
-| `CLAUDE.md` | Async-state and state-management guidelines |
-| `AGENTS.md` | Conventions mirrored for agents |
+| `AGENTS.md` | Async-state and state-management guidelines, and conventions for agents |
 
 ## See also
 
 - [DESIGN.md](../../DESIGN.md) - the canonical design system
 - [Compatibility matching](../features/compatibility-matching/index.md) - composes `ProgressRing` and `toneClasses` for the 6-dimension lifestyle score
-- [Patterns and conventions](../how-to-contribute/patterns-and-conventions.md) - the contributor rules summarized from CLAUDE.md, AGENTS.md, and DESIGN.md
+- [Patterns and conventions](../how-to-contribute/patterns-and-conventions.md) - the contributor rules summarized from AGENTS.md and DESIGN.md
