@@ -1,11 +1,11 @@
 import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL, SUPPORTED_CITIES } from "./config";
 
 /**
- * Absolute URL to the organization logo. Schema.org accepts WebP, so we
- * reference the square brand logo at /logo.webp (512×512).
+ * Absolute URL to the 360Ghar organization logo (512×512). It is the same URL
+ * that 360ghar.com uses, because the Organization @id is shared by all three sites.
  * The social preview card (/og-image.webp, 1200×630) is used for og:image, not logo.
  */
-export const LOGO_URL = `${SITE_URL}/logo.webp`;
+export const LOGO_URL = "https://360ghar.com/assets/images/logo/logo.png";
 
 /**
  * The publisher is 360Ghar, on every 360Ghar host. These values do not follow
@@ -50,10 +50,14 @@ export function buildOrganizationSchema() {
       areaServed: "IN",
       availableLanguage: ["English", "Hindi"],
     },
+    // Same list as the Organization node on 360ghar.com.
     sameAs: [
       "https://www.instagram.com/360ghar",
+      "https://www.facebook.com/360ghar",
       "https://www.linkedin.com/company/360ghar",
       "https://twitter.com/360ghar",
+      "https://www.youtube.com/@360ghar",
+      "https://share.google/DgcLFqSyBgz7kBwKe",
     ],
     knowsAbout: [
       "Flatmate matching",
