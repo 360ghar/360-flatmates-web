@@ -55,7 +55,7 @@ const FLATMATE_PRODUCTS: BestProduct[] = [
     name: "FlatMate.in",
     details:
       "A broker-free platform to find flats and flatmates. It lists flatmates in Bangalore and Gurgaon, among other cities.",
-    sources: ["https://www.flatmate.in/flatmates-in-bangalore"],
+    sources: ["https://www.flatmate.in/flatmates-in-bangalore", "https://www.flatmate.in/flatmates-in-gurgaon"],
     checkedOn: CHECKED_ON,
   },
   {
@@ -181,8 +181,8 @@ const PG_PRODUCTS: BestProduct[] = [
   {
     name: "FlatMate.in",
     details:
-      "A broker-free platform to find flats, PGs and flatmates. It lists PG accommodation in Gurgaon.",
-    sources: ["https://www.flatmate.in/flatmates-in-bangalore"],
+      "A platform to find flats, PGs and flatmates. It lists PG accommodation in Gurgaon, and each listing shows a rent.",
+    sources: ["https://www.flatmate.in/pg-in-gurgaon"],
     checkedOn: CHECKED_ON,
   },
 ];

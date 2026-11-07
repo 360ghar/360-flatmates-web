@@ -19,10 +19,11 @@ graph TD
     L --> B["/blog (BlogPage)"]
     B --> BP["/blog/:slug (BlogPostPage)"]
     L --> CP["/compare/:slug (ComparisonPage)"]
-    L --> A["/about, /terms, /privacy, /stats, /maintenance, /error"]
+    L --> BE["best-of pages (BestPage)"]
+    L --> A["/about, /terms, /privacy, /maintenance, /error"]
 ```
 
-Every node in this tree is a prerender target. The build step enumerates the static routes (landing, discover, share, cities, neighborhoods, blog index and posts, comparison pages, about, terms, privacy, stats) and writes a complete `dist/<route>.html` for each, so the deployed site serves real HTML instead of an empty SPA shell. The `/share/:id` route is generated alongside each listing detail page and uses a meta refresh to redirect to `/discover/:id` while preserving social-preview tags. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
+The tree shows the runtime routes. Not every node has a static file. The build step writes one complete `dist/<route>.html` for each route in `buildStaticRoutes()` (`scripts/lib/route-content.ts`): the landing page, discover, search, about, terms, privacy, the blog index and posts, the comparison pages, the city and neighborhood pages, and the three best-of pages. Listing pages (`/discover/:id`) and their share pages (`/share/:id`) are written only in production, when the API returns listings at build time. `/maintenance` and `/error` are runtime-only pages with no static file. The `/share/:id` static page uses a meta refresh to `/discover/:id` and keeps the social-preview tags. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
 
 ## The landing page
 

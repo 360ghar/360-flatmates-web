@@ -263,7 +263,7 @@ function bestPageToHtml(page: BestPage): string {
   const rows = page.products
     .map(
       (p, i) =>
-        `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(p.details)}</td><td>${p.sources
+        `<tr><td>${i + 1}</td><th scope="row">${esc(p.name)}</th><td>${esc(p.details)}</td><td>${p.sources
           .map((s) => `<a href="${esc(s)}">${esc(s)}</a>`)
           .join("<br>")}</td></tr>`,
     )

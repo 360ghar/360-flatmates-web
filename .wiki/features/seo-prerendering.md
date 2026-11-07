@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-360 Flatmates is a client-rendered React SPA. Browsers see one HTML document and React Router does the rest. That is great for users and painful for crawlers. Classic search-engine bots and the LLM answer-engine bots (GPTBot, ClaudeBot, CCBot, Applebot, Meta-ExternalAgent) generally do not execute JavaScript. If they fetch `https://360ghar.com/discover` and the response is an empty `<div id="root">`, they index nothing useful.
+360 Flatmates is a client-rendered React SPA. Browsers see one HTML document and React Router does the rest. That is great for users and painful for crawlers. Classic search-engine bots and the LLM answer-engine bots (GPTBot, ClaudeBot, CCBot, Applebot, Meta-ExternalAgent) generally do not execute JavaScript. If they fetch `https://flatmates.360ghar.com/discover` and the response is an empty `<div id="root">`, they index nothing useful.
 
 This page documents how the SPA is made crawlable and SEO-optimized at build time. The mechanism is a build step, `scripts/generate-static-html.ts`, that reads the built `dist/index.html` shell, injects per-route meta tags, JSON-LD and semantic body HTML as strings, and writes `dist/<route>.html`. It needs no browser. `scripts/prerender.ts` is a headless-Chromium alternative that is not part of the build. The real files on disk take precedence over the SPA fallback, so JS-less bots see real meta tags, real JSON-LD, and real visible content. The system build pipeline and the [Architecture](../overview/architecture.md) build-pipeline section are the broader context.
 
