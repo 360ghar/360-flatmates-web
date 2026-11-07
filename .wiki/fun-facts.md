@@ -18,7 +18,7 @@ The interesting part is what disappeared: no backend stream endpoint, no token i
 
 ## The Playwright-as-prerender hack
 
-`scripts/prerender.ts` imports `chromium` from `@playwright/test`. Playwright is normally a test dependency: you install it to run end-to-end tests. Here it is repurposed as a build-time prerendering engine. After `vite build` produces the static bundle, the script serves `dist/` with `vite preview`, launches headless Chromium, navigates to each public route, waits for the app to render and `react-helmet-async` to flush meta and JSON-LD, then writes the fully-rendered HTML to `dist/<route>/index.html`.
+`scripts/prerender.ts` imports `chromium` from `@playwright/test`. Playwright is normally a test dependency: you install it to run end-to-end tests. Here it is repurposed as a build-time prerendering engine. After `vite build` produces the static bundle, the script serves `dist/` with `vite preview`, launches headless Chromium, navigates to each public route, waits for the app to render and `react-helmet-async` to flush meta and JSON-LD, then writes the fully-rendered HTML to `dist/<route>.html`.
 
 The clever part is binary reuse. The e2e workflow already runs `npx playwright install chromium`, so the browser binary is already on the build machine. The prerender step just borrows it. This is why commit ddb98db on 2026-06-15 had to install Playwright Chromium before the Netlify build: without the binary, the prerender step could not run. The same browser binary serves both the test pipeline and the build pipeline. See [SEO and prerendering](features/seo-prerendering.md) for the full prerender architecture.
 

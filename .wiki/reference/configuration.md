@@ -69,7 +69,7 @@ See [SEO and prerendering](../features/seo-prerendering.md) for the full prerend
 - [Getting started](../overview/getting-started.md) for the install and first-run flow.
 - [Deployment](../deployment.md) for how the Netlify pipeline and prerender step run in production.
 - [PWA install](../features/pwa-install.md) for what the PWA manifest fields mean for users.
-- [SEO and prerendering](../features/seo-prerendering.md) for why each route gets its own `dist/<route>/index.html`, the CONTEXT gating, and the SPA fallback.
+- [SEO and prerendering](../features/seo-prerendering.md) for why each route gets its own `dist/<route>.html`, the CONTEXT gating, and the SPA fallback.
 
 ## Key source files
 

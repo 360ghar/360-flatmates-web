@@ -30,7 +30,7 @@ npx tsx scripts/generate-static-html.ts
 | 3 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution). |
 | 4 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries). |
 | 5 | `vite build` | `dist/` with the production bundle, service worker, and the SPA shell. |
-| 6 | `scripts/generate-static-html.ts` | `dist/<route>/index.html` files, one per public route. |
+| 6 | `scripts/generate-static-html.ts` | `dist/<route>.html` files, one per public route. |
 
 The OG image (`npm run generate:og-image`) is manual and its output is committed. The three generators before Vite write into `public/` so Vite copies them into `dist/` during step 5. The static HTML step runs last because it reads the built `dist/index.html` shell and needs no browser. For its internals and the manual `scripts/prerender.ts` alternative, see [SEO and prerendering](../features/seo-prerendering.md).
 
@@ -78,7 +78,7 @@ The build pipeline runs most of these generators. `generate-sitemap.ts` and `gen
 | OG image | `scripts/generate-og-image.ts` | `public/og-image.webp` (1200x630 social preview) and `public/logo.webp` (512x512 brand mark). Rendered with Chrome (Playwright) so Gambarino matches the live site. Run manually with `npm run generate:og-image`; the output is committed. |
 | Favicon ICO | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (16, 32, 48 multi-resolution). Hand-assembles the ICO header and appends PNG bytes from `sharp`. |
 | Sitemap | `scripts/generate-sitemap.ts` | `public/sitemap.xml`. Static public routes only (verified against `src/app/routes.tsx`'s `PublicLayout`), plus cities, neighborhoods, blog posts, comparison pages, and dynamic listing pages fetched at build time via `scripts/lib/listings.ts`. Authenticated routes (`/search`, `/search/semantic`) are deliberately excluded. Set `SITEMAP_STRICT=1` on deploy builds to fail loudly on a listing-fetch outage. |
-| Static HTML | `scripts/generate-static-html.ts` | The `dist/<route>/index.html` files, with no browser. `scripts/prerender.ts` is a manual headless-Chromium alternative. See [SEO and prerendering](../features/seo-prerendering.md). |
+| Static HTML | `scripts/generate-static-html.ts` | The `dist/<route>.html` files, with no browser. `scripts/prerender.ts` is a manual headless-Chromium alternative. See [SEO and prerendering](../features/seo-prerendering.md). |
 
 All generators are pure TypeScript run through `npx tsx`, so they share the project's `tsconfig.json` and the `@/` alias. The brand tokens used by the OG image generator are hardcoded from [DESIGN.md](../../DESIGN.md) at the top of `scripts/generate-og-image.ts`.
 

@@ -24,7 +24,7 @@ flowchart LR
 
 ## No SSR. Prerender the public surface instead
 
-**Decision.** The app is a client-rendered SPA. There is no server-side runtime that renders React. Instead, a build-time step in `scripts/prerender.ts` launches headless Chromium, navigates to every public route, waits for `react-helmet-async` to flush the `<head>`, and writes the fully-rendered HTML into `dist/<route>/index.html`.
+**Decision.** The app is a client-rendered SPA. There is no server-side runtime that renders React. Instead, a build-time step in `scripts/prerender.ts` launches headless Chromium, navigates to every public route, waits for `react-helmet-async` to flush the `<head>`, and writes the fully-rendered HTML into `dist/<route>.html`.
 
 **Alternatives considered.** Full SSR (Next.js, Remix) would give crawlers HTML at request time and support authenticated SSR. A static site generator would build all pages at compile time. A purely client-rendered SPA with no prerender would ship an empty `<div id="root">` to every crawler.
 

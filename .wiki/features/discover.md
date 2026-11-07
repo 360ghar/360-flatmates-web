@@ -22,7 +22,7 @@ graph TD
     L --> A["/about, /terms, /privacy, /stats, /maintenance, /error"]
 ```
 
-Every node in this tree is a prerender target. The build step enumerates the static routes (landing, discover, share, cities, neighborhoods, blog index and posts, comparison pages, about, terms, privacy, stats) and writes a complete `dist/<route>/index.html` for each, so the deployed site serves real HTML instead of an empty SPA shell. The `/share/:id` route is generated alongside each listing detail page and uses a meta refresh to redirect to `/discover/:id` while preserving social-preview tags. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
+Every node in this tree is a prerender target. The build step enumerates the static routes (landing, discover, share, cities, neighborhoods, blog index and posts, comparison pages, about, terms, privacy, stats) and writes a complete `dist/<route>.html` for each, so the deployed site serves real HTML instead of an empty SPA shell. The `/share/:id` route is generated alongside each listing detail page and uses a meta refresh to redirect to `/discover/:id` while preserving social-preview tags. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
 
 ## The landing page
 
