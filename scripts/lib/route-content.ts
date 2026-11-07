@@ -21,7 +21,7 @@ import {
   buildServiceSchema,
   buildWebApplicationSchema,
   buildWebSiteSchema,
-  LOGO_URL,
+  buildLogoImageObject,
 } from "../../src/lib/seo/schema";
 import { CITY_NEIGHBORHOODS } from "../../src/lib/seo/neighborhoods";
 import { BEST_PAGES, PUBLISHER_LINE, CHECKED_ON, bestPageJsonLd, sourceLabels, type BestPage } from "../../src/features/places/lib/best-pages";
@@ -83,7 +83,7 @@ function articleSchema(post: BlogPost, url: string) {
       "@type": "Organization",
       "@id": ORG_ID,
       name: ORG_NAME,
-      logo: { "@type": "ImageObject", url: LOGO_URL, width: 512, height: 512 },
+      logo: buildLogoImageObject(),
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };

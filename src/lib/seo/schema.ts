@@ -1,7 +1,7 @@
 import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL, SUPPORTED_CITIES } from "./config";
 
 /**
- * Absolute URL to the 360Ghar organization logo (512×512). It is the same URL
+ * Absolute URL to the 360Ghar organization logo (2048×2048). It is the same URL
  * that 360ghar.com uses, because the Organization @id is shared by all three sites.
  * The social preview card (/og-image.webp, 1200×630) is used for og:image, not logo.
  */
@@ -17,13 +17,13 @@ export const ORG_NAME = "360Ghar";
 export const WEBSITE_ID = `${SITE_URL}/#website`;
 export const APP_ID = `${SITE_URL}/#app`;
 
-/** Shared ImageObject used for Organization.logo and Article publisher logos. */
+/** Shared ImageObject used for Organization.logo and Article publisher logos. The logo file is 2048×2048. */
 export function buildLogoImageObject(url: string = LOGO_URL) {
   return {
     "@type": "ImageObject" as const,
     url,
-    width: 512,
-    height: 512,
+    width: 2048,
+    height: 2048,
   };
 }
 
