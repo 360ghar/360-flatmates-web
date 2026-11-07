@@ -21,10 +21,10 @@ import {
   buildServiceSchema,
   buildWebApplicationSchema,
   buildWebSiteSchema,
-  LOGO_URL,
+  buildLogoImageObject,
 } from "../../src/lib/seo/schema";
 import { CITY_NEIGHBORHOODS } from "../../src/lib/seo/neighborhoods";
-import { BEST_PAGES, PUBLISHER_LINE, CHECKED_ON, bestPageJsonLd, type BestPage } from "../../src/features/places/lib/best-pages";
+import { BEST_PAGES, PUBLISHER_LINE, CHECKED_ON, bestPageJsonLd, sourceLabels, type BestPage } from "../../src/features/places/lib/best-pages";
 import { BLOG_POSTS, BLOG_POST_SLUGS } from "./blog-content";
 import type { BlogPost } from "./blog-content";
 
@@ -83,7 +83,7 @@ function articleSchema(post: BlogPost, url: string) {
       "@type": "Organization",
       "@id": ORG_ID,
       name: ORG_NAME,
-      logo: { "@type": "ImageObject", url: LOGO_URL, width: 512, height: 512 },
+      logo: buildLogoImageObject(),
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
@@ -263,8 +263,8 @@ function bestPageToHtml(page: BestPage): string {
   const rows = page.products
     .map(
       (p, i) =>
-        `<tr><td>${i + 1}</td><th scope="row">${esc(p.name)}</th><td>${esc(p.details)}</td><td>${p.sources
-          .map((s) => `<a href="${esc(s)}">${esc(s)}</a>`)
+        `<tr><td>${i + 1}</td><th scope="row">${esc(p.name)}</th><td>${esc(p.details)}</td><td>${sourceLabels(p.sources)
+          .map((label, j) => `<a href="${esc(p.sources[j])}">${esc(label)}</a>`)
           .join("<br>")}</td></tr>`,
     )
     .join("\n");
