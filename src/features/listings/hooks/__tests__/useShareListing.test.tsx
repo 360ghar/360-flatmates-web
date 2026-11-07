@@ -48,7 +48,7 @@ describe("useShareListing", () => {
     const { result } = renderHook(() => useShareListingWithRef(mockProperty), {
       wrapper: createWrapper()
     });
-    expect(result.current.shareUrl).toBe("https://360ghar.com/share/42");
+    expect(result.current.shareUrl).toBe("https://flatmates.360ghar.com/share/42");
   });
 
   it("copies the share link to the clipboard", async () => {
@@ -60,7 +60,7 @@ describe("useShareListing", () => {
     await result.current.copyLink();
 
     await waitFor(() =>
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith("https://360ghar.com/share/42")
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith("https://flatmates.360ghar.com/share/42")
     );
   });
 

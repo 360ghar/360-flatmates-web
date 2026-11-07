@@ -3,7 +3,9 @@
  *
  * Replaces the Playwright-based prerender.ts. Runs AFTER `vite build`.
  * Reads the built dist/index.html as a shell template, injects per-route
- * meta tags, JSON-LD, and semantic body HTML, then writes dist/<route>/index.html.
+ * meta tags, JSON-LD, and semantic body HTML, then writes one flat file per route:
+ * dist/<route>.html (for example dist/about.html). Netlify serves dist/about.html at /about
+ * with a 200 and no trailing-slash redirect, so the canonical URL is the URL that serves.
  *
  * Listing pages (/discover/:id) are generated from API data fetched at build
  * time via the shared scripts/lib/listings.ts helper.
@@ -43,7 +45,7 @@ function jsonLdBlock(schema: object): string {
 function htmlPathForRoute(route: string): string {
   if (route === "/") return resolve(DIST_DIR, "index.html");
   const clean = route.replace(/^\/+/, "").replace(/\/+$/, "");
-  return resolve(DIST_DIR, clean, "index.html");
+  return resolve(DIST_DIR, `${clean}.html`);
 }
 
 // ── Shell template processing ────────────────────────────────────────────

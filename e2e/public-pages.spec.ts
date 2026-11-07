@@ -154,6 +154,9 @@ test.describe("Semantic search page — /search/semantic", () => {
   });
 });
 
+// The parent company host. A match in a flatmates SEO file means it still names the old host.
+const LEGACY_HOST = /https:\/\/360ghar\.com(?![\w.-])/;
+
 test.describe("SEO static files", () => {
   test("robots.txt allows indexable search while blocking protected and noindex routes", async ({ page }) => {
     const response = await page.request.get("/robots.txt");
@@ -165,7 +168,8 @@ test.describe("SEO static files", () => {
     expect(robots).toMatch(/^Disallow:\s*\/search\/semantic$/m);
     expect(robots).toMatch(/^Disallow:\s*\/blog\/preview\/$/m);
     expect(robots).toMatch(/^Disallow:\s*\/explore$/m);
-    expect(robots).toContain("Sitemap: https://360ghar.com/sitemap.xml");
+    expect(robots).toContain("Sitemap: https://flatmates.360ghar.com/sitemap.xml");
+    expect(robots).not.toMatch(LEGACY_HOST);
   });
 
   test("sitemap.xml advertises indexable public routes only", async ({ page }) => {
@@ -173,11 +177,12 @@ test.describe("SEO static files", () => {
     expect(response.ok()).toBeTruthy();
     const sitemap = await response.text();
 
-    expect(sitemap).toContain("<loc>https://360ghar.com/search</loc>");
-    expect(sitemap).toContain("<loc>https://360ghar.com/discover</loc>");
-    expect(sitemap).toContain("<loc>https://360ghar.com/cities/bangalore</loc>");
-    expect(sitemap).not.toContain("<loc>https://360ghar.com/stats</loc>");
-    expect(sitemap).not.toContain("<loc>https://360ghar.com/search/semantic</loc>");
+    expect(sitemap).toContain("<loc>https://flatmates.360ghar.com/search</loc>");
+    expect(sitemap).toContain("<loc>https://flatmates.360ghar.com/discover</loc>");
+    expect(sitemap).toContain("<loc>https://flatmates.360ghar.com/cities/bangalore</loc>");
+    expect(sitemap).not.toContain("<loc>https://flatmates.360ghar.com/stats</loc>");
+    expect(sitemap).not.toContain("<loc>https://flatmates.360ghar.com/search/semantic</loc>");
+    expect(sitemap).not.toMatch(LEGACY_HOST);
   });
 
   test("llms.txt documents public search accurately", async ({ page }) => {
@@ -185,11 +190,27 @@ test.describe("SEO static files", () => {
     expect(response.ok()).toBeTruthy();
     const llms = await response.text();
 
-    expect(llms).toContain("[Search listings](https://360ghar.com/search)");
-    expect(llms).toContain("[Semantic search](https://360ghar.com/search/semantic)");
+    expect(llms).toContain("[Search listings](https://flatmates.360ghar.com/search)");
+    expect(llms).toContain("[Semantic search](https://flatmates.360ghar.com/search/semantic)");
     expect(llms).toContain("/search` and `/search/semantic` are public acquisition routes");
     expect(llms).not.toContain("Authenticated areas (e.g. `/search`");
+    expect(llms).not.toMatch(LEGACY_HOST);
   });
+});
+
+test.describe("best-of pages", () => {
+  for (const { path, title } of [
+    { path: "/best-flatmate-finder-apps-india", title: "Best flatmate finder apps India" },
+    { path: "/best-roommate-finder-apps-india", title: "Best roommate finder apps India" },
+    { path: "/best-pg-finder-apps-gurgaon", title: "Best PG finder apps Gurgaon" },
+  ]) {
+    test(`${title} page has its term, a ranked table and its own canonical`, async ({ page }) => {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+      await expect(page.getByRole("table")).toBeVisible();
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://flatmates.360ghar.com${path}`);
+    });
+  }
 });
 
 test.describe("404 — not found page", () => {

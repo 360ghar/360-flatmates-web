@@ -1,6 +1,6 @@
 # Architecture
 
-360 Flatmates is a single-page application. The browser loads one HTML document, React Router takes over, and every subsequent navigation is client-side. There is no server-side rendering. The only server-rendered HTML is produced at **build time** by `scripts/generate-static-html.ts`, which injects per-route meta tags, JSON-LD and body HTML into the built shell and writes `dist/<route>/index.html` for a fixed set of public routes.
+360 Flatmates is a single-page application. The browser loads one HTML document, React Router takes over, and every subsequent navigation is client-side. There is no server-side rendering. The only server-rendered HTML is produced at **build time** by `scripts/generate-static-html.ts`, which injects per-route meta tags, JSON-LD and body HTML into the built shell and writes `dist/<route>.html` for a fixed set of public routes.
 
 ```mermaid
 graph LR
@@ -88,7 +88,7 @@ Supabase owns the session. The `useAuth` hook in `src/hooks/useAuth.ts` initiali
 3. `tsx scripts/generate-favicon-ico.ts` - generate the legacy `.ico`.
 4. `tsx scripts/generate-sitemap.ts` - generate `sitemap.xml` from the route inventory and city/neighborhood catalog.
 5. `vite build` - produce `dist/`.
-6. `tsx scripts/generate-static-html.ts` - write `dist/<route>/index.html` for every public route, with no browser.
+6. `tsx scripts/generate-static-html.ts` - write `dist/<route>.html` for every public route, with no browser.
 
 The social preview card (`npm run generate:og-image`) is manual and committed. The static HTML step is what makes the SPA crawlable. See [SEO and prerendering](../features/seo-prerendering.md).
 

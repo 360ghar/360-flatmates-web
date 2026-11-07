@@ -5,7 +5,7 @@
  * headless Chromium (imported from `@playwright/test`, which is already a
  * devDependency and ships/installs its browser via the e2e workflow), navigates
  * to each public route, waits for the app to render + react-helmet-async to
- * flush meta/JSON-LD, then writes the fully-rendered HTML to dist/<route>/index.html
+ * flush meta/JSON-LD, then writes the fully-rendered HTML to dist/<route>.html
  * (or dist/index.html for "/"). Real files on disk take precedence over the
  * SPA fallback ("/* /index.html 200" in _redirects), so crawlers that do not
  * run JS (GPTBot, ClaudeBot, CCBot, Applebot, Meta-ExternalAgent, ...) get real
@@ -180,7 +180,7 @@ function startPreview(): { promise: Promise<void>; stop: () => Promise<void> } {
 function htmlPathForRoute(route: string): string {
   if (route === "/") return resolve(DIST_DIR, "index.html");
   const clean = route.replace(/^\/+/, "").replace(/\/+$/, "");
-  return resolve(DIST_DIR, clean, "index.html");
+  return resolve(DIST_DIR, `${clean}.html`);
 }
 
 /**

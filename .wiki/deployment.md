@@ -18,7 +18,7 @@ Active contributors: Saksham
 ```
 
 - **Build command.** `npm run build`. The build needs no browser: the static HTML step is string-based.
-- **Publish directory.** `dist`. Vite writes the production bundle here, and the static HTML step writes one `dist/<route>/index.html` per public route on top.
+- **Publish directory.** `dist`. Vite writes the production bundle here, and the static HTML step writes one `dist/<route>.html` per public route on top.
 - **Build environment.** One variable is baked into the build. `VITE_API_BASE_URL` is the production backend URL the bundle is compiled against (Vite inlines `VITE_*` vars at build time, so the served bundle already knows its backend). There is no explicit `PRERENDER_FETCH_DATA` env var: build-time listing fetches gate themselves on Netlify's automatic `CONTEXT` variable (see [SEO and prerendering](features/seo-prerendering.md#build-context-gating-local--preview) — only `CONTEXT=production` fetches listing data; previews and local builds skip the backend entirely).
 
 ## SPA fallback and static HTML precedence
@@ -31,7 +31,7 @@ Active contributors: Saksham
 
 This is Netlify's SPA fallback: any path that does not match a real file on disk is served from `dist/index.html` with a 200 status, so React Router can take over. The 200 (not 301 or 302) is what keeps deep links shareable without redirect chains.
 
-Real files on disk take precedence over the fallback. That is the whole point of the static HTML step: `scripts/generate-static-html.ts` writes a real `dist/discover/index.html`, `dist/cities/bangalore/index.html`, `dist/discover/123/index.html`, and so on, so a crawler that fetches `/discover/123` gets the static HTML (with real meta, JSON-LD, and visible content) instead of the empty SPA shell. See [SEO and prerendering](features/seo-prerendering.md) for the route inventory and the generation mechanics.
+Real files on disk take precedence over the fallback. That is the whole point of the static HTML step: `scripts/generate-static-html.ts` writes a real `dist/discover.html`, `dist/cities/bangalore.html`, `dist/discover/123.html`, and so on, so a crawler that fetches `/discover/123` gets the static HTML (with real meta, JSON-LD, and visible content) instead of the empty SPA shell. See [SEO and prerendering](features/seo-prerendering.md) for the route inventory and the generation mechanics.
 
 ## The build pipeline
 
@@ -53,7 +53,7 @@ npx tsx scripts/generate-static-html.ts
 | 3 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution legacy icon). |
 | 4 | `scripts/generate-sitemap.ts` | `public/sitemap.xml`, derived from the same route inventory and city/neighborhood catalog the static HTML step uses. |
 | 5 | `vite build` | `dist/` with the production bundle, the service worker, and a clean `dist/index.html` shell. |
-| 6 | `scripts/generate-static-html.ts` | `dist/<route>/index.html` files, one per public route, built from the shell as strings. |
+| 6 | `scripts/generate-static-html.ts` | `dist/<route>.html` files, one per public route, built from the shell as strings. |
 
 The social card (`scripts/generate-og-image.ts`) is manual (`npm run generate:og-image`) and committed.
 
@@ -70,7 +70,7 @@ flowchart TD
     C6 --> C7["generate-static-html.ts\nwrite per-route HTML"]
     C7 --> D["dist/ published to Netlify CDN"]
     D --> E["public/_redirects\n/* -> /index.html 200"]
-    D --> F["static dist/<route>/index.html\ntakes precedence over fallback"]
+    D --> F["static dist/<route>.html\ntakes precedence over fallback"]
     E --> G["Visitors and crawlers"]
     F --> G
 ```
@@ -122,7 +122,7 @@ The service worker is registered by `VitePWA` via `injectRegister: "auto"`, whic
 | `public/_redirects` | SPA fallback: `/* /index.html 200` |
 | `vite.config.ts` | Vite + `VitePWA` + `vite-tsconfig-paths` config, manual chunks, dev proxy |
 | `package.json` | The `build` script that chains the seven-step pipeline |
-| `scripts/prerender.ts` | Post-build prerender step: serve `dist/`, capture routes with Chromium, write `dist/<route>/index.html` |
+| `scripts/prerender.ts` | Post-build prerender step: serve `dist/`, capture routes with Chromium, write `dist/<route>.html` |
 | `scripts/generate-pwa-icons.ts` | Standard and maskable PWA icons from `public/favicon.svg` |
 | `scripts/generate-og-image.ts` | Social preview card and logo |
 | `scripts/generate-favicon-ico.ts` | Legacy multi-resolution `.ico` |

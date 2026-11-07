@@ -7,9 +7,15 @@ import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL, SUPPORTED_CITI
  */
 export const LOGO_URL = `${SITE_URL}/logo.webp`;
 
-/** Stable @id values so other graphs can reference these nodes by reference. */
-export const ORG_ID = `${SITE_URL}/#organization`;
+/**
+ * The publisher is 360Ghar, on every 360Ghar host. These values do not follow
+ * SITE_URL: the @id must stay the same on all three sites.
+ */
+export const ORG_ID = "https://360ghar.com/#organization";
+export const ORG_URL = "https://360ghar.com";
+export const ORG_NAME = "360Ghar";
 export const WEBSITE_ID = `${SITE_URL}/#website`;
+export const APP_ID = `${SITE_URL}/#app`;
 
 /** Shared ImageObject used for Organization.logo and Article publisher logos. */
 export function buildLogoImageObject(url: string = LOGO_URL) {
@@ -31,8 +37,8 @@ export function buildOrganizationSchema() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": ORG_ID,
-    name: SITE_NAME,
-    url: SITE_URL,
+    name: ORG_NAME,
+    url: ORG_URL,
     logo: LOGO_URL,
     image: LOGO_URL,
     description: DEFAULT_DESCRIPTION,
@@ -95,11 +101,13 @@ export function buildWebApplicationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
+    "@id": APP_ID,
     name: SITE_NAME,
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
     applicationCategory: "LifestyleApplication",
     operatingSystem: "Web",
+    publisher: { "@id": ORG_ID },
     browserRequirements: "Requires JavaScript",
     offers: {
       "@type": "Offer",
@@ -242,7 +250,7 @@ export function buildArticleSchema(input: ArticleSchemaInput) {
     publisher: {
       "@type": "Organization",
       "@id": ORG_ID,
-      name: SITE_NAME,
+      name: ORG_NAME,
       logo: buildLogoImageObject(),
     },
     mainEntityOfPage: {

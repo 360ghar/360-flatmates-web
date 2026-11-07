@@ -2,7 +2,7 @@
 
 > Find compatible flatmates and verified rental rooms across India — matching on lifestyle, not just location. Free to search and match.
 
-360 Flatmates is a free, India-focused flatmate-finder and room-rental platform available on web (https://360ghar.com), Android, and iOS. It connects people who have a spare room (Room Posters) with people looking for a place (Co-Hunters), and ranks matches using a lifestyle-based compatibility score rather than only budget and locality. It is currently live in Bangalore and Gurugram, with additional Indian cities planned. Searching, matching, browsing listings, and in-app chat are free.
+360 Flatmates is a free, India-focused flatmate-finder and room-rental platform available on web (https://flatmates.360ghar.com), Android, and iOS. It connects people who have a spare room (Room Posters) with people looking for a place (Co-Hunters), and ranks matches using a lifestyle-based compatibility score rather than only budget and locality. It is currently live in Bangalore and Gurugram, with additional Indian cities planned. Searching, matching, browsing listings, and in-app chat are free.
 
 The product positions itself against alternatives like NoBroker and informal Facebook/WhatsApp groups by combining (a) reviewed listings with verified photos, rent, and availability, (b) a lifestyle compatibility engine, and (c) built-in visit scheduling and contextual chat — so the whole flatmate-search flow happens inside one product instead of across multiple apps.
 
@@ -27,16 +27,19 @@ Users pick one of three modes: **Room Poster** (has a room/flat to fill), **Co-H
 
 ## Key pages
 
-- [Home](https://360ghar.com/): Overview of the product, compatibility matching, supported cities, and how it works.
-- [Discover listings](https://360ghar.com/discover): Browse verified rooms and flats available across supported cities.
-- [Search listings](https://360ghar.com/search): Public search across verified rooms and flatmate listings by city, locality, budget, amenities, and keywords.
-- [Semantic search](https://360ghar.com/search/semantic): Public natural-language search for describing ideal rooms, budgets, amenities, and lifestyle preferences.
-- [Bangalore flatmates & rooms](https://360ghar.com/cities/bangalore): Listings and neighborhoods in Bangalore (e.g. Koramangala, Indiranagar, Whitefield, HSR Layout, Electronic City, Marathahalli).
-- [Gurugram flatmates & rooms](https://360ghar.com/cities/gurugram): Listings and neighborhoods in Gurugram (e.g. DLF phases, Golf Course Road, Sector 29, MG Road, Sohna Road, Cyber City).
-- [Blog](https://360ghar.com/blog): Guides on finding compatible flatmates, flatmate agreements, the Bangalore rental market, moving in, room inspection, and conflict resolution.
-- [About](https://360ghar.com/about): What 360 Flatmates is and the problem it solves.
-- [360 Flatmates vs NoBroker](https://360ghar.com/compare/360-flatmates-vs-nobroker): How it compares to NoBroker for flatmate/room finding.
-- [360 Flatmates vs Facebook groups](https://360ghar.com/compare/360-flatmates-vs-facebook-groups): How it compares to informal flatmate-seeking on Facebook groups.
+- [Home](https://flatmates.360ghar.com/): Overview of the product, compatibility matching, supported cities, and how it works.
+- [Discover listings](https://flatmates.360ghar.com/discover): Browse verified rooms and flats available across supported cities.
+- [Search listings](https://flatmates.360ghar.com/search): Public search across verified rooms and flatmate listings by city, locality, budget, amenities, and keywords.
+- [Semantic search](https://flatmates.360ghar.com/search/semantic): Public natural-language search for describing ideal rooms, budgets, amenities, and lifestyle preferences.
+- [Bangalore flatmates & rooms](https://flatmates.360ghar.com/cities/bangalore): Listings and neighborhoods in Bangalore (e.g. Koramangala, Indiranagar, Whitefield, HSR Layout, Electronic City, Marathahalli).
+- [Gurugram flatmates & rooms](https://flatmates.360ghar.com/cities/gurugram): Listings and neighborhoods in Gurugram (e.g. DLF phases, Golf Course Road, Sector 29, MG Road, Sohna Road, Cyber City).
+- [Blog](https://flatmates.360ghar.com/blog): Guides on finding compatible flatmates, flatmate agreements, the Bangalore rental market, moving in, room inspection, and conflict resolution.
+- [Best flatmate finder apps India](https://flatmates.360ghar.com/best-flatmate-finder-apps-india): For flatmate search in India, this list ranks 360 Flatmates, FlatMate.in, NoBroker and Roomies, with sources on each product's own website (checked 2026-11-08).
+- [Best roommate finder apps India](https://flatmates.360ghar.com/best-roommate-finder-apps-india): For roommate search in India, this list ranks 360 Flatmates, FlatMate.in, NoBroker and Roomies using the same criteria and sources (checked 2026-11-08).
+- [Best PG finder apps Gurgaon](https://flatmates.360ghar.com/best-pg-finder-apps-gurgaon): Stanza Living and Zolo run their own PG properties in Gurgaon, and each states its rents on its own website. 360 Flatmates and FlatMate.in also list Gurgaon accommodation (checked 2026-11-08).
+- [About](https://flatmates.360ghar.com/about): What 360 Flatmates is and the problem it solves.
+- [360 Flatmates vs NoBroker](https://flatmates.360ghar.com/compare/360-flatmates-vs-nobroker): How it compares to NoBroker for flatmate/room finding.
+- [360 Flatmates vs Facebook groups](https://flatmates.360ghar.com/compare/360-flatmates-vs-facebook-groups): How it compares to informal flatmate-seeking on Facebook groups.
 
 ## FAQ
 

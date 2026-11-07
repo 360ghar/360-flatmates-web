@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-Search and explore are the two authenticated surfaces where a logged-in user actively hunts for a place or a flatmate. Search is the keyword and filter grid at `/search` (with its natural-language sibling at `/search/semantic`). Explore is the Leaflet map at `/explore` where pins and clusters ride over the viewport. This page covers both surfaces: the filter panel, the result grids, the map view, reverse geocoding via Nominatim, the persisted filter and viewport stores, saved searches, and search alerts. For the unauthenticated, SEO-oriented counterpart that prospective users hit before they sign up, see [Public discover](discover.md). For the listing detail page those results open into, see [Listing management](listing-management.md).
+Search and explore are the two surfaces where a user actively hunts for a place or a flatmate. Search is public; explore needs sign-in. Search is the keyword and filter grid at `/search` (with its natural-language sibling at `/search/semantic`). Explore is the Leaflet map at `/explore` where pins and clusters ride over the viewport. This page covers both surfaces: the filter panel, the result grids, the map view, reverse geocoding via Nominatim, the persisted filter and viewport stores, saved searches, and search alerts. For the unauthenticated, SEO-oriented counterpart that prospective users hit before they sign up, see [Public discover](discover.md). For the listing detail page those results open into, see [Listing management](listing-management.md).
 
 ## Two surfaces, one filter vocabulary
 
@@ -14,7 +14,7 @@ Both surfaces talk to the same backend (`GET /properties`) through the same `Sea
 | Semantic search | `/search/semantic` | `src/features/listings/pages/SemanticSearchPage.tsx` (wraps `src/features/listings/components/SemanticSearchClient.tsx`) | `SearchResults` organism | Must-have amenities chips |
 | Explore (map) | `/explore` | `src/features/explore/pages/ExplorePage.tsx` | Leaflet pins and clusters | `FilterPanel` inside `BottomSheet` (mobile) and right-side `Drawer` (tablet and desktop) |
 
-The SearchPage route is technically served from `src/features/listings/pages/SearchPage.tsx` but lives behind the `AuthGuard` in `src/app/routes.tsx` (the route is `/search`, rendered inside `AppLayout`). It is "authenticated search": the same component could be reused publicly, but in the current routing it sits behind auth. The `SemanticSearchPage` and `SemanticSearchClient` are the natural-language variant that flips `semantic_search: true` in the filters so the backend can interpret free-text descriptions.
+`/search` and `/search/semantic` are adaptive routes in `src/app/routes.tsx`: they are not behind `AuthGuard`. A signed-in user sees them inside the app shell, and a visitor sees them with the public header. `/explore` is behind `AuthGuard`. The `SemanticSearchPage` and `SemanticSearchClient` are the natural-language variant that flips `semantic_search: true` in the filters so the backend can interpret free-text descriptions.
 
 ## The search page
 
@@ -108,7 +108,7 @@ graph LR
 
 | File | Purpose |
 | --- | --- |
-| `src/features/listings/pages/SearchPage.tsx` | Authenticated keyword search, infinite scroll, URL-driven filters |
+| `src/features/listings/pages/SearchPage.tsx` | Public keyword search, infinite scroll, URL-driven filters |
 | `src/features/explore/pages/ExplorePage.tsx` | Leaflet map explore, viewport-persisted, pin detail surfaces |
 | `src/features/listings/pages/SemanticSearchPage.tsx` | SEO wrapper for `/search/semantic` |
 | `src/features/listings/components/SemanticSearchClient.tsx` | Natural-language search client, `semantic_search: true` |

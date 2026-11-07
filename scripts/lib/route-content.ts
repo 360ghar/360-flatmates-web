@@ -13,8 +13,18 @@
  * no React, no Tailwind, no JS. This is what crawlers and no-JS users see.
  */
 
-import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORTED_CITIES } from "../../src/lib/seo/config";
+import { SITE_URL, SITE_NAME, SUPPORTED_CITIES } from "../../src/lib/seo/config";
+import {
+  ORG_ID,
+  ORG_NAME,
+  buildOrganizationSchema,
+  buildServiceSchema,
+  buildWebApplicationSchema,
+  buildWebSiteSchema,
+  LOGO_URL,
+} from "../../src/lib/seo/schema";
 import { CITY_NEIGHBORHOODS } from "../../src/lib/seo/neighborhoods";
+import { BEST_PAGES, PUBLISHER_LINE, CHECKED_ON, bestPageJsonLd, type BestPage } from "../../src/features/places/lib/best-pages";
 import { BLOG_POSTS, BLOG_POST_SLUGS } from "./blog-content";
 import type { BlogPost } from "./blog-content";
 
@@ -22,41 +32,6 @@ import type { BlogPost } from "./blog-content";
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-function orgSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": `${SITE_URL}/#organization`,
-    name: SITE_NAME,
-    url: SITE_URL,
-    logo: `${SITE_URL}/logo.webp`,
-    description: DEFAULT_DESCRIPTION,
-  };
-}
-
-function webSiteSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${SITE_URL}/#website`,
-    name: SITE_NAME,
-    url: SITE_URL,
-    publisher: { "@id": `${SITE_URL}/#organization` },
-  };
-}
-
-function webAppSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: SITE_NAME,
-    url: SITE_URL,
-    applicationCategory: "LifestyleApplication",
-    operatingSystem: "Web",
-    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
-  };
 }
 
 function breadcrumbSchema(items: { name: string; item?: string }[]) {
@@ -106,24 +81,11 @@ function articleSchema(post: BlogPost, url: string) {
     author: { "@type": "Organization", name: SITE_NAME },
     publisher: {
       "@type": "Organization",
-      "@id": `${SITE_URL}/#organization`,
-      name: SITE_NAME,
-      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.webp`, width: 512, height: 512 },
+      "@id": ORG_ID,
+      name: ORG_NAME,
+      logo: { "@type": "ImageObject", url: LOGO_URL, width: 512, height: 512 },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
-  };
-}
-
-function serviceSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    name: `${SITE_NAME} Flatmate Matching`,
-    serviceType: "Flatmate matching and verified rental listings",
-    provider: { "@id": `${SITE_URL}/#organization` },
-    areaServed: { "@type": "Country", name: "India" },
-    url: SITE_URL,
-    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
   };
 }
 
@@ -295,6 +257,42 @@ function comparisonToHtml(comp: ComparisonDef): string {
   return html;
 }
 
+// ── Best-of pages ────────────────────────────────────────────────────────
+
+function bestPageToHtml(page: BestPage): string {
+  const rows = page.products
+    .map(
+      (p, i) =>
+        `<tr><td>${i + 1}</td><th scope="row">${esc(p.name)}</th><td>${esc(p.details)}</td><td>${p.sources
+          .map((s) => `<a href="${esc(s)}">${esc(s)}</a>`)
+          .join("<br>")}</td></tr>`,
+    )
+    .join("\n");
+  const criteria = page.criteria.map((c) => `<li>${esc(c)}</li>`).join("\n");
+  const faqs = page.faqs.map((f) => `<h3>${esc(f.question)}</h3>\n<p>${esc(f.answer)}</p>`).join("\n");
+
+  return `
+    <p>${esc(page.answer.join(" "))}</p>
+    <p>${esc(PUBLISHER_LINE)}</p>
+    <p>Checked on <time datetime="${CHECKED_ON}">${CHECKED_ON}</time>. Each fact links to the product's own website.</p>
+    <h2>Ranked list</h2>
+    <table>
+      <thead><tr><th>Rank</th><th>Product</th><th>Facts</th><th>Sources</th></tr></thead>
+      <tbody>
+${rows}
+      </tbody>
+    </table>
+    <h2>How we picked</h2>
+    <p>A product must meet these criteria on its own website:</p>
+    <ol>
+${criteria}
+    </ol>
+    <p>${esc(page.rankRule)}</p>
+    <h2>Questions</h2>
+${faqs}
+  `;
+}
+
 // ── Build all routes ─────────────────────────────────────────────────────
 
 export function buildStaticRoutes(): RouteContent[] {
@@ -327,6 +325,9 @@ export function buildStaticRoutes(): RouteContent[] {
         <li><a href="/discover">Browse all verified listings</a></li>
         <li><a href="/cities/bangalore">Flats &amp; flatmates in Bangalore</a></li>
         <li><a href="/cities/gurugram">Flats &amp; flatmates in Gurugram</a></li>
+        <li><a href="/best-flatmate-finder-apps-india">Best flatmate finder apps India</a></li>
+        <li><a href="/best-roommate-finder-apps-india">Best roommate finder apps India</a></li>
+        <li><a href="/best-pg-finder-apps-gurgaon">Best PG finder apps Gurgaon</a></li>
       </ul>
       <h2>Guides &amp; Resources</h2>
       <ul>
@@ -342,10 +343,10 @@ export function buildStaticRoutes(): RouteContent[] {
       <details><summary>Which cities are you in?</summary><p>We're live in Gurugram and Bangalore right now, with more cities dropping every month.</p></details>
     `,
     jsonLd: [
-      orgSchema(),
-      webSiteSchema(),
-      webAppSchema(),
-      serviceSchema(),
+      buildOrganizationSchema(),
+      buildWebSiteSchema(),
+      buildWebApplicationSchema(),
+      buildServiceSchema(),
       faqSchema([
         { question: "How do you actually match people?", answer: "We compare 6 lifestyle dimensions alongside budget and location." },
         { question: "Are the listings legit?", answer: "Every listing gets reviewed before it goes live. Rent and availability are checked." },
@@ -429,7 +430,7 @@ export function buildStaticRoutes(): RouteContent[] {
       <p><a href="/discover">Browse verified listings</a> · <a href="/blog">Read our guides</a></p>
     `,
     jsonLd: [
-      orgSchema(),
+      buildOrganizationSchema(),
       breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "About" }]),
     ],
   });
@@ -562,6 +563,18 @@ export function buildStaticRoutes(): RouteContent[] {
         ],
       });
     }
+  }
+
+  // ── Best-of pages (one data file, shared with the React route) ─────────
+  for (const page of BEST_PAGES) {
+    routes.push({
+      path: `/${page.slug}`,
+      title: page.title,
+      description: page.description,
+      h1: page.title,
+      bodyHtml: bestPageToHtml(page),
+      jsonLd: bestPageJsonLd(page),
+    });
   }
 
   return routes;

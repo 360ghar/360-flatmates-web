@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-Public discover is the unauthenticated, SEO-facing surface of 360 Flatmates. It is what a prospective user sees on Google, in an LLM answer, or on a shared link before they ever sign up. Every page here is prerendered at build time so JS-less crawlers and answer-engine bots see real meta tags, real JSON-LD, and real visible content. This page covers the landing page, the public discover feed, the public listing detail, the programmatic city and neighborhood pages, the comparison pages, and the blog. For the prerendering engine itself, see [SEO and prerendering](seo-prerendering.md). For the authenticated search and map that live behind `AuthGuard`, see [Search and explore](search-explore.md). For how listings are created and managed (and therefore what shows up here), see [Listing management](listing-management.md).
+Public discover is the unauthenticated, SEO-facing surface of 360 Flatmates. It is what a prospective user sees on Google, in an LLM answer, or on a shared link before they ever sign up. Every page here is prerendered at build time so JS-less crawlers and answer-engine bots see real meta tags, real JSON-LD, and real visible content. This page covers the landing page, the public discover feed, the public listing detail, the programmatic city and neighborhood pages, the comparison pages, and the blog. For the prerendering engine itself, see [SEO and prerendering](seo-prerendering.md). Search (`/search`) is public too; the map (`/explore`) sits behind `AuthGuard`. For both, see [Search and explore](search-explore.md). For how listings are created and managed (and therefore what shows up here), see [Listing management](listing-management.md).
 
 ## The public route tree
 
@@ -14,15 +14,17 @@ graph TD
     L --> D["/discover (DiscoverPage)"]
     D --> D1["/discover/:id (ListingDetailPage)"]
     D1 --> S["/share/:id (SharePage)"]
+    L --> SR["/search (SearchPage)"]
     L --> C["/cities/:slug (CityPage)"]
     C --> N["/cities/:slug/:neighborhood (NeighborhoodPage)"]
     L --> B["/blog (BlogPage)"]
     B --> BP["/blog/:slug (BlogPostPage)"]
     L --> CP["/compare/:slug (ComparisonPage)"]
-    L --> A["/about, /terms, /privacy, /stats, /maintenance, /error"]
+    L --> BE["best-of pages (BestPage)"]
+    L --> A["/about, /terms, /privacy, /maintenance, /error"]
 ```
 
-Every node in this tree is a prerender target. The build step enumerates the static routes (landing, discover, share, cities, neighborhoods, blog index and posts, comparison pages, about, terms, privacy, stats) and writes a complete `dist/<route>/index.html` for each, so the deployed site serves real HTML instead of an empty SPA shell. The `/share/:id` route is generated alongside each listing detail page and uses a meta refresh to redirect to `/discover/:id` while preserving social-preview tags. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
+The tree shows the runtime routes. Not every node has a static file. The build step writes one complete `dist/<route>.html` for each route in `buildStaticRoutes()` (`scripts/lib/route-content.ts`): the landing page, discover, search, about, terms, privacy, the blog index and posts, the comparison pages, the city and neighborhood pages, and the three best-of pages. Listing pages (`/discover/:id`) and their share pages (`/share/:id`) are written only in production, when the API returns listings at build time. `/maintenance` and `/error` are runtime-only pages with no static file. The `/share/:id` static page uses a meta refresh to `/discover/:id` and keeps the social-preview tags. See [SEO and prerendering](seo-prerendering.md) for the build pipeline and how route enumeration stays in sync with this tree.
 
 ## The landing page
 

@@ -1,5 +1,5 @@
 /**
- * Generates `public/sitemap.xml` for https://360ghar.com.
+ * Generates `public/sitemap.xml` for https://flatmates.360ghar.com.
  *
  * Run standalone:  `npx tsx scripts/generate-sitemap.ts`
  * Also invoked by: `npm run build` (see package.json `build` script).
@@ -42,6 +42,7 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { SITE_URL, SUPPORTED_CITIES } from "../src/lib/seo/config";
+import { BEST_PAGES } from "../src/features/places/lib/best-pages";
 import { CITY_NEIGHBORHOODS } from "../src/lib/seo/neighborhoods";
 import { fetchDiscoverableListings, shouldFetchListingData } from "./lib/listings";
 
@@ -71,6 +72,7 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: "/terms", changefreq: "monthly", priority: "0.3" },
   { path: "/privacy", changefreq: "monthly", priority: "0.3" },
   { path: "/blog", changefreq: "weekly", priority: "0.7" },
+  ...BEST_PAGES.map((page) => ({ path: `/${page.slug}`, changefreq: "monthly", priority: "0.7" })),
 ];
 
 const BLOG_POSTS = [

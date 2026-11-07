@@ -2,9 +2,9 @@
 
 Active contributors: Saksham
 
-360 Flatmates is a client-rendered React SPA. Browsers see one HTML document and React Router does the rest. That is great for users and painful for crawlers. Classic search-engine bots and the LLM answer-engine bots (GPTBot, ClaudeBot, CCBot, Applebot, Meta-ExternalAgent) generally do not execute JavaScript. If they fetch `https://360ghar.com/discover` and the response is an empty `<div id="root">`, they index nothing useful.
+360 Flatmates is a client-rendered React SPA. Browsers see one HTML document and React Router does the rest. That is great for users and painful for crawlers. Classic search-engine bots and the LLM answer-engine bots (GPTBot, ClaudeBot, CCBot, Applebot, Meta-ExternalAgent) generally do not execute JavaScript. If they fetch `https://flatmates.360ghar.com/discover` and the response is an empty `<div id="root">`, they index nothing useful.
 
-This page documents how the SPA is made crawlable and SEO-optimized at build time. The mechanism is a build step, `scripts/generate-static-html.ts`, that reads the built `dist/index.html` shell, injects per-route meta tags, JSON-LD and semantic body HTML as strings, and writes `dist/<route>/index.html`. It needs no browser. `scripts/prerender.ts` is a headless-Chromium alternative that is not part of the build. The real files on disk take precedence over the SPA fallback, so JS-less bots see real meta tags, real JSON-LD, and real visible content. The system build pipeline and the [Architecture](../overview/architecture.md) build-pipeline section are the broader context.
+This page documents how the SPA is made crawlable and SEO-optimized at build time. The mechanism is a build step, `scripts/generate-static-html.ts`, that reads the built `dist/index.html` shell, injects per-route meta tags, JSON-LD and semantic body HTML as strings, and writes `dist/<route>.html`. It needs no browser. `scripts/prerender.ts` is a headless-Chromium alternative that is not part of the build. The real files on disk take precedence over the SPA fallback, so JS-less bots see real meta tags, real JSON-LD, and real visible content. The system build pipeline and the [Architecture](../overview/architecture.md) build-pipeline section are the broader context.
 
 ## Why prerender
 
@@ -50,7 +50,7 @@ npx tsx scripts/generate-static-html.ts
 | 3 | `scripts/generate-favicon-ico.ts` | `public/favicon.ico` (multi-resolution) |
 | 4 | `scripts/generate-sitemap.ts` | `public/sitemap.xml` (with image-sitemap entries) |
 | 5 | `vite build` | `dist/` with the production bundle, service worker, and a clean `dist/index.html` shell |
-| 6 | `scripts/generate-static-html.ts` | `dist/<route>/index.html` files, one per public route |
+| 6 | `scripts/generate-static-html.ts` | `dist/<route>.html` files, one per public route |
 
 `scripts/generate-og-image.ts` is not part of the build. Run it manually with `npm run generate:og-image`; the output is committed. `scripts/prerender.ts` is the headless-Chromium alternative to step 6 and also runs manually.
 
@@ -71,7 +71,7 @@ flowchart TD
 
 ## Static HTML generation
 
-`scripts/generate-static-html.ts` runs after `vite build`. It reads `dist/index.html` as a shell template, builds the content of each public route with `buildStaticRoutes()` (`scripts/lib/route-content.ts`), injects the title, description, canonical link, Open Graph and Twitter tags, JSON-LD and a semantic `<main>` into the shell, and writes `dist/<route>/index.html`. Per-listing pages come from `scripts/lib/listings.ts` and are generated only when `CONTEXT=production`. A missing `dist/` fails the build; a listing fetch failure is logged and the build continues. Set `PRERENDER_LISTINGS=0` to skip listing pages.
+`scripts/generate-static-html.ts` runs after `vite build`. It reads `dist/index.html` as a shell template, builds the content of each public route with `buildStaticRoutes()` (`scripts/lib/route-content.ts`), injects the title, description, canonical link, Open Graph and Twitter tags, JSON-LD and a semantic `<main>` into the shell, and writes `dist/<route>.html`. Per-listing pages come from `scripts/lib/listings.ts` and are generated only when `CONTEXT=production`. A missing `dist/` fails the build; a listing fetch failure is logged and the build continues. Set `PRERENDER_LISTINGS=0` to skip listing pages.
 
 ## Prerender internals (`scripts/prerender.ts`, manual alternative)
 
@@ -208,7 +208,7 @@ The `LOGO_URL` constant points at `${SITE_URL}/logo.webp` (the 512x512 square We
 
 It composes the page title as `${title} | 360 Flatmates` (or the tagline default), sets the canonical link, emits Open Graph (`og:title`, `og:description`, `og:image`, `og:url`, `og:type`, `og:site_name`, `og:locale` set to `en_IN`), and the Twitter card (`summary_large_image`, `twitter:site` and `twitter:creator` set to `@360ghar`). On the homepage it auto-emits the Organization, WebSite, and WebApplication schemas. `noindex` flips the page to `noindex, nofollow`.
 
-The shell in `index.html` carries fallback meta tags. These are the SPA-shell fallback: `SeoHelmet` overrides them per-route at runtime, and the prerender step bakes the overrides into each `dist/<route>/index.html`. They exist so routes that are not prerendered (and crawlers or unfurlers that read the raw shell) still get a sensible title, description, OG, and Twitter card instead of nothing. The shell also carries the theme-color, font preloads, favicon links, and the flash-prevention theme script that reads the persisted theme from `localStorage` before paint.
+The shell in `index.html` carries fallback meta tags. These are the SPA-shell fallback: `SeoHelmet` overrides them per-route at runtime, and the prerender step bakes the overrides into each `dist/<route>.html`. They exist so routes that are not prerendered (and crawlers or unfurlers that read the raw shell) still get a sensible title, description, OG, and Twitter card instead of nothing. The shell also carries the theme-color, font preloads, favicon links, and the flash-prevention theme script that reads the persisted theme from `localStorage` before paint.
 
 ### OG image and logo
 
@@ -231,7 +231,7 @@ The AI/LLM group is listed explicitly because some bots only honor rules address
 
 Disallowed paths cover every authenticated surface: `/search`, `/explore`, `/listing/`, `/profile/`, `/post`, `/manage`, `/dashboard`, `/swipe`, `/likes`, `/matches`, `/chats`, `/visits`, `/onboarding`, `/choose-role`, `/location`, `/verify`, `/help`, `/alerts`, `/saved-searches`, `/notifications`, `/add-phone`, plus the app, admin, and auth shells (`/app/`, `/admin/`, `/auth/`, `/login`, `/signup`, `/forgot-password`) and the system routes (`/maintenance`, `/error`).
 
-The file ends with `Host: https://360ghar.com` and `Sitemap: https://360ghar.com/sitemap.xml`.
+The file ends with `Host: https://flatmates.360ghar.com` and `Sitemap: https://flatmates.360ghar.com/sitemap.xml`.
 
 ## _redirects and SPA fallback precedence
 
@@ -241,7 +241,7 @@ The file ends with `Host: https://360ghar.com` and `Sitemap: https://360ghar.com
 /*    /index.html   200
 ```
 
-This is the SPA fallback for Netlify. Any request that does not match a real file in `dist/` falls through to `dist/index.html` with a 200 status, and React Router handles the route client-side. Real files on disk take precedence over the fallback, so the prerendered `dist/<route>/index.html` files are served directly for their routes. The precedence is what makes the prerendered output win for crawlers while keeping client-side routing intact for users navigating between prerendered and non-prerendered routes.
+This is the SPA fallback for Netlify. Any request that does not match a real file in `dist/` falls through to `dist/index.html` with a 200 status, and React Router handles the route client-side. Real files on disk take precedence over the fallback, so the prerendered `dist/<route>.html` files are served directly for their routes. The precedence is what makes the prerendered output win for crawlers while keeping client-side routing intact for users navigating between prerendered and non-prerendered routes.
 
 The split works the same for any page: the static HTML carries the meta tags, JSON-LD and the main copy, and the client takes over once the bundle loads, so interactive parts (filters, queries) run in the browser.
 
