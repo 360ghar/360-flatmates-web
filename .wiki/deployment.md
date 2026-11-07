@@ -2,7 +2,21 @@
 
 Active contributors: Saksham
 
-360 Flatmates is a client-rendered SPA deployed as static files on Netlify. There is no server runtime in this repo: the build produces a `dist/` folder, Netlify ships it from its CDN, and the SPA fallback route turns every unknown path into a client-side navigation. The only "server" the app talks to at runtime is the FastAPI backend at `/api/v1` (and Supabase for auth). This page covers the build command, the publish directory, the SPA fallback and how prerendered files take precedence, the full build pipeline, the environment variables, and the service worker registration. For the prerender engine itself, see [SEO and prerendering](features/seo-prerendering.md). For the installable shell, see [PWA and install](features/pwa-install.md).
+360 Flatmates is a client-rendered SPA deployed as static files on a Cloudflare Worker (Netlify before 2026-11-08). There is no server runtime in this repo: the build produces a `dist/` folder, Netlify ships it from its CDN, and the SPA fallback route turns every unknown path into a client-side navigation. The only "server" the app talks to at runtime is the FastAPI backend at `/api/v1` (and Supabase for auth). This page covers the build command, the publish directory, the SPA fallback and how prerendered files take precedence, the full build pipeline, the environment variables, and the service worker registration. For the prerender engine itself, see [SEO and prerendering](features/seo-prerendering.md). For the installable shell, see [PWA and install](features/pwa-install.md).
+
+## Cloudflare Worker (production host since 2026-11-08)
+
+flatmates.360ghar.com is served by the Cloudflare Worker `360-flatmates-web`, a static-assets Worker with no script. `wrangler.jsonc` is the config:
+
+- `assets.directory` is `./dist`. `html_handling: auto-trailing-slash` serves `dist/<route>.html` at `/<route>` with no slash redirect, so the URL matches the canonical.
+- `not_found_handling: single-page-application` serves `index.html` with 200 for client-side routes. This replaces the Netlify `/* /index.html 200` rule, which Cloudflare rejects as an infinite loop; that rule now lives in `netlify.toml` only.
+- `routes` attaches the Worker to `flatmates.360ghar.com/*`. The proxied DNS record still points at Netlify, but the route sends every request to the Worker. To roll back to Netlify, delete the route in the Cloudflare dashboard.
+- Security headers are in `public/_headers`, which both Cloudflare and Netlify read.
+- Public build values (API URL, Supabase URL and publishable key) are in `.env.production`. They ship in the bundle, so they are not secrets.
+
+Build: `npm run build`. Deploy: `npx wrangler deploy`. Workers Builds runs both on every push to `main` and sets `WORKERS_CI_BRANCH=main`, which turns on the build-time listing fetch (`shouldFetchListingData()` in `scripts/lib/listings.ts`).
+
+The Netlify sections below describe the previous host. They stay until the Netlify site is disconnected.
 
 ## Netlify configuration
 
