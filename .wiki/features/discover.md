@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-Public discover is the unauthenticated, SEO-facing surface of 360 Flatmates. It is what a prospective user sees on Google, in an LLM answer, or on a shared link before they ever sign up. Every page here is prerendered at build time so JS-less crawlers and answer-engine bots see real meta tags, real JSON-LD, and real visible content. This page covers the landing page, the public discover feed, the public listing detail, the programmatic city and neighborhood pages, the comparison pages, and the blog. For the prerendering engine itself, see [SEO and prerendering](seo-prerendering.md). For search and the map, which are public too (signed-in users see them inside the app shell), see [Search and explore](search-explore.md). For how listings are created and managed (and therefore what shows up here), see [Listing management](listing-management.md).
+Public discover is the unauthenticated, SEO-facing surface of 360 Flatmates. It is what a prospective user sees on Google, in an LLM answer, or on a shared link before they ever sign up. Every page here is prerendered at build time so JS-less crawlers and answer-engine bots see real meta tags, real JSON-LD, and real visible content. This page covers the landing page, the public discover feed, the public listing detail, the programmatic city and neighborhood pages, the comparison pages, and the blog. For the prerendering engine itself, see [SEO and prerendering](seo-prerendering.md). Search (`/search`) is public too; the map (`/explore`) sits behind `AuthGuard`. For both, see [Search and explore](search-explore.md). For how listings are created and managed (and therefore what shows up here), see [Listing management](listing-management.md).
 
 ## The public route tree
 
