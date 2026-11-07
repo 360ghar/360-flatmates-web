@@ -35,6 +35,8 @@ const LINK_GROUPS = [
     links: [
       { to: "/blog", label: "Guides" },
       { to: "/compare/360-flatmates-vs-nobroker", label: "Compare apps" },
+      { to: "/best-flatmate-finder-apps-india", label: "Best flatmate apps" },
+      { to: "/best-pg-finder-apps-gurgaon", label: "Best PG apps" },
       { to: "/about", label: "About" }
     ]
   },

@@ -1,6 +1,7 @@
 import { Navigate, type RouteObject } from "react-router";
 import { PageSpinner } from "@/components/ui/Spinner";
 import type { RouteHandle } from "@/hooks/useRouteHandle";
+import { BEST_PAGES } from "@/features/places/lib/best-pages";
 import { AdminGuard, AuthGuard, AuthRedirectGuard, GateGuard } from "./guards";
 import { AdaptiveLayout } from "./layouts/AdaptiveLayout";
 import { AdminLayout } from "./layouts/AdminLayout";
@@ -27,6 +28,10 @@ const publicRoutes: RouteObject[] = [
     lazy: () => import("@/features/blog/pages/DynamicBlogPostPage").then((m) => ({ element: <m.BlogPostPage previewMode /> }))
   },
   { path: "compare/:slug", lazy: () => import("@/features/places/pages/ComparisonPage").then((m) => ({ Component: m.ComparisonPage })) },
+  ...BEST_PAGES.map((page): RouteObject => ({
+    path: page.slug,
+    lazy: () => import("@/features/places/pages/BestPage").then((m) => ({ element: <m.BestPage page={page} /> }))
+  })),
   { path: "about", lazy: () => import("@/features/company/pages/AboutPage").then((m) => ({ Component: m.AboutPage })) },
   { path: "terms", lazy: () => import("@/features/company/pages/TermsPage").then((m) => ({ Component: m.TermsPage })) },
   { path: "privacy", lazy: () => import("@/features/company/pages/PrivacyPage").then((m) => ({ Component: m.PrivacyPage })) },

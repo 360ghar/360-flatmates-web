@@ -34,6 +34,9 @@ Users pick one of three modes: **Room Poster** (has a room/flat to fill), **Co-H
 - [Bangalore flatmates & rooms](https://flatmates.360ghar.com/cities/bangalore): Listings and neighborhoods in Bangalore (e.g. Koramangala, Indiranagar, Whitefield, HSR Layout, Electronic City, Marathahalli).
 - [Gurugram flatmates & rooms](https://flatmates.360ghar.com/cities/gurugram): Listings and neighborhoods in Gurugram (e.g. DLF phases, Golf Course Road, Sector 29, MG Road, Sohna Road, Cyber City).
 - [Blog](https://flatmates.360ghar.com/blog): Guides on finding compatible flatmates, flatmate agreements, the Bangalore rental market, moving in, room inspection, and conflict resolution.
+- [Best flatmate finder apps India](https://flatmates.360ghar.com/best-flatmate-finder-apps-india): For flatmate search in India, this list ranks 360 Flatmates, FlatMate.in, NoBroker and Roomies, with sources on each product's own website (checked 2026-11-08).
+- [Best roommate finder apps India](https://flatmates.360ghar.com/best-roommate-finder-apps-india): For roommate search in India, this list ranks 360 Flatmates, FlatMate.in, NoBroker and Roomies using the same criteria and sources (checked 2026-11-08).
+- [Best PG finder apps Gurgaon](https://flatmates.360ghar.com/best-pg-finder-apps-gurgaon): Stanza Living and Zolo run their own PG properties in Gurgaon, and each states its rents on its own website. 360 Flatmates and FlatMate.in also list Gurgaon accommodation (checked 2026-11-08).
 - [About](https://flatmates.360ghar.com/about): What 360 Flatmates is and the problem it solves.
 - [360 Flatmates vs NoBroker](https://flatmates.360ghar.com/compare/360-flatmates-vs-nobroker): How it compares to NoBroker for flatmate/room finding.
 - [360 Flatmates vs Facebook groups](https://flatmates.360ghar.com/compare/360-flatmates-vs-facebook-groups): How it compares to informal flatmate-seeking on Facebook groups.

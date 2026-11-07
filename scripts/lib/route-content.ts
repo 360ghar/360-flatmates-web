@@ -24,6 +24,7 @@ import {
   LOGO_URL,
 } from "../../src/lib/seo/schema";
 import { CITY_NEIGHBORHOODS } from "../../src/lib/seo/neighborhoods";
+import { BEST_PAGES, PUBLISHER_LINE, CHECKED_ON, bestPageJsonLd, type BestPage } from "../../src/features/places/lib/best-pages";
 import { BLOG_POSTS, BLOG_POST_SLUGS } from "./blog-content";
 import type { BlogPost } from "./blog-content";
 
@@ -256,6 +257,42 @@ function comparisonToHtml(comp: ComparisonDef): string {
   return html;
 }
 
+// ── Best-of pages ────────────────────────────────────────────────────────
+
+function bestPageToHtml(page: BestPage): string {
+  const rows = page.products
+    .map(
+      (p, i) =>
+        `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(p.details)}</td><td>${p.sources
+          .map((s) => `<a href="${esc(s)}">${esc(s)}</a>`)
+          .join("<br>")}</td></tr>`,
+    )
+    .join("\n");
+  const criteria = page.criteria.map((c) => `<li>${esc(c)}</li>`).join("\n");
+  const faqs = page.faqs.map((f) => `<h3>${esc(f.question)}</h3>\n<p>${esc(f.answer)}</p>`).join("\n");
+
+  return `
+    <p>${esc(page.answer.join(" "))}</p>
+    <p>${esc(PUBLISHER_LINE)}</p>
+    <p>Checked on <time datetime="${CHECKED_ON}">${CHECKED_ON}</time>. Each fact links to the product's own website.</p>
+    <h2>Ranked list</h2>
+    <table>
+      <thead><tr><th>Rank</th><th>Product</th><th>Facts</th><th>Sources</th></tr></thead>
+      <tbody>
+${rows}
+      </tbody>
+    </table>
+    <h2>How we picked</h2>
+    <p>A product must meet these criteria on its own website:</p>
+    <ol>
+${criteria}
+    </ol>
+    <p>${esc(page.rankRule)}</p>
+    <h2>Questions</h2>
+${faqs}
+  `;
+}
+
 // ── Build all routes ─────────────────────────────────────────────────────
 
 export function buildStaticRoutes(): RouteContent[] {
@@ -288,6 +325,9 @@ export function buildStaticRoutes(): RouteContent[] {
         <li><a href="/discover">Browse all verified listings</a></li>
         <li><a href="/cities/bangalore">Flats &amp; flatmates in Bangalore</a></li>
         <li><a href="/cities/gurugram">Flats &amp; flatmates in Gurugram</a></li>
+        <li><a href="/best-flatmate-finder-apps-india">Best flatmate finder apps India</a></li>
+        <li><a href="/best-roommate-finder-apps-india">Best roommate finder apps India</a></li>
+        <li><a href="/best-pg-finder-apps-gurgaon">Best PG finder apps Gurgaon</a></li>
       </ul>
       <h2>Guides &amp; Resources</h2>
       <ul>
@@ -523,6 +563,18 @@ export function buildStaticRoutes(): RouteContent[] {
         ],
       });
     }
+  }
+
+  // ── Best-of pages (one data file, shared with the React route) ─────────
+  for (const page of BEST_PAGES) {
+    routes.push({
+      path: `/${page.slug}`,
+      title: page.title,
+      description: page.description,
+      h1: page.title,
+      bodyHtml: bestPageToHtml(page),
+      jsonLd: bestPageJsonLd(page),
+    });
   }
 
   return routes;

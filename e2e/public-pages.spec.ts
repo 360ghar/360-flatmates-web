@@ -192,6 +192,18 @@ test.describe("SEO static files", () => {
   });
 });
 
+test.describe("best-of pages", () => {
+  test("flatmate finder page has its term, a ranked table and its own canonical", async ({ page }) => {
+    await page.goto("/best-flatmate-finder-apps-india");
+    await expect(page.getByRole("heading", { level: 1, name: "Best flatmate finder apps India" })).toBeVisible();
+    await expect(page.getByRole("table")).toBeVisible();
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://flatmates.360ghar.com/best-flatmate-finder-apps-india",
+    );
+  });
+});
+
 test.describe("404 — not found page", () => {
   test("renders a not-found page for invalid routes", async ({ page }) => {
     await page.goto("/this-page-does-not-exist-at-all");
