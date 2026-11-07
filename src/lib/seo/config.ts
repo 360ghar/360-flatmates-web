@@ -1,4 +1,4 @@
-export const SITE_URL = "https://360ghar.com";
+export const SITE_URL = "https://flatmates.360ghar.com";
 export const SITE_NAME = "360 Flatmates";
 export const SITE_TAGLINE = "Find Your Flatmate, Find Your Vibe";
 export const DEFAULT_DESCRIPTION =

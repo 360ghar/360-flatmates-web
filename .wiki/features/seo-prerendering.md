@@ -231,7 +231,7 @@ The AI/LLM group is listed explicitly because some bots only honor rules address
 
 Disallowed paths cover every authenticated surface: `/search`, `/explore`, `/listing/`, `/profile/`, `/post`, `/manage`, `/dashboard`, `/swipe`, `/likes`, `/matches`, `/chats`, `/visits`, `/onboarding`, `/choose-role`, `/location`, `/verify`, `/help`, `/alerts`, `/saved-searches`, `/notifications`, `/add-phone`, plus the app, admin, and auth shells (`/app/`, `/admin/`, `/auth/`, `/login`, `/signup`, `/forgot-password`) and the system routes (`/maintenance`, `/error`).
 
-The file ends with `Host: https://360ghar.com` and `Sitemap: https://360ghar.com/sitemap.xml`.
+The file ends with `Host: https://flatmates.360ghar.com` and `Sitemap: https://flatmates.360ghar.com/sitemap.xml`.
 
 ## _redirects and SPA fallback precedence
 

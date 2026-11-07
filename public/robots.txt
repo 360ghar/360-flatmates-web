@@ -1,6 +1,6 @@
 # ============================================================================
 # 360 Flatmates — robots.txt
-# Site: https://360ghar.com
+# Site: https://flatmates.360ghar.com
 #
 # Policy: public marketing + discovery content is fully crawlable for both
 # classic search engines AND AI / LLM crawlers (training + answer-engine
@@ -164,5 +164,5 @@ Disallow: /error
 #    No Crawl-delay: it is ignored by Google and would only throttle LLM
 #    discovery. Left intentionally unset.
 # ---------------------------------------------------------------------------
-Host: https://360ghar.com
-Sitemap: https://360ghar.com/sitemap.xml
+Host: https://flatmates.360ghar.com
+Sitemap: https://flatmates.360ghar.com/sitemap.xml

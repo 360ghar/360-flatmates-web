@@ -1,5 +1,5 @@
 /**
- * Generates `public/sitemap.xml` for https://360ghar.com.
+ * Generates `public/sitemap.xml` for https://flatmates.360ghar.com.
  *
  * Run standalone:  `npx tsx scripts/generate-sitemap.ts`
  * Also invoked by: `npm run build` (see package.json `build` script).
