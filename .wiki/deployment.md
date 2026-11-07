@@ -2,7 +2,7 @@
 
 Active contributors: Saksham
 
-360 Flatmates is a client-rendered SPA deployed as static files on a Cloudflare Worker (Netlify before 2026-11-08). There is no server runtime in this repo: the build produces a `dist/` folder, Netlify ships it from its CDN, and the SPA fallback route turns every unknown path into a client-side navigation. The only "server" the app talks to at runtime is the FastAPI backend at `/api/v1` (and Supabase for auth). This page covers the build command, the publish directory, the SPA fallback and how prerendered files take precedence, the full build pipeline, the environment variables, and the service worker registration. For the prerender engine itself, see [SEO and prerendering](features/seo-prerendering.md). For the installable shell, see [PWA and install](features/pwa-install.md).
+360 Flatmates is a client-rendered SPA deployed as static files on a Cloudflare Worker (Netlify before 2026-11-08). There is no server runtime in this repo: the build produces a `dist/` folder, the Worker serves it as static assets from Cloudflare's network, and the SPA fallback turns every unknown path into a client-side navigation. The only "server" the app talks to at runtime is the FastAPI backend at `/api/v1` (and Supabase for auth). This page covers the build command, the publish directory, the SPA fallback and how prerendered files take precedence, the full build pipeline, the environment variables, and the service worker registration. For the prerender engine itself, see [SEO and prerendering](features/seo-prerendering.md). For the installable shell, see [PWA and install](features/pwa-install.md).
 
 ## Cloudflare Worker (production host since 2026-11-08)
 
@@ -37,13 +37,16 @@ The Netlify sections below describe the previous host. They stay until the Netli
 
 ## SPA fallback and static HTML precedence
 
-`public/_redirects` is a single line:
+On Cloudflare, `not_found_handling: single-page-application` in `wrangler.jsonc` is the SPA fallback. On Netlify, it is this rule in `netlify.toml` (not in `public/_redirects`, which Cloudflare would reject):
 
-```
-/*    /index.html   200
+```toml
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 ```
 
-This is Netlify's SPA fallback: any path that does not match a real file on disk is served from `dist/index.html` with a 200 status, so React Router can take over. The 200 (not 301 or 302) is what keeps deep links shareable without redirect chains.
+Both are SPA fallbacks: any path that does not match a real file on disk is served from `dist/index.html` with a 200 status, so React Router can take over. The 200 (not 301 or 302) is what keeps deep links shareable without redirect chains.
 
 Real files on disk take precedence over the fallback. That is the whole point of the static HTML step: `scripts/generate-static-html.ts` writes a real `dist/discover.html`, `dist/cities/bangalore.html`, `dist/discover/123.html`, and so on, so a crawler that fetches `/discover/123` gets the static HTML (with real meta, JSON-LD, and visible content) instead of the empty SPA shell. See [SEO and prerendering](features/seo-prerendering.md) for the route inventory and the generation mechanics.
 

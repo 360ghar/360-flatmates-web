@@ -168,7 +168,7 @@ Listing fetches (paginated `/properties` plus per-listing `/properties/:id` in t
 
 The gate lives in `shouldFetchListingData()` in `scripts/lib/listings.ts`. When the helper returns `false`, `fetchDiscoverableListings()` short-circuits with `{ listings: [], ok: true }` (success-with-empty, not a network failure, so `SITEMAP_STRICT=1` does not false-alarm). `scripts/generate-static-html.ts` and `scripts/generate-sitemap.ts` log a clear "CONTEXT is not 'production'" line so the operator can see why listing URLs were dropped.
 
-The SPA fallback (`public/_redirects`: `/* /index.html 200`) handles deep listing links on non-production builds. A request for `/discover/123` on a preview deploy returns the SPA shell, React Router mounts `DiscoverListing`, and TanStack Query fetches the listing client-side. No 404, no broken UX — just one client-side API call instead of one build-time API call.
+The SPA fallback (`not_found_handling: single-page-application` in `wrangler.jsonc`) handles deep listing links on non-production builds. A request for `/discover/123` on a preview deploy returns the SPA shell, React Router mounts `DiscoverListing`, and TanStack Query fetches the listing client-side. No 404, no broken UX — just one client-side API call instead of one build-time API call.
 
 Each `<url>` entry includes `loc`, `lastmod` (build timestamp, or listing `created_at` for listing pages), `changefreq`, and `priority` as light hints (Google ignores the latter two, but other crawlers and tooling read them). Listing entries and the homepage include `<image:image>` blocks with the listing photo URLs and the OG image respectively.
 
@@ -233,15 +233,9 @@ Disallowed paths cover every authenticated surface: `/search`, `/explore`, `/lis
 
 The file ends with `Host: https://flatmates.360ghar.com` and `Sitemap: https://flatmates.360ghar.com/sitemap.xml`.
 
-## _redirects and SPA fallback precedence
+## SPA fallback precedence
 
-`public/_redirects` is a single line:
-
-```
-/*    /index.html   200
-```
-
-This is the SPA fallback for Netlify. Any request that does not match a real file in `dist/` falls through to `dist/index.html` with a 200 status, and React Router handles the route client-side. Real files on disk take precedence over the fallback, so the prerendered `dist/<route>.html` files are served directly for their routes. The precedence is what makes the prerendered output win for crawlers while keeping client-side routing intact for users navigating between prerendered and non-prerendered routes.
+On Cloudflare, `not_found_handling: single-page-application` in `wrangler.jsonc` is the SPA fallback. (Netlify, the previous host, uses a `[[redirects]]` rule in `netlify.toml`. Do not add `/* /index.html 200` to `public/_redirects`: Cloudflare rejects it as an infinite loop.) Any request that does not match a real file in `dist/` falls through to `dist/index.html` with a 200 status, and React Router handles the route client-side. Real files on disk take precedence over the fallback, so the prerendered `dist/<route>.html` files are served directly for their routes. The precedence is what makes the prerendered output win for crawlers while keeping client-side routing intact for users navigating between prerendered and non-prerendered routes.
 
 The split works the same for any page: the static HTML carries the meta tags, JSON-LD and the main copy, and the client takes over once the bundle loads, so interactive parts (filters, queries) run in the browser.
 
@@ -263,7 +257,7 @@ The split works the same for any page: the static HTML carries the meta tags, JS
 | `src/components/page-clients/StatsClient.tsx` | Example prerenderable page mixing static crawlable content with client hydration |
 | `public/robots.txt` | Default and AI/LLM crawler groups, allow and disallow rules, sitemap pointer |
 | `public/llms.txt` | LLM-facing product brief following the llms.txt convention |
-| `public/_redirects` | Netlify SPA fallback `/* /index.html 200` |
+| `wrangler.jsonc` | Cloudflare Worker: assets directory, SPA fallback, route |
 | `vite.config.ts` | `VitePWA` config and `includeAssets` list (favicon, robots, sitemap, OG image, logo, llms.txt) |
 | `index.html` | SPA shell: fallback meta tags, font links, favicon links, theme flash-prevention script, `<noscript>` fallback |
 | `netlify.toml` | Build command installs Chromium, sets `PRERENDER_CONCURRENCY=20` |
