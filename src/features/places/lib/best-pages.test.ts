@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SITE_URL } from "@/lib/seo/config";
 import { ORG_ID } from "@/lib/seo/schema";
-import { BEST_PAGES, CHECKED_ON, PUBLISHER_LINE, bestPageJsonLd, type BestPage } from "./best-pages";
+import { BEST_PAGES, CHECKED_ON, PUBLISHER_LINE, bestPageJsonLd, sourceLabels, type BestPage } from "./best-pages";
 
 type JsonLd = Record<string, unknown> & { "@type": string };
 
@@ -100,4 +100,16 @@ describe("best-pages data", () => {
       });
     });
   }
+});
+
+describe("sourceLabels", () => {
+  it("shows the host, without www, and numbers repeats of one host", () => {
+    expect(
+      sourceLabels([
+        "https://www.nobroker.in/a",
+        "https://www.nobroker.in/b",
+        "https://flatmates.360ghar.com/",
+      ]),
+    ).toEqual(["nobroker.in", "nobroker.in (2)", "flatmates.360ghar.com"]);
+  });
 });

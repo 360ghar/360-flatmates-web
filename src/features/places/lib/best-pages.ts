@@ -276,6 +276,17 @@ export const BEST_PAGES: BestPage[] = [
 ];
 
 /** JSON-LD for one page. The FAQ entries are the same objects that the page renders. */
+/** Short link text for a source URL: the host, numbered when one product cites the same host more than once. */
+export function sourceLabels(sources: readonly string[]): string[] {
+  const seen = new Map<string, number>();
+  return sources.map((source) => {
+    const host = new URL(source).hostname.replace(/^www\./, "");
+    const count = (seen.get(host) ?? 0) + 1;
+    seen.set(host, count);
+    return count === 1 ? host : `${host} (${count})`;
+  });
+}
+
 export function bestPageJsonLd(page: BestPage): object[] {
   return [
     buildFaqPageSchema(page.faqs),

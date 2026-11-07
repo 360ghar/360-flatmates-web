@@ -6,6 +6,7 @@ import {
   bestPageJsonLd,
   CHECKED_ON,
   PUBLISHER_LINE,
+  sourceLabels,
   type BestPage as BestPageData,
 } from "@/features/places/lib/best-pages";
 
@@ -27,14 +28,14 @@ export function BestPage({ page }: { page: BestPageData }) {
       />
 
       <div className="page-container page-fade flex flex-col gap-16 py-12 md:py-16">
-        <section aria-label="Publisher and date" className="mx-auto w-full max-w-[860px]">
+        <section aria-label="Publisher and date" className="w-full max-w-[860px]">
           <p className="text-body-lg text-ink-2">{PUBLISHER_LINE}</p>
           <p className="mt-2 text-caption text-ink-3">
             Checked on <time dateTime={CHECKED_ON}>{CHECKED_ON}</time>. Each fact links to the product&apos;s own website.
           </p>
         </section>
 
-        <section aria-labelledby="ranked-heading" className="mx-auto w-full max-w-[860px]">
+        <section aria-labelledby="ranked-heading" className="w-full max-w-[860px]">
           <h2 id="ranked-heading" className="text-h2 text-ink">Ranked list</h2>
           <div className="paper-grain mt-6 overflow-x-auto rounded-hand bg-surface shadow-sm">
             <table className="w-full border-collapse text-left">
@@ -53,9 +54,9 @@ export function BestPage({ page }: { page: BestPageData }) {
                     <th scope="row" className="p-4 text-body-lg font-semibold text-ink">{product.name}</th>
                     <td className="p-4 text-body-lg text-ink-2">{product.details}</td>
                     <td className="p-4">
-                      {product.sources.map((source) => (
-                        <a key={source} href={source} className="block break-all text-body-sm text-clay underline-offset-4 hover:underline">
-                          {source}
+                      {sourceLabels(product.sources).map((label, i) => (
+                        <a key={product.sources[i]} href={product.sources[i]} className="block text-body-sm text-clay underline-offset-4 hover:underline">
+                          {label}
                         </a>
                       ))}
                     </td>
@@ -66,7 +67,7 @@ export function BestPage({ page }: { page: BestPageData }) {
           </div>
         </section>
 
-        <section aria-labelledby="picked-heading" className="mx-auto w-full max-w-[860px]">
+        <section aria-labelledby="picked-heading" className="w-full max-w-[860px]">
           <h2 id="picked-heading" className="text-h2 text-ink">How we picked</h2>
           <p className="mt-4 text-body-lg text-ink-2">A product must meet these criteria on its own website:</p>
           <ol className="mt-4 list-decimal space-y-2 pl-5 text-body-lg text-ink-2">
@@ -77,7 +78,7 @@ export function BestPage({ page }: { page: BestPageData }) {
           <p className="mt-4 text-body-lg text-ink-2">{page.rankRule}</p>
         </section>
 
-        <section aria-labelledby="questions-heading" className="mx-auto w-full max-w-[720px]">
+        <section aria-labelledby="questions-heading" className="w-full max-w-[860px]">
           <h2 id="questions-heading" className="text-h2 text-ink">Questions</h2>
           <FaqList items={page.faqs} className="mt-6" />
         </section>
