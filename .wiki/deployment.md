@@ -105,7 +105,7 @@ flowchart TD
 
 ## Environment variables
 
-Vite only exposes variables prefixed with `VITE_` to the client bundle, and it inlines them at build time. The production build reads them from the Netlify build environment; a local build reads them from `.env`. `src/lib/env.ts` validates the required set with a Zod schema on startup:
+Vite only exposes variables prefixed with `VITE_` to the client bundle, and it inlines them at build time. Production builds on Cloudflare Workers Builds read them from the Worker's build variables (Settings > Build > Variables and secrets). The legacy Netlify site read them from its build environment. A local build reads them from the gitignored `.env`. `src/lib/env.ts` validates the required set with a Zod schema on startup:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
@@ -135,7 +135,8 @@ The service worker is registered by `VitePWA` via `injectRegister: "auto"`, whic
 
 | File | Role |
 | --- | --- |
-| `netlify.toml` | Build command, publish directory, build environment variables |
+| `wrangler.jsonc` | Cloudflare Worker: assets directory, SPA fallback, route (production host) |
+| `netlify.toml` | Legacy Netlify host: build command, publish directory, SPA fallback |
 | `public/_redirects` | SPA fallback: `/* /index.html 200` |
 | `vite.config.ts` | Vite + `VitePWA` + `vite-tsconfig-paths` config, manual chunks, dev proxy |
 | `package.json` | The `build` script that chains the seven-step pipeline |

@@ -1,5 +1,6 @@
 // Cloudflare Worker that serves flatmates.360ghar.com: static assets only.
-// Build: `npm run build` (writes dist/). Deploy: `npx wrangler deploy`.
+// Workers Builds: `npm run build`, then `npx wrangler deploy`.
+// Local production deploy: `CONTEXT=production npm run build` (fetches listings), then `npx wrangler deploy`.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "360-flatmates-web",
