@@ -12,9 +12,9 @@ flatmates.360ghar.com is served by the Cloudflare Worker `360-flatmates-web`, a 
 - `not_found_handling: single-page-application` serves `index.html` with 200 for client-side routes. This replaces the Netlify `/* /index.html 200` rule, which Cloudflare rejects as an infinite loop; that rule now lives in `netlify.toml` only.
 - `routes` attaches the Worker to `flatmates.360ghar.com/*`. The proxied DNS record still points at Netlify, but the route sends every request to the Worker. To roll back to Netlify, delete the route in the Cloudflare dashboard.
 - Security headers are in `public/_headers`, which both Cloudflare and Netlify read.
-- Public build values (API URL, Supabase URL and publishable key) are in `.env.production`. They ship in the bundle, so they are not secrets.
+- Build values (`VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`) are Workers Builds build variables on the Worker (Settings > Build > Variables and secrets). Do not commit `.env` files.
 
-Build: `npm run build`. Deploy: `npx wrangler deploy`. Workers Builds runs both on every push to `main` and sets `WORKERS_CI_BRANCH=main`, which turns on the build-time listing fetch (`shouldFetchListingData()` in `scripts/lib/listings.ts`).
+Build: `npm run build`. Deploy: `npx wrangler deploy`. For a local production deploy, run `CONTEXT=production npm run build` (with production values in your gitignored `.env`) so the build fetches listings, then `npx wrangler deploy`. Workers Builds runs both on every push to `main` and sets `WORKERS_CI_BRANCH=main`, which turns on the build-time listing fetch (`shouldFetchListingData()` in `scripts/lib/listings.ts`).
 
 The Netlify sections below describe the previous host. They stay until the Netlify site is disconnected.
 

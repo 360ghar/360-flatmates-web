@@ -20,7 +20,7 @@ export function LandingPage() {
         jsonLd={[
           buildFaqPageSchema(FAQ_ITEMS),
           buildServiceSchema(),
-          buildSpeakableSchema(["main h1", "[data-hero-summary]"])
+          buildSpeakableSchema(["main h1", "[data-hero-summary]"], HOME_URL)
         ]}
       />
       {/* The hero's torn edge opens onto this paper-1 band, which carries the
