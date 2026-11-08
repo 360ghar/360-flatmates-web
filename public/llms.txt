@@ -2,7 +2,7 @@
 
 > Find compatible flatmates and verified rental rooms across India — matching on lifestyle, not just location. Free to search and match.
 
-360 Flatmates is a free, India-focused flatmate-finder and room-rental platform available on web (https://flatmates.360ghar.com), Android, and iOS. It connects people who have a spare room (Room Posters) with people looking for a place (Co-Hunters), and ranks matches using a lifestyle-based compatibility score rather than only budget and locality. It is currently live in Bangalore and Gurugram, with additional Indian cities planned. Searching, matching, browsing listings, and in-app chat are free.
+360 Flatmates is a free, India-focused flatmate-finder and room-rental platform available on web (https://flatmates.360ghar.com/), Android, and iOS. It connects people who have a spare room (Room Posters) with people looking for a place (Co-Hunters), and ranks matches using a lifestyle-based compatibility score rather than only budget and locality. It is currently live in Bangalore and Gurugram, with additional Indian cities planned. Searching, matching, browsing listings, and in-app chat are free.
 
 The product positions itself against alternatives like NoBroker and informal Facebook/WhatsApp groups by combining (a) reviewed listings with verified photos, rent, and availability, (b) a lifestyle compatibility engine, and (c) built-in visit scheduling and contextual chat — so the whole flatmate-search flow happens inside one product instead of across multiple apps.
 
