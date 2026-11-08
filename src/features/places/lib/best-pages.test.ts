@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SITE_URL } from "@/lib/seo/config";
+import { HOME_URL, SITE_URL } from "@/lib/seo/config";
 import { ORG_ID } from "@/lib/seo/schema";
 import { BEST_PAGES, CHECKED_ON, PUBLISHER_LINE, bestPageJsonLd, sourceLabels, type BestPage } from "./best-pages";
 
@@ -88,7 +88,7 @@ describe("best-pages data", () => {
           itemListElement: { name: string; item?: string }[];
         };
         expect(crumbs.itemListElement).toHaveLength(2);
-        expect(crumbs.itemListElement[0]).toMatchObject({ name: "Home", item: SITE_URL });
+        expect(crumbs.itemListElement[0]).toMatchObject({ name: "Home", item: HOME_URL });
         expect(crumbs.itemListElement[1]).toMatchObject({ name: page.title });
         expect(crumbs.itemListElement[1]).not.toHaveProperty("item");
       });

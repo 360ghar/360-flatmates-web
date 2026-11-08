@@ -51,8 +51,9 @@ const LISTING_MAX_PAGES = 200;
 /**
  * Decide whether the build is allowed to call the listing API at all.
  *
- * Returns true ONLY when Netlify reports `CONTEXT=production` (i.e. a push to
- * the production branch). Every other context — local builds (CONTEXT unset),
+ * Returns true ONLY for a production build: Netlify `CONTEXT=production`, or a
+ * Cloudflare Workers Build of `main` (`WORKERS_CI_BRANCH=main`). Every other
+ * context — local builds (CONTEXT unset), Workers Builds of other branches,
  * Netlify deploy previews (`deploy-preview`), and Netlify branch deploys
  * (`branch-deploy`) — skips the fetch so a single contributor running
  * `npm run build` repeatedly, or every PR opening a preview, does not hammer
@@ -64,7 +65,7 @@ const LISTING_MAX_PAGES = 200;
  * SPA fallback handles deep listing links client-side at runtime.
  */
 export function shouldFetchListingData(): boolean {
-  return process.env.CONTEXT === "production";
+  return process.env.CONTEXT === "production" || process.env.WORKERS_CI_BRANCH === "main";
 }
 
 /**

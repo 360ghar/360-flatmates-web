@@ -2,7 +2,21 @@
 
 Active contributors: Saksham
 
-360 Flatmates is a client-rendered SPA deployed as static files on Netlify. There is no server runtime in this repo: the build produces a `dist/` folder, Netlify ships it from its CDN, and the SPA fallback route turns every unknown path into a client-side navigation. The only "server" the app talks to at runtime is the FastAPI backend at `/api/v1` (and Supabase for auth). This page covers the build command, the publish directory, the SPA fallback and how prerendered files take precedence, the full build pipeline, the environment variables, and the service worker registration. For the prerender engine itself, see [SEO and prerendering](features/seo-prerendering.md). For the installable shell, see [PWA and install](features/pwa-install.md).
+360 Flatmates is a client-rendered SPA deployed as static files on a Cloudflare Worker (Netlify before 2026-11-08). There is no server runtime in this repo: the build produces a `dist/` folder, the Worker serves it as static assets from Cloudflare's network, and the SPA fallback turns every unknown path into a client-side navigation. The only "server" the app talks to at runtime is the FastAPI backend at `/api/v1` (and Supabase for auth). This page covers the build command, the publish directory, the SPA fallback and how prerendered files take precedence, the full build pipeline, the environment variables, and the service worker registration. For the prerender engine itself, see [SEO and prerendering](features/seo-prerendering.md). For the installable shell, see [PWA and install](features/pwa-install.md).
+
+## Cloudflare Worker (production host since 2026-11-08)
+
+flatmates.360ghar.com is served by the Cloudflare Worker `360-flatmates-web`, a static-assets Worker with no script. `wrangler.jsonc` is the config:
+
+- `assets.directory` is `./dist`. `html_handling: auto-trailing-slash` serves `dist/<route>.html` at `/<route>` with no slash redirect, so the URL matches the canonical.
+- `not_found_handling: single-page-application` serves `index.html` with 200 for client-side routes. This replaces the Netlify `/* /index.html 200` rule, which Cloudflare rejects as an infinite loop; that rule now lives in `netlify.toml` only.
+- `routes` attaches the Worker to `flatmates.360ghar.com/*`. The proxied DNS record still points at Netlify, but the route sends every request to the Worker. To roll back to Netlify, delete the route in the Cloudflare dashboard.
+- Security headers are in `public/_headers`, which both Cloudflare and Netlify read.
+- Build values (`VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`) are Workers Builds build variables on the Worker (Settings > Build > Variables and secrets). Do not commit `.env` files.
+
+Build: `npm run build`. Deploy: `npx wrangler deploy`. For a local production deploy, run `CONTEXT=production npm run build` (with production values in your gitignored `.env`) so the build fetches listings, then `npx wrangler deploy`. Workers Builds runs both on every push to `main` and sets `WORKERS_CI_BRANCH=main`, which turns on the build-time listing fetch (`shouldFetchListingData()` in `scripts/lib/listings.ts`).
+
+The Netlify sections below describe the previous host. They stay until the Netlify site is disconnected.
 
 ## Netlify configuration
 
@@ -23,13 +37,16 @@ Active contributors: Saksham
 
 ## SPA fallback and static HTML precedence
 
-`public/_redirects` is a single line:
+On Cloudflare, `not_found_handling: single-page-application` in `wrangler.jsonc` is the SPA fallback. On Netlify, it is this rule in `netlify.toml` (not in `public/_redirects`, which Cloudflare would reject):
 
-```
-/*    /index.html   200
+```toml
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 ```
 
-This is Netlify's SPA fallback: any path that does not match a real file on disk is served from `dist/index.html` with a 200 status, so React Router can take over. The 200 (not 301 or 302) is what keeps deep links shareable without redirect chains.
+Both are SPA fallbacks: any path that does not match a real file on disk is served from `dist/index.html` with a 200 status, so React Router can take over. The 200 (not 301 or 302) is what keeps deep links shareable without redirect chains.
 
 Real files on disk take precedence over the fallback. That is the whole point of the static HTML step: `scripts/generate-static-html.ts` writes a real `dist/discover.html`, `dist/cities/bangalore.html`, `dist/discover/123.html`, and so on, so a crawler that fetches `/discover/123` gets the static HTML (with real meta, JSON-LD, and visible content) instead of the empty SPA shell. See [SEO and prerendering](features/seo-prerendering.md) for the route inventory and the generation mechanics.
 
@@ -88,7 +105,7 @@ flowchart TD
 
 ## Environment variables
 
-Vite only exposes variables prefixed with `VITE_` to the client bundle, and it inlines them at build time. The production build reads them from the Netlify build environment; a local build reads them from `.env`. `src/lib/env.ts` validates the required set with a Zod schema on startup:
+Vite only exposes variables prefixed with `VITE_` to the client bundle, and it inlines them at build time. Production builds on Cloudflare Workers Builds read them from the Worker's build variables (Settings > Build > Variables and secrets). The legacy Netlify site read them from its build environment. A local build reads them from the gitignored `.env`. `src/lib/env.ts` validates the required set with a Zod schema on startup:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
@@ -118,7 +135,8 @@ The service worker is registered by `VitePWA` via `injectRegister: "auto"`, whic
 
 | File | Role |
 | --- | --- |
-| `netlify.toml` | Build command, publish directory, build environment variables |
+| `wrangler.jsonc` | Cloudflare Worker: assets directory, SPA fallback, route (production host) |
+| `netlify.toml` | Legacy Netlify host: build command, publish directory, SPA fallback |
 | `public/_redirects` | SPA fallback: `/* /index.html 200` |
 | `vite.config.ts` | Vite + `VitePWA` + `vite-tsconfig-paths` config, manual chunks, dev proxy |
 | `package.json` | The `build` script that chains the seven-step pipeline |

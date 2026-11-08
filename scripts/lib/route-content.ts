@@ -13,7 +13,7 @@
  * no React, no Tailwind, no JS. This is what crawlers and no-JS users see.
  */
 
-import { SITE_URL, SITE_NAME, SUPPORTED_CITIES } from "../../src/lib/seo/config";
+import { HOME_URL, SITE_URL, SITE_NAME, SUPPORTED_CITIES } from "../../src/lib/seo/config";
 import {
   ORG_ID,
   ORG_NAME,
@@ -378,7 +378,7 @@ export function buildStaticRoutes(): RouteContent[] {
         description: "Browse verified room and flatmate listings across Indian cities.",
         url: `${SITE_URL}/discover`,
       }),
-      breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Discover" }]),
+      breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: "Discover" }]),
     ],
   });
 
@@ -406,7 +406,7 @@ export function buildStaticRoutes(): RouteContent[] {
         description: "Search verified rooms and compatible flatmates across 360 Flatmates.",
         url: `${SITE_URL}/search`,
       }),
-      breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Search" }]),
+      breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: "Search" }]),
     ],
   });
 
@@ -431,7 +431,7 @@ export function buildStaticRoutes(): RouteContent[] {
     `,
     jsonLd: [
       buildOrganizationSchema(),
-      breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "About" }]),
+      breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: "About" }]),
     ],
   });
 
@@ -442,7 +442,7 @@ export function buildStaticRoutes(): RouteContent[] {
     description: "360 Flatmates terms of service. Read our terms governing use of the platform.",
     h1: "Terms of Service",
     bodyHtml: `<p>Please read these terms carefully before using the 360 Flatmates platform. By accessing or using our service, you agree to be bound by these terms.</p><p>For the full terms of service, please visit <a href="/terms">360ghar.com/terms</a> with JavaScript enabled.</p>`,
-    jsonLd: [breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Terms" }])],
+    jsonLd: [breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: "Terms" }])],
   });
 
   // ── Privacy ────────────────────────────────────────────────────────────
@@ -452,7 +452,7 @@ export function buildStaticRoutes(): RouteContent[] {
     description: "360 Flatmates privacy policy. Learn how we collect, use, and protect your personal information.",
     h1: "Privacy Policy",
     bodyHtml: `<p>Your privacy is important to us. This policy describes how 360 Flatmates collects, uses, and protects your personal information.</p><p>For the full privacy policy, please visit <a href="/privacy">360ghar.com/privacy</a> with JavaScript enabled.</p>`,
-    jsonLd: [breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Privacy" }])],
+    jsonLd: [breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: "Privacy" }])],
   });
 
   // ── Blog index ─────────────────────────────────────────────────────────
@@ -488,7 +488,7 @@ export function buildStaticRoutes(): RouteContent[] {
       bodyHtml: blogPostToHtml(post),
       jsonLd: [
         articleSchema(post, url),
-        breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Blog", item: `${SITE_URL}/blog` }, { name: post.title }]),
+        breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: "Blog", item: `${SITE_URL}/blog` }, { name: post.title }]),
       ],
       ogImage: post.image,
     });
@@ -504,7 +504,7 @@ export function buildStaticRoutes(): RouteContent[] {
       bodyHtml: comparisonToHtml(comp),
       jsonLd: [
         faqSchema(comp.faqs),
-        breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: "Compare", item: `${SITE_URL}/compare` }, { name: `360 Flatmates vs ${comp.theirName}` }]),
+        breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: "Compare", item: `${SITE_URL}/compare` }, { name: `360 Flatmates vs ${comp.theirName}` }]),
       ],
     });
   }
@@ -532,7 +532,7 @@ export function buildStaticRoutes(): RouteContent[] {
           description: `Verified rooms and compatible flatmates in ${city.name}.`,
           url: cityUrl,
         }),
-        breadcrumbSchema([{ name: "Home", item: SITE_URL }, { name: city.name }]),
+        breadcrumbSchema([{ name: "Home", item: HOME_URL }, { name: city.name }]),
       ],
     });
 
@@ -556,7 +556,7 @@ export function buildStaticRoutes(): RouteContent[] {
             url: hoodUrl,
           }),
           breadcrumbSchema([
-            { name: "Home", item: SITE_URL },
+            { name: "Home", item: HOME_URL },
             { name: city.name, item: cityUrl },
             { name: hood.name },
           ]),

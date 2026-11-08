@@ -1,4 +1,4 @@
-import { SITE_URL } from "../../../lib/seo/config";
+import { HOME_URL, SITE_URL } from "../../../lib/seo/config";
 import { buildBreadcrumbJsonLd, buildFaqPageSchema, ORG_ID } from "../../../lib/seo/schema";
 
 /*
@@ -305,6 +305,6 @@ export function bestPageJsonLd(page: BestPage): object[] {
         url: product.sources[0],
       })),
     },
-    buildBreadcrumbJsonLd([{ name: "Home", item: SITE_URL }, { name: page.title }]),
+    buildBreadcrumbJsonLd([{ name: "Home", item: HOME_URL }, { name: page.title }]),
   ];
 }

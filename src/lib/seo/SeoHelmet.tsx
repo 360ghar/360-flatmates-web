@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import {
   SITE_URL,
+  HOME_URL,
   SITE_NAME,
   SITE_TAGLINE,
   DEFAULT_DESCRIPTION,
@@ -82,7 +83,7 @@ export function SeoHelmet({
 }: SeoHelmetProps) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME}: ${SITE_TAGLINE}`;
   const metaDescription = description ?? DEFAULT_DESCRIPTION;
-  const canonical = canonicalUrl ?? SITE_URL;
+  const canonical = canonicalUrl ?? HOME_URL;
   const image = ogImage ?? DEFAULT_OG_IMAGE;
   const ogImageAlt = ogImage
     ? `Preview image for ${title ?? SITE_NAME}`

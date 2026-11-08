@@ -1,4 +1,4 @@
-import { SITE_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL, SUPPORTED_CITIES } from "./config";
+import { SITE_URL, HOME_URL, SITE_NAME, DEFAULT_DESCRIPTION, SUPPORT_EMAIL, SUPPORTED_CITIES } from "./config";
 
 /**
  * Absolute URL to the 360Ghar organization logo (2048×2048). It is the same URL
@@ -82,7 +82,7 @@ export function buildWebSiteSchema() {
     "@type": "WebSite",
     "@id": WEBSITE_ID,
     name: SITE_NAME,
-    url: SITE_URL,
+    url: HOME_URL,
     description: DEFAULT_DESCRIPTION,
     publisher: { "@id": ORG_ID },
     potentialAction: {
@@ -107,7 +107,7 @@ export function buildWebApplicationSchema() {
     "@type": "WebApplication",
     "@id": APP_ID,
     name: SITE_NAME,
-    url: SITE_URL,
+    url: HOME_URL,
     description: DEFAULT_DESCRIPTION,
     applicationCategory: "LifestyleApplication",
     operatingSystem: "Web",
@@ -133,7 +133,7 @@ export function buildServiceSchema() {
     serviceType: "Flatmate matching and verified rental listings",
     provider: { "@id": ORG_ID },
     areaServed: { "@type": "Country", name: "India" },
-    url: SITE_URL,
+    url: HOME_URL,
     description: DEFAULT_DESCRIPTION,
     offers: {
       "@type": "Offer",
@@ -159,7 +159,7 @@ export function buildBreadcrumbJsonLd(items: { name: string; item?: string }[]) 
 }
 
 export function homeBreadcrumb() {
-  return { name: "Home", item: SITE_URL };
+  return { name: "Home", item: HOME_URL };
 }
 
 /** Speakable — marks CSS selectors for the most important speakable content. */

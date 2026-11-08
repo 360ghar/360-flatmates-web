@@ -23,7 +23,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildStaticRoutes, type RouteContent } from "./lib/route-content";
 import { fetchDiscoverableListings, shouldFetchListingData } from "./lib/listings";
-import { SITE_URL, SITE_NAME } from "../src/lib/seo/config";
+import { HOME_URL, SITE_URL, SITE_NAME } from "../src/lib/seo/config";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = resolve(__dirname, "..", "dist");
@@ -132,7 +132,7 @@ function readShellTemplate(): ShellTemplate {
 
 function generatePage(shell: ShellTemplate, route: RouteContent): string {
   const fullTitle = `${route.title} | ${SITE_NAME}`;
-  const canonical = route.canonicalUrl ?? (route.path === "/" ? SITE_URL : `${SITE_URL}${route.path}`);
+  const canonical = route.canonicalUrl ?? (route.path === "/" ? HOME_URL : `${SITE_URL}${route.path}`);
   const ogImage = route.ogImage ?? `${SITE_URL}/og-image.webp`;
 
   const metaTags = [
@@ -268,7 +268,7 @@ function generateListingPage(shell: ShellTemplate, listing: ListingData): { rout
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 1, name: "Home", item: HOME_URL },
       { "@type": "ListItem", position: 2, name: "Discover", item: `${SITE_URL}/discover` },
       { "@type": "ListItem", position: 3, name: title },
     ],
@@ -339,7 +339,7 @@ function generateSharePage(shell: ShellTemplate, listing: ListingData): { route:
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 1, name: "Home", item: HOME_URL },
       { "@type": "ListItem", position: 2, name: "Discover", item: `${SITE_URL}/discover` },
       { "@type": "ListItem", position: 3, name: title, item: url },
     ],

@@ -1,4 +1,6 @@
 export const SITE_URL = "https://flatmates.360ghar.com";
+/** The home page URL. It ends with "/", like the sitemap entry. */
+export const HOME_URL = `${SITE_URL}/`;
 export const SITE_NAME = "360 Flatmates";
 export const SITE_TAGLINE = "Find Your Flatmate, Find Your Vibe";
 export const DEFAULT_DESCRIPTION =
